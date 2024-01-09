@@ -99,7 +99,7 @@ Que se passe-t-il lorsque l'on additionne un sinus et un cosinus? Ou plutôt, qu
    :scale: 100% 
    :align: center 
 
-(Le code utilisé pour cette application Python pyqtgraph se trouve à l'adresse suivante `ici <https://raw.githubusercontent.com/777arc/textbook/master/figure-generating-scripts/sin_plus_cos.py>`_)
+(Le code utilisé pour cette application Python pyqtgraph se trouve à l'adresse suivante `ici <https://raw.githubusercontent.com/777arc/PySDR/master/figure-generating-scripts/sin_plus_cos.py>`_)
 
 Ce qu'il faut retenir, c'est que lorsque nous additionnons le cos() et le sin(), nous obtenons une autre onde sinusoïdale pure avec une phase et une amplitude différentes. De plus, la phase se décale lorsque nous retirons ou ajoutons lentement l'une des deux parties. L'amplitude change également. Tout ceci est le résultat de l'identité trigonométrique : :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`, sur laquelle nous reviendrons plus tard. "L'utilité" de ce résultat est que nous pouvons contrôler la phase et l'amplitude d'une onde sinusoïdale résultante en ajustant les amplitudes I et Q (nous n'avons pas besoin d'ajuster la phase du cosinus ou du sinus). Par exemple, nous pouvons ajuster I et Q de manière à ce que l'amplitude reste constante et que la phase soit celle que nous voulons. En tant qu'émetteur, cette approche est extrêmement utile car nous savons que nous devons transmettre un signal sinusoïdal pour qu'il se propage dans l'air comme une onde électromagnétique. Et il est beaucoup plus facile de régler deux amplitudes et d'effectuer une opération d'addition que de régler une amplitude et une phase. Le résultat est que notre émetteur ressemblera à quelque chose comme ceci:
 

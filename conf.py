@@ -188,7 +188,7 @@ html_theme_options = {'description':'By <a href="https://pysdr.org/content/about
                       'page_width': 'auto', # makes body width fill the window nicely, but for some reason there's a max around 1000px
                       'sidebar_width': '290px', # width of sidebar
                       'show_powered_by': False,
-                      'extra_nav_links':{'GitHub Link':'https://github.com/777arc/textbook', 'Online Python Console':'https://trinket.io/embed/python3'},
+                      'extra_nav_links':{'GitHub Link':'https://github.com/777arc/PySDR', 'Online Python Console':'https://trinket.io/embed/python3'},
                       'show_relbars': True} # previous and next links at top and bottom (can also use show_relbar_bottom)
 
 

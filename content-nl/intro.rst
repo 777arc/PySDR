@@ -55,7 +55,7 @@ Meehelpen
 
 Als je ook maar iets van dit boek hebt gelezen en je stuurt me een email (pysdr@vt.edu) met vragen/opmerkingen/suggesties dan, gefeliciteerd. Je hebt bijgedragen aan dit boek!
 
-Op een grotere manier kun je aan dit boek meehelpen door Git. Dit boek mag wel de vorm hebben van een website. Maar het bronmateriaal wordt gegenereerd op basis van de `GitHub pagina <https://github.com/777arc/textbook>`_ van dit boek. Voel je vrij om een issue of zelfs een Pull Request (PR) met verbeteringen of opmerkingen aan te maken. Zij die waardevolle terugkoppeling bieden, zullen permanent aan de bedragenlijst hieronder worden toegevoegd. Ben je niet zo bekwaam met Git, maar heb je wel opmerkingen? Voel je vrij mij te e-mailen op pysdr@vt.edu. 
+Op een grotere manier kun je aan dit boek meehelpen door Git. Dit boek mag wel de vorm hebben van een website. Maar het bronmateriaal wordt gegenereerd op basis van de `GitHub pagina <https://github.com/777arc/PySDR>`_ van dit boek. Voel je vrij om een issue of zelfs een Pull Request (PR) met verbeteringen of opmerkingen aan te maken. Zij die waardevolle terugkoppeling bieden, zullen permanent aan de bedragenlijst hieronder worden toegevoegd. Ben je niet zo bekwaam met Git, maar heb je wel opmerkingen? Voel je vrij mij te e-mailen op pysdr@vt.edu. 
 
 De website en dit boek worden zonder reclame aangeboden omdat we reclame haten. Ik accepteer ook geen donaties op PayPal of Bitcoin. Er is letterlijk geen manier voor mij om betaald te worden voor dit boek. In plaats hiervan raad ik aan dit boek te delen met collega's, studenten en andere levenslange studenten die geïnteresseerd zijn in dit onderwerp.
 

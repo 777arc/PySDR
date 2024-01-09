@@ -145,7 +145,7 @@ SDR 设备以及大多数接收机都会在执行采样之前过直接滤掉所�
    :target: ../_images/IQ3.gif
    :alt: GNU Radio animation showing I and Q as amplitudes of sinusoids that get summed together
 
-(上图是基于 pyqt 制作的，源代码可见 `这里 <https://raw.githubusercontent.com/777arc/textbook/master/figure-generating-scripts/sin_plus_cos.py>`_ )
+(上图是基于 pyqt 制作的，源代码可见 `这里 <https://raw.githubusercontent.com/777arc/PySDR/master/figure-generating-scripts/sin_plus_cos.py>`_ )
 
 从上文可以得到一个重要的结论，当我们将 :math:`cos()` 和 :math:`sin()` 相加时，我们得到的是另一个具有不同相位和幅度的纯正弦波。
 此外，随着我们慢慢去除或添加其中的一个分量，它们的和的相位、幅度会发生变化。

@@ -105,7 +105,7 @@ What happens when we add a sine and cosine?  Or rather, what happens when we add
    :target: ../_images/IQ3.gif
    :alt: GNU Radio animation showing I and Q as amplitudes of sinusoids that get summed together
 
-(The code used for this pyqtgraph-based Python app can be found `here <https://raw.githubusercontent.com/777arc/textbook/master/figure-generating-scripts/sin_plus_cos.py>`_)
+(The code used for this pyqtgraph-based Python app can be found `here <https://raw.githubusercontent.com/777arc/PySDR/master/figure-generating-scripts/sin_plus_cos.py>`_)
 
 The important take-aways are that when we add the cos() and sin(), we get another pure sine wave with a different phase and amplitude.   Also, the phase shifts as we slowly remove or add one of the two parts.  The amplitude also changes.  This is all a result of the trig identity: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`, which we will come back to in a bit.  The "utility" of this behavior is that we can control the phase and amplitude of a resulting sine wave by adjusting the amplitudes I and Q (we don't have to adjust the phase of the cosine or sine).  For example, we could adjust I and Q in a way that keeps the amplitude constant and makes the phase whatever we want.  As a transmitter this ability is extremely useful because we know that we need to transmit a sinusoidal signal in order for it to fly through the air as an electromagnetic wave.  And it's much easier to adjust two amplitudes and perform an addition operation compared to adjusting an amplitude and a phase.  The result is that our transmitter will look something like this:
 

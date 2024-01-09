@@ -718,7 +718,7 @@ Laatste code
 ********************************
 
 Het is af! Alle bovenstaande code is samengevoegd tot de code hieronder. Het zou moeten werken met de `FM opname die je hier kunt vinden <https://github.com/versd/pysdr/blob/dutch/fm_1027mhz_250ksps?raw=true>`_ . Je zou ook je eigen signaal moeten kunnen gebruiken zolang de SNR hoog genoeg is, de middenfrequentie goed is afgesteld en je een samplefrequentie van 250 kHz hebt gebruikt.
-Mocht je de code moeten tweaken om het werkend te krijgen met jouw opname of SDR, laat me dan weten wat je moest doen en je kunt het insturen als een pull-request op de `GitHub pagina <https://github.com/777arc/textbook>`_. Ook is `hier <https://github.com/777arc/textbook/blob/master/figure-generating-scripts/rds_demo.py>`_ een versie te vinden met een hoop code om de figuren uit dit hoofdstuk te genereren.
+Mocht je de code moeten tweaken om het werkend te krijgen met jouw opname of SDR, laat me dan weten wat je moest doen en je kunt het insturen als een pull-request op de `GitHub pagina <https://github.com/777arc/PySDR>`_. Ook is `hier <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/rds_demo.py>`_ een versie te vinden met een hoop code om de figuren uit dit hoofdstuk te genereren.
 
 .. raw:: html
 

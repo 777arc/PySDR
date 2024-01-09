@@ -480,7 +480,7 @@ Steering Nulls
 Висновки та список використаної літератури
 ******************************************
 
-Весь код на Python, включаючи код, що використовується для генерації малюнків/анімацій, можна знайти `на сторінці підручника на GitHub <https://github.com/777arc/textbook/blob/master/figure-generating-scripts/doa.py>`_.
+Весь код на Python, включаючи код, що використовується для генерації малюнків/анімацій, можна знайти `на сторінці підручника на GitHub <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/doa.py>`_.
 
 * Реалізація DOA на GNU Radio - https://github.com/EttusResearch/gr-doa
 * Реалізація DOA у KrakenSDR - https://github.com/krakenrf/krakensdr_doa/blob/main/_signal_processing/krakenSDR_signal_processor.py

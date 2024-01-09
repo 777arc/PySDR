@@ -102,7 +102,7 @@ Wat zou er gebeuren wanneer we een sinus en cosinus optellen? Of eigenlijk, wat 
    :scale: 100% 
    :align: center 
 
-(De code voor deze Python-app kun je hier vinden: `link <https://raw.githubusercontent.com/777arc/textbook/master/figure-generating-scripts/sin_plus_cos.py>`_)
+(De code voor deze Python-app kun je hier vinden: `link <https://raw.githubusercontent.com/777arc/PySDR/master/figure-generating-scripts/sin_plus_cos.py>`_)
 
 Wat je hier uit moet onthouden is dat wanneer de cos() en sin() worden opgeteld, we een andere zuivere sinusoïde krijgen met een andere fase en amplitude. Daarnaast verschuift de fase wanneer we langzaam een van de twee delen groter of kleiner maken. De amplitude verandert ook mee. Dit is allemaal het gevolg van de goniometrische identiteit: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`, waar we dadelijk op terug komen.  Het "nut" van dit gedrag is dat we de fase en amplitude van de resulterende sinusoïde kunnen controleren door I en Q aan te passen (we hoeven niets de doen met de fase van cosinus of sinus). We kunnen bijvoorbeeld I en Q op zo'n manier aanpassen dat de amplitude constant blijft en de fase naar wens wordt ingesteld. Omdat we weten dat we een sinusoïde signaal moeten versturen om het door de lucht te laten vliegen als een elektromagnetische golf, is deze mogelijkheid voor een zender extreem handig. Het is daarnaast veel makkelijker om twee amplitudes aan te passen en een optelling uit te voeren, dan amplitude en fase moeten aanpassen. Het resultaat is dat onze zender er ongeveer zo uit zal zien:
 

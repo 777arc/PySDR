@@ -1,6 +1,6 @@
 # PySDR Textbook
 <p align="center">
-  <img src="https://raw.githubusercontent.com/777arc/textbook/master/_images/fft_logo_wide.gif" width="350"/>
+  <img src="https://raw.githubusercontent.com/777arc/PySDR/master/_images/fft_logo_wide.gif" width="350"/>
 </p>
 This repo contains the source content used to generate the textbook, __PySDR: A Guide to SDR and DSP using Python__ , hosted at www.pysdr.org.
 

@@ -10,9 +10,11 @@ Feel free to submit an issue, or even a Pull Request (PR) with fixes or improvem
 
 ## Building
 
-Note that the website is now automatically built and deployed with each push/merge into the main branch, using the github action .github/workflows/build-and-deploy.yml and the GitHub pages system for hosting the website.
+Note that the website is now automatically built and deployed with each push/merge into master branch, using the GitHub action [build-and-deploy.yml](https://github.com/777arc/PySDR/blob/master/.github/workflows/build-and-deploy.yml) and the GitHub pages system for hosting the actual textbook.
 
-### Ubuntu
+For testing changes to the textbook locally, you can build using the following steps:
+
+### Ubuntu/Debian
 
 ```bash
 sudo apt update
@@ -24,13 +26,13 @@ make html-nl
 make html-ukraine
 ```
 
-In _build there should be an index.html that represents the main page of the site
+In _build there should be an index.html that represents the main page of the English site
 
 Note: on one machine I had to add `~/.local/bin` to PATH
 
 ### Windows
 
-(this wont include the French version):
+To build the English version:
 
 ```
 sphinx-build -b html -D imgmath_latex="C:\Program Files\MiKTeX 2.9\miktex\bin\x64\latex.exe" . _build
@@ -38,13 +40,12 @@ sphinx-build -b html -D imgmath_latex="C:\Program Files\MiKTeX 2.9\miktex\bin\x6
 
 ## Creating a PDF Export
 
-Not fully working yet due to gifs
+Not fully working yet due to animated gifs, they all need to be removed for this to not error out:
 
 ```
 sudo apt-get install -y latexmk
 sphinx-build -b latex . _build/latex
 make latexpdf
-NEED TO REMOVE ALL GIFS FOR IT TO NOT ERROR OUT
 ```
 
 ## Misc

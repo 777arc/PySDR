@@ -7,7 +7,7 @@ by :ref:`Dr. Marc Lichtman<author-chapter>`
 .. toctree::
    :maxdepth: 2
    :numbered: 1
-   
+
    content/intro
    content/frequency_domain
    content/sampling

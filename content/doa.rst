@@ -31,9 +31,9 @@ We typically refer to the antennas that make up an array as elements, and someti
 
 A beamformer is essentially a spatial filter; it filters out signals from all directions except the desired direction(s).  Instead of taps, we use weights (a.k.a. coefficients) applied to each element of an array.  We then manipulate the weights to form the beam(s) of the array, hence the name beamforming!  We can steer these beams (and nulls) extremely fast; must faster than mechanically gimballed antennas which can be thought of as an alternative to phased arrays.  A single array can electronically track multiple signals at once while nulling out interferers, as long as it has enough elements.  We'll typically discuss beamforming within the context of a communications link, where the receiver aims to receive one or more signals at as high SNR as possible. 
 
-Beamforming approaches are typically broken down into conventional and adaptive.  With conventional beamforming you assume you already know the direction of arrival of the signal of interest, and the beamformer involves choosing weights to maximize gain in that direction.  This can be used on the receive or transmit side of a communication system.  Adaptive beamforming, on the other hand, involves constantly adjusting the weights based on the beamformer output, to optimize some criteria, often involving nulling out an interferer.  Due to the closed loop and adaptive nature, adaptive beamforming is typically just used on the receive side.  
+Beamforming approaches are typically broken down into conventional and adaptive.  With conventional beamforming you assume you already know the direction of arrival of the signal of interest, and the beamformer involves choosing weights to maximize gain in that direction.  This can be used on the receive or transmit side of a communication system.  Adaptive beamforming, on the other hand, involves constantly adjusting the weights based on the beamformer output, to optimize some criteria, often involving nulling out an interferer.  Due to the closed loop and adaptive nature, adaptive beamforming is typically just used on the receive side, so the "beamformer output" is simply your received signal, and adaptive beamforming involves adjusting the weights based on the statistics of that received data.
 
-Direction-of-Arrival (DOA) within DSP/SDR refers to the process of using an array of antennas to estimate the DOA of one or more signals received by that array (versus traditional beamforming, where we are trying to receive a signal and possibly reject interference).  Although DOA certainly falls under the beamforming umbrella, so the terms can get confusing, just know that the term DOA will be used if the goal is to find the angles of arrival for one or more signals, versus beamforming used as a spatial filter to isolate and receive one or more signals for demodulation or other processing.  Some techniques such as MVDR will apply to both DOA and beamforming, while others like MUSIC are strictly for the purpose of DOA.
+Direction-of-Arrival (DOA) within DSP/SDR refers to the process of using an array of antennas to estimate the directions of arrival of one or more signals received by that array (versus beamforming, which is focused on the process of receiving a signal while rejecting as much noise and interference).  Although DOA certainly falls under the beamforming topic umbrella, so the terms can get confusing.  Some techniques such as MVDR/Capon will apply to both DOA and beamforming, because the same technique used for beamforming is used to perform DOA by sweeping the angle of interest and performing the beamforming operation at each angle, then looking for peaks in the result (each peak is a signal, but we don't know whether it is the signal of interest, an interferer, or even a multipath bounce from the signal of interest). You can think of these DOA techniques as a wrapper around a specific beamformer.  There are DOA techniques such as MUSIC and ESPIRT which are strictly for the purpose of DOA.  Because most beamforming techniques assume you know the angle of arrival of the signal of interest, if the target is moving, or the array is moving, you will have to continuously perform DOA as an intermediate step, even if your primary goal is to receive and demodulate the signal of interest.
 
 Phased arrays and beamforming/DOA find use in all sorts of applications, although you will most often see them used in multiple forms of radar, mmWave communication within 5G, satellite communications, and jamming.  Any applications that require a high-gain antenna, or require a rapidly moving high-gain antenna, are good candidates for phased arrays.
 
@@ -269,12 +269,12 @@ One thing we didn't bother doing yet- let's add noise to this received signal.  
    :target: ../_images/doa_time_domain_with_noise.svg
 
 *******************
-Basic DOA
+Conventional DOA
 *******************
 
 So far this has been simulating the receiving of a signal from a certain angle of arrival.  In your typical DOA problem you are given samples and have to estimate the angle of arrival(s).  There are also problems where you have multiple received signals from different directions and one is the signal-of-interest (SOI) while another might be a jammer or interferer you have to null out to extract the SOI with at as high SNR as possible.
 
-Next let's use this signal :code:`r` but pretend we don't know which direction the signal is coming in from, let's try to figure it out with DSP and some Python code!  We'll start with the "conventional" beamforming approach, which involves scanning through (sampling) all directions of arrival from -pi to +pi (-180 to +180 degrees).  At each direction we point the array towards that angle by applying the weights associated with pointing in that direction; applying the weights will give us a 1D array of samples, as if we received it with 1 directional antenna.  You're probably starting to realize where the term electrically steered array comes in.  This conventional beamforming method involves calculating the mean of the magnitude squared, as if we were making an energy detector.  We'll apply the beamforming weights and do this calculation at a ton of different angles, so that we can check which angle gave us the max energy.
+Next let's use this signal :code:`r` but pretend we don't know which direction the signal is coming in from, let's try to figure it out with DSP and some Python code!  We'll start with the "conventional" beamforming approach, a.k.a. delay-and-sum beamforming (also referred to as beamscan by MATLAB).  It involves scanning through (sampling) all directions of arrival from -pi to +pi (-180 to +180 degrees), e.g., in 1 degree increments.  At each direction we point the array towards that angle by applying the weights associated with pointing in that direction; applying the weights will give us a 1D array of samples, as if we received it with 1 directional antenna.  You're probably starting to realize where the term electrically steered array comes in.  This conventional beamforming method involves calculating the mean of the magnitude squared, as if we were making an energy detector.  We'll apply the beamforming weights and do this calculation at a ton of different angles, so that we can check which angle gave us the max energy.
 
 .. code-block:: python
 
@@ -389,16 +389,16 @@ Number of Elements
 Coming soon!
 
 
-*******************
-Capon's Beamformer
-*******************
+**********************
+MVDR/Capon Beamformer
+**********************
 
-In the basic DOA example we swept across all angles, multiplying :code:`r` by the weights :code:`w`, applying an energy detector to the resulting 1D array.  In that example, :code:`w` was equal to the array factor, :code:`a`, so we were essentially just multiplying :code:`r` by :code:`a`.  We will now look at a beamformer that is slightly more complicated but tends to perform much better, called Capon's Beamformer, a.k.a. the minimum variance distortionless response (MVDR) beamformer.  This beamformer can be summarized in the following equation:
+In the basic DOA example we swept across all angles, multiplying :code:`r` by the weights :code:`w`, applying an energy detector to the resulting 1D array.  In that example, :code:`w` was equal to the array factor, :code:`a`, so we were essentially just multiplying :code:`r` by :code:`a`.  We will now look at a beamformer that is slightly more complicated but tends to perform much better, called minimum variance distortionless response (MVDR) MVDR or Capon Beamformer.  This beamformer can be summarized in the following equation:
 
 .. math::
  \hat{\theta} = \mathrm{argmax}\left(\frac{1}{a^H R^{-1} a}\right)
 
-where :math:`R` is the sample covariance matrix, calculated by multiplying r with the complex conjugate transpose of itself, :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are, although to use Capon's method we don't have to fully understand how that works.  In textbooks and other resources you might see the Capon's equation with some terms in the numerator; these are purely for scaling/normalization and they don't change the results.
+where :math:`R` is the sample covariance matrix, calculated by multiplying r with the complex conjugate transpose of itself, :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are, although to use MVDR method we don't have to fully understand how that works.  In textbooks and other resources you might see the MVDR equation with some terms in the numerator; these are purely for scaling/normalization and they don't change the results.
 
 We can implement the equations above in Python fairly easily:
 
@@ -415,7 +415,7 @@ We can implement the equations above in Python fairly easily:
  
      Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
  
-     w = 1/(a.conj().T @ Rinv @ a) # Capon's method! denominator is 1x3 * 3x3 * 3x1
+     w = 1/(a.conj().T @ Rinv @ a) # MVDR equation! denominator is 1x3 * 3x3 * 3x1
      metric = metric[0,0] # convert the 1x1 matrix to a Python scalar, it's still complex though
      metric = np.abs(metric) # take magnitude
      metric = 10*np.log10(metric) # convert to dB so its easier to see small and large lobes at the same time
@@ -454,7 +454,7 @@ Works fine, but to really compare this to other techniques we'll have to create 
  n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
  r = r + 0.04*n
 
-And if we run our Capon's beamformer on this new scenario we get the following results:
+And if we run our MVDR beamformer on this new scenario we get the following results:
 
 .. image:: ../_images/doa_capons2.svg
    :align: center 

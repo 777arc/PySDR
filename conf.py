@@ -22,7 +22,9 @@ if creator_id:
     for pledge in pledges_response.data():
         patron_id = pledge.relationship('patron').id()
         patron = pledges_response.find_resource_by_type_and_id('user', patron_id)
-        names.append(patron.attribute('full_name')) # there's also 'first_name' which might be better for a public display name
+        full_name = patron.attribute('full_name')
+        full_name = full_name.replace("Jon Kraft, Analog Devices", "Jon Kraft")
+        names.append(full_name) # there's also 'first_name' which might be better for a public display name
     print("patrons:", names)
     html_string = '''
 <div style="font-size: 120%; margin-top: 5px;">A big thanks to all PySDR<br><a href="https://www.patreon.com/PySDR" target="_blank">Patreon</a> supporters:</div>
@@ -30,6 +32,9 @@ if creator_id:
 '''
     for name in names:
         html_string += '&#9900; ' + name + "<br />"
+    # Organizations that are sponsoring (Manually added to get logo included)
+    html_string += '<div style="margin-top: 5px;">and organization-level supporters:</div>'
+    html_string += '<img width="12px" height="12px" src="https://pysdr.org/_static/adi.svg">' + ' Analog Devices, Inc.' + "<br />"
     html_string += "</div>"
     with open("_templates/patrons.html", "w") as patron_file:
         patron_file.write(html_string)
@@ -188,7 +193,6 @@ html_theme_options = {'description':'By <a href="https://pysdr.org/content/about
                       'page_width': 'auto', # makes body width fill the window nicely, but for some reason there's a max around 1000px
                       'sidebar_width': '290px', # width of sidebar
                       'show_powered_by': False,
-                      'extra_nav_links':{'GitHub Link':'https://github.com/777arc/PySDR', 'Online Python Console':'https://trinket.io/embed/python3'},
                       'show_relbars': True} # previous and next links at top and bottom (can also use show_relbar_bottom)
 
 

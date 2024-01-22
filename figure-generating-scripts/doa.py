@@ -227,7 +227,7 @@ if False:
 
 # Capons beamformer
 if True:
-    if True: # use for doacompons2
+    if False: # use for doacompons2
         # more complex scenario
         Nr = 8 # 8 elements
         theta1 = 20 / 180 * np.pi # convert to radians
@@ -262,7 +262,7 @@ if True:
         Rinv = np.linalg.pinv(R) # still 3x3
 
         w = 1/(a.conj().T @ Rinv @ a) # denominator is 1x3 * 3x3 * 3x1
-        metric = np.abs(w[0,0]) # take magnitude
+        metric = np.abs(w.squeeze()) # take magnitude
         metric = 10*np.log10(metric)
 
         results.append(metric) 
@@ -375,7 +375,7 @@ if False:
         a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i))
         a = a.reshape(-1,1)
         metric = 1 / (a.conj().T @ V @ V.conj().T @ a) # The main MUSIC equation
-        metric = np.abs(metric[0,0]) # take magnitude
+        metric = np.abs(metric.squeeze()) # take magnitude
         metric = 10*np.log10(metric) # convert to dB
         results.append(metric) 
 
@@ -424,7 +424,7 @@ if False:
             a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_scan[theta_i]))
             a = a.reshape(-1,1)
             metric = 1 / (a.conj().T @ V @ V.conj().T @ a) # The main MUSIC equation
-            metric = np.abs(metric[0,0]) # take magnitude
+            metric = np.abs(metric.squeeze()) # take magnitude
             metric = 10*np.log10(metric) # convert to dB
             results[theta2s_i, theta_i] = metric
 

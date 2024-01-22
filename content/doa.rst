@@ -416,7 +416,7 @@ We can implement the equations above in Python fairly easily:
      Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
  
      w = 1/(a.conj().T @ Rinv @ a) # MVDR equation! denominator is 1x3 * 3x3 * 3x1
-     metric = np.abs(w[0,0]) # take magnitude
+     metric = np.abs(w.squeeze()) # take magnitude
      metric = 10*np.log10(metric) # convert to dB so its easier to see small and large lobes at the same time
      results.append(metric)
  
@@ -500,7 +500,7 @@ where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2
      a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # array factor
      a = a.reshape(-1,1)
      metric = 1 / (a.conj().T @ V @ V.conj().T @ a) # The main MUSIC equation
-     metric = np.abs(metric[0,0]) # take magnitude
+     metric = np.abs(metric.squeeze()) # take magnitude
      metric = 10*np.log10(metric) # convert to dB
      results.append(metric) 
  

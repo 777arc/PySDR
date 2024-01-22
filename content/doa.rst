@@ -416,8 +416,7 @@ We can implement the equations above in Python fairly easily:
      Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
  
      w = 1/(a.conj().T @ Rinv @ a) # MVDR equation! denominator is 1x3 * 3x3 * 3x1
-     metric = metric[0,0] # convert the 1x1 matrix to a Python scalar, it's still complex though
-     metric = np.abs(metric) # take magnitude
+     metric = np.abs(w[0,0]) # take magnitude
      metric = 10*np.log10(metric) # convert to dB so its easier to see small and large lobes at the same time
      results.append(metric)
  

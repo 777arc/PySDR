@@ -18,17 +18,17 @@ Nr = 3
 theta_degrees = 20 # direction of arrival
 theta = theta_degrees / 180 * np.pi # convert to radians
 a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta))
-print(a)
+#print(a)
 
 # we have to do a matrix multiplication of a and tx, which currently are both 1D, so we have to make them 2D with reshape
 a = a.reshape(-1,1)
-print(a.shape) # 3x1
+#print(a.shape) # 3x1
 tx = tx.reshape(-1,1)
-print(tx.shape) # 10000x1
+#print(tx.shape) # 10000x1
 
 # so how do we use this? simple:
 r = a @ tx.T # matrix multiply. dont get too caught up by the transpose a, the important thing is we're multiplying the array factor by the tx signal
-print(r.shape) # 3x10000.  r is now going to be a 2D array, 1d is time and 1d is spatial
+#print(r.shape) # 3x10000.  r is now going to be a 2D array, 1d is time and 1d is spatial
 
 # Plot the real part of the first 200 samples of all three elements
 if False:
@@ -54,7 +54,7 @@ if False:
 # we need to make sure each element gets an independent noise signal added
 
 n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
-r = r + 0.1*n
+r = r + 0.5*n
 
 if False:
     fig, (ax1) = plt.subplots(1, 1, figsize=(7, 3))
@@ -87,14 +87,15 @@ if False:
 
 # conventional beamforming
 if False:
-    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 100 different thetas between -180 and +180 degrees
+    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:
-        #print(theta_i)
-        w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # look familiar?
-        r_weighted = np.conj(w) @ r # apply our weights corresponding to the direction theta_i. remember r is 3x10000 so we can leave w as normal (row) vector
-        results.append(np.mean(np.abs(r_weighted)**2)) # energy detector
+        w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Conventional, aka delay-and-sum, beamformer
+        r_weighted = w.conj().T @ r # apply our weights. remember r is 3x10000
+        results.append(10*np.log10(np.var(r_weighted))) # power in signal, in dB so its easier to see small and large lobes at the same time
+    results -= np.max(results) # normalize
 
+    # print angle that gave us the max value
     print(theta_scan[np.argmax(results)] * 180 / np.pi) # 19.99999999999998
 
     fig, (ax1) = plt.subplots(1, 1, figsize=(7, 3))
@@ -105,16 +106,16 @@ if False:
     ax1.set_ylabel("DOA Metric")
     ax1.grid()
     plt.show()
-    #fig.savefig('../_images/doa_conventional_beamformer.svg', bbox_inches='tight')
+    fig.savefig('../_images/doa_conventional_beamformer.svg', bbox_inches='tight')
 
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
     ax.plot(theta_scan, results) # MAKE SURE TO USE RADIAN FOR POLAR
     ax.set_theta_zero_location('N') # make 0 degrees point up
     ax.set_theta_direction(-1) # increase clockwise
-    ax.set_rgrids([0,2,4,6,8]) 
-    ax.set_rlabel_position(22.5)  # Move grid labels away from other labels
+    #ax.set_rgrids([0,2,4,6,8]) 
+    ax.set_rlabel_position(55)  # Move grid labels away from other labels
     plt.show()
-    #fig.savefig('../_images/doa_conventional_beamformer_polar.svg', bbox_inches='tight')
+    fig.savefig('../_images/doa_conventional_beamformer_polar.svg', bbox_inches='tight')
 
     exit()
 
@@ -159,8 +160,6 @@ if False:
     anim = FuncAnimation(fig, update, frames=np.arange(0, len(theta_txs)), interval=100)
     anim.save('../_images/doa_sweeping_angle_animation.gif', dpi=80, writer='imagemagick')
     exit()
-
-
 
 
 # varying d animations
@@ -225,49 +224,51 @@ if False:
 
 
 
-# Capons beamformer
-if True:
+# MVDR/Capons beamformer
+if False:
+    # theta is the direction of interest, in radians, and r is our received signal
+    def w_mvdr(theta, r):
+        a = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
+        a = a.reshape(-1,1) # make into a column vector (size 3x1)
+        R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+        Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
+        w = (Rinv @ a)/(a.conj().T @ Rinv @ a) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
+        return w
+
+    def power_mvdr(theta, r):
+        a = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
+        a = a.reshape(-1,1) # make into a column vector (size 3x1)
+        R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+        Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
+        return 1/(a.conj().T @ Rinv @ a).squeeze()
+    
     if False: # use for doacompons2
         # more complex scenario
         Nr = 8 # 8 elements
         theta1 = 20 / 180 * np.pi # convert to radians
         theta2 = 25 / 180 * np.pi
         theta3 = -40 / 180 * np.pi
-        a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1))
-        a1 = a1.reshape(-1,1)
-        a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2))
-        a2 = a2.reshape(-1,1)
-        a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3))
-        a3 = a3.reshape(-1,1)
-        # we'll use 3 different frequencies
-        tone1 = np.exp(2j*np.pi*0.01e6*t)
-        tone1 = tone1.reshape(1,-1)
-        tone2 = np.exp(2j*np.pi*0.02e6*t)
-        tone2 = tone2.reshape(1,-1)
-        tone3 = np.exp(2j*np.pi*0.03e6*t)
-        tone3 = tone3.reshape(1,-1)
+        a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+        a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+        a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+        # we'll use 3 different frequencies.  1xN
+        tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
+        tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
+        tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
         r = a1 @ tone1 + a2 @ tone2 + 0.1 * a3 @ tone3
         n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
-        r = r + 0.04*n
+        r = r + 0.05*n # 8xN
 
-    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 100 different thetas between -180 and +180 degrees
+    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:
-        a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i))
-        a = a.reshape(-1,1) # 3x1
-
-        # Calc covariance matrix
-        R = r @ r.conj().T # gives a Nr x Nr covariance matrix of the samples
-
-        Rinv = np.linalg.pinv(R) # still 3x3
-
-        w = 1/(a.conj().T @ Rinv @ a) # denominator is 1x3 * 3x3 * 3x1
-        metric = np.abs(w.squeeze()) # take magnitude
-        metric = 10*np.log10(metric)
-
-        results.append(metric) 
-
-    results /= np.max(results) # normalize
+        w = w_mvdr(theta_i, r) # 3x1
+        r_weighted = w.conj().T @ r # apply weights
+        power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
+        results.append(power_dB)
+        #results.append(10*np.log10(power_mvdr(theta_i, r))) # compare to using equation for MVDR power, should match, SHOW MATH OF WHY THIS HAPPENS!
+    results -= np.max(results) # normalize
+    print(theta_scan[np.argmax(results)] * 180/np.pi) # Angle at peak, in degrees
 
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
     ax.plot(theta_scan, results) # MAKE SURE TO USE RADIAN FOR POLAR
@@ -275,45 +276,36 @@ if True:
     ax.set_theta_direction(-1) # increase clockwise
     ax.set_rlabel_position(30)  # Move grid labels away from other labels
     plt.show()
-    #fig.savefig('../_images/doa_capons.svg', bbox_inches='tight')
+    fig.savefig('../_images/doa_capons.svg', bbox_inches='tight')
     #fig.savefig('../_images/doa_capons2.svg', bbox_inches='tight')
     exit()
 
 
-# plugging complex scenario into simple DOA approach
+# plugging complex scenario into conventional DOA approach
 if False:
     # more complex scenario
     Nr = 8 # 8 elements
     theta1 = 20 / 180 * np.pi # convert to radians
     theta2 = 25 / 180 * np.pi
     theta3 = -40 / 180 * np.pi
-    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1))
-    a1 = a1.reshape(-1,1)
-    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2))
-    a2 = a2.reshape(-1,1)
-    a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3))
-    a3 = a3.reshape(-1,1)
-    # we'll use 3 different frequencies
-    tone1 = np.exp(2j*np.pi*0.01e6*t)
-    tone1 = tone1.reshape(-1,1)
-    tone2 = np.exp(2j*np.pi*0.02e6*t)
-    tone2 = tone2.reshape(-1,1)
-    tone3 = np.exp(2j*np.pi*0.03e6*t)
-    tone3 = tone3.reshape(-1,1)
-    r = a1 @ tone1.T + a2 @ tone2.T + 0.1 * a3 @ tone3.T
+    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    # we'll use 3 different frequencies.  1xN
+    tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
+    tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
+    tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
+    r = a1 @ tone1 + a2 @ tone2 + 0.1 * a3 @ tone3
     n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
-    r = r + 0.04*n
+    r = r + 0.05*n # 8xN
 
-    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 100 different thetas between -180 and +180 degrees
+    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:
-        w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # look familiar?
-        r_weighted = np.conj(w) @ r # apply our weights corresponding to the direction theta_i
-        metric = np.mean(np.abs(r_weighted)**2) # energy detector
-        metric = 10*np.log10(metric)
-        results.append(metric) 
-
-    results /= np.max(results) # normalize
+        w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Conventional, aka delay-and-sum, beamformer
+        r_weighted = w.conj().T @ r # apply our weights. remember r is 3x10000
+        results.append(10*np.log10(np.var(r_weighted))) # power in signal, in dB so its easier to see small and large lobes at the same time
+    results -= np.max(results) # normalize
 
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
     ax.plot(theta_scan, results) # MAKE SURE TO USE RADIAN FOR POLAR
@@ -321,33 +313,28 @@ if False:
     ax.set_theta_direction(-1) # increase clockwise
     ax.set_rlabel_position(30)  # Move grid labels away from other labels
     plt.show()
-    #fig.savefig('../_images/doa_complex_scenario.svg', bbox_inches='tight')
+    fig.savefig('../_images/doa_complex_scenario.svg', bbox_inches='tight')
     exit()
 
 
 
 # MUSIC with complex scenario
-if False:
+if True:
+    # more complex scenario
     Nr = 8 # 8 elements
     theta1 = 20 / 180 * np.pi # convert to radians
     theta2 = 25 / 180 * np.pi
     theta3 = -40 / 180 * np.pi
-    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1))
-    a1 = a1.reshape(-1,1)
-    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2))
-    a2 = a2.reshape(-1,1)
-    a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3))
-    a3 = a3.reshape(-1,1)
-    # we'll use 3 different frequencies
-    tone1 = np.exp(2j*np.pi*0.01e6*t)
-    tone1 = tone1.reshape(-1,1)
-    tone2 = np.exp(2j*np.pi*0.02e6*t)
-    tone2 = tone2.reshape(-1,1)
-    tone3 = np.exp(2j*np.pi*0.03e6*t)
-    tone3 = tone3.reshape(-1,1)
-    r = a1 @ tone1.T + a2 @ tone2.T + 0.1 * a3 @ tone3.T
+    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    # we'll use 3 different frequencies.  1xN
+    tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
+    tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
+    tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
+    r = a1 @ tone1 + a2 @ tone2 + 0.1 * a3 @ tone3
     n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
-    r = r + 0.04*n
+    r = r + 0.05*n # 8xN
 
     # MUSIC Algorithm (part that doesn't change with theta_i)
     num_expected_signals = 3 # Try changing this!
@@ -377,9 +364,8 @@ if False:
         metric = 1 / (a.conj().T @ V @ V.conj().T @ a) # The main MUSIC equation
         metric = np.abs(metric.squeeze()) # take magnitude
         metric = 10*np.log10(metric) # convert to dB
-        results.append(metric) 
-
-    results /= np.max(results) # normalize
+        results.append(metric)
+    results -= np.max(results) # normalize
 
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
     ax.plot(theta_scan, results) # MAKE SURE TO USE RADIAN FOR POLAR
@@ -387,7 +373,7 @@ if False:
     ax.set_theta_direction(-1) # increase clockwise
     ax.set_rlabel_position(30)  # Move grid labels away from other labels
     plt.show()
-    #fig.savefig('../_images/doa_music.svg', bbox_inches='tight')
+    fig.savefig('../_images/doa_music.svg', bbox_inches='tight')
     exit()
 
 

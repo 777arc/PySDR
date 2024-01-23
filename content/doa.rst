@@ -229,7 +229,7 @@ Now let's simulate an array consisting of three omnidirectional antennas in a li
  a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # array factor
  print(a) # note that it's 3 elements long, it's complex, and the first element is 1+0j
 
-To apply the array factor we have to do a matrix multiplication of :code:`a` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`x.reshape(-1,1)`.  We then perform the matrix multiply, note that the :code:`@` symbol in Python means matrix multiply (it's a NumPy thing).  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
+To apply the array factor we have to do a matrix multiplication of :code:`a` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`x.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
 
 .. code-block:: python
 
@@ -257,12 +257,12 @@ At this point :code:`r` is a 2D array, size 3 x 10000 because we have three arra
 
 Note the phase shifts between elements like we expect to happen (unless the signal arrives at boresight in which case it will reach all elements at the same time and there wont be a shift, set theta to 0 to see).  Element 0 appears to arrive first, with the others slightly delayed.  Try adjusting the angle and see what happens.
 
-One thing we didn't bother doing yet- let's add noise to this received signal.  AWGN with a phase shift applied is still AWGN, and we want to apply the noise after the array factor is applied, because each element experiences an independent noise signal.  
+As one final step, let's add noise to this received signal, as every signal we will deal with has some amount of noise. We want to apply the noise after the array factor is applied, because each element experiences an independent noise signal (we can do this because AWGN with a phase shift applied is still AWGN):
 
 .. code-block:: python
 
  n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
- r = r + 0.1*n # r and n are both 3x10000
+ r = r + 0.5*n # r and n are both 3x10000
 
 .. image:: ../_images/doa_time_domain_with_noise.svg
    :align: center 
@@ -272,19 +272,33 @@ One thing we didn't bother doing yet- let's add noise to this received signal.  
 Conventional DOA
 *******************
 
-So far this has been simulating the receiving of a signal from a certain angle of arrival.  In your typical DOA problem you are given samples and have to estimate the angle of arrival(s).  There are also problems where you have multiple received signals from different directions and one is the signal-of-interest (SOI) while another might be a jammer or interferer you have to null out to extract the SOI with at as high SNR as possible.
+We will now process these samples :code:`r`, pretending we don't know the angle of arrival, and perform DOA, which involves estimating the angle of arrival(s) with DSP and some Python code!  As discussed earlier in this chapter, the act of beamforming and performing DOA are very similar and are often built off the same techniques.  Throughout the rest of this chapter we will investigate different "beamformers", and for each one we will start with the beamformer math/code that calculates the weights, :math:`w`.  These weights can be "applied" to the incoming signal :code:`r` through the simple equation :math:`w^H r`, or in Python :code:`w.conj().T @ r`.  In the example above, :code:`r` is a :code:`3x10000` matrix, but after we apply the weights we are left with :code:`1x10000`, as if our receiver only had one antenna, and we can use normal RF DSP to process the signal.  After developing the beamformer, we will apply that beamformer to the DOA problem.
 
-Next let's use this signal :code:`r` but pretend we don't know which direction the signal is coming in from, let's try to figure it out with DSP and some Python code!  We'll start with the "conventional" beamforming approach, a.k.a. delay-and-sum beamforming (also referred to as beamscan by MATLAB).  It involves scanning through (sampling) all directions of arrival from -pi to +pi (-180 to +180 degrees), e.g., in 1 degree increments.  At each direction we point the array towards that angle by applying the weights associated with pointing in that direction; applying the weights will give us a 1D array of samples, as if we received it with 1 directional antenna.  You're probably starting to realize where the term electrically steered array comes in.  This conventional beamforming method involves calculating the mean of the magnitude squared, as if we were making an energy detector.  We'll apply the beamforming weights and do this calculation at a ton of different angles, so that we can check which angle gave us the max energy.
+We'll start with the "conventional" beamforming approach, a.k.a. delay-and-sum beamforming.  Our weights vector :code:`w` needs to be a 1D array for a uniform linear array, in our example of three elements, :code:`w` is a :code:`3x1` array of complex weights.  With conventional beamforming we leave the magnitude of the weights at 1, and adjust the phases so that the signal constructively adds up in the direction of our desired signal, which we will refer to as :math:`\theta`.  It turns out that this is the exact same math we did above!
+
+.. math::
+ w_{conventional} = e^{-2j \pi d k \sin(\theta)}
+
+or in Python:
+
+.. code-block:: python
+
+ w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Conventional, aka delay-and-sum, beamformer
+ r = w.conj().T @ r # example of applying the weights to the received signal (i.e., perform the beamforming)
+
+where :code:`Nr` is the number of elements in our uniform linear array with spacing of :code:`d` fractions of wavelength (most often ~0.5).  As you can see, the weights don't depend on anything other than the array geometry and the angle of interest.  If our array involved calibrating the phase, we would include those calibration values too.
+
+But how do we know the angle of interest :code:`theta`?  We must start by performing DOA, which involves scanning through (sampling) all directions of arrival from -π to +π (-180 to +180 degrees), e.g., in 1 degree increments.  At each direction we calculate the weights using a beamformer; we will start by using the conventional beamformer.  Applying the weights to our signal :code:`r` will give us a 1D array of samples, as if we received it with 1 directional antenna.  We can then calculate the power in the signal by taking the variance with :code:`np.var()`, and repeat for every angle in our scan.  We will plot the results and look at it with our human eyes/brain, but what most RF DSP does is find the angle of maximum power (with a peak-finding algorithm) and call it the DOA estimate.
 
 .. code-block:: python
 
  theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
  results = []
  for theta_i in theta_scan:
-     #print(theta_i)
-     w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # look familiar?
-     r_weighted = np.conj(w) @ r # apply our weights corresponding to the direction theta_i. remember r is 3x10000 so we can leave w as a normal (row) vector
-     results.append(np.mean(np.abs(r_weighted)**2)) # energy detector
+    w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Conventional, aka delay-and-sum, beamformer
+    r_weighted = w.conj().T @ r # apply our weights. remember r is 3x10000
+    results.append(10*np.log10(np.var(r_weighted))) # power in signal, in dB so its easier to see small and large lobes at the same time
+ results -= np.max(results) # normalize
  
  # print angle that gave us the max value
  print(theta_scan[np.argmax(results)] * 180 / np.pi) # 19.99999999999998
@@ -299,7 +313,7 @@ Next let's use this signal :code:`r` but pretend we don't know which direction t
    :align: center 
    :target: ../_images/doa_conventional_beamformer.svg
 
-We found our signal!  Try increasing the amount of noise to push it to its limit, you might need to simulate more samples being received for low SNRs.  Also try changing the direction of arrival.
+We found our signal!  You're probably starting to realize where the term electrically steered array comes in. Try increasing the amount of noise to push it to its limit, you might need to simulate more samples being received for low SNRs.  Also try changing the direction of arrival. 
 
 If you prefer viewing angle on a polar plot, use the following code:
 
@@ -309,14 +323,15 @@ If you prefer viewing angle on a polar plot, use the following code:
  ax.plot(theta_scan, results) # MAKE SURE TO USE RADIAN FOR POLAR
  ax.set_theta_zero_location('N') # make 0 degrees point up
  ax.set_theta_direction(-1) # increase clockwise
- ax.set_rgrids([0,2,4,6,8]) 
- ax.set_rlabel_position(22.5)  # Move grid labels away from other labels
+ ax.set_rlabel_position(55)  # Move grid labels away from other labels
  plt.show()
 
 .. image:: ../_images/doa_conventional_beamformer_polar.svg
    :align: center 
    :target: ../_images/doa_conventional_beamformer_polar.svg
    :alt: Example polar plot of performing direction of arrival (DOA) showing the beam pattern and 180 degree ambiguity
+
+We will keep seeing this pattern of looping over angles, and having some method of calculating the beamforming weights, then applying them to the recieved signal.  In the next beamforming method (MVDR) we will use our received signal :code:`r` as part of the weight calculations, making it an adaptive technique.  But first we will investigate some interesting things that happen with phased arrays, including why we have that second peak at 160 degrees.
 
 ********************
 180 Degree Ambiguity
@@ -372,63 +387,57 @@ While the main lobe gets wider as d gets lower, it still has a maximum at 20 deg
 
 Once we get lower than λ/4 there is no distinguishing between the two different paths, and the array performs poorly.  As we will see later in this chapter, there are beamforming techniques that provide more precise beams than conventional beamforming, but keeping d as close to λ/2 as possible will continue to be a theme.
 
-*******************
-Antennas
-*******************
-
-Coming soon!
-
-* common antenna types used for arrays (eg patch, monopole)
-
-
-
-*******************
-Number of Elements
-*******************
-
-Coming soon!
-
-
 **********************
 MVDR/Capon Beamformer
 **********************
 
-In the basic DOA example we swept across all angles, multiplying :code:`r` by the weights :code:`w`, applying an energy detector to the resulting 1D array.  In that example, :code:`w` was equal to the array factor, :code:`a`, so we were essentially just multiplying :code:`r` by :code:`a`.  We will now look at a beamformer that is slightly more complicated but tends to perform much better, called minimum variance distortionless response (MVDR) MVDR or Capon Beamformer.  This beamformer can be summarized in the following equation:
+We will now look at a beamformer that is slightly more complicated than the conventional/delay-and-sum technique, but tends to perform much better, called the Minimum Variance Distortionless Response (MVDR) or Capon Beamformer.  Recall that variance of a signal corresponds to how much power is in the signal.  The idea behind MVDR is to keep the signal at the angle of interest at a fixed gain of 1 (0 dB), while minimizing the total variance/power of the resulting beamformed signal.  If our signal of interest is kept fixed then minimizing the total power means minimizing interferers and noise as much as possible.  It is often refered to as a "statistically optimal" beamformer.
+
+The MVDR/Capon beamformer can be summarized in the following equation:
 
 .. math::
- \hat{\theta} = \mathrm{argmax}\left(\frac{1}{a^H R^{-1} a}\right)
 
-where :math:`R` is the sample covariance matrix, calculated by multiplying r with the complex conjugate transpose of itself, :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are, although to use MVDR method we don't have to fully understand how that works.  In textbooks and other resources you might see the MVDR equation with some terms in the numerator; these are purely for scaling/normalization and they don't change the results.
+ w_{mvdr} = \frac{R^{-1} a}{a^H R^{-1} a}
 
-We can implement the equations above in Python fairly easily:
+where :math:`R` is the sample covariance matrix, calculated by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are.  The vector :math:`a` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.
+
+If we already know the direction of the signal of interest, and that direction does not change, we only have to calculate the weights once and simply use them to receive our signal of interest.  Although even if the direction doesn't change, we benefit from recalculating these weights periodically, to account for changes in the interference/noise, which is why we refer to these non-conventional digital beamformers as "adaptive" beamforming; they use information in the signal we receive to calculate the best weights.  Just as a reminder, we can *perform* beamforming using MVDR by calculating these weights and applying them to the signal with :code:`w.conj().T @ r`, just like we did in the conventional method, the only difference is how the weights are calculated.
+
+To perform DOA using the MVDR beamformer, we simply repeat the MVDR calculation while scanning through all angles of interest.  I.e., we act like our signal is coming from angle :math:`\theta`, even if it isn't.  At each angle we calculate the MVDR weights, then apply them to the received signal, then calculate the power in the signal.  The angle that gives us the highest power is our DOA estimate, or even better we can plot power as a function of angle to see the beam pattern, as we did above with the conventional beamformer, that way we don't need to assume how many signals are present.
+
+In Python we can implement the MVDR/Capon beamformer as follows, which will be done as a function so that it's easy to use later on:
 
 .. code-block:: python
 
- theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # between -180 and +180 degrees
+ # theta is the direction of interest, in radians, and r is our received signal
+ def w_mvdr(theta, r):
+    a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector in the desired direction theta
+    a = a.reshape(-1,1) # make into a column vector (size 3x1)
+    R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+    Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better/faster than a true inverse
+    w = (Rinv @ a)/(a.conj().T @ Rinv @ a) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
+    return w
+
+Using this MVDR beamformer in the context of DOA, we get the following Python example:
+
+.. code-block:: python
+
+ theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
  results = []
  for theta_i in theta_scan:
-     a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i))
-     a = a.reshape(-1,1) # 3x1
- 
-     # Calc covariance matrix
-     R = r @ r.conj().T # gives a Nr x Nr covariance matrix of the samples
- 
-     Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
- 
-     w = 1/(a.conj().T @ Rinv @ a) # MVDR equation! denominator is 1x3 * 3x3 * 3x1
-     metric = np.abs(w.squeeze()) # take magnitude
-     metric = 10*np.log10(metric) # convert to dB so its easier to see small and large lobes at the same time
-     results.append(metric)
- 
- results /= np.max(results) # normalize
+    w = w_mvdr(theta_i, r) # 3x1
+    r_weighted = w.conj().T @ r # apply weights
+    power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
+    results.append(power_dB)
+ results -= np.max(results) # normalize
 
-When applied to the previous DOA example code, we get the following:
+When applied to the previous DOA example simulation, we get the following:
 
 .. image:: ../_images/doa_capons.svg
    :align: center 
    :target: ../_images/doa_capons.svg
 
-Works fine, but to really compare this to other techniques we'll have to create a more interesting problem.  Let's set up a simulation with an 8-element array receiving three signals from different angles: 20, 25, and 40 degrees, with the 40 degree one received at a much lower power than the other two.  Our goal will be to detect all three.  The code to generate this new scenario is as follows:
+It appears to work fine, but to really compare this to other techniques we'll have to create a more interesting problem.  Let's set up a simulation with an 8-element array receiving three signals from different angles: 20, 25, and 40 degrees, with the 40 degree one received at a much lower power than the other two, as a way to spice things up.  Our goal will be to detect all three signals, meaning we want to be able to see noticeable peaks (high enough for a peak-finder algorithm to extract).  The code to generate this new scenario is as follows:
 
 .. code-block:: python
 
@@ -436,36 +445,69 @@ Works fine, but to really compare this to other techniques we'll have to create 
  theta1 = 20 / 180 * np.pi # convert to radians
  theta2 = 25 / 180 * np.pi
  theta3 = -40 / 180 * np.pi
- a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1))
- a1 = a1.reshape(-1,1)
- a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2))
- a2 = a2.reshape(-1,1)
- a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3))
- a3 = a3.reshape(-1,1)
- # we'll use 3 different frequencies
- tone1 = np.exp(2j*np.pi*0.01e6*t)
- tone1 = tone1.reshape(-1,1)
- tone2 = np.exp(2j*np.pi*0.02e6*t)
- tone2 = tone2.reshape(-1,1)
- tone3 = np.exp(2j*np.pi*0.03e6*t)
- tone3 = tone3.reshape(-1,1)
- r = a1 @ tone1.T + a2 @ tone2.T + 0.1 * a3 @ tone3.T
+ a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+ a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+ a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+ # we'll use 3 different frequencies.  1xN
+ tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
+ tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
+ tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
+ r = a1 @ tone1 + a2 @ tone2 + 0.1 * a3 @ tone3
  n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
- r = r + 0.04*n
+ r = r + 0.05*n # 8xN
 
-And if we run our MVDR beamformer on this new scenario we get the following results:
+You can put this code at the top of your script, since we are generating a different signal than the original example. If we run our MVDR beamformer on this new scenario we get the following results:
 
 .. image:: ../_images/doa_capons2.svg
    :align: center 
    :target: ../_images/doa_capons2.svg
 
-It works pretty well, we can see the two signals received only 5 degrees apart, and we can also see the 3rd signal (at -40 or 320 degrees) that was received at one tenth the power of the others.   Now let's run the simple beamformer which is just an energy detector on this new scenario:
+It works pretty well, we can see the two signals received only 5 degrees apart, and we can also see the 3rd signal (at -40 or 320 degrees) that was received at one tenth the power of the others.   Now let's run the conventional beamformer on this new scenario:
 
 .. image:: ../_images/doa_complex_scenario.svg
    :align: center 
    :target: ../_images/doa_complex_scenario.svg
 
-While it might be a pretty shape, it's not finding all three signals at all...  By comparing these two results we can see the benefit from using a more complex beamformer.  There are many more beamformers out there, but next we are going to dive into a different class of beamformer that use the "subspace" method, often called adaptive beamforming.  
+While it might be a pretty shape, it's not finding all three signals at all...  By comparing these two results we can see the benefit from using a more complex and "adptive" beamformer.  
+
+As a quick aside for the interested reader, there is actually an optimization that can be made when performing DOA with MVDR, using a trick.  Recall that we calculate the power in a signal by taking the variance, which is the mean of the magnitude squared (assuming our signals average value is zero which is almost always the case for baseband RF).  We can represent taking the power in our signal after applying our weights as:
+
+.. math::
+
+ P_{mvdr} = \frac{1}{N} \sum_{n=0}^{N-1} \left| w^H_{mvdr} r_n \right|^2
+
+If we plug in the equation for the MVDR weights we get:
+
+.. math::
+
+ P_{mvdr} = \frac{1}{N} \sum_{n=0}^{N-1} \left| \left( \frac{R^{-1} a}{a^H R^{-1} a} \right)^H r_n \right|^2
+
+   = \frac{1}{N} \sum_{n=0}^{N-1} \left| \frac{a^H R^{-1}}{a^H R^{-1} a} r_n \right|^2
+  
+  ... \mathrm{math}
+   
+   = \frac{1}{a^H R^{-1} a}
+
+Meaning we don't have to apply the weights at all, this final equation above for power can be used directly in our DOA scan, saving us some computations:
+
+.. code-block:: python
+
+    def power_mvdr(theta, r):
+        a = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
+        a = a.reshape(-1,1) # make into a column vector (size 3x1)
+        R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+        Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
+        return 1/(a.conj().T @ Rinv @ a).squeeze()
+
+To use this in the previous simulation, within the for loop, the only thing left to do is take the :code:`10*np.log10()` and you're done, there are no weights to apply; we skipped calculating the weights!
+
+There are many more beamformers out there, but next we are going to take a moment to discuss how the number of elements impacts our ability to perform beamforming and DOA.
+
+*******************
+Number of Elements
+*******************
+
+Coming soon!
 
 *******************
 MUSIC

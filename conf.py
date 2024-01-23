@@ -23,13 +23,14 @@ if creator_id:
         patron_id = pledge.relationship('patron').id()
         patron = pledges_response.find_resource_by_type_and_id('user', patron_id)
         full_name = patron.attribute('full_name')
+        # Manual substitutions to make it look nicer
         full_name = full_name.replace("Jon Kraft, Analog Devices", "Jon Kraft")
+        full_name = full_name.replace("vince baker", "Vince Baker")
         names.append(full_name) # there's also 'first_name' which might be better for a public display name
-    print("patrons:", names)
-    html_string = '''
-<div style="font-size: 120%; margin-top: 5px;">A big thanks to all PySDR<br><a href="https://www.patreon.com/PySDR" target="_blank">Patreon</a> supporters:</div>
-<div style="font-size: 120%; margin-bottom: 0px; margin-top: 0px;">
-'''
+    # Patreon Supporters
+    html_string = ''
+    html_string += '<div style="font-size: 120%; margin-top: 5px;">A big thanks to all PySDR<br><a href="https://www.patreon.com/PySDR" target="_blank">Patreon</a> supporters:</div>'
+    html_string += '<div style="font-size: 120%; margin-bottom: 0px; margin-top: 0px;">'
     for name in names:
         html_string += '&#9900; ' + name + "<br />"
     # Organizations that are sponsoring (Manually added to get logo included)

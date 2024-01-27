@@ -106,7 +106,7 @@ if False:
     ax1.set_ylabel("DOA Metric")
     ax1.grid()
     plt.show()
-    fig.savefig('../_images/doa_conventional_beamformer.svg', bbox_inches='tight')
+    #fig.savefig('../_images/doa_conventional_beamformer.svg', bbox_inches='tight')
 
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
     ax.plot(theta_scan, results) # MAKE SURE TO USE RADIAN FOR POLAR
@@ -115,7 +115,7 @@ if False:
     #ax.set_rgrids([0,2,4,6,8]) 
     ax.set_rlabel_position(55)  # Move grid labels away from other labels
     plt.show()
-    fig.savefig('../_images/doa_conventional_beamformer_polar.svg', bbox_inches='tight')
+    #fig.savefig('../_images/doa_conventional_beamformer_polar.svg', bbox_inches='tight')
 
     exit()
 
@@ -319,7 +319,7 @@ if False:
 
 
 # MUSIC with complex scenario
-if True:
+if False:
     # more complex scenario
     Nr = 8 # 8 elements
     theta1 = 20 / 180 * np.pi # convert to radians
@@ -433,3 +433,166 @@ if False:
     anim = FuncAnimation(fig, update, frames=np.arange(0, len(theta2s)), interval=100)
     anim.save('../_images/doa_music_animation.gif', dpi=80, writer='imagemagick')
     exit()
+
+
+
+# Radar style scenario using MVDR, with a training phase
+if False:
+    # 1 jammer 1 SOI, generating two different received signals so we can isolate jammer for the training step
+    Nr = 4 # number of elements
+    theta1 = 20 / 180 * np.pi # Jammer
+    theta2 = 30 / 180 * np.pi # SOI
+    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # Nr x 1
+    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    tone1 = np.exp(2j*np.pi*0.01*np.arange(N)).reshape(1,-1) # assume sample rate = 1 Hz, its arbitrary
+    tone2 = np.exp(2j*np.pi*0.02*np.arange(N)).reshape(1,-1)
+    r_jammer = a1 @ tone1 + 0.1*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
+    r_both = a1 @ tone1 + a2 @ tone2 + 0.1*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
+
+    # "Training" step, with just jammer present
+    Rinv_jammer = np.linalg.pinv(r_jammer @ r_jammer.conj().T) # Nr x Nr, inverse covariance matrix estimate using the received samples
+
+    # Now add in the SOI and perform DOA
+    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # sweep theta between -180 and +180 degrees
+    results = []
+    for theta_i in theta_scan:
+        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # steering vector in the desired direction theta
+        s = s.reshape(-1,1) # make into a column vector (size Nr x 1)
+        Rinv_both = np.linalg.pinv(r_both @ r_both.conj().T) # could be outside for loop but more clear having it here
+        w = (Rinv_jammer @ s)/(s.conj().T @ Rinv_both @ s) # MVDR/Capon equation!  Note which R's are being used where
+        r_weighted = w.conj().T @ r_both # apply weights to the signal that contains both jammer and SOI
+        power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
+        results.append(power_dB)
+
+    results -= np.max(results) # normalize
+
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_scan, results)
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_rlabel_position(55)  # Move grid labels away from other labels
+    ax.set_ylim([-40, 0]) # only plot down to -40 dB
+
+    plt.show()
+
+    fig.savefig('../_images/doa_radar_scenario.svg', bbox_inches='tight')
+    exit()
+
+
+# Create quiescent antenna pattern using FFT of weights, changing number of elements is really the only thing that will change the pattern
+if False:
+    N_fft = 512
+    theta = theta_degrees / 180 * np.pi # doesnt need to match SOI, we arent processing samples, this is just the direction we want to point at
+    w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector
+    w = np.conj(w) # or else our answer will be negative/inverted
+    w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+    w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    
+    # Map the FFT bins to angles in radians
+    theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # in radians
+    
+    # find max so we can add it to plot
+    theta_max = theta_bins[np.argmax(w_fft_dB)]
+    
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_bins, w_fft_dB) # MAKE SURE TO USE RADIAN FOR POLAR
+    ax.plot([theta_max], [np.max(w_fft_dB)],'ro')
+    ax.text(theta_max - 0.1, np.max(w_fft_dB) - 4, np.round(theta_max * 180 / np.pi))
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_rlabel_position(55)  # Move grid labels away from other labels
+    ax.set_thetamin(-90) # only show top half
+    ax.set_thetamax(90)
+    ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
+    plt.show()
+
+    fig.savefig('../_images/doa_quiescent.svg', bbox_inches='tight')
+    exit()
+
+
+'''
+Wiener filter approach NEVER GOT THIS WORKING
+Notes:
+    dont use np.dot unless its two 1Ds
+    why FFT?
+    There's also the multistage wiener approach which has a cool diagram
+    make the simple wiener diagram first
+''' 
+if False:
+    # 2 element, 1 jammer 1 SOI, two different r's so we can isolate jammer first
+    Nr = 2
+    theta1 = 20 / 180 * np.pi # Jammer
+    theta2 = 30 / 180 * np.pi # SOI
+    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
+    tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
+    r_jammer = a1 @ tone1 + 0.05*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
+    r_both = a1 @ tone1 + a2 @ tone2 + 0.05*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
+
+    def w_wiener(r):
+        Rx_0 = r[0,:]
+        Rx_1 = r[1,:]
+
+        #Rxx_hat = (1/N) * np.sum(np.conj(Rx_1) * Rx_1) # scalar (appears to be real only)
+        Rxx_hat = np.correlate(Rx_1, Rx_1) / N # same as above
+        Rxx_hat = Rxx_hat.squeeze() # converts the 1D array of length-1 to a scalar
+
+        #rxz_hat = np.sum(Rx_1 * np.conj(Rx_0)) / N # scalar
+        rxz_hat = np.correlate(Rx_1, Rx_0) / N # same as above
+        rxz_hat = rxz_hat.squeeze()
+        
+        w_hat = (1 / Rxx_hat) * rxz_hat # scalar
+        #w_vector = np.array([[1], [-w_hat]]) # 2x1, this is the actual weights, but the first element is always = 1 with wiener filtering
+        #T = np.sqrt(2)/2 * np.array([[1, -1], [1, 1]]) # 2x2
+        #w_vector_T = np.dot(T, w_vector) # 2x1 (DONT USE DOT IT CAN MEAN DIFFERENT THINGS, ITS A MATMUL HERE)
+        #return w_vector_T
+        return w_hat
+        '''
+        w_padded = np.zeros(100, dtype=complex) # first arg seems arbitrary
+        w_padded[0] = w_vector_T[0][0]
+        w_padded[1] = w_vector_T[1][0]
+        w_fft = np.fft.fft(w_padded)
+        w_shift = np.fft.fftshift(w_fft)
+        w_db = 20*np.log10(np.abs(w_shift))
+        plt.plot(w_db)
+        plt.show()
+        '''
+
+    def dbfs(raw_data):
+        # function to convert IQ samples to FFT plot, scaled in dBFS
+        NumSamples = len(raw_data)
+        win = np.hamming(NumSamples)
+        y = raw_data * win
+        s_fft = np.fft.fft(y) / np.sum(win)
+        s_shift = np.fft.fftshift(s_fft)
+        s_dbfs = 20*np.log10(np.abs(s_shift)/(2**11))     # Pluto is a signed 12 bit ADC, so use 2^11 to convert to dBFS
+        return s_dbfs
+    
+    # Measure the jammer signal
+    w_hat = w_wiener(r_jammer)
+
+    # Now "turn on the SOI", we will use r_both:
+    Rx_0 = r_both[0,:]
+    Rx_1 = r_both[1,:]
+    y = Rx_0 - np.conj(w_hat) * Rx_1 # wiener filter equation for 2 elements, ITS AS IF THERE's a 1+0j INFRONT OF THE FIRST ELEMENT
+
+    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 100 different thetas between -180 and +180 degrees
+    results = []
+    for theta_i in theta_scan:
+        delayed_sum = y + Rx_1 * np.exp(1j * theta_i) # Jons code 
+        #delayed_sum = y + Rx_1 * np.exp(-1j * np.pi *  np.sin(theta_i)) # Me trying out the normal equation for exp()
+        #delayed_sum_dbm = dbfs(delayed_sum)
+        #results.append(np.max(delayed_sum_dbm))
+        results.append(10*np.log10(np.var(delayed_sum))) # equivalent to 2 lines above
+
+    print(theta_scan[np.argmax(results)] * 180 / np.pi / 3) # Angle at peak, in degrees NOTE THE ARBITRARY DIVIDE BY 3 NESSESARY TO GET IT TO WORK
+
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_scan, results) # MAKE SURE TO USE RADIAN FOR POLAR
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_rlabel_position(30)  # Move grid labels away from other labels
+    plt.show()
+

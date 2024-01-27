@@ -100,20 +100,19 @@ Here are some common operations in both MATLAB and Python, as a sort of cheat sh
      - :code:`A.T`
    * - Complex Conjugate Transpose |br| a.k.a. Conjugate Transpose |br| a.k.a. Hermitian Transpose |br| a.k.a. :math:`A^H`
      - :code:`A'`
-     - :code:`A.conj().T`
+     - :code:`A.conj().T` |br| |br| (unfortunately there is no :code:`A.H` for ndarrays)
    * - Elementwise Multiply
      - :code:`A .* B`
      - :code:`A * B` or :code:`np.multiply(a,b)`
    * - Matrix Multiply
      - :code:`A * B`
      - :code:`A @ B` or :code:`np.matmul(A,B)`
-   * - Dot Product
-     - :code:`dot(A,B)`
-     - :code:`np.dot(A,B)`
+   * - Dot Product of two vectors (1D)
+     - :code:`dot(a,b)`
+     - :code:`np.dot(a,b)` (never use np.dot for 2D)
    * - Concatenate
      - :code:`[A A]`
      - :code:`np.concatenate((A,A))`
-
 
 *******************
 Array Factor Math
@@ -399,7 +398,7 @@ The MVDR/Capon beamformer can be summarized in the following equation:
 
  w_{mvdr} = \frac{R^{-1} a}{a^H R^{-1} a}
 
-where :math:`R` is the sample covariance matrix, calculated by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are.  The vector :math:`a` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.
+where :math:`R` is the covariance matrix estimate based on our recieved samples, calculated by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are.  The vector :math:`a` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.
 
 If we already know the direction of the signal of interest, and that direction does not change, we only have to calculate the weights once and simply use them to receive our signal of interest.  Although even if the direction doesn't change, we benefit from recalculating these weights periodically, to account for changes in the interference/noise, which is why we refer to these non-conventional digital beamformers as "adaptive" beamforming; they use information in the signal we receive to calculate the best weights.  Just as a reminder, we can *perform* beamforming using MVDR by calculating these weights and applying them to the signal with :code:`w.conj().T @ r`, just like we did in the conventional method, the only difference is how the weights are calculated.
 
@@ -578,6 +577,113 @@ ESPRIT
 *******************
 
 Coming soon!
+
+*********************
+Radar-Style Scenario
+*********************
+
+In all of the previous DOA examples, we had one or more signals and we were interested in finding the directions of all of them.  Now we will shift gears to a more radar-oriented scenario, where you have an environment with noise and interferers, and then a signal of interest (SOI) that is only present during certain times.  A training phase, occurring when you know the SOI is not present, is performed, to capture the characteristics of the interference.  We will be using the MVDR beamformer.
+
+A new scenario is used in the Python simulation below, involving one jammer and one SOI.  In addition to simulating the samples of both signals combined (with noise), we also simulate just the jammer (with noise), which represents samples taken before the SOI was present.  The received samples :code:`r` that only contain the jammer, are used as part of a training step, where we calculate the :code:`R_inv` in the MVDR equation.  We then "turn on" the SOI by using :code:`r` that contains both the jammer and SOI, and the rest of the code is the same as normal MVDR DOA, except for one little but important detail- the :code:`R_inv`'s we use in the MVDR equation have to be:
+
+.. math::
+
+ w_{mvdr} = \frac{R_{jammer}^{-1} a}{a^H R_{both}^{-1} a}
+
+The full Python code example is as follows, try tweaking :code:`Nr` and :code:`theta1`:
+
+.. code-block:: python
+
+    # 1 jammer 1 SOI, generating two different received signals so we can isolate jammer for the training step
+    Nr = 4 # number of elements
+    theta1 = 20 / 180 * np.pi # Jammer
+    theta2 = 30 / 180 * np.pi # SOI
+    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # Nr x 1
+    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    tone1 = np.exp(2j*np.pi*0.01*np.arange(N)).reshape(1,-1) # assume sample rate = 1 Hz, its arbitrary
+    tone2 = np.exp(2j*np.pi*0.02*np.arange(N)).reshape(1,-1)
+    r_jammer = a1 @ tone1 + 0.1*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
+    r_both = a1 @ tone1 + a2 @ tone2 + 0.1*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
+
+    # "Training" step, with just jammer present
+    Rinv_jammer = np.linalg.pinv(r_jammer @ r_jammer.conj().T) # Nr x Nr, inverse covariance matrix estimate using the received samples
+
+    # Now add in the SOI and perform DOA
+    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # sweep theta between -180 and +180 degrees
+    results = []
+    for theta_i in theta_scan:
+        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # steering vector in the desired direction theta
+        s = s.reshape(-1,1) # make into a column vector (size Nr x 1)
+        Rinv_both = np.linalg.pinv(r_both @ r_both.conj().T) # could be outside for loop but more clear having it here
+        w = (Rinv_jammer @ s)/(s.conj().T @ Rinv_both @ s) # MVDR/Capon equation!  Note which R's are being used where
+        r_weighted = w.conj().T @ r_both # apply weights to the signal that contains both jammer and SOI
+        power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
+        results.append(power_dB)
+
+    results -= np.max(results) # normalize
+
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_scan, results)
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_rlabel_position(55)  # Move grid labels away from other labels
+    ax.set_ylim([-40, 0]) # only plot down to -40 dB
+
+    plt.show()
+
+.. image:: ../_images/doa_radar_scenario.svg
+   :align: center 
+   :target: ../_images/doa_radar_scenario.svg
+
+As you can see, there is a peak at the SOI (30 degrees) and null in the direction of the jammer (20 degrees).  The jammers null is not as low as the -90 to 0 degree region (which are so low they are not even displayed on the plot), but that's only because there are no signals coming from that direction, and even though we are nulling the jammer, it's not perfectly nulled out because it's so close to the angle of arrival of the SOI and we only simulated 4 elements.
+
+Note that you don't have to perform full DOA, your goal may be simply to receive the SOI (at an angle you already know) with the interferers nulled out as well as possible, e.g., if you were receiving a radar pulse from a certain direction and wanted to check if it contained energy above a threshold.
+
+**************************
+Quiescent Antenna Pattern
+**************************
+
+Recall that our steering vector we keep seeing,
+
+.. code-block:: python
+
+ np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta))
+
+encapsulates the array geometry, and its only other parameter is the direction you want to steer towards.  We can calculate and plot the "quiescent" antenna pattern (array response) when steered towards a certain direction, which will tell us the arrays natural response if we don't do any additional beamforming.  This can be done by taking the FFT of the complex conjugated weights, no for loop needed.  The tricky part is mapping the bins of the FFT output to angle in radians or degrees, which involves an arcsine as you can see in the full example below:
+
+.. code-block:: python
+
+    N_fft = 512
+    theta = theta_degrees / 180 * np.pi # doesnt need to match SOI, we arent processing samples, this is just the direction we want to point at
+    w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector
+    w = np.conj(w) # or else our answer will be negative/inverted
+    w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+    w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    
+    # Map the FFT bins to angles in radians
+    theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # in radians
+    
+    # find max so we can add it to plot
+    theta_max = theta_bins[np.argmax(w_fft_dB)]
+    
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_bins, w_fft_dB) # MAKE SURE TO USE RADIAN FOR POLAR
+    ax.plot([theta_max], [np.max(w_fft_dB)],'ro')
+    ax.text(theta_max - 0.1, np.max(w_fft_dB) - 4, np.round(theta_max * 180 / np.pi))
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_rlabel_position(55)  # Move grid labels away from other labels
+    ax.set_thetamin(-90) # only show top half
+    ax.set_thetamax(90)
+    ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
+    plt.show()
+
+.. image:: ../_images/doa_quiescent.svg
+   :align: center 
+   :target: ../_images/doa_quiescent.svg
+
+It turns out that this pattern is going to almost exactly match the pattern you get when performing DOA with the conventional beamformer (delay-and-sum), when there is a single tone present at `theta_degrees` and little-to-no noise.  The plot may look different because of how low the y-axis gets in dB, or due to the size of the FFT used to create this quiescent response pattern.  Try tweaking :code:`theta_degrees` or the number of elements :code:`Nr` to see how the response changes.
 
 *******************
 2D DOA

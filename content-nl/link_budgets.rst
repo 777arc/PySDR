@@ -46,6 +46,7 @@ We zullen ieder apart behandelen in dit hoofdstuk.
    :align: center 
    :scale: 140%
    :target: images/tx_rx_system_params.svg
+   :alt: Parameters within a link budget depicted
 
 Zendvermogen
 #####################
@@ -166,6 +167,7 @@ Als je het figuur bestudeert zie je dat communicatie bij een afstand korter dan 
 .. image:: ../_images/atmospheric_attenuation.svg
    :align: center 
    :target: ../_images/atmospheric_attenuation.svg
+   :alt: Plot of atmospheric attenuation in dB/km over frequency showing the spikes from H2O (water) and O2 (oxygen)
 
 Signaalvermogen
 #####################
@@ -194,6 +196,12 @@ Meestal laten we de winsten en verliezen in een tabel zien, zoals we dat met fin
      - -1.0 dB
    * - **Pr**
      - **-143.0 dBW**
+
+EIRP
+#####
+
+Als kleine kanttekening; je ziet wel eens Effective Isotropic Radiated Power (EIRP), dit is gedefinieerd als :math:`P_t + G_t - L_{kabel}` in dBW. 
+Door het zendvermogen en antenneversterking bij elkaar op te tellen, en de kabelverliezen af te trekken, krijg je een nuttig getal wat het "hypothetische" vermogen is wat een isotrope (perfect omnidirectionele) antenne zou moeten uitzenden om dezelfde signaalsterkte te krijgen **in de richting van de hoofdbundel** van de antenne. Dit laatste is belangrijk omdat een antenne met een hoge versterking (:math:`G_t`) alleen die hoge versterking geeft wanneer deze goed gericht is. Dus als je goed gericht bent, geeft EIRP je alles wat je moet weten over de zenderkant van het linkbudget, en daarom is het een veelgebruikte term in datasheets van richtantennes zoals satelliet grondstations (meestal in de vorm van "max EIRP").
 
 *************************
 Ruisvermogen
@@ -250,9 +258,10 @@ De ADS-B apparatuur is momenteel in het luchtruim van Australië verplicht terwi
 De fysieke laag (PHY) van ADS-B heeft de volgende eigenschappen. 
 
 - Zendfrequentie is 1,090 MHz
-- Signaal heeft een bandbreedte van 50 kHz (dat is erg klein)
+- Signaal heeft een bandbreedte van rond de 2 MHz
 - PPM modulatie
-- Een bericht heeft 15 bytes aan data, meestal zijn er meerdere berichten nodig
+- Datarate van 1 Mbit/s met berichten die tussen de 56 en 112 microseconden duren
+- Een bericht heeft 15 bytes aan data, meestal zijn er meerdere berichten nodig voor alle vliegtuiginformatie
 - Er wordt voorkomen dat vliegtuigen elkaar verstoren door een willekeurige vertraging van 0.4 tot 0.6 seconden tussen elk bericht te plaatsen. Hierdoor is de kans dat berichten over elkaar heen vallen kleiner. Nu gebeurt het af en toe, wat geen probleem is.
 - ADS-B antennes zijn verticaal gepolariseerd
 - Zendvermogen varieert maar zit ergens rond de 100 W (20 dBW)
@@ -295,14 +304,14 @@ Uiteindelijk ziet ons budget er zo uit:
 
 Voor wat betreft het ruisbudget:
 
-- B = 50 kHz = 50e3 = 47 dBHz
+- B = 2 MHz = 2e6 = 63 dBHz
 - T benaderen we met 300 K, dat is 24.8 dBK. Dit hangt van de kwaliteit van de ontvanger af.
 - k is altijd -228.6 dBW/K/Hz 
 
 .. math::
  P_{noise} = k + T + B = -156.8 \quad \mathrm{dBW}
  
-Dus de SNR is -105.7 - (-156.8) = **51.1 dB**. 
+Dus de SNR is -105.7 - (-140.8) = **35.1 dB**. 
 Het is geen verrassing dat dit een enorm getal is, gezien het vliegtuig maar 30 km verderop vliegt. Als het ADS-B signaal geen 30 km zou kunnen overbruggen dan zou het niet zo'n goed systeem zijn! Het demoduleren zou ook vrij makkelijk zijn omdat het puls-positiemodulatie (PPM) gebruikt, wat robuust is een niet een hoge SNR nodig heeft.
 Het is wel lastig om een ADS-B in een leslokaal te ontvangen, met een verkeerde antenne en een sterk FM-radiostation in de buurt wat extra storing geeft. Al die factoren leiden makkelijk tot 20-30 dB aan verliezen.
 

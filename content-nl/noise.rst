@@ -17,6 +17,7 @@ De meeste mensen zijn bekend met het concept van ruis: ongewilde fluctuaties dat
 .. image:: ../_images/noise.png
    :scale: 70 % 
    :align: center 
+   :alt: Central limit theorem visualized as the sum of many random processes leading to a normal distribution (a.k.a. gaussian distribution)
 
 We merken op dat het gemiddelde ruisniveau in het tijddomein-figuur nul is. 
 Als de gemiddelde waarde niet nul zou zijn, dan hadden we de gemiddelde waarde, de offset, ervan af kunnen halen, en dan zouden we over zijn gebleven met een gemiddelde van nul. Ook merken we op dat de individuele punten in het figuur *niet* "uniform" verdeeld zijn, hogere waarden zijn minder aanwezig dan punten die dichter bij nul zitten.
@@ -28,6 +29,7 @@ Volgens de **centrale limietstelling** zal de sommatie van vele stochastische/wi
 .. image:: ../_images/central_limit_theorem.svg
    :align: center 
    :target: ../_images/central_limit_theorem.svg
+   :alt: Depiction of why it's important to understand dB or decibels, showing a spectrogram using linear vs log scale
 
 De gaussische verdeling wordt de "normale" verdeling genoemd.
 
@@ -163,6 +165,7 @@ De figuren komen uit GNU Radio.
 .. image:: ../_images/noise_freq.png
    :scale: 110 % 
    :align: center 
+   :alt: AWGN in the time domain is also Gaussian noise in the frequency domain, although it looks like a flat line when you take the magnitude and perform averaging
 
 We kunnen zien dat de ruis vrijwel vlak en gelijk is over alle frequenties.
 Het blijkt dat gaussische ruis in het tijddomein ook gaussische ruis in het frequentiedomein is.
@@ -192,6 +195,7 @@ We merken op dat de randn() functie standaard een gemiddelde heeft van 0 en vari
 .. image:: ../_images/noise_python.png
    :scale: 100 % 
    :align: center 
+   :alt: Example of white noise simulated in Python
 
 We zouden de vlakke PSD van GNU Radio kunnen genereren door vervolgens de logaritme te nemen en te middelen.
 Het ruissignaal wat we in de FFT stopten was een reëel signaal (i.p.v. complex), en de FFT van een reëel signaal zal symmetrisch zijn rondom het midden (0 Hz), vandaar dat we alleen het positieve deel namen (de 2e helft).
@@ -238,6 +242,7 @@ Om de complexe ruis in het tijddomein te weergeven hebben we, zoals bij elk comp
 .. image:: ../_images/noise3.png
    :scale: 80 % 
    :align: center 
+   :alt: Complex noise simulated in Python
 
 Zoals je ziet zijn de reële en imaginaire delen compleet onafhankelijk.
 
@@ -255,6 +260,7 @@ In dit geval hebben beide assen een onafhankelijke gaussische verdeling.
 .. image:: ../_images/noise_iq.png
    :scale: 60 % 
    :align: center 
+   :alt: Complex noise on an IQ or constellation plot, simulated in Python
 
 Dit ziet eruit zoals we het zouden verwachten; een willekeurige klodder met het midden rond 0+0j, de oorsprong.
 Laten we voor de lol, om te kijken hoe het eruit ziet, wat ruis proberen toe te voegen aan een QPSK-signaal:
@@ -262,6 +268,7 @@ Laten we voor de lol, om te kijken hoe het eruit ziet, wat ruis proberen toe te 
 .. image:: ../_images/noisey_qpsk.png
    :scale: 60 % 
    :align: center 
+   :alt: Noisy QPSK simulated in Python
 
 En wat als de ruis nog sterker is?
 

@@ -20,8 +20,7 @@ We bekijken enkel het positieve deel omdat een gedemoduleerd FM-signaal reëel i
 .. figure:: ../_images/fm_psd.svg
    :align: center 
    :target: ../_images/fm_psd.svg
-
-   PSD van gedemoduleerd FM-signaal
+   :alt: PSD van gedemoduleerd FM-signaal
 
 Door het signaal in het frequentiedomein te bekijken zien we de volgende signalen:
 
@@ -36,7 +35,8 @@ Dit is alles wat we uit de PSD kunnen halen, en let op dat dit *na* de FM demodu
 .. image:: ../_images/fm_before_demod.svg
    :align: center 
    :target: ../_images/fm_before_demod.svg
-   
+   :alt: Power spectral density (PSD) of an FM radio signal before any demodulation
+      
 Toch is het belangrijk te beseffen dat wanneer je een signaal frequentiemoduleert, een hogere frequentie in de data ook een hogere frequentie in het FM-signaal zal opleveren.
 Dus het signaal op 67 kHz zorgt ervoor dat de totale bandbreedte van het signaal toeneemt, de hoogste frequentiecomponent is ongeveer 75 kHz volgens figuur :numref:`PSD`.
 Wanneer we `de bandbreedte-regel van Carson <https://en.wikipedia.org/wiki/Carson_bandwidth_rule>`_ op FM toepassen, zegt dit dat een FM-zender ongeveer 250 kHz aan spectrum inneemt. Om deze reden samplen we meestal op 250 kHz (vergeet niet dat bij kwadratuur/IQ-sampling de ontvangen bandbreedte gelijk is aan de samplerate).
@@ -46,6 +46,7 @@ Sommige lezers die gewend zijn om de FM-band met een SDR of spectrumanalyzer te 
 .. image:: ../_images/fm_band_psd.png
    :scale: 80 % 
    :align: center 
+   :alt: Spectrogram of the FM band
 
 Het blijkt dat deze blokkige signalen eigenlijk HD Radio zijn, een digitale versie van hetzelfde FM-radiosignaal (zelfde audio).
 Deze digitale versie geeft de ontvanger een hogere kwaliteit audio, omdat digitale signalen geen analoge ruis bevatten zoals het analoge signaal.
@@ -55,6 +56,8 @@ Weer terug naar de 5 signalen die we in onze PSD herkenden; Het volgende diagram
 .. image:: ../_images/fm_psd_labeled.svg
    :scale: 80 % 
    :align: center 
+   :target: ../_images/fm_psd_labeled.svg
+   :alt: Components within an FM radio signal, including mono and stereo audio, RDS, and DirectBand signals
 
 We doorlopen deze signalen in willekeurige volgorde:
 
@@ -288,6 +291,7 @@ Eindelijk kunnen we de symbool/tijdsynchronisatie gaan toepassen. We gebruiken e
 .. image:: ../_images/constellation-animated.gif
    :scale: 80 % 
    :align: center 
+   :alt: Animation of BPSK rotating because fine frequency sync hasn't been performed yet
 
 Mocht je een eigen FM-signaal gebruiken, en je krijgt nu niet twee aparte clusters van complexe samples, dan kan het synchronisatie-algoritme van hierboven niet synchroniseren of je hebt in de eerdere stappen een fout gemaakt. Je hoeft de constellatie niet te animeren, maar probeer niet alle samples te weergeven want dan zie je alleen een cirkel. Als je 100 of 200 samples per keer laat zien dan heb je een beter gevoel of dat er twee clusters zijn of niet, zelfs als ze ronddraaien.
 
@@ -331,12 +335,14 @@ Laten we dezelfde animatie als eerder bekijken maar met de frequentiesynchronisa
 .. image:: ../_images/constellation-animated-postcostas.gif
    :scale: 80 % 
    :align: center 
+   :alt: Animation of the frequency sync process using a Costas Loop
 
 We kunnen ook nog de geschatte frequentieafwijking over de tijd weergeven om te zien hoe de Costas-loop werkt. We hadden dit immers opgeslagen in de code. Het lijkt op een afwijking van ongeveer 0.8 Hz, mogelijk veroorzaakt door een oscillatorafwijking bij de zender, maar waarschijnlijk bij de ontvanger. Wanneer je een eigen signaal gebruikt zul je :code:`alpha` en :code:`beta` moeten aanpassen totdat je een vergelijkbaar figuur krijgt. Het zou redelijk snel moeten afregelen met minimale oscillaties. Wat na steady-state overblijft is jitter, niet oscillaties.
 
 .. image:: images/freq_error.svg
    :scale: 10 % 
    :align: center 
+   :alt: The frequency sync process using a Costas Loop showing the estimated frequency offset over time
 
 ********************************
 BPSK demoduleren

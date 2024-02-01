@@ -7,7 +7,8 @@ PlutoSDR in Python
 .. image:: ../_images/pluto.png
    :scale: 50 % 
    :align: center 
-   
+   :alt: The PlutoSDR by Analog Devices
+    
 Je zult in dit hoofdstuk leren om de Python API voor de `PlutoSDR <https://www.analog.com/en/design-center/evaluation-hardware-and-software/evaluation-boards-kits/adalm-pluto.html>`_ te gebruiken; een goedkope SDR van Analog Devices.  
 We zullen de stappen behandelen om de drivers/software voor de PlutoSDR te kunnen draaien, en behandelen hoe je kunt zenden en ontvangen met de PlutoSDR in Python.
 
@@ -119,7 +120,7 @@ Tijd om te hacken! Open een terminal (host of VM):
 
  ssh root@192.168.2.1
 
-Het wachtwoord is analog.
+Het standaard wachtwoord is :code:`analog`.
 
 Je zou een welkomst 'scherm' moeten zien. Je hebt nu geSSHd naar de linux-omgeving van de Pluto zelf!
 Type de volgende commando's in:

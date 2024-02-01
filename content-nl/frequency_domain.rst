@@ -20,6 +20,7 @@ Als eerste, waarom willen we naar signalen kijken in het frequentiedomein? Nou, 
 .. image:: ../_images/time_and_freq_domain_example_signals.png
    :scale: 40 %
    :align: center   
+   :alt: Two signals in the time domain may look like noise, but in the frequency domain we see additional features
 
 Zoals je ziet, in het tijddomein lijken beide figuren op ruis, maar in het frequentiedomein kunnen we verschillende eigenschappen van de signalen onderscheiden. Alles is van nature in het tijddomein; wanneer we signalen samplen, doen we dit in het tijddomein, want je kunt een signaal niet *direct* samplen in het frequentiedomein.
 
@@ -32,18 +33,21 @@ Het begrip dat elk signaal gerepresenteerd kan worden door een optelling van sin
 .. image:: ../_images/summing_sinusoids.svg
    :align: center
    :target: ../_images/summing_sinusoids.svg
-   
+    :alt: Simple example of how a signal can be made up of multiple sinusoids, demonstrating the Fourier Series
+    
 Hier is nog een voorbeeld; de rode curve in de animatie benadert een zaagtandsignaal door het optellen van 10 sinussen. We kunnen zien dat dit geen perfecte reconstructie is van de zaagtand - er zou een oneindig aantal sinussen nodig zijn om de scherpe transities van de zaagtand te kunnen reproduceren.
 
 .. image:: ../_images/fourier_series_triangle.gif
    :scale: 70 %   
    :align: center  
-
+   :alt: Animation of the Fourier series decomposition of a triangle wave (a.k.a. sawtooth)
+  
 Sommige signalen hebben meer sinussen nodig dan andere, en sommige een oneindig aantal, maar ze kunnen altijd worden benaderd met een beperkt aantal. Hier is nog een voorbeeld van een signaal wat wordt opgebouwd door een reeks van sinussen.
 
 .. image:: ../_images/fourier_series_arbitrary_function.gif
    :scale: 70 %   
    :align: center  
+   :alt: Animation of the Fourier series decomposition of an arbitrary function made up of square pulses
 
 Om te begrijpen hoe een signaal kan worden opgebroken in sinussen, of sinusoïden, moeten we eerst de drie eigenschappen van een sinus bekijken:
 
@@ -56,7 +60,8 @@ Om te begrijpen hoe een signaal kan worden opgebroken in sinussen, of sinusoïde
 .. image:: images/amplitude_phase_period.svg
    :align: center
    :target: images/amplitude_phase_period.svg
-   
+   :alt: Reference diagram of amplitude, phase, and frequency of a sine wave (a.k.a. sinusoid)
+     
 Je hebt nu waarschijnlijk door dat een "signaal" in feite een functie is "van de tijd" (dus, de x-as). Een andere makkelijk onthoudbare eigenschap is **periode**, de inverse van **frequentie**. De **periode** van een sinusoïde is de hoeveelheid tijd, in seconden, dat de golf nodig heeft om 1 ronde af te maken. Dus, de eenheid van frequentie is 1/seconden, of Hz.
 
 Wanneer een signaal wordt opgebroken in een sommatie van sinussen, dan zal elke een eigen **amplitude**, **fase** en **frequentie** hebben. De **amplitude** van elke sinus vertelt ons hoe sterk deze **frequentie** aanwezig was in het originele signaal. Het enige wat je voor nu over **fase** moet beseffen is dat het verschil tussen een sin() en cos() een faseverschuiving (tijdverschuiving) is.
@@ -78,6 +83,7 @@ Dit is hoe een sinus met frequentie f eruitziet in het tijd- en frequentiedomein
 .. image:: ../_images/sine-wave.png
    :scale: 70 % 
    :align: center  
+   :alt: The time-frequency Fourier pair of a sine wave, which is an impulse in the frequency domain
 
 Het tijddomein moet er bekend uitzien. 
 Het is een oscillerende golf. 
@@ -92,6 +98,7 @@ Dit tijd-frequentie paar is minder intuïtief.
 .. image:: ../_images/impulse.png
    :scale: 70 % 
    :align: center  
+   :alt: The time-frequency Fourier pair of an impulse in the time domain, which is a horizontal line (all frequencies) in the frequency domain
 
 Zoals je ziet, een piek in het tijddomein is een vlakke lijn in het frequentiedomein, en theoretisch bevat het elke frequentie. 
 Er is geen praktisch perfecte piek in het tijddomein, want dit zou oneindig kort moeten duren. 
@@ -103,8 +110,9 @@ Laten we nu naar de tijd- en frequentiedomein-figuren kijken van een blokgolf:
 .. image:: ../_images/square-wave.svg
    :align: center 
    :target: ../_images/square-wave.svg
+   :alt: The time-frequency Fourier pair of a square wave, which is a sinc (sin(x)/x function) in the frequency domain
 
-Dit is ook minder intuïtief, maar we kunnen wel een sterke piek in het frequentiedomein zien op 10 Hz, wat de frequentie is van de blokgolf. Het lijkt door te blijven gaan. 
+Dit is ook minder intuïtief, maar we kunnen op de frequentie van de blokgolf wel een sterke piek in het frequentiedomein zien. Daarnaast heeft de blokgolf nog meer pieken op hogere frequenties.
 Dit komt door de snelle overgangen in het tijddomein, net als het vorige voorbeeld. 
 Het is echter niet vlak in frequentie, maar het heeft pieken op verschillende afstanden en de amplitude neemt langzaam (en oneindig) af. 
 Een blokgolf in het tijddomein heeft een sin(x)/x vorm in het frequentiedomein.
@@ -114,9 +122,10 @@ Een constant signaal heeft geen "frequentie".
 Kijk maar:
 
 .. image:: ../_images/dc-signal.png
-   :scale: 100 % 
+   :scale: 80 % 
    :align: center 
-   
+   :alt: The time-frequency Fourier pair of a DC signal, which is an impulse at 0 Hz in the frequency domain
+
 Omdat er geen frequentie is, ontstaat er een piek op 0 Hz in het frequentiedomein. 
 Als je er over nadenkt, is dit logisch. 
 Het frequentiedomein is niet "leeg", want dat zou alleen gebeuren als er helemaal geen signaal is (alleen nullen in het tijddomein). 
@@ -199,6 +208,7 @@ Het is makkelijker om deze frequentieverschuiving visueel te weergeven:
 .. image:: ../_images/freq-shift.svg
    :align: center 
    :target: ../_images/freq-shift.svg
+   :alt: Depiction of a frequency shift of a signal in the frequency domain
 
 De frequentieverschuiving is een belangrijk onderdeel van digitale signaalbewerking omdat we veel redenen hebben om signalen in frequentie heen en weer te schuiven.
 Deze eigenschap legt uit hoe we dat kunnen doen (vermenigvuldigen met een sinusoïde). 
@@ -207,7 +217,8 @@ Hier is nog een manier om deze eigenschap te laten zien:
 .. image:: ../_images/freq-shift-diagram.svg
    :align: center
    :target: ../_images/freq-shift-diagram.svg
-   
+   :alt: Visualization of a frequency shift by multiplying by a sine wave or sinusoid
+     
 3. Vermenigvuldigen in de tijd
 
 .. math::
@@ -219,10 +230,11 @@ Hieronder een voorbeeld van een signaal wat in de tijd wordt vermenigvuldigd, en
 .. image:: ../_images/time-scaling.svg
    :align: center
    :target: ../_images/time-scaling.svg
+   :alt: Depiction of the time scaling Fourier transform property in both time and frequency domain
 
 Effectief betekent vermenigvuldigen in de tijd dat je het signaal uitrekt of krimpt in de x-as richting. 
 Deze eigenschap vertelt ons dat vermenigvuldigen in de tijd een deling tot effect heeft in het bereik van frequenties. 
-Als voorbeeld, wanneer we bits sneller oversturen zullen we meer frequenties moeten gebruiken. 
+Als voorbeeld, wanneer we bits sneller oversturen zullen we meer bandbreedte moeten gebruiken. 
 Deze eigenschap helpt dus uit te leggen waarom signalen met een hogere bitrate ook meer bandbreedte/spectrum innemen. 
 Als tijd-frequentie vermenigvuldiging recht evenredig zou zijn in plaats van omgekeerd evenredig, dan zouden de telefoonmaatschappijen zoveel bits per seconden kunnen versturen als ze wilden, zonder hiervoor miljarden voor het spectrum uit te geven!
 
@@ -234,7 +246,8 @@ Praktisch gezien heeft deze factor geen invloed.
 .. math::
    \int x(\tau) y(t-\tau) d\tau  \leftrightarrow X(f)Y(f)
 
-Dit heet de convolutie eigenschap omdat we in het tijddomein :math:`x(t)` en :math:`y(t)` convolueren. Misschien ken je de convolutie-operatie nog niet, dus bekijk het voor nu als een kruiscorrelatie. 
+Dit heet de convolutie eigenschap omdat we in het tijddomein :math:`x(t)` en :math:`y(t)` convolueren. convolution_nl-section
+Misschien ken je de convolutie-operatie nog niet, dus bekijk het voor nu als een kruiscorrelatie (deze :ref:`paragraaf <>` gaat er dieper op in). 
 Wanneer we tijddomein-signalen convolueren is dit gelijkwaardig aan het vermenigvuldigen van de frequentiedomein-signalen. 
 Het is totaal anders dan twee signalen bij elkaar optellen. 
 Wanneer je twee signalen bij elkaar optelt, gebeurt er bijna niets, zoals je hebt gezien, je telt gewoon de frequentiedomein-versies bij elkaar op. 
@@ -291,7 +304,8 @@ De FFT is een functie met een in- en uitgang. Het zet een signaal om van tijd na
 .. image:: ../_images/fft-block-diagram.svg
    :align: center
    :target: ../_images/fft-block-diagram.svg
-   
+   :alt: FFT is a function with one input (time domain) and one output (frequency domain) 
+      
 In dit boek zullen we alleen 1-dimensionale FFT's gebruiken (2D wordt bijvoorbeeld toegepast voor beeldverwerking). Behandel voor ons doel de FFT als iets met een ingang: een vector van samples (samples), en een uitgang: de frequentiedomein-versie van die vector met samples. 
 De lengte van de uitgang is altijd gelijk aan de ingang. 
 Als ik 1024 samples in de FFT stop, krijg ik er 1024 uit. Het verwarrende is dat de uitgang altijd in het frequentiedomein zit, dus het "bereik" van de frequentie-as verandert niet met het aantal samples van de tijddomein-ingang. We kunnen dit visualiseren door de in- en uitgangsvectoren en de eenheid van de elementen te bekijken:
@@ -299,6 +313,7 @@ Als ik 1024 samples in de FFT stop, krijg ik er 1024 uit. Het verwarrende is dat
 .. image:: ../_images/fft-io.svg
    :align: center
    :target: ../_images/fft-io.svg
+   :alt: Reference diagram for the input (seconds) and output (bandwidth) format of the FFT function showing frequency bins and delta-t and delta-f
 
 Omdat de uitgang in het frequentiedomein zit, is het bereik van de frequentie-as gebaseerd op de sample-frequentie (sample rate). Dit zal volgend hoofdstuk behandeld worden. 
 Als we voor de ingangsvector meer samples gebruiken, dan krijgen we een hogere resolutie in het frequentiedomein (en we behandelen meer samples per keer). 
@@ -312,6 +327,7 @@ We kunnen de uitgang als volgt representeren:
 .. image:: ../_images/negative-frequencies.svg
    :align: center
    :target: ../_images/negative-frequencies.svg
+   :alt: Introducing negative frequencies
 
 Dit is altijd het geval; de uitgang van de FFT zal :math:`\text{-} f_s/2` tot :math:`f_s/2` laten zien, waar :math:`f_s` de sample-frequentie is.  
 Dat betekent dat de uitgang altijd een positief en negatief deel heeft. Als de ingang complex is dan zijn beide helften verschillend, als de ingang reëel is dan zijn de helften identiek.
@@ -339,6 +355,7 @@ Wanner de SDR ons de samples teruggeeft ziet het er zo uit:
 .. image:: ../_images/negative-frequencies3.svg
    :align: center
    :target: ../_images/negative-frequencies3.svg
+   :alt: Negative frequencies are simply the frequencies below the center (a.k.a. carrier) frequency that the radio tuned to
 
 Vergeet niet dat we de SDR op 100 MHz hebben ingesteld. 
 Dus het signaal dat op ongeveer 97.5 MHz zat, is wanneer we het digitaal bekijken, te zien op -2.5 MHz, wat technisch gezien een negatieve frequentie is. 
@@ -358,6 +375,7 @@ Het feit dat er twee frequenties zijn, verandert niet wanneer we de volgorde van
 .. image:: ../_images/fft_signal_order.png
    :scale: 50 % 
    :align: center 
+   :alt: When performing an FFT on a set of samples, the order in time that different frequencies occurred within those samples doesn't change the resulting FFT output
 
 Technisch gezien zal de fase van de FFT-waarden wel veranderen vanwege het verschuiven van de sinussen in de tijd. 
 We zullen voor de volgende paar hoofdstukken van dit boek ons echter alleen druk maken over de amplitude.
@@ -413,7 +431,8 @@ Momenteel hebben we de plot nog geen x-as gegeven, het is gewoon de index van de
 .. image:: ../_images/fft-python3.svg
    :align: center
    :target: ../_images/fft-python3.svg
-   
+   :alt: Arrangement of the output of an FFT before doing an FFT shift
+     
 Maar we willen 0 Hz (DC) in het midden hebben, en de negatieve frequenties daar links van (zo willen we dat gewoon zien). 
 Dus telkens wanneer we een FFT uitvoeren, moeten we ook een "FFT shift" of verschuiving doen. 
 Dit is simpelweg een herordening van de array dat lijkt op een circulaire verschuiving, maar is meer een "stop dit daar en dat hier" operatie. 
@@ -422,6 +441,7 @@ Het diagram hieronder laat zien wat deze FFT-shift doet:
 .. image:: ../_images/fft-python4.svg
    :align: center
    :target: ../_images/fft-python4.svg
+   :alt: Reference diagram of the FFT shift function, showing positive and negative frequencies and DC
 
 Voor ons gemak heeft Numpy een FFT-shift functie :code:`np.fft.fftshift()`.  Vervang de np.fft.fft() regel met:
 
@@ -468,6 +488,7 @@ We kunnen aan deze cyclische eigenschap voldoen met behulp van een "venster". Ne
 .. image:: images/windows.svg
    :align: center
    :target: images/windows.svg
+   :alt: Windowing function in time and frequency domain of rectangular, hamming, hanning, bartlet, blackman, and kaiser windows
 
 Een simpele benadering voor beginners is om gewoon het Hamming venster te gebruiken. Dit kun je in Python maken met :code:`np.hamming(N)` waarbij N het aantal elementen in de array en onze FFT-grootte is. In het bovenstaande voorbeeld zouden we het venster net voor de FFT toepassen . We voegen achter de tweede lijn code toe:
 
@@ -487,13 +508,22 @@ Het laatste om te behandelen is de FFT-grootte. Vanwege de manier waarop de FFT 
 Spectrogram/Waterval
 ********************
 
-Een spectrogram is een plot dat de frequentieverandering over de tijd laat zien. Het is simpelweg een hoop op elkaar gestapelde FFT’s (verticaal als je de frequentie op de horizontale as wilt hebben). We kunnen het ook real-time laten zien, dit heet meestal een waterval. Een spectrumanalyzer is het apparaat wat dit spectrogram/waterval laat zien. Hier is een voorbeeld van een spectrogram, met de frequentie op de horizontale/x-as en tijd op de verticale/y-as. Blauw stelt de laagste energie voor, en rood de hoogste. We zien in het midden een sterke piek op DC (0 Hz) met daaromheen een variërend signaal. Blauw laat hier onze ruisvloer zien.
+Een spectrogram is een plot dat de frequentieverandering over de tijd laat zien. Het is simpelweg een hoop op elkaar gestapelde FFT’s (verticaal als je de frequentie op de horizontale as wilt hebben). We kunnen het ook real-time laten zien, dit heet meestal een waterval. Een spectrumanalyzer is het apparaat wat dit spectrogram/waterval laat zien. 
+Het onderstaande diagram laat zien hoe een lijst van IQ samples kan worden opgedeeld om een spectrogram te vormen:
+
+.. image:: ../_images/spectrogram_diagram.svg
+   :align: center
+   :target: ../_images/spectrogram_diagram.svg
+   :alt: Spectrogram (a.k.a. waterfall) diagram showing how FFT slices are arrange/stacked to form a time-frequency plot
+
+Omdat elke *lijn* van een spectogram 2D data bevat, is het effectief een 3D plot, dus we moeten kleuren gebruiken om de FFT-magnituden te laten zien.
+Hier is een voorbeeld van een spectrogram, met de frequentie op de horizontale/x-as en tijd op de verticale/y-as. Blauw stelt de laagste energie voor, en rood de hoogste. We zien in het midden een sterke piek op DC (0 Hz) met daaromheen een variërend signaal. Blauw laat hier onze ruisvloer zien.
 
 .. image:: ../_images/waterfall.png
    :scale: 120 % 
    :align: center 
 
-Probeer als oefening de pythoncode te schrijven waarmee we zo'n spectrogram kunnen maken. Bedenk dat het slechts op elkaar gestapelde rijen van FFT’s zijn. Elke rij is 1 FFT. Zorg ervoor dat je het tijdsignaal opbreekt in delen van jouw FFT-grootte (bijv. 1024 samples per deel). Om dingen simpel te houden kun je een reëel signaal invoeren en simpelweg het negatieve deel van de frequenties weggooien voordat je het spectrogram plot. Je kunt het volgende signaal als voorbeeld gebruiken, een enkele toon met witte ruis:
+Bedenk dat het slechts op elkaar gestapelde rijen van FFT’s zijn. Elke rij is 1 FFT, of eigenlijk de magnitude van een FFT. Zorg ervoor dat je het tijdsignaal opbreekt in delen van jouw FFT-grootte (bijv. 1024 samples per deel). Voordat je de code induikt om een spectrogram te creeren, kun je naar de voorbeeldcode kijken voor een signaal bestaand uit een enkele toon met witte ruis:
 
 .. code-block:: python
 
@@ -513,36 +543,32 @@ Zo ziet het eruit in het tijddomein (de eerste 200 samples):
    :align: center
    :target: ../_images/spectrogram_time.svg
 
-.. raw:: html
-
-   <details>
-   <summary>Voorbeeld spectrogram code (Probeer het eerst zelf te schrijven!)</summary>
+In Python zou je het spectrogram als volgt kunnen maken:
 
 .. code-block:: python
 
  # Simuleer het bovenstaande signaal, of gebruik je eigen signaal
   
  fft_lengte = 1024
- aantal_rijen = int(np.floor(len(x)/fft_lengte))
+ aantal_rijen = len(x) //grootte fft
  spectrogram = np.zeros((aantal_rijen, fft_lengte))
  for i in range(aantal_rijen):
      spectrogram[i,:] = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x[i*fft_lengte:(i+1)*fft_lengte])))**2)
  spectrogram = spectrogram[:,fft_lengte//2:] # negatieve frequenties weggooien want ons signaal is reeel
  
- plt.imshow(spectrogram, aspect='auto', extent = [0, sample_rate/2/1e6, 0, len(x)/sample_rate])
+ plt.imshow(spectrogram, aspect='auto', extent = [sample_rate/-2/1e6, sample_rate/2/1e6, 0, len(x)/sample_rate])
  plt.xlabel("Frequency [MHz]")
  plt.ylabel("Time [s]")
  plt.show()
 
-Dit zou het volgende moeten opleveren, wat niet zo spannend is want er is geen tijd variërend gedrag. Als extra oefening kun je het signaal laten variëren in de tijd, bekijk bijv. of je de toon kunt laten starten en stoppen.
+Dit zou het volgende moeten opleveren, wat niet zo spannend is want er is geen tijd variërend gedrag. 
+Er zijn twee tonen te zien omdat we een reeel signaal als ingang hebben gebruikt. En reeele signalen hebben altijd een negative PSD dat overeenkomt met de positieve kant.
+Check https://www.IQEngine.org voor meer interessante spectrogrammen!
 
 .. image:: ../_images/spectrogram.svg
    :align: center
    :target: ../_images/spectrogram.svg
    
-.. raw:: html
-
-   </details>
 
 *********************
 FFT Implementatie
@@ -623,3 +649,4 @@ Als je het liever vanuit code bekijkt dan is hieronder een simpele Python implem
    :target: ../_images/fft_in_python.svg
    :alt: python implementation of fft example
 
+Als je interesse hebt in JavaScript en/of WebAssembly, check de `WebFFT <https://github.com/IQEngine/WebFFT>`_ bibliotheek. Deze bibliotheek bevat meerdere implementaties en er is een `benchmarking tool <https://webfft.com>`_ om de prestaties van elke implementatie te vergelijken.

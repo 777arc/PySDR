@@ -13,7 +13,7 @@ door :ref:`Dr. Marc Lichtman<author-chapter>`
    content-nl/sampling
    content-nl/digital_modulation
    content-nl/pluto
-   content-nl/usrp
+   content/usrp
    content-nl/noise
    content-nl/filters
    content-nl/link_budgets
@@ -23,4 +23,6 @@ door :ref:`Dr. Marc Lichtman<author-chapter>`
    content-nl/pulse_shaping
    content-nl/sync
    content-nl/rds
+   content-nl/doa
+   content-nl/phaser   
    content-nl/about_author

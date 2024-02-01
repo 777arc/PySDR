@@ -20,6 +20,7 @@ Wanneer we digitale symbolen versturen, dan versturen we ze zij-aan-zij (i.t.t. 
 .. image:: ../_images/pulse_train.svg
    :align: center 
    :target: ../_images/pulse_train.svg
+   :alt: A pulse train of sinc pulses
 
 Zoals je ziet is op elke interval van :math:`T` er maar een puls hoog, terwijl alle andere pulsen 0 zijn en de x-as kruisen. Wanneer de ontvanger het signaal samplet doet het dit op het perfecte moment (wanneer de puls het hoogst is), dus alleen dat moment in tijd is belangrijk. Meestal vindt er nog een vorm van symboolsynchronisatie plaats bij de ontvanger om ervoor te zorgen dat de symbolen inderdaad bij de toppen worden gesampled.
 
@@ -43,6 +44,7 @@ Als analogie kun je denken aan een beeldherkenningssysteem dat gezichten zoekt a
 .. image:: ../_images/face_template.png
    :scale: 70 % 
    :align: center 
+   :alt: A diagram of a transmit and receive chain, with a Raised Cosine (RC) filter being split into two Root Raised Cosine (RRC) filters
 
 **********************************
 Een filter opsplitsen
@@ -91,6 +93,7 @@ Het meest populaire pulsvormende filter lijkt het "raised-cosine" filter te zijn
 .. image:: images/raised_cosine.svg
    :align: center 
    :target: images/raised_cosine.svg
+   :alt: The raised cosine filter in the time domain with a variety of roll-off values
 
 Het bovenstaande figuur laat de impulsresponsie van het filter zien.
 Met :math:`\beta` kun je de steilheid van het filter instellen in het tijddomein, en dus ook omgekeerd evenredig de steilheid in het frequentiedomein:
@@ -98,6 +101,7 @@ Met :math:`\beta` kun je de steilheid van het filter instellen in het tijddomein
 .. image:: images/raised_cosine_freq.svg
    :align: center 
    :target: images/raised_cosine_freq.svg
+   :alt: The raised cosine filter in the frequency domain with a variety of roll-off values
 
 Het wordt een raised-cosine filter genoemd omdat bij een :math:`\beta=1` het frequentiedomein een halve cosinus laat zien, raised (opgeduwd) tot boven de x-as.
 
@@ -119,6 +123,7 @@ Helaas wordt de impulsresponsie een rommel omdat we de wortel hebben genomen in 
 .. image:: ../_images/rrc_filter.png
    :scale: 70 % 
    :align: center 
+   :alt: Plot of the raised cosine roll-off parameter
 
 Gelukkig wordt het filter zoveel toegepast dat er vele implementaties van te vinden zijn, zelfs `in Python <https://commpy.readthedocs.io/en/latest/generated/commpy.filters.rrcosfilter.html>`_.
 
@@ -138,6 +143,7 @@ Het is een getal tussen de 0 en 1 en wordt de "roll-off", of soms "excess bandwi
 .. image:: images/rrc_rolloff.svg
    :align: center 
    :target: images/rrc_rolloff.svg
+   :alt: A pulse train of impulses in the time domain simulated in Python
 
 Als resultaat heeft het filter dus meer coëfficiënten nodig naargelang :math:`\beta` lager wordt.
 Wanneer :math:`\beta` nul bereikt zal de impulsresponsie nooit meer afzwakken naar 0, dus in de praktijk proberen we :math:`\beta` zo dicht mogelijk bij de nul te krijgen, zonder andere problemen te veroorzaken.
@@ -262,12 +268,14 @@ Onderstaande diagram laat de ideale samplemomenten zien:
 .. image:: ../_images/symbol_sync2.png
    :scale: 40 % 
    :align: center 
+   :alt: GNU Radio simulation showing perfect sampling as far as timing
 
 Vergelijk dat eens met de slechtste samplemomenten. We zien nu 3 clusters aan samples in het IQ-diagram. Doordat we midden elk symbool samplen krijgen we totaal verkeerde samples binnen.
 
 .. image:: ../_images/symbol_sync3.png
    :scale: 40 % 
    :align: center 
+   :alt: GNU Radio simulation showing imperfect sampling as far as timing
 
 En hier is nog een voorbeeld, ergens tussen bovenstaande voorbeelden in. Nu hebben we vier clusters. Met een hoge SNR zou deze timing net voldoende kunnen zijn, maar het wordt niet aangeraden.
 

@@ -16,6 +16,8 @@ Of we het hebben over geluids- of radiogolven, we moeten samplen als we een sign
 
 .. image:: ../_images/sampling.svg
    :align: center 
+   :target: ../_images/sampling.svg
+   :alt: Concept of sampling a signal, showing sample period T, the samples are the blue dots
 
 We slaan op vaste tijden van :math:`T` seconden, de **sample-periode**, de waarde op van :math:`S(T)`. De frequentie waarop we samplen, het aantal samples per seconde, is simpelweg :math:`\frac{1}{T}`. We noemen dit de **sample-frequentie**, de inverse van de sample-periode. Stel we hebben een sample-frequentie van 10 Hz, dan is de sample-periode 0.1 seconden; er zit 0.1 seconde tussen elk sample. In de praktijk zullen onze sample-frequenties van de honderden kHz tot tientallen MHz lopen, of zelfs hoger. Wanneer we signalen samplen moeten we altijd op de sample-frequentie letten, dit is een erg belangrijke instelling.
 
@@ -44,6 +46,7 @@ Wat als we samplen op Fs = 1.5f:
 
 .. image:: ../_images/sampling_Fs_0.45.svg
    :align: center 
+   :alt: Example of sampling ambiguity when a signal is not sampled fast enough (below the Nyquist rate)
 
 Nog steeds niet genoeg! Volgens een stuk DSP-theorie, waar we niet dieper op in gaan, moet je samplen met tenminste **twee** keer de frequentie van het signaal om deze ambiguïteit te kunnen voorkomen:
 
@@ -56,7 +59,9 @@ Het bovenstaande signaal bestond slechts uit een sinus, meeste signalen bestaan 
 
 .. image:: ../_images/max_freq.svg
    :align: center 
-   
+   :target: ../_images/max_freq.svg
+   :alt: Nyquist sampling means that your sample rate is higher than the signal's maximum bandwidth
+     
 We moeten de hoogste frequentiecomponent vinden, verdubbelen, en op die snelheid of sneller samples nemen. De minimale snelheid waarmee we kunnen samplen wordt de Nyquist snelheid genoemd. In andere woorden, de Nyquist snelheid is de minimale snelheid waarop een signaal gesampled moet worden om alle informatie te behouden. Deze eigenschap is een extreem belangrijk stuk theorie binnen de DSP en SDR en dient als een brug tussen continue en discrete signalen.
 
 .. image:: ../_images/nyquist_rate.png
@@ -86,6 +91,7 @@ Dit kunnen we ook grafisch weergeven door I en Q gelijk te stellen aan 1:
 .. image:: ../_images/IQ_wave.png
    :scale: 70% 
    :align: center 
+   :alt: I and Q visualized as amplitudes of sinusoids that get summed together
 
 De cos() noemen we het "in fase" component, daarom de I, en de sin() is het 90 graden uit fase of "kwadratuur" component, vandaar de Q. Maar als je per ongeluk de Q aan de cos() en de I aan de sin() koppelt, dan maakt dat in de meeste situaties niets uit.
 
@@ -101,6 +107,8 @@ Wat zou er gebeuren wanneer we een sinus en cosinus optellen? Of eigenlijk, wat 
 .. image:: ../_images/IQ3.gif
    :scale: 100% 
    :align: center 
+   :target: ../_images/IQ3.gif
+   :alt: GNU Radio animation showing I and Q as amplitudes of sinusoids that get summed together
 
 (De code voor deze Python-app kun je hier vinden: `link <https://raw.githubusercontent.com/777arc/PySDR/master/figure-generating-scripts/sin_plus_cos.py>`_)
 
@@ -109,6 +117,7 @@ Wat je hier uit moet onthouden is dat wanneer de cos() en sin() worden opgeteld,
 .. image:: ../_images/IQ_diagram.png
    :scale: 80% 
    :align: center 
+   :alt: Diagram showing how I and Q are modulated onto a carrier
 
 We hoeven alleen een cosinus te genereren en deze 90 graden op te schuiven om het Q gedeelte te krijgen.
 
@@ -127,6 +136,7 @@ Een complex getal is niets meer dan twee getallen die samen zijn gevoegd, een re
 .. image:: ../_images/complex_plane_2.png
    :scale: 70% 
    :align: center
+   :alt: A vector on the complex plane
 
 Een sinusoïde op deze manier weergeven heet een "fasordiagram". We plotten simpelweg de complexe getallen en behandelen ze als vectoren. Maar wat is nu de modulus en fase van ons complexe getal 0.7-0.4j? Voor een gegeven complex getal waar :math:`a` het reële deel is en :math:`b` het imaginaire:
 
@@ -156,7 +166,7 @@ We kunnen de goniometrische identiteit :math:`a \cos(x) + b \sin(x) = A \cos(x-\
 .. math::
   x(t) = 0.806 \cos(2\pi ft + 0.519)
 
-Zelfs al zijn we met een complex getal gestart, we versturen iets reëels, wat goed is want we kunnen eigenlijk niet iets imaginairs met een elektromagnetische golf uitzenden. We gebruiken de imaginaire/complexe getallen alleen om aan te geven *wat* we versturen. We gaan het zo over de :math:`f` hebben.
+Zelfs al zijn we met een complex getal gestart, we versturen een reëel signaal met een fase en amplitude, want we kunnen eigenlijk niet iets imaginairs met een elektromagnetische golf uitzenden. We gebruiken de imaginaire/complexe getallen alleen om aan te geven *wat* we versturen. We gaan het zo over de :math:`f` hebben.
 
 **************************
 Complexe getallen bij FFTs
@@ -173,6 +183,7 @@ Laten we nu vanuit het perspectief van een radio-ontvanger gaan kijken die een s
 .. image:: ../_images/IQ_diagram_rx.png
    :scale: 70% 
    :align: center
+   :alt: Receiving IQ samples by directly multiplying the input signal by a sine wave and a 90 degree shifted version of that sine wave
 
 Er komt een reëel signaal onze antenne binnen, deze wordt omgezet in IQ-waarden. We kunnen de I en Q takken apart samplen met twee ADC's en daarna dit combineren en opslaan als complexe getallen. In andere woorden, op elke tijdstap samplen we de I en de Q waarde en combineren ze in de vorm :math:`I + jQ` (dus een complex getal per IQ-sample). Er zal altijd een samplefrequentie of samplesnelheid zijn, de snelheid waarmee gesampled wordt. Sommige zouden zeggen "Ik heb mijn SDR op een samplefrequentie van 2 MHz lopen”. Dit betekent dat de SDR twee miljoen samples per seconde ontvangt.
 
@@ -186,7 +197,7 @@ Nog een laatste belangrijke opmerking: Het figuur hierboven laat zien wat er **b
 Draaggolven en frequentieverschuiving
 *************************************
 
-Tot nu toe hebben we de frequentie nog niet behandelt, maar er was wel een :math:`f` in de vergelijkingen met de cos() en sin(). Deze frequentie is de frequentie waarop we echt een signaal door de lucht sturen (de frequentie van de elektromagnetische golf). Dit noemen we de "draaggolf" omdat het onze informatie draagt op een bepaalde frequentie. Wanneer we onze SDR afstellen op een bepaalde frequentie en samples ontvangen, dan wordt de informatie opgeslagen in I en Q; deze draaggolf verschijnt niet in I en Q.
+Tot nu toe hebben we de frequentie nog niet behandelt, maar er was wel een :math:`f` in de vergelijkingen met de cos() en sin(). Deze frequentie is de middenfrequentie waarop we echt een signaal door de lucht sturen (de frequentie van de elektromagnetische golf). Dit noemen we de "draaggolf" omdat het ons signaal *draagt* op een bepaalde RF-frequentie. Wanneer we onze SDR afstellen op een bepaalde frequentie en samples ontvangen, dan wordt de informatie opgeslagen in I en Q; deze draaggolf verschijnt niet in I en Q.
 
 .. image:: images/carrier.svg
    :scale: 140% 
@@ -197,7 +208,9 @@ Deze frequenties vliegen erg goed door de lucht, maar hebben niet een superlange
 
 Wanneer we onze IQ-waarden snel veranderen en via onze draaggolf versturen wordt dit het "moduleren" van de draaggolf genoemd (met data of wat we ook willen). Wanneer we de I en Q aanpassen veranderen we dus de fase en amplitude van de draaggolf. Een andere optie is om de frequentie van de draaggolf aan te passen, dus een beetje hoger of lager, dat is wat een FM-zender doet.
 
-Stel, als een simpel voorbeeld, we versturen het IQ sample 1+0j en vervolgens 0+1j. Dan gaan we van :math:`\cos(2\pi ft)` versturen naar :math:`\sin(2\pi ft)`, wat betekent dat onze draaggolf 90 graden van fase verandert wanneer we schakelen van het ene naar het andere sample.
+Als een simpel voorbeeld kunnen we het IQ sample 1+0j en vervolgens 0+1j versturen. Dan versturen we eersst :math:`\cos(2\pi ft)` en dan :math:`\sin(2\pi ft)`. Dit betekent dat onze draaggolf 90 graden van fase verandert wanneer we schakelen van het ene naar het andere sample.
+
+Het is makkelijk om het onderscheid te verliezen tussen het signaal wat we willen versturen (met typisch een hoop frequentiecomponenenten), en de frequentie waarop het verstuurd wordt (de draaggolf). Hopelijk wordt dit duidelijk wanneer we basisband- en banddoorlaatsignalen behandelen.
 
 Nu even terug naar samplen. Wat als we in plaats van samples ontvangen door het antennesignaal te vermenigvuldigen met een cos() en sin() en I en Q op te nemen, we het antennesignaal direct in een ADC zouden stoppen zoals we het hoofdstuk zijn begonnen. Stel de draaggolf is 2.4 GHz, zoals van WiFi of Bluetooth. Zoals we geleerd hebben zou dat betekenen dat we op 4.8 GHz moeten samplen. Dat is extreem snel! En een ADC die zo snel kan samplen kost duizenden euro's. In plaats hiervan verschuiven we het signaal eerst naar "beneden" zodat het signaal dat we willen samplen, gecentreerd is rond DC of 0 Hz. Deze verschuiving vindt plaats voor het samplen. We gaan van:
 
@@ -214,6 +227,7 @@ Laten we kijken hoe dit in het frequentiedomein eruitziet:
 .. figure:: ../_images/downconversion.png
    :scale: 60% 
    :align: center
+   :alt: The downconversion process where a signal is frequency shifted from RF to 0 Hz or baseband
 
    Verschuiven naar 0 Hz
 
@@ -238,6 +252,8 @@ Het figuur uit de "ontvangende kant" sectie, laat zien hoe het signaal wordt ver
 
 .. image:: ../_images/receiver_arch_diagram.svg
    :align: center
+   :target: ../_images/receiver_arch_diagram.svg
+   :alt: Three common receiver architectures: direct sampling, direct conversion, and superheterodyne
 
 ***********************************
 Basisband- en Banddoorlaatsignalen
@@ -247,6 +263,7 @@ We noemen de band waar het signaal rond de 0 Hz zit de "basisband". Andersom, "b
 .. image:: ../_images/baseband_bandpass.png
    :scale: 50% 
    :align: center
+   :alt: Baseband vs bandpass
 
 Misschien ben je ook de term "intermediate frequency" (IF) of tussenfrequentie tegengekomen; zie IF voor nu als een tussenstap tussen de basisband en RF/bandoorlaatband.
 
@@ -266,7 +283,8 @@ Hier is een voorbeeld van zo’n DC-piek:
 .. image:: ../_images/dc_spike.png
    :scale: 50% 
    :align: center
-   
+   :alt: DC spike shown in a power spectral density (PSD)
+     
 Omdat we SDR's afstellen op een middenfrequentie, komt het 0 Hz gedeelte van de FFT overeen met die middenfrequentie.
 Maar die DC-piek betekent niet per se dat er energie op de middenfrequentie zit.
 Wanneer alleen een DC-piek te zien is, en de rest van de FFT lijkt op ruis, dan is er hoogstwaarschijnlijk niet eens een signaal aanwezig op 0 Hz.
@@ -279,7 +297,8 @@ Een snelle manier om met DC-offset om te gaan is om het signaal te oversamplen e
 .. figure:: ../_images/offtuning.png
    :scale: 40 %
    :align: center
-
+   :alt: The offset tuning process to avoid the DC spike
+  
    Afstellen naast de signaalfrequentie
 
 Het blauwe vlak in figuur :numref:`afstellen` laat zien wat gesampled is door onze SDR, het groene vlak laat zien in welk deel van het spectrum we geïnteresseerd zijn. Onze LO is afgesteld op 95 MHz, omdat we de SDR zo hebben ingesteld. Gezien 95 MHz buiten het groene vlak valt, hebben we geen last van de DC-piek.
@@ -301,6 +320,7 @@ SDR-specifieke informatie over samplen vind je in de volgende hoofdstukken:
 *****************************
 Gemiddelde Vermogen Berekenen
 *****************************
+Voor RF DSP toepassingen wil je meestal het vermogen van een signaal bepalen. Bijvoorbeeld om vast te stellen of er uberhaupt een signaal is om te kunnen verwerken.
 We kunnen het gemiddelde vermogen van een discreet complex signaal, dus wat we zelf gesampled hebben, vinden door de modulus van elk sample te nemen, te kwadrateren en het gemiddelde te vinden:
 
 .. math::
@@ -328,6 +348,7 @@ Power Spectral Density berekenen
 **************************************
 
 In het vorige hoofdstuk hebben we geleerd dat je een signaal met een FFT kunt omzetten naar het frequentiedomein, en dat het resultaat de Power Spectral Density (PSD) (Nederlands: densiteit van het vermogensspectrum) wordt genoemd.
+Omdat veel PSD algoritmen in het frequentiedomein kijken, is de PSD is een uitermate handig hulpmiddel signalen in het frequentiedomein te weergeven.
 Maar om de PSD van een stapel samples echt te vinden en te plotten, moeten we meer doen dan alleen een FFT nemen.
 De volgende zes operaties zijn nodig om de PSD te bepalen:
 

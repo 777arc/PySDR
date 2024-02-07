@@ -4,22 +4,21 @@
 DOA & Beamforming
 ####################################
 
-We zullen in dit hoofdstuk het gaan hebben over de concepten van beamforming, direction-of-arrival (DOA) (Nederlands: aankomstrichting) en phased arrays. Met behulp van Python simulatievoorbeelden woden Technieken zoals Capon en MUSIC besproken. We behandelen beamforming vs. DOA en twee verschillende soorten phased arrays (passief en actief).
+We zullen in dit hoofdstuk het gaan hebben over de concepten van bundelvorming (eng: beamforming), direction-of-arrival (DOA) (Nederlands: aankomstrichting) en phased arrays. Met behulp van Python simulatievoorbeelden worden Technieken zoals Capon en MUSIC besproken. We behandelen beamforming vs. DOA en twee verschillende soorten phased arrays (passief en actief).
 
 ************************
 Overzicht en termen
 ************************
 
-Een phased array, ook wel een elektronisch gestuurd array genoemd, is een array van antennes die aan de zend- of ontvangstkant kan worden gebruikt om (elektronische) bundels naar een bepaalde richting op te focussen. 
+Een phased array, ook wel een elektronisch gestuurd array genoemd, is een array van antennes die aan de zend- of ontvangstkant kan worden gebruikt om (elektronische) bundels op een bepaalde richting op te focussen. 
 Deze techniek wordt gebruikt in communicatie- en radartoepassingen. 
 
 Phased arrays kun je grofweg in drie categorieën indelen:
 
 1. **Passive electronically scanned array (PESA)**, beter bekend als een analoge of traditionele phased array. Hierbij worden analoge faseverschuivers gebruikt om de bundelrichting aan te passen.
-   Bij de ontvanger worden alle elementen na een faseverschuiving (en eventueel versterking) opgeteld en omgezet in een signaal en met een mixer naar de basisband wordt gezet om te ontvangen.
+   Bij de ontvanger worden alle elementen na een faseverschuiving (en eventueel versterking) opgeteld en met een mixer naar de basisband  geschoven om te verwerken.
    Bij de zender gebeurt het tegenovergestelde; een enkel digitaal signaal wordt analoog gemaakt waarna meerdere faseverschuivers en versterkers worden gebruikt om het signaal voor elke antenne te produceren.
-   Wanneer er digitale faseverschuivers worden toegepast, dan hebben deze een bepaalde amplitude- en faseresolutie.
-2. **Active electronically scanned array (AESA)**, beter bekend als een volledig digitale arrays. Hier heeft elk element zijn eigen RF-componenten en het richten van de bundel gebeurt dan volledig digitaal. Vanwege de RF-componenten is dit de duurste aanpak, maar het geeft flexibiliteit en maakt hogere snelheden mogelijk. Digitale arrays zijn ideaal voor SDR's alhoewel het aantal kanalen van de SDR de grootte van de array beperkt.
+2. **Active electronically scanned array (AESA)**, beter bekend als een volledig digitale array. Hier heeft elk element zijn eigen RF-componenten en het richten van de bundel gebeurt dan volledig digitaal. Vanwege de RF-componenten is dit de duurste aanpak, maar het geeft flexibiliteit en maakt hogere snelheden mogelijk. Digitale arrays zijn ideaal voor SDR's alhoewel het aantal kanalen van de SDR de grootte van de array beperkt. Wanneer er digitale faseverschuivers worden toegepast, dan hebben deze een bepaalde amplitude- en faseresolutie.
 3. **Hybride array**, Nu worden meer PESA subarrays gebruikt, waarbij elke subarray zijn eigen RF voorkant heeft net als bij AESA's. Deze aanpak geeft het beste van beide werelden enwordt het meest toegepast in moderne arrays.
 
 Hieronder vind je een voorbeeld van de drie typen:
@@ -29,143 +28,152 @@ Hieronder vind je een voorbeeld van de drie typen:
    :target: ../_images/beamforming_examples.svg
    :alt: Example of phased arrays including Passive electronically scanned array (PESA), Active electronically scanned array (AESA), Hybrid array, showing Raytheon's MIM-104 Patriot Radar, ELM-2084 Israeli Multi-Mission Radar, Starlink User Terminal, aka Dishy
 
-We zullen in dit hoofdstuk voornamelijk focussen op signaalbewerking voor volledig digitale arrays, omdat deze beter geschikt zijn voor simulatie en DSP toepassingen. In het volgende hoofdstuk gaan we aan de slag met de "Phaser" array en SDR van Analog Devices die 8 analoge faseverschuivers heeft aangesloten op een Pluto.
+We zullen in dit hoofdstuk voornamelijk focussen op de signaalbewerking voor volledig digitale arrays, omdat deze beter geschikt zijn voor simulatie en DSP toepassingen. In het volgende hoofdstuk gaan we aan de slag met de "Phaser" array en SDR van Analog Devices die 8 analoge faseverschuivers heeft aangesloten op een Pluto.
 
 We zullen de antennes die de array vormen meestal elementen noemen, en soms wordt de array ook wel een "sensor" genoemd. Deze array-elementen zijn meestal omnidirectionele antennes, die gelijkmatig verdeeld zijn in een lijn of over twee dimensies.
 
-Een bundelvormer is in wezen een ruimtelijk filter; het filtert signalen uit alle richtingen behalve de gewenste richting(en). Net als bij filters passen we gewichten (coefficienten) toe  elk element van een array. We manipuleren dan de gewichten om de bundel(s) van de array te vormen, vandaar de naam bundelvormer! We kunnen deze bundels (en nullen) extreem snel sturen; veel sneller dan mechanisch gestuurde antennes (een mogelijk alternatief). Een enkele array kan, zolang het maar genoeg elementen heeft, tegelijkertijd meerdere signalen elektronisch volgen terwijl het interferentie onderdrukt. We zullen bundelvorming meestal bespreken in de context van een communicatieverbinding, waarbij de ontvanger probeert een of meerdere signalen met een zo hoog mogelijke SNR te ontvangen.
+Een bundelvormer is in wezen een ruimtelijk filter; het filtert signalen uit alle richtingen behalve de gewenste richting(en). Net als bij normale filters, gebruiken we gewichten (coefficienten) op elk element van een array. We manipuleren dan de gewichten om de bundel(s) van de array te vormen, vandaar de naam bundelvormer! We kunnen deze bundels (en nullen) extreem snel sturen; veel sneller dan mechanisch gestuurde antennes (een mogelijk alternatief). Een enkele array kan, zolang het maar genoeg elementen heeft, tegelijkertijd meerdere signalen elektronisch volgen terwijl het interferentie onderdrukt. We zullen bundelvorming meestal bespreken in de context van een communicatieverbinding, waarbij de ontvanger probeert een of meerdere signalen met een zo hoog mogelijke SNR te ontvangen.
 
-Bundelvormingstechnieken worden meestal onderverdeeld in conventionele en adaptieve technieken. Bij conventionele bundelvorming ga je er vanuit dat je al weet waar het signaal vandaan komt, en de bundelvormer gewichten kiest om de versterking in die richting te maximaliseren. Dit kan zowel aan de ontvangende als aan de zendende kant van een communicatiesysteem worden gebruikt. Bij adaptieve bundelvorming daarentegen worden de gewichten voortdurend aangepast op basis van de uitvoer van de bundelvormer, om een bepaald criterium te optimaliseren, vaak door een interferentiebron te onderdrukken. Vanwege de gesloten lus en adaptieve aard wordt adaptieve bundelvorming typisch alleen aan de ontvangende kant gebruikt, dus de "uitvoer van de bundelvormer" is gewoon je ontvangen signaal, en adaptieve bundelvorming houdt in dat je de gewichten aanpast op basis van de statistieken van de ontvangen gegevens.
+Bundelvormingstechnieken worden meestal onderverdeeld in conventionele en adaptieve technieken. Bij conventionele bundelvorming ga je er vanuit dat je al weet waar het signaal vandaan komt. De bundelvormer kiest dan gewichten om de versterking in die richting te maximaliseren. Dit kan zowel aan de ontvangende als aan de zendende kant van een communicatiesysteem worden gebruikt. Bij adaptieve bundelvorming daarentegen worden, om een bepaald criterium te optimaliseren, de gewichten voortdurend aangepast op basis van de uitgang van de bundelvormer. Vaak is het doel een interferentiebron te onderdrukken. Vanwege de gesloten lus en adaptieve aard wordt adaptieve bundelvorming typisch alleen aan de ontvangende kant gebruikt, dus de "uitgang van de bundelvormer" is gewoon je ontvangen signaal.  Adaptieve bundelvorming houdt dus in dat je de gewichten aanpast op basis van de statistieken van de ontvangen gegevens.
 
-Direction-of-Arrival (DOA) binnen DSP/SDR verwijst naar het proces van het gebruik van een array van antennes om de richtingen van aankomst van een of meer signalen in te schatten (in tegenstelling tot bundelvorming, dat zich richt op het proces van het ontvangen van een signaal terwijl zoveel mogelijk ruis en interferentie wordt onderdrukt). Omdat DOA zeker onder het onderwerp bundelvorming valt, kunnen de termen verwarrend zijn. 
+Direction-of-Arrival (DOA) binnen DSP/SDR verwijst naar de manier waarop een array van antennes wordt gebruikt om de aankomstrichtingen van een of meerdere signalen in te schatten (in tegenstelling tot bundelvorming, dat zich richt op het ontvangen van een signaal terwijl zoveel mogelijk ruis en interferentie wordt onderdrukt). Omdat DOA zeker onder het onderwerp bundelvorming valt, kunnen de termen verwarrend zijn. 
 Dezelfde technieken die bij bundelvorming worden gebruikt, zijn ook toepasbaar bij DOA. Het vinden van de richting gebeurt op dezelfde manieren. 
-De meeste bundelvormingstechnieken gaan ervan uit dat de aankomstrichting van het signaal bekend is. Wanneer de zender of ontvanger zich verplaatsten zal het alsnog continu DOA moeten uitvoeren, zelfs als het primaire doel is om het signaal te ontvangen en demoduleren.
+De meeste bundelvormingstechnieken gaan er van uit dat de aankomstrichting van het signaal bekend is. Wanneer de zender of ontvanger zich verplaatsten zal het alsnog continu DOA moeten uitvoeren, zelfs als het primaire doel is om het signaal te ontvangen en demoduleren.
 
-Direction-of-Arrival (DOA) within DSP/SDR refers to the process of using an array of antennas to estimate the directions of arrival of one or more signals received by that array (versus beamforming, which is focused on the process of receiving a signal while rejecting as much noise and interference).  Although DOA certainly falls under the beamforming topic umbrella, so the terms can get confusing.  Some techniques such as MVDR/Capon will apply to both DOA and beamforming, because the same technique used for beamforming is used to perform DOA by sweeping the angle of interest and performing the beamforming operation at each angle, then looking for peaks in the result (each peak is a signal, but we don't know whether it is the signal of interest, an interferer, or even a multipath bounce from the signal of interest). You can think of these DOA techniques as a wrapper around a specific beamformer.  There are DOA techniques such as MUSIC and ESPIRT which are strictly for the purpose of DOA.  Because most beamforming techniques assume you know the angle of arrival of the signal of interest, if the target is moving, or the array is moving, you will have to continuously perform DOA as an intermediate step, even if your primary goal is to receive and demodulate the signal of interest.
+Phased arrays en bundelvorming/DOA worden gebruikt in allerlei toepassingen. Je kunt ze onder andere vinden in verschillende vormen van radar, mmWave-communicatie binnen 5G, satellietcommunicatie en voor het storen van verbindingen. Elke toepassing die een antenne met een hoge versterking vereist, of een snel bewegende antenne met een hoge versterking, zijn goede kandidaten voor phased arrays.
 
-Phased arrays and beamforming/DOA find use in all sorts of applications, although you will most often see them used in multiple forms of radar, mmWave communication within 5G, satellite communications, and jamming.  Any applications that require a high-gain antenna, or require a rapidly moving high-gain antenna, are good candidates for phased arrays.
 
 *******************
-SDR Requirements
+Eisen SDR
 *******************
 
-As discussed, analog phased arrays involve an analog phase shifter (and usually adjustable gain) per channel, meaning an analog phased array is a dedicated piece of hardware that must go alongside an SDR.  On the other hand, any SDR that contains more than one channel can be used as a digital array with no extra hardware, as long as the channels are phase coherent and sampled using the same clock, which is typically the case for SDRs that have multiple recieve channels onboard.  There are many SDRs that contain **two** receive channels, such as the Ettus USRP B210 and Analog Devices Pluto (the 2nd channel is exposed using a uFL connector on the board itself).  Unfortunately, going beyond two channels involves entering the $10k+ segment of SDRs, at least as of 2023, such as the USRP N310.  The main problem is that low-cost SDRs are typically not able to be "chained" together to scale the number of channels.  The exception is the KerberosSDR (4 channels) and KrakenSDR (5 channels) which use multiple RTL-SDRs sharing an LO to form a low-cost digital array; the downside being the very limited sample rate (up to 2.56 MHz) and tuning range (up to 1766 MHz).  The KrakenSDR board and example antenna configuration is shown below.
+Zoals besproken bestaat een analoge phased array uit een faseverschuiver (en versterker) per kanaal. Dit betekent dat er analoge hardware nodig is naast de SDR. Aan de andere kant kan elke SDR met meer dan één kanaal, waarbij alle kanelen fasegekoppeld zijn en dezelfde klok gebruiken, als een digitale array worden gebruikt. Dit is meestal het geval bij SDR's met meerdere kanalen.
+Er zijn veel SDR's die **twee** ontvangstkanalen bevatten, zoals de Ettus USRP B210 en de Analog Devices Pluto (het 2e kanaal wordt blootgesteld met een uFL-connector op het bord zelf). Helaas, als je verder gaat dan twee kanalen, kom je in het segment van SDR's van $10k+ terecht, althans in 2023, zoals de USRP N310. Het grootste probleem is dat goedkope SDR's meestal niet aan elkaar kunnen worden "gekoppeld" om het aantal kanalen te vermeerderen. De uitzondering is de KerberosSDR (4 kanalen) en KrakenSDR (5 kanalen) die meerdere RTL-SDR's gebruiken die een LO delen met een gedeelde LO om een goedkope digitale array te vormen; het nadeel is de zeer beperkte bemonsteringsfrequentie (tot 2,56 MHz) en afstemmingsbereik (tot 1766 MHz). De KrakenSDR-kaart en een antenneconfiguratievoorbeeld wordt hieronder getoond. 
+
 
 .. image:: ../_images/krakensdr.jpg
    :align: center 
    :alt: The KrakenSDR
    :target: ../_images/krakensdr.jpg
 
-In this chapter we don't use any specific SDRs; instead we simulate the receiving of signals using Python, and then go through the DSP used to perform beamforming/DOA for ditital arrays.
+In dit hoofdstuk zullen we geen specifieke SDR's gebruiken; in plaats daarvan simuleren we het ontvangen van signalen met Python, en gaan we door de benodigde bewerkingen voor bundelvorming/DOA.
+
 
 **************************************
-Intro to Matrix Math in Python/NumPy
+Introductie Matrix wiskunde in Python/NumPy
 **************************************
 
-Python has many advantages over MATLAB, such as being free and open-source, diversity of applications, vibrant community, indices start from 0 like every other language, use within AI/ML, and there seems to be a library for anything you can think of.  But where it falls short is how matrix manipulation is coded/represented (computationally/speed-wise, it's plenty fast, with functions implemented under the hood efficiently in C/C++).  It doesn't help that there are multiple ways to represent matrices in Python, with the :code:`np.matrix` method being deprecated in favor of :code:`np.ndarray`.  In this section we provide a brief primer on doing matrix math in Python using NumPy, so that when we get to the DOA examples you'll be more comfortable.
+Python heeft veel voordelen ten opzichte van MATLAB. Het is gratis en open-source en heeft een diversiteit aan toepassingen. Het heeft een levendige gemeenschap, indexen beginnen bij 0 zoals in elke andere taal, het wordt gebruikt binnen AI/ML, en er lijkt een bibliotheek te zijn voor alles wat je maar kunt bedenken. 
+Maar waar Python tekort schiet, is de syntax van matrixmanipulatie (berekenings- /snelheidsgewijs is het snel genoeg, met functies die efficiënt in C/C++ zijn geïmplementeerd). Het helpt ook niet dat er meerdere manieren zijn om matrices in Python te vertegenwoordigen, waarbij de methode :code:`np.matrix` is verouderd ten gunste van :code:`np.ndarray`. In dit hoofdstuk geven we een korte inleiding over het uitvoeren van matrixwiskunde in Python met behulp van NumPy, zodat je je comfortabeler voelt wanneer we bij de DOA-voorbeelden komen.
 
-Let's start by jumping into the most annoying part of matrix math in NumPy; vectors are treated as 1D arrays, so there's no way to distinguish between a row vector and column vector (it will be treated as a row vector by default), whereas in MATLAB a vector is a 2D object.  In Python you can create a new vector using :code:`a = np.array([2,3,4,5])` or turn a list into a vector using :code:`mylist = [2, 3, 4, 5]` then :code:`a = np.asarray(mylist)`, but as soon as you want to do any matrix math, orientation matters, and these will be interpreted as row vectors.  Trying to do a transpose on this vector, e.g. using :code:`a.T`, will **not** change it to a column vector!  The way to make a column vector out of a normal vector :code:`a` is to use :code:`a = a.reshape(-1,1)`.  The :code:`-1` tells NumPy to figure out the size of this dimension automatically, while keeping the second dimension length 1.  What this creates is technically a 2D array but the second dimension is length 1, so it's still essentially 1D from a math perspective. It's only one extra line, but it can really throw off the flow of matrix math code.
+We zullen beginnen met het vervelendste deel van matrixwiskunde met NumPy: vectoren worden behandeld als 1D arrays. Het is dus onmogelijk om onderscheid te maken tussen een rij- of kolomvector (het wordt standaard als een rijvector behandeld). In MATLAB is een vector een 2D-object. 
+In Python kun je een nieuwe vector maken met :code:`a = np.array([2,3,4,5])` of een lijst omzetten in een vector met :code:`mylist = [2, 3, 4, 5]` en dan :code:`a = np.asarray(mylist)`, maar zodra je enige matrixwiskunde wilt doen, is de oriëntatie belangrijk, en :code:`a` wordt geïnterpreteerd als een rijvector.
+De vector transponderen met bijv. :code:`a.T` zal het **niet** veranderen in een kolomvector! De manier om van een normale vector :code:`a` een kolomvector te maken, is door :code:`a = a.reshape(-1,1)` te gebruiken. De :code:`-1` vertelt NumPy om de grootte van deze dimensie automatisch te bepalen, terwijl de tweede dimensie lengte 1 behoudt, dus het is vanuit een wiskundig perspectief nog steeds 1D. Het is maar één extra regel, maar het kan de leesbaarheid van matrix code echt verstoren.
 
-Now for a quick example of matrix math in Python; we will multiply a :code:`3x10` matrix with a :code:`10x1` matrix.  Remember that :code:`10x1` means 10 rows and 1 column, known as a column vector because it is just one column.  From our early school years we know this is a valid matrix multiplication because the inner dimensions match, and the resulting matrix size is the outer dimensions, or :code:`3x1`.  We will use :code:`np.random.randn()` to create the :code:`3x10` and :code:`np.arange()` to create the :code:`10x1`, for convinience:
+Als een kort voorbeeld voor matrixwiskunde in Python zullen we een :code:`3x10` matrix vermenigvuldigen met een :code:`10x1` matrix. Onthoud dat :code:`10x1` 10 rijen en 1 kolom betekent. Het is dus een kolomvector omdat het slechts één kolom is. In school hebben we geleerd dat, omdat de binnenste dimensies overeenkomen, dit een geldige matrixvermenigvuldiging is, en dat de resulterende matrix :code:`3x1` groot is (de buitenste dimensies). We zullen :code:`np.random.randn()` gebruiken om de :code:`3x10` te maken, en :code:`np.arange()` om de :code:`10x1` te maken:
 
 .. code-block:: python
 
  A = np.random.randn(3,10) # 3x10
- B = np.arange(10) # 1D array of length 10
+ B = np.arange(10) # 1D array met lengte 10
  B = B.reshape(-1,1) # 10x1
- C = A @ B # matrix multiply
+ C = A @ B # matrixvermenigvuldiging
  print(C.shape) # 3x1
- C = C.squeeze() # see next subsection
- print(C.shape) # 1D array of length 3, easier for plotting and other non-matrix Python code
+ C = C.squeeze() # zie het volgende deel
+ print(C.shape) # 1D array met lengte 3, makkelijker om te plotten of verder te gebruiken
 
-After performing matrix math you may find your result looks something like: :code:`[[ 0.  0.125  0.251  -0.376  -0.251 ...]]` which clearly has just one dimension of data, but if you go to plot it you will either get an error or a plot that doesn't show anything.  This is because the result is technically a 2D array, and you need to convert it to a 1D array using :code:`a.squeeze()`.  The :code:`squeeze()` function removes any dimensions of length 1, and comes in handy when doing matrix math in Python.  In the example given above, the result would be :code:`[ 0.  0.125  0.251  -0.376  -0.251 ...]` (notice the missing second brackets), which can be plotted or used in other Python code that expects something 1D.
+Na het uitvoeren van matrixwiskunde, kan het resultaat er ongeveer zo uitzien: :code:`[[ 0.  0.125  0.251  -0.376  -0.251 ...]]`. Deze data heeft duidelijk maar 1 dimensie, maar je kunt het niet doorgeven aan andere functies zoals :code:`plot()`. Je krijgt een foutmelding of lege grafiek.
+Dit komt omdat het resultaat technisch gezien een 2D-Pythonarray is. Je moet  het naar een 1D-array omzetten met :code:`a.squeeze()`. 
+De :code:`squeeze()`-functie verwijdert alle dimensies met lengte 1, en is handig bij het uitvoeren van matrixwiskunde in Python. In het bovenstaande voorbeeld zou het resultaat :code:`[ 0.  0.125  0.251  -0.376  -0.251 ...]` zijn (let op de ontbrekende tweede haakjes). Dit kan nu verder gebruikt worden om een grafiek te plotten of iets anders te doen.
 
-When coding matrix math the best sanity check you can do is print out the dimensions (using :code:`A.shape`) to verify they are what you expect. Consider sticking the shape in the comments after each line for future reference, and so it's easy to make sure dimensions match when doing matrix or elementwise multiplies.
+De beste check die je kunt uitvoeren op je matrixwiskunde is het afdrukken van de dimensies (met :code:`A.shape`) en te controleren of ze zijn wat je verwacht. Overweeg om de dimensies op elke regel als commentaar te plaatsen, zodat nadien controleren makkelijker wordt.
 
-Here are some common operations in both MATLAB and Python, as a sort of cheat sheet to reference:
+Hier zijn enkele veelvoorkomende bewerkingen in zowel MATLAB als Python, als een soort spiekbriefje:
 
 .. list-table::
    :widths: 35 25 40
    :header-rows: 1
 
-   * - Operation
+   * - Operatie
      - MATLAB
      - Python/NumPy
-   * - Create (Row) Vector, size :code:`1 x 4`
+   * - Maak een rijvector met grootte :code:`1 x 4`
      - :code:`a = [2 3 4 5];`
      - :code:`a = np.array([2,3,4,5])`
-   * - Create Column Vector, size :code:`4 x 1`
+   * - Maak een kolomvector met grootte :code:`4 x 1`
      - :code:`a = [2; 3; 4; 5];` or :code:`a = [2 3 4 5].'`
      - :code:`a = np.array([[2],[3],[4],[5]])` or |br| :code:`a = np.array([2,3,4,5])` then |br| :code:`a = a.reshape(-1,1)`
-   * - Create 2D Matrix
+   * - Maak een 2D Matrix
      - :code:`A = [1 2; 3 4; 5 6];`
      - :code:`A = np.array([[1,2],[3,4],[5,6]])`
-   * - Get Size
+   * - Krijg grootte van een matrix
      - :code:`size(A)`
      - :code:`A.shape`
-   * - Transpose a.k.a. :math:`A^T`
+   * - Transponeer matrix :math:`A^T`
      - :code:`A.'`
      - :code:`A.T`
-   * - Complex Conjugate Transpose |br| a.k.a. Conjugate Transpose |br| a.k.a. Hermitian Transpose |br| a.k.a. :math:`A^H`
+   * - Complex Conjugeerde transponatie |br| a.k.a. Conjugeerde Transponatie |br| a.k.a. Hermitische Transponatie |br| a.k.a. :math:`A^H`
      - :code:`A'`
-     - :code:`A.conj().T` |br| |br| (unfortunately there is no :code:`A.H` for ndarrays)
-   * - Elementwise Multiply
+     - :code:`A.conj().T` |br| |br| (Helaas is er geen :code:`A.H` voor ndarrays)
+   * - Vermenigvulging per element
      - :code:`A .* B`
      - :code:`A * B` or :code:`np.multiply(a,b)`
-   * - Matrix Multiply
+   * - Matrixvermenigvuldiging
      - :code:`A * B`
      - :code:`A @ B` or :code:`np.matmul(A,B)`
-   * - Dot Product of two vectors (1D)
+   * - Inwendig product van twee vectoren (1D)
      - :code:`dot(a,b)`
-     - :code:`np.dot(a,b)` (never use np.dot for 2D)
-   * - Concatenate
+     - :code:`np.dot(a,b)` (gebruik np.dot nooit voor 2D)
+   * - Aan elkaar plakken van matrices
      - :code:`[A A]`
      - :code:`np.concatenate((A,A))`
 
 *******************
-Array Factor Math
+Basiswiskunde
 *******************
 
-To get to the fun part we have to get through a little bit of math, but the following section has been written so that the math is extremely simple and has diagrams to go along with it, only the most basic trig and exponential properties are used.  It's important to understand the basic math behind what we'll do in Python to perform DOA.
+Voordat we met de leuke dingen beginnen zullen we eerst een beetje wiskunde moeten behandelen. Het volgende deel is wel zo geschreven dat de wiskunde extreem simpel is met figuren erbij. Alleen de meest basale goniometrische en exponentiële eigenschappen worden gebruikt. Deze basiswiskude is belangrijk om later de pythoncode te begrijpen waarmee we DOA uitvoeren.
 
-Consider a 1D three-element uniformly spaced array:
+We hebben een 1 dimensionale array van antennes die uniform zijn uitgespreid:
 
 .. image:: ../_images/doa.svg
    :align: center 
    :target: ../_images/doa.svg
    :alt: Diagram showing direction of arrival (DOA) of a signal impinging on a uniformly spaced antenna array, showing boresight angle and distance between elements or apertures
 
-In this example a signal is coming in from the right side, so it's hitting the right-most element first.  Let's calculate the delay between when the signal hits that first element and when it reaches the next element.  We can do this by forming the following trig problem, try to visualize how this triangle was formed from the diagram above.  The segment highlighted in red represents the distance the signal has to travel *after* it has reached the first element, before it hits the next one.
+In dit voorbeeld komt het signaal van rechts dus het raakt het meest rechtste element als eerste. Laten we de vertraging berekenen tussen wanneer het signaal het eerste element raakt en wanneer het het volgende element bereikt. We kunnen dit doen door het volgende trigonometrische probleem te vormen, probeer te begrijpen hoe deze driehoek is gevormd vanuit het bovenstaande figuur. Het rode segment vertegenwoordigt de afstand die het signaal moet afleggen *nadat* het het eerste element heeft bereikt en voordat het het volgende element raakt.
 
 .. image:: ../_images/doa_trig.svg
    :align: center 
    :target: ../_images/doa_trig.svg
    :alt: Trig associated with direction of arrival (DOA) of uniformly spaced array
 
-If you recall SOH CAH TOA, in this case we are interested in the "adjacent" side and we have the length of the hypotenuse (:math:`d`), so we need to use a cosine:
+Als je SOS CAS TOA nog kent, zijn we in dit geval geinteresseerd in de "aanliggende" en hebben we de lengte van de "schuine" (:math:`d`), dus we moeten een cosinus gebruiken:
 
 .. math::
-  \cos(90 - \theta) = \frac{\mathrm{adjacent}}{\mathrm{hypotenuse}}
+  \cos(90 - \theta) = \frac{\mathrm{aanliggende}}{\mathrm{schuine}}
 
-We must solve for adjacent, as that is what will tell us how far the signal must travel between hitting the first and second element, so it becomes adjacent :math:`= d \cos(90 - \theta)`.  Now there is a trig identity that lets us convert this to adjacent :math:`= d \sin(\theta)`.  This is just a distance though, we need to convert this to a time, using the speed of light: time elapsed :math:`= d \sin(\theta) / c` [seconds].  This equation applies between any adjacent elements of our array, although we can multiply the whole thing by an integer to calculate between non-adjacent elements since they are uniformly spaced (we'll do this later).  
+De aanliggende vertelt ons hoe ver het signaal moet reizen tussen het raken van het eerste en het raken van het volgende element. We moeten de aanliggende berekenen omdat dat ons vertelt hoe ver het signaal moet reizen tussen het raken van het eerste en het raken van het volgende element, dus het wordt aanliggende :math:`= d \cos(90 - \theta)`. Nu is er een goniometrische identiteit die ons in staat stelt dit om te zetten in aanliggende :math:`= d \sin(\theta)`. Dit is slechts een afstand, we moeten dit omzetten in een tijd met behulp van de lichtsnelheid: verstreken tijd :math:`= d \sin(\theta) / c` [seconden]. Deze vergelijking geldt tussen elk aangrenzend element van onze array, hoewel we het hele ding met een geheel getal kunnen vermenigvuldigen om tussen niet-aangrenzende elementen te berekenen, omdat ze gelijkmatig verdeeld zijn (dit zullen we later doen).
 
-Now to connect this trig and speed of light math to the signal processing world.  Let's denote our transmit signal at baseband :math:`s(t)` and it's being transmitting at some carrier, :math:`f_c` , so the transmit signal is :math:`s(t) e^{2j \pi f_c t}`.  Lets say this signal hits the first element at time :math:`t = 0`, which means it hits the next element after :math:`d \sin(\theta) / c` [seconds] like we calculated above.  This means the 2nd element receives:
+Nu zullen we deze formules koppelen aan de DSP-wereld. Laten we ons signaal op de basisband :math:`s(t)` noemen en het verzenden op een bepaalde frequentie, :math:`f_c`, dus het verzonden signaal is :math:`s(t) e^{2j \pi f_c t}`. Laten we zeggen dat dit signaal het eerste element op tijd :math:`t = 0` raakt, wat betekent dat het volgende element na :math:`d \sin(\theta) / c` [seconden] wordt geraakt, zoals we hierboven hebben berekend. Het tweede element ontvangt dan:
 
 .. math::
  s(t - \Delta t) e^{2j \pi f_c (t - \Delta t)}
 
 .. math::
- \mathrm{where} \quad \Delta t = d \sin(\theta) / c
+ \mathrm{waar} \quad \Delta t = d \sin(\theta) / c
 
-recall that when you have a time shift, it is subtracted from the time argument.
+tijdverschuivingen worden afgetrokken van het tijdsargument.
 
-When the receiver or SDR does the downconversion process to receive the signal, its essentially multiplying it by the carrier but in the reverse direction, so after doing downconversion the receiver sees:
+De ontvanger of SDR vermenigvuldigt effectief het signaal met de draaggolf, maar in omgekeerde richting. Na de verschuiving naar de basisband ziet de ontvanger:
 
 .. math::
  s(t - \Delta t) e^{2j \pi f_c (t - \Delta t)} e^{-2j \pi f_c t}
 
 .. math::
  = s(t - \Delta t) e^{-2j \pi f_c \Delta t}
+
+Met een kleine truuk is dit nog verder te vereenvoudigen. Bedenk 
 
 Now we can do a little trick to simplify this even further; consider how when we sample a signal it can be modeled by substituting :math:`t` for :math:`nT` where :math:`T` is sample period and :math:`n` is just 0, 1, 2, 3...  Substituting this in we get :math:`s(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. Well, :math:`nT` is so much greater than :math:`\Delta t` that we can get rid of the first :math:`\Delta t` term and we are left with :math:`s(nT) e^{-2j \pi f_c \Delta t}`.  If the sample rate ever gets fast enough to approach the speed of light over a tiny distance, we can revisit this, but remember that our sample rate only needs to be a bit larger than the signal of interest's bandwidth.
 

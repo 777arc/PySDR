@@ -578,67 +578,6 @@ ESPRIT
 
 Coming soon!
 
-*********************
-Radar-Style Scenario
-*********************
-
-In all of the previous DOA examples, we had one or more signals and we were interested in finding the directions of all of them.  Now we will shift gears to a more radar-oriented scenario, where you have an environment with noise and interferers, and then a signal of interest (SOI) that is only present during certain times.  A training phase, occurring when you know the SOI is not present, is performed, to capture the characteristics of the interference.  We will be using the MVDR beamformer.
-
-A new scenario is used in the Python simulation below, involving one jammer and one SOI.  In addition to simulating the samples of both signals combined (with noise), we also simulate just the jammer (with noise), which represents samples taken before the SOI was present.  The received samples :code:`r` that only contain the jammer, are used as part of a training step, where we calculate the :code:`R_inv` in the MVDR equation.  We then "turn on" the SOI by using :code:`r` that contains both the jammer and SOI, and the rest of the code is the same as normal MVDR DOA, except for one little but important detail- the :code:`R_inv`'s we use in the MVDR equation have to be:
-
-.. math::
-
- w_{mvdr} = \frac{R_{jammer}^{-1} a}{a^H R_{both}^{-1} a}
-
-The full Python code example is as follows, try tweaking :code:`Nr` and :code:`theta1`:
-
-.. code-block:: python
-
-    # 1 jammer 1 SOI, generating two different received signals so we can isolate jammer for the training step
-    Nr = 4 # number of elements
-    theta1 = 20 / 180 * np.pi # Jammer
-    theta2 = 30 / 180 * np.pi # SOI
-    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # Nr x 1
-    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-    tone1 = np.exp(2j*np.pi*0.01*np.arange(N)).reshape(1,-1) # assume sample rate = 1 Hz, its arbitrary
-    tone2 = np.exp(2j*np.pi*0.02*np.arange(N)).reshape(1,-1)
-    r_jammer = a1 @ tone1 + 0.1*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
-    r_both = a1 @ tone1 + a2 @ tone2 + 0.1*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
-
-    # "Training" step, with just jammer present
-    Rinv_jammer = np.linalg.pinv(r_jammer @ r_jammer.conj().T) # Nr x Nr, inverse covariance matrix estimate using the received samples
-
-    # Now add in the SOI and perform DOA
-    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # sweep theta between -180 and +180 degrees
-    results = []
-    for theta_i in theta_scan:
-        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # steering vector in the desired direction theta
-        s = s.reshape(-1,1) # make into a column vector (size Nr x 1)
-        Rinv_both = np.linalg.pinv(r_both @ r_both.conj().T) # could be outside for loop but more clear having it here
-        w = (Rinv_jammer @ s)/(s.conj().T @ Rinv_both @ s) # MVDR/Capon equation!  Note which R's are being used where
-        r_weighted = w.conj().T @ r_both # apply weights to the signal that contains both jammer and SOI
-        power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
-        results.append(power_dB)
-
-    results -= np.max(results) # normalize
-
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    ax.plot(theta_scan, results)
-    ax.set_theta_zero_location('N') # make 0 degrees point up
-    ax.set_theta_direction(-1) # increase clockwise
-    ax.set_rlabel_position(55)  # Move grid labels away from other labels
-    ax.set_ylim([-40, 0]) # only plot down to -40 dB
-
-    plt.show()
-
-.. image:: ../_images/doa_radar_scenario.svg
-   :align: center 
-   :target: ../_images/doa_radar_scenario.svg
-
-As you can see, there is a peak at the SOI (30 degrees) and null in the direction of the jammer (20 degrees).  The jammers null is not as low as the -90 to 0 degree region (which are so low they are not even displayed on the plot), but that's only because there are no signals coming from that direction, and even though we are nulling the jammer, it's not perfectly nulled out because it's so close to the angle of arrival of the SOI and we only simulated 4 elements.
-
-Note that you don't have to perform full DOA, your goal may be simply to receive the SOI (at an angle you already know) with the interferers nulled out as well as possible, e.g., if you were receiving a radar pulse from a certain direction and wanted to check if it contained energy above a threshold.
-
 **************************
 Quiescent Antenna Pattern
 **************************

@@ -436,46 +436,95 @@ if False:
 
 
 
-# Radar style scenario using MVDR, with a training phase
-if False:
+# Radar style scenario using MVDR, with a training phase, and comparing it to normal DOA approach (NORMAL SEEMS TO WORK BETTER SO IM LEAVING RADAR STYLE OUT FOR NOW)
+if True:
     # 1 jammer 1 SOI, generating two different received signals so we can isolate jammer for the training step
-    Nr = 4 # number of elements
-    theta1 = 20 / 180 * np.pi # Jammer
-    theta2 = 30 / 180 * np.pi # SOI
-    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # Nr x 1
-    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-    tone1 = np.exp(2j*np.pi*0.01*np.arange(N)).reshape(1,-1) # assume sample rate = 1 Hz, its arbitrary
-    tone2 = np.exp(2j*np.pi*0.02*np.arange(N)).reshape(1,-1)
-    r_jammer = a1 @ tone1 + 0.1*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
-    r_both = a1 @ tone1 + a2 @ tone2 + 0.1*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
+    # Jammer is complex baseband noise
+    # Signal is complex baseband noise
+    N = 1000
+    Nr = 32 # number of elements
+    theta_jammer = 20 / 180 * np.pi
+    theta_soi =    30 / 180 * np.pi
+    a_jammer = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_jammer)).reshape(-1,1) # Nr x 1
+    a_soi =    np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
+
+    # Generate the signal with just jammer, before SOI turns on
+    jamming_signal = np.random.randn(1,  N) + 1j*np.random.randn(1,  N)
+    system_noise =   np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
+    r_jammer = np.sqrt(1000) * a_jammer @ jamming_signal + system_noise
+
+    # Generate the signal after SOI turns on
+    jamming_signal = np.random.randn(1,  N) + 1j*np.random.randn(1,  N)
+    soi_signal =     np.random.randn(1,  N) + 1j*np.random.randn(1,  N)
+    system_noise =   np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
+    r_both =   np.sqrt(1000) * a_jammer @ jamming_signal + np.sqrt(10) * a_soi @ soi_signal + system_noise
 
     # "Training" step, with just jammer present
     Rinv_jammer = np.linalg.pinv(r_jammer @ r_jammer.conj().T) # Nr x Nr, inverse covariance matrix estimate using the received samples
 
-    # Now add in the SOI and perform DOA
+    # Plot beam pattern when theta = SOI, note that this process doesnt actually involve using r_both
+    if True:
+        N_fft = 1024
+        theta_i = theta_soi
+        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1) # steering vector
+        w = (Rinv_jammer @ s)/(s.conj().T @ Rinv_jammer @ s) # MVDR
+        w = np.conj(w) # or else our answer will be negative/inverted
+        w = w.squeeze()
+        w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+        w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+        w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+        theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Map the FFT bins to angles in radians
+        fig, ax = plt.subplots()
+        ax.plot([theta_jammer * 180/np.pi]*2, [-50, np.max(w_fft_dB)], 'r:') # position of jammer
+        ax.plot([theta_soi * 180/np.pi]*2, [-50, np.max(w_fft_dB)], 'g:') # position of SOI
+        ax.plot(theta_bins * 180/np.pi, w_fft_dB) # MAKE SURE TO USE RADIAN FOR POLAR
+        ax.set_xlabel("Theta [Degrees]")
+        ax.set_ylabel("Beam Pattern [dB]")
+        plt.show()
+
+    # Now perform DOA by processing r_both.  We still get a spike in the direction of the jammer, since its treaing the jammer as the SOI at that theta, but the important thing is we were able to also find the SOI spike
     theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # sweep theta between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:
-        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # steering vector in the desired direction theta
-        s = s.reshape(-1,1) # make into a column vector (size Nr x 1)
-        Rinv_both = np.linalg.pinv(r_both @ r_both.conj().T) # could be outside for loop but more clear having it here
-        w = (Rinv_jammer @ s)/(s.conj().T @ Rinv_both @ s) # MVDR/Capon equation!  Note which R's are being used where
+        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1) # steering vector in the desired direction theta (size Nr x 1)
+        w = (Rinv_jammer @ s)/(s.conj().T @ Rinv_jammer @ s) # MVDR/Capon equation!  Note which R's are being used where
         r_weighted = w.conj().T @ r_both # apply weights to the signal that contains both jammer and SOI
         power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
         results.append(power_dB)
 
     results -= np.max(results) # normalize
 
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    ax.plot(theta_scan, results)
-    ax.set_theta_zero_location('N') # make 0 degrees point up
-    ax.set_theta_direction(-1) # increase clockwise
-    ax.set_rlabel_position(55)  # Move grid labels away from other labels
-    ax.set_ylim([-40, 0]) # only plot down to -40 dB
+    #fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    fig, ax = plt.subplots()
+    ax.plot(theta_scan * 180/np.pi, results)
+    #ax.plot([theta_soi * 180/np.pi, theta_soi * 180/np.pi], [-30, -20],'g--')
+    #ax.plot([theta_jammer * 180/np.pi, theta_jammer * 180/np.pi], [-30, -20],'r--')
+    ax.set_xlabel("Theta [Degrees]")
+    ax.set_ylabel("DOA Metric")
+    #ax.set_theta_zero_location('N') # make 0 degrees point up
+    #ax.set_theta_direction(-1) # increase clockwise
+    #ax.set_rlabel_position(55)  # Move grid labels away from other labels
+    #ax.set_ylim([-40, 0]) # only plot down to -40 dB
+    #plt.show()
+    #fig.savefig('../_images/doa_radar_scenario.svg', bbox_inches='tight')
 
+    # Now compare to just doing MVDR DOA on r_both
+    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # sweep theta between -180 and +180 degrees
+    results = []
+    Rinv_both = np.linalg.pinv(r_both @ r_both.conj().T) # Nr x Nr, inverse covariance matrix estimate using the received samples
+    for theta_i in theta_scan:
+        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1) # steering vector in the desired direction theta (size Nr x 1)
+        w = (Rinv_both @ s)/(s.conj().T @ Rinv_both @ s) # MVDR/Capon equation!  Note which R's are being used where
+        r_weighted = w.conj().T @ r_both # apply weights to the signal that contains both jammer and SOI
+        power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
+        results.append(power_dB)
+    results -= np.max(results) # normalize
+    ax.plot(theta_scan * 180/np.pi, results)
+    ax.set_xlabel("Theta [Degrees]")
+    ax.set_ylabel("DOA Metric")
+    ax.legend(['Radar Style', 'Normal DOA Approach'])
     plt.show()
 
-    fig.savefig('../_images/doa_radar_scenario.svg', bbox_inches='tight')
     exit()
 
 

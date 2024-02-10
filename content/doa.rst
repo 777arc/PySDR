@@ -6,9 +6,9 @@ DOA & Beamforming
 
 In this chapter we cover the concepts of beamforming, direction-of-arrival (DOA), and phased arrays in general.  Techniques such as Capon and MUSIC are discussed, using Python simulation examples. We cover beamforming vs. DOA, and go through the two different types of phased arrays (Passive electronically scanned array or PESA and Active electronically scanned array or AESA).
 
-************************
+***************************************************
 Overview and Terminology
-************************
+***************************************************
 
 A phased array, a.k.a. electronically steered array, is an array of antennas that can be used on the transmit or receive side to form beams in one or more desired directions.  They are used in both communications and radar, and you'll find them on the ground, airborne, and on satellites.  
 

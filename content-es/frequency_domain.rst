@@ -222,89 +222,89 @@ Normalmente realizamos operaciones DSP en el dominio del tiempo, así que utilic
    \draw[->,babyblueeyes,thick] (3,-4) -- (5.2,-2.8);
    :xscale: 70
 
-When we discuss filtering, the convolution property will make more sense.
+Cuando analicemos el filtrado, la propiedad de convolución tendrá más sentido.
 
-5. Convolution in Frequency Property:
+5. Propiedad de la convolución en frecuencia:
 
-Lastly, I want to point out that the convolution property works in reverse, although we won't be using it as much as the time domain convolution:
+Por último, quiero señalar que la propiedad de convolución funciona a la inversa, aunque no la usaremos tanto como la convolución en el dominio del tiempo:
 
 .. math::
    x(t)y(t)  \leftrightarrow  \int X(g) Y(f-g) dg
 
-There are other properties, but the above five are the most crucial to understand in my opinion.  Even though we didn't step through the proof for each property, the point is we use the mathematical properties to gain insight into what happens to real signals when we do analysis and processing.  Don't get caught up on the equations. Make sure you understand the description of each property.
+Hay otras propiedades, pero en mi opinión, las cinco anteriores son las más importantes de comprender. Aunque no analizamos la prueba de cada propiedad, el punto es que usamos las propiedades matemáticas para obtener información sobre lo que sucede con las señales reales cuando realizamos análisis y procesamiento. No te dejes atrapar por las ecuaciones. Asegúrese de comprender la descripción de cada propiedad.
 
 
-******************************
-Fast Fourier Transform (FFT)
-******************************
+************************************
+Transformada Rapida de Fourier (FFT)
+************************************
 
-Now back to the Fourier Transform. I showed you the equation for the discrete Fourier Transform, but what you will be using while coding 99.9% of the time will be the FFT function, fft().  The Fast Fourier Transform (FFT) is simply an algorithm to compute the discrete Fourier Transform.  It was developed decades ago, and even though there are variations on the implementation, it's still the reigning leader for computing a discrete Fourier transform. Lucky, considering they used "Fast" in the name.
+Ahora volvamos a la transformada de Fourier. Te mostré la ecuación para la Transformada de Fourier discreta, pero lo que usarás mientras codificas el 99,9% del tiempo será la función FFT, fft(). La Transformada Rápida de Fourier (FFT) es simplemente un algoritmo para calcular la Transformada de Fourier discreta. Fue desarrollado hace décadas y, aunque existen variaciones en la implementación, sigue siendo el líder reinante en el cálculo de una transformada de Fourier discreta. Suerte, considerando que usaron "Fast" en el nombre.
 
-The FFT is a function with one input and one output.  It converts a signal from time to frequency: 
+La FFT es una función con una entrada y una salida. Convierte una señal de tiempo a frecuencia:
 
 .. image:: ../_images/fft-block-diagram.svg
    :align: center
    :target: ../_images/fft-block-diagram.svg
    :alt: FFT is a function with one input (time domain) and one output (frequency domain) 
    
-We will only be dealing with 1 dimension FFTs in this textbook (2D is used for image processing and other applications). For our purposes, think of the FFT function as having one input: a vector of samples, and one output: the frequency domain version of that vector of samples.  The size of the output is always the same as the size of the input. If I feed 1,024 samples into the FFT, I will get 1,024 out.  The confusing part is that the output will always be in the frequency domain, and thus the "span" of the x-axis if we were to plot it doesn't change based on the number of samples in the time domain input.  Let's visualize that by looking at the input and output arrays, along with the units of their indices:
+En este libro de texto solo nos ocuparemos de FFT de 1 dimensión (2D se utiliza para el procesamiento de imágenes y otras aplicaciones). Para nuestros propósitos, piense en la función FFT como si tuviera una entrada: un vector de muestras y una salida: la versión en el dominio de la frecuencia de ese vector de muestras. El tamaño de la salida es siempre el mismo que el tamaño de la entrada. Si introduzco 1024 muestras en la FFT, sacaré 1024. La parte confusa es que la salida siempre estará en el dominio de la frecuencia y, por lo tanto, el "intervalo" del eje x si lo graficamos no cambia según el número de muestras en la entrada del dominio del tiempo. Visualicémoslo mirando las matrices de entrada y salida, junto con las unidades de sus índices:
 
 .. image:: ../_images/fft-io.svg
    :align: center
    :target: ../_images/fft-io.svg
    :alt: Reference diagram for the input (seconds) and output (bandwidth) format of the FFT function showing frequency bins and delta-t and delta-f
 
-Because the output is in the frequency domain, the span of the x-axis is based on the sample rate, which we will cover next chapter.  When we use more samples for the input vector, we get a better resolution in the frequency domain (in addition to processing more samples at once).  We don't actually "see" more frequencies by having a larger input. The only way would be to increase the sample rate (decrease the sample period :math:`\Delta t`).
+Debido a que la salida está en el dominio de la frecuencia, el intervalo del eje x se basa en la frecuencia de muestreo, que cubriremos en el próximo capítulo. Cuando usamos más muestras para el vector de entrada, obtenemos una mejor resolución en el dominio de la frecuencia (además de procesar más muestras a la vez). En realidad, no "vemos" más frecuencias al tener una entrada más grande. La única forma sería aumentar la tasa de muestreo (disminuir el período de muestreo :math:`\Delta t`).
 
-How do we actually plot this output?  As an example let's say that our sample rate was 1 million samples per second (1 MHz).  As we will learn next chapter, that means we can only see signals up to 0.5 MHz, regardless of how many samples we feed into the FFT.  The way the output of the FFT gets represented is as follows:
+¿Cómo realmente graficamos este resultado? Como ejemplo, digamos que nuestra frecuencia de muestreo fue de 1 millón de muestras por segundo (1 MHz). Como aprenderemos en el próximo capítulo, eso significa que solo podemos ver señales de hasta 0,5 MHz, independientemente de cuántas muestras introduzcamos en la FFT. La forma en que se representa la salida de la FFT es la siguiente:
 
 .. image:: ../_images/negative-frequencies.svg
    :align: center
    :target: ../_images/negative-frequencies.svg
    :alt: Introducing negative frequencies
 
-It is always the case; the output of the FFT will always show :math:`\text{-} f_s/2` to :math:`f_s/2` where :math:`f_s` is the sample rate.  I.e., the output will always have a negative portion and positive portion.  If the input is complex, the negative and positive portions will be different, but if it's real then they will be identical. 
+Siempre es así; la salida de la FFT siempre mostrará :math:`\text{-} f_s/2` a :math:`f_s/2` where :math:`f_s` es la frecuencia de muestreo.  i.e., la salida siempre tendrá una parte negativa y una parte positiva. Si la entrada es compleja, las partes negativa y positiva serán diferentes, pero si es real, serán idénticas.
 
-Regarding the frequency interval, each bin corresponds to :math:`f_s/N` Hz, i.e., feeding in more samples to each FFT will lead to more granular resolution in your output.  A very minor detail that can be ignored if you are new: mathematically, the very last index does not correspond to *exactly* :math:`f_s/2`, rather it's :math:`f_s/2 - f_s/N` which for a large :math:`N` will be approximately :math:`f_s/2`.
+En cuanto al intervalo de frecuencia, cada bin corresponde a :math:`f_s/N` Hz, i.e., introducir más muestras en cada FFT generará una resolución más granular en su salida. Un detalle muy pequeño que puedes ignorar si eres nuevo: matemáticamente, el último índice no corresponde *exactamente* :math:`f_s/2`, más bien es :math:`f_s/2 - f_s/N` que para un gran :math:`N` será aproximadamente :math:`f_s/2`.
 
-********************
-Negative Frequencies
-********************
+*********************
+Frecuencias Negativas
+*********************
 
-What in the world is a negative frequency?  For now, just know that they have to do with using complex numbers (imaginary numbers)--there isn't really such thing as a "negative frequency" when it comes to transmitting/receiving RF signals, it's just a representation we use.  Here's an intuitive way to think about it.  Consider we tell our SDR to tune to 100 MHz (the FM radio band) and sample at a rate of 10 MHz.  In other words, we will view the spectrum from 95 MHz to 105 MHz.  Perhaps there are three signals present:
+¿Qué diablos es una frecuencia negativa? Por ahora, solo sepa que tienen que ver con el uso de números complejos (números imaginarios); en realidad, no existe una "frecuencia negativa" cuando se trata de transmitir/recibir señales de RF, es solo una representación que usamos. He aquí una forma intuitiva de pensar en ello. Considere que le decimos a nuestro SDR que sintonice 100 MHz (la banda de radio FM) y muestree a una velocidad de 10 MHz. Es decir, veremos el espectro desde 95 MHz hasta 105 MHz. Quizás haya tres señales presentes:
 
 .. image:: ../_images/negative-frequencies2.svg
    :align: center
    :target: ../_images/negative-frequencies2.svg
    
-Now, when the SDR gives us the samples, it will appear like this:
+Ahora, cuando el DEG nos dé las muestras, nos aparecerá así:
 
 .. image:: ../_images/negative-frequencies3.svg
    :align: center
    :target: ../_images/negative-frequencies3.svg
    :alt: Negative frequencies are simply the frequencies below the center (a.k.a. carrier) frequency that the radio tuned to
 
-Remember that we tuned the SDR to 100 MHz.  So the signal that was at about 97.5 MHz shows up at -2.5 MHz when we represent it digitally, which is technically a negative frequency.  In reality it's just a frequency lower than the center frequency.  This will make more sense when we learn more about sampling and obtain experience using our SDRs.
+Recuerde que sintonizamos el SDR a 100 MHz. Entonces, la señal que estaba en aproximadamente 97,5 MHz aparece en -2,5 MHz cuando la representamos digitalmente, que técnicamente es una frecuencia negativa. En realidad es sólo una frecuencia más baja que la frecuencia central. Esto tendrá más sentido cuando aprendamos más sobre el muestreo y obtengamos experiencia en el uso de nuestros SDRs.
 
-****************************
-Order in Time Doesn't Matter
-****************************
-One last property before we jump into FFTs.  The FFT function sort of "mixes around" the input signal to form the output, which has a different scale and units. We are no longer in the time domain after all.  A good way to internalize this difference between domains is realizing that changing the order things happen in the time domain doesn't change the frequency components in the signal.  I.e., the FFT of the following two signals will both have the same two spikes because the signal is just two sine waves at different frequencies.  Changing the order the sine waves occur doesn't change the fact that they are two sine waves at different frequencies.
+*******************************
+¿El orden en tiempo no importa?
+*******************************
+Una última propiedad antes de pasar a las FFT. La función FFT es algo asi como "una mezcla de" la señal de entrada para formar la salida, que tiene una escala y unidades diferentes. Después de todo, ya no estamos en el dominio del tiempo. Una buena manera de internalizar esta diferencia entre dominios es darse cuenta de que cambiar el orden en que suceden las cosas en el dominio del tiempo no cambia los componentes de frecuencia en la señal. Es decir, la FFT de las siguientes dos señales tendrá los mismos dos picos porque la señal es solo dos ondas sinusoidales en diferentes frecuencias. Cambiar el orden en que ocurren las ondas sinusoidales no cambia el hecho de que son dos ondas sinusoidales en diferentes frecuencias.
 
 .. image:: ../_images/fft_signal_order.png
    :scale: 50 % 
    :align: center
    :alt: When performing an FFT on a set of samples, the order in time that different frequencies occurred within those samples doesn't change the resulting FFT output
 
-Technically, the phase of the FFT values will change because of the time-shift of the sinusoids.  However, for the first several chapters of this textbook we will mostly be concerned with the magnitude of the FFT.
+Técnicamente, la fase de los valores de FFT cambiará debido al desplazamiento temporal de las sinusoides. Sin embargo, durante los primeros capítulos de este libro de texto nos ocuparemos principalmente de la magnitud de la FFT.
 
 *******************
-FFT in Python
+FFT en Python
 *******************
 
-Now that we have learned about what an FFT is and how the output is represented, let's actually look at some Python code and use Numpy's FFT function, np.fft.fft().  It is recommended that you use a full Python console/IDE on your computer, but in a pinch you can use the online web-based Python console linked at the bottom of the navigation bar on the left.
+Ahora que hemos aprendido qué es una FFT y cómo se representa la salida, veamos algo de código Python y usemos la función FFT de Numpy, np.fft.fft(). Se recomienda que utilice una consola/IDE Python completo en su computadora, pero en caso de necesidad puede usar la consola Python en línea basada en la web vinculada en la parte inferior de la barra de navegación a la izquierda.
 
-First we need to create a signal in the time domain.  Feel free to follow along with your own Python console. To keep things simple, we will make a simple sine wave at 0.15 Hz.  We will also use a sample rate of 1 Hz, meaning in time we sample at 0, 1, 2, 3 seconds, etc.
+Primero necesitamos crear una señal en el dominio del tiempo. Siéntete libre de seguirlo con tu propia consola Python. Para simplificar las cosas, haremos una onda sinusoidal simple a 0,15 Hz. También usaremos una frecuencia de muestreo de 1 Hz, es decir, en el tiempo muestreamos a 0, 1, 2, 3 segundos, etc.
 
 .. code-block:: python
 
@@ -312,25 +312,25 @@ First we need to create a signal in the time domain.  Feel free to follow along 
  t = np.arange(100)
  s = np.sin(0.15*2*np.pi*t)
 
-If we plot :code:`s` it looks like:
+Si lo graficamos :code:`s` será algo como esto:
 
 .. image:: ../_images/fft-python1.png
    :scale: 70 % 
    :align: center 
 
-Next let's use Numpy's FFT function:
+A continuación, usemos la función FFT de Numpy:
 
 .. code-block:: python
 
  S = np.fft.fft(s)
 
-If we look at :code:`S` we see it's an array of complex numbers:
+si miramos :code:`S` lo que vemos es una matriz de números complejos:
 
 .. code-block:: python
 
     S =  array([-0.01865008 +0.00000000e+00j, -0.01171553 -2.79073782e-01j,0.02526446 -8.82681208e-01j,  3.50536075 -4.71354150e+01j, -0.15045671 +1.31884375e+00j, -0.10769903 +7.10452463e-01j, -0.09435855 +5.01303240e-01j, -0.08808671 +3.92187956e-01j, -0.08454414 +3.23828386e-01j, -0.08231753 +2.76337148e-01j, -0.08081535 +2.41078885e-01j, -0.07974909 +2.13663710e-01j,...
 
-Hint: regardless of what you’re doing, if you ever run into complex numbers, try calculating the magnitude and the phase and see if they make more sense.  Let's do exactly that, and plot the magnitude and phase.  In most languages, abs() is a function for magnitude of a complex number.  The function for phase varies, but in Python it's :code:`np.angle()`.
+Sugerencia: independientemente de lo que esté haciendo, si alguna vez se encuentra con números complejos, intente calcular la magnitud y la fase y vea si tienen más sentido. Hagamos exactamente eso y tracemos la magnitud y la fase. En la mayoría de los idiomas, abs() es una función para la magnitud de un número complejo. La función de fase varía, pero en Python es :code:`np.angle()`.
 
 .. code-block:: python
 
@@ -344,27 +344,27 @@ Hint: regardless of what you’re doing, if you ever run into complex numbers, t
    :scale: 80 % 
    :align: center 
 
-Right now we aren't providing any x-axis to the plots, it's just the index of the array (counting up from 0).  Due to mathematical reasons, the output of the FFT has the following format:
+En este momento no proporcionamos ningún eje x para los gráficos, es solo el índice de la matriz (contando desde 0). Por razones matemáticas, la salida de la FFT tiene el siguiente formato:
 
 .. image:: ../_images/fft-python3.svg
    :align: center
    :target: ../_images/fft-python3.svg
    :alt: Arrangement of the output of an FFT before doing an FFT shift
    
-But we want 0 Hz (DC) in the center and negative freqs to the left (that's just how we like to visualize things).  So any time we do an FFT we need to perform an "FFT shift", which is just a simple array rearrangement operation, kind of like a circular shift but more of a "put this here and that there".  The diagram below fully defines what the FFT shift operation does:
+Pero queremos 0 Hz (DC) en el centro y frecuencias negativas a la izquierda (así es como nos gusta visualizar las cosas). Entonces, cada vez que hacemos una FFT, necesitamos realizar un "desplazamiento FFT", que es simplemente una simple operación de reordenamiento de matriz, algo así como un desplazamiento circular pero más bien como "poner esto aquí y aquello allí". El siguiente diagrama define completamente lo que hace la operación de cambio FFT:
 
 .. image:: ../_images/fft-python4.svg
    :align: center
    :target: ../_images/fft-python4.svg
    :alt: Reference diagram of the FFT shift function, showing positive and negative frequencies and DC
 
-For our convenience, Numpy has an FFT shift function, :code:`np.fft.fftshift()`.  Replace the np.fft.fft() line with:
+Para nuestra comodidad, Numpy tiene una función de desplazamiento FFT, :code:`np.fft.fftshift()`.  Reemplace la línea np.fft.fft() con:
 
 .. code-block:: python
 
  S = np.fft.fftshift(np.fft.fft(s))
 
-We also need to figure out the x-axis values/label.  Recall that we used a sample rate of 1 Hz to keep things simple.  That means the left edge of the frequency domain plot will be -0.5 Hz and the right edge will be 0.5 Hz.  If that doesn't make sense, it will after you get through the chapter on :ref:`sampling-chapter`.  Let's stick to that assumption that our sample rate was 1 Hz, and plot the FFT output's magnitude and phase with a proper x-axis label.  Here is the final version of this Python example and the output:
+También necesitamos calcular los valores/etiqueta del eje x. Recuerde que utilizamos una frecuencia de muestreo de 1 Hz para simplificar las cosas. Eso significa que el borde izquierdo del gráfico en el dominio de la frecuencia será -0,5 Hz y el borde derecho será 0,5 Hz. Si eso no tiene sentido, lo tendrá después de leer el capítulo sobre :ref:`sampling-chapter`.  Sigamos con la suposición de que nuestra frecuencia de muestreo fue de 1 Hz y tracemos la magnitud y la fase de la salida FFT con una etiqueta adecuada en el eje x. Aquí está la versión final de este ejemplo de Python y el resultado:
 
 .. code-block:: python
 
@@ -390,54 +390,53 @@ We also need to figure out the x-axis values/label.  Recall that we used a sampl
    :scale: 80 % 
    :align: center 
 
-Note that we see our spike at 0.15 Hz, which is the frequency we used when creating the sine wave. So that means our FFT worked!  If we did not know the code used to generate that sine wave, but we were just given the list of samples, we could use the FFT to determine the frequency. The reason why we see a spike also at -0.15 Hz has to do with the fact it was a real signal, not complex, and we will get deeper into that later. 
+Tenga en cuenta que vemos nuestro pico a 0,15 Hz, que es la frecuencia que utilizamos al crear la onda sinusoidal. ¡Eso significa que nuestra FFT funcionó! Si no supiéramos el código utilizado para generar esa onda sinusoidal, pero solo nos dieran la lista de muestras, podríamos usar la FFT para determinar la frecuencia. La razón por la que vemos un pico también a -0,15 Hz tiene que ver con el hecho de que era una señal real, no compleja, y profundizaremos en eso más adelante.
 
 ******************************
 Windowing
 ******************************
 
-When we use an FFT to measure the frequency components of our signal, the FFT assumes that it's being given a piece of a *periodic* signal.  It behaves as if the piece of signal we provided continues to repeat indefinitely. It's as if the last sample of the slice connects back to the first sample.  It stems from the theory behind the Fourier Transform.  It means that we want to avoid sudden transitions between the first and last sample because sudden transitions in the time domain look like many frequencies, and in reality our last sample doesn't actually connect back to our first sample.  To put it simply: if we are doing an FFT of 100 samples, using :code:`np.fft.fft(x)`, we want :code:`x[0]` and :code:`x[99]` to be equal or close in value.
+Cuando usamos una FFT para medir los componentes de frecuencia de nuestra señal, la FFT supone que se le está dando una parte de una señal *periódica*. Se comporta como si la señal que proporcionamos se continuara repitiendo indefinidamente. Es como si la última muestra del segmento se conectara con la primera muestra. Surge de la teoría detrás de la Transformada de Fourier. Significa que queremos evitar transiciones repentinas entre la primera y la última muestra porque las transiciones repentinas en el dominio del tiempo parecen muchas frecuencias y, en realidad, nuestra última muestra no se conecta con nuestra primera muestra. En pocas palabras: si estamos haciendo una FFT de 100 muestras, usando :code:`np.fft.fft(x)`, queremos :code:`x[0]` y :code:`x[99]` ser igual o cercano en valor.
 
-The way we make up for this cyclic property is through "windowing".  Right before the FFT, we multiply the slice of signal by a window function, which is just any function that tapers to zero on both ends.  That ensures the slice of signal will begin and end at zero and connect.  Common window functions include Hamming, Hanning, Blackman, and Kaiser.  When you don't apply any windowing, it's called using a "rectangular" window because it's like multiplying by an array of ones.   Here is what several window functions look like:
+La forma de compensar esta propiedad cíclica es mediante "windowing". Justo antes de la FFT, multiplicamos la porción de señal por una función de ventana, que es cualquier función que se reduce a cero en ambos extremos. Eso garantiza que el segmento de señal comience y termine en cero y se conecte. Las funciones de ventana comunes incluyen Hamming, Hanning, Blackman y Kaiser. Cuando no se aplica ninguna ventana, se le llama ventana "rectangular" porque es como multiplicar por una matriz de unos. Así es como se ven varias funciones de ventana:
 
 .. image:: ../_images/windows.svg
    :align: center
    :target: ../_images/windows.svg
    :alt: Windowing function in time and frequency domain of rectangular, hamming, hanning, bartlet, blackman, and kaiser windows
 
-A simple approach for beginners is to just stick with a Hamming window, which can be created in Python with :code:`np.hamming(N)` where N is the number of elements in the array, which is your FFT size.  In the above exercise, we would apply the window right before the FFT. After the 2nd line of code we would insert:
+Un enfoque sencillo para principiantes es seguir con una ventana Hamming, que se puede crear en Python con :code:`np.hamming(N)` donde N es la cantidad de elementos en la matriz, que es su tamaño FFT. En el ejercicio anterior, aplicaríamos la ventana justo antes de la FFT. Después de la segunda línea de código insertaríamos:
 
 .. code-block:: python
 
  s = s * np.hamming(100)
 
-If you are afraid of choosing the wrong window, don't be.  The difference between Hamming, Hanning, Blackman, and Kaiser is very minimal compared to not using a window at all since they all taper to zero on both sides and solve the underlying problem.
+Si tiene miedo de elegir la ventana equivocada, no lo tenga. La diferencia entre Hamming, Hanning, Blackman y Kaiser es mínima en comparación con no usar ninguna ventana, ya que todos se reducen a cero en ambos lados y resuelven el problema subyacente.
 
 
-*******************
-FFT Sizing
-*******************
+**************************
+Dimensionamiento de la FFT
+**************************
 
-The last thing to note is FFT sizing.  The best FFT size is always an order of 2 because of the way the FFT is implemented.  You can use a size that is not an order of 2, but it will be slower. Common sizes are between 128 and 4,096, although you can certainly go larger.  In practice we may have to process signals that are millions or billions of samples long, so we need to break up the signal and do many FFTs.  That means we will get many outputs. We can either average them up or plot them over time (especially when our signal is changing over time).  You don't have to put *every* sample of a signal through an FFT to get a good frequency domain representation of that signal. For example you could only FFT 1,024 out of every 100k samples in a signal and it will still probably look fine, as long as the signal is always on.
+Lo último a tener en cuenta es el tamaño de FFT. El mejor tamaño de FFT es siempre del orden de 2 debido a la forma en que se implementa la FFT. Puedes usar un tamaño que no sea del orden de 2, pero será más lento. Los tamaños comunes están entre 128 y 4096, aunque ciertamente puedes elegir uno más grande. En la práctica, es posible que tengamos que procesar señales que tienen millones o miles de millones de muestras, por lo que necesitamos dividir la señal y realizar muchas FFT. Eso significa que obtendremos muchos resultados. Podemos promediarlos o trazarlos a lo largo del tiempo (especialmente cuando nuestra señal cambia con el tiempo). No es necesario pasar *cada* muestra de una señal a través de una FFT para obtener una buena representación en el dominio de frecuencia de esa señal. Por ejemplo, solo puede realizar FFT 1.024 de cada 100.000 muestras en una señal y probablemente aún se verá bien, siempre que la señal esté siempre encendida.
 
-*********************
-Spectrogram/Waterfall
-*********************
-
-A spectrogram is the plot that shows frequency over time.  It is simply a bunch of FFTs stacked together (vertically, if you want frequency on the horizontal axis).  We can also show it in real-time, often referred to as a waterfall.  A spectrum analyzer is the piece of equipment that shows this spectrogram/waterfall.  The diagram below shows how an array of IQ samples can be sliced up to form a spectrogram:
+*************
+Espectrograma
+*************
+Un espectrograma es el gráfico que muestra la frecuencia a lo largo del tiempo. Es simplemente un montón de FFT apiladas (verticalmente, si desea frecuencia en el eje horizontal). También podemos mostrarlo en tiempo real, a menudo denominado cascada. Un analizador de espectro es el equipo que muestra este espectrograma. El siguiente diagrama muestra cómo se puede dividir una serie de muestras de coeficiente intelectual para formar un espectrograma:
 
 .. image:: ../_images/spectrogram_diagram.svg
    :align: center
    :target: ../_images/spectrogram_diagram.svg
    :alt: Spectrogram (a.k.a. waterfall) diagram showing how FFT slices are arrange/stacked to form a time-frequency plot
 
-Because a spectrogram involves plotting 2D data, it's effectively a 3D plot, so we have to use a colormap to represent the FFT magntiudes, which are the "values" we want to plot.  Here is an example of a spectrogram, with frequency on the horizontal/x-axis and time on the vertical/y-axis.  Blue represents the lowest energy and red is the highest. We can see that there is a strong spike at DC (0 Hz) in the center with a varying signal around it.  Blue represents our noise floor.
+Debido a que un espectrograma implica graficar datos 2D, es efectivamente un gráfico 3D, por lo que tenemos que usar un mapa de colores para representar las magnitudes FFT, que son los "valores" que queremos graficar. A continuación se muestra un ejemplo de espectrograma, con la frecuencia en el eje horizontal x y el tiempo en el eje vertical y. El azul representa la energía más baja y el rojo la más alta. Podemos ver que hay un fuerte pico en DC (0 Hz) en el centro con una señal variable a su alrededor. El azul representa nuestro piso de ruido.
 
 .. image:: ../_images/waterfall.png
    :scale: 120 % 
    :align: center 
 
-Remember, it's just rows of FFTs stacked on top of each other, each row is 1 FFT (technically, the magnitude of 1 FFT).  Be sure to time-slice your input signal in slices of your FFT size (e.g., 1024 samples per slice).   Before jumping into the code to produce a spectrogram, here is an example signal we will use, it is simply a tone in white noise:
+Recuerde, son solo filas de FFT apiladas una encima de otra, cada fila es 1 FFT (técnicamente, la magnitud de 1 FFT). Asegúrese de dividir en el tiempo su señal de entrada en porciones de su tamaño FFT (por ejemplo, 1024 muestras por porción). Antes de saltar al código para producir un espectrograma, aquí hay una señal de ejemplo que usaremos, es simplemente un tono en ruido blanco:
 
 .. code-block:: python
 
@@ -451,13 +450,13 @@ Remember, it's just rows of FFTs stacked on top of each other, each row is 1 FFT
  f = 50e3 # freq of tone
  x = np.sin(2*np.pi*f*t) + 0.2*np.random.randn(len(t))
 
-Here is what it looks like in the time domain (first 200 samples):
+Así es como se ve en el dominio del tiempo (primeras 200 muestras):
 
 .. image:: ../_images/spectrogram_time.svg
    :align: center
    :target: ../_images/spectrogram_time.svg
 
-In Python we can generate a spectrogram as follows:
+En Python podemos generar un espectrograma de la siguiente manera:
 
 .. code-block:: python
 
@@ -474,19 +473,19 @@ In Python we can generate a spectrogram as follows:
  plt.ylabel("Time [s]")
  plt.show()
 
-Which should produce the following, which is not the most interesting spectrogram because there is no time-varying behavior.  There are two tones because we simulated a real signal, and real signals always have a negative PSD that matches the positive side.  For more interesting examples of spectrograms, checkout https://www.IQEngine.org!
+Lo que debería producir lo siguiente, que no es el espectrograma más interesante porque no hay un comportamiento que varíe en el tiempo. Hay dos tonos porque simulamos una señal real, y las señales reales siempre tienen un PSD negativo que coincide con el lado positivo. Para obtener ejemplos más interesantes de espectrogramas, consulte https://www.IQEngine.org!
 
 .. image:: ../_images/spectrogram.svg
    :align: center
    :target: ../_images/spectrogram.svg
 
-*********************
-FFT Implementation
-*********************
+************************
+Implementación de la FFT
+************************
 
-Even though NumPy has already implemented the FFT for us, it's nice to know the basics of how it works under the hood.  The most popular FFT algorithm is the Cooley-Tukey FFT algorithm, first invented around 1805 by Carl Friedrich Gauss and then later rediscovered and popularized by James Cooley and John Tukey in 1965.
+Aunque NumPy ya ha implementado FFT para nosotros, es bueno saber los conceptos básicos de cómo funciona. El algoritmo FFT más popular es el algoritmo FFT de Cooley-Tukey, inventado por primera vez alrededor de 1805 por Carl Friedrich Gauss y luego redescubierto y popularizado por James Cooley y John Tukey en 1965.
 
-The basic version of this algorithm works on power-of-two size FFTs, and is intended for complex inputs but can also work on real inputs.   The building block of this algorithm is known as the butterfly, which is essentially a N = 2 size FFT, consisting of two multiplies and two summations: 
+La versión básica de este algoritmo funciona con FFT de potencia de dos tamaños y está diseñada para entradas complejas, pero también puede funcionar con entradas reales. El componente básico de este algoritmo se conoce como mariposa, que es esencialmente una FFT de tamaño N = 2, que consta de dos multiplicaciones y dos sumas: 
 
 .. image:: ../_images/butterfly.svg
    :align: center
@@ -500,18 +499,18 @@ or
 
    y_1 = x_0 - x_1 w^k_N
 
-where :math:`w^k_N = e^{j2\pi k/N}` are known as twiddle factors (:math:`N` is the size of the sub-FFT and :math:`k` is the index).  Note that the input and output is intended to be complex, e.g., :math:`x_0` might be 0.6123 - 0.5213j, and the sums/multiplies are complex.
+donde :math:`w^k_N = e^{j2\pi k/N}` se conocen como factores de giro (:math:`N` es el tamaño de la sub-FFT y :math:`k` es el índice).  Tenga en cuenta que la entrada y la salida deben ser complejas., e.g., :math:`x_0` puede ser 0.6123 - 0.5213j, y las sumas/múltiplos son complejas.
 
-The algorithm is recursive and breaks itself in half until all that is left is a series of butterflies, this is depicted below using a size 8 FFT:
+El algoritmo es recursivo y se divide por la mitad hasta que todo lo que queda es una serie de mariposas, esto se muestra a continuación usando una FFT de tamaño 8:
 
 .. image:: ../_images/butterfly2.svg
    :align: center
    :target: ../_images/butterfly2.svg
    :alt: Cooley-Tukey FFT algorithm size 8
 
-Each column in this pattern is a set of operations that can be done in parallel, and :math:`log_2(N)` steps are performed, which is why the computational complexity of the FFT is O(:math:`N\log N`) while a DFT is O(:math:`N^2`).
+Cada columna de este patrón es un conjunto de operaciones que se pueden realizar en paralelo y :math:`log_2(N)` se realizan los pasos, razón por la cual la complejidad computacional de la FFT es O(:math:`N\log N`) mientras que un DFT es O(:math:`N^2`).
 
-For those who prefer to think in code rather than equations, the following shows a simple Python implementation of the FFT, along with an example signal consisting of a tone plus noise, to try the FFT out with.
+Para aquellos que prefieren pensar en código en lugar de ecuaciones, a continuación se muestra una implementación simple de la FFT en Python, junto con una señal de ejemplo que consiste en un tono más ruido, para probar la FFT.
 
 .. code-block:: python
 
@@ -557,4 +556,4 @@ For those who prefer to think in code rather than equations, the following shows
    :target: ../_images/fft_in_python.svg
    :alt: python implementation of fft example
 
-For those interested in JavaScript and/or WebAssembly based implementations, check out the `WebFFT <https://github.com/IQEngine/WebFFT>`_ library for performing FFTs in web or NodeJS applications, it includes several implementations under the hood, and there is a `benchmarking tool <https://webfft.com>`_ used to compare the performance of each implementation.
+Para aquellos interesados en implementaciones basadas en JavaScript y/o WebAssembly, consulte la `WebFFT <https://github.com/IQEngine/WebFFT>`_ biblioteca para realizar FFT en aplicaciones web o NodeJS, incluye varias implementaciones internas y hay una `benchmarking tool <https://webfft.com>`_ se utiliza para comparar el rendimiento de cada implementación.

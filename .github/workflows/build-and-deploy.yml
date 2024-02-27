@@ -77,6 +77,11 @@ jobs:
         env:
           CREATOR_ID: ${{ secrets.CREATOR_ID }}
 
+      - name: Build Spanish
+        run: make html-es
+        env:
+          CREATOR_ID: ${{ secrets.CREATOR_ID }}
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:

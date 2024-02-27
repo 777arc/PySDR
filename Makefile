@@ -65,6 +65,12 @@ html:
 	sed -i 's/value="Go"/value="Search"/g' $(BUILDDIR)/*/*.html
 
 #make sure you install sphinxcontrib-tikz python module and pdf2svg application
+.PHONY: html-es
+html-es:
+	$(SPHINXBUILD) -b html -D project="PySDR: Guia de uso para SDR/DSP con Python" -D exclude_patterns=_build,index.rst,content/*,index-nl.rst,content-nl/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/* -D master_doc=index-es $(EXTENSIONS) . $(BUILDDIR)/es/
+	@echo
+	@echo "Spanish Build finished. The HTML pages are in $(BUILDDIR)/es/html."
+
 .PHONY: html-nl
 html-nl:
 	$(SPHINXBUILD) -b html -D project="PySDR: Een handleiding voor SDR en DSP met Python" -D exclude_patterns=_build,index.rst,content/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/* -D master_doc=index-nl $(EXTENSIONS) . $(BUILDDIR)/nl/

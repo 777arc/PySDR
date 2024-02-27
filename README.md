@@ -32,11 +32,21 @@ Note: on one machine I had to add `~/.local/bin` to PATH
 
 ### Windows
 
-To build the English version:
+Install pre-requisite software with:
+
+1. Install Tex Live from the install-tl-windows.exe link towards the beginning of https://www.tug.org/texlive/acquire-netinstall.html (after opening it, choose the Install option). When a box pops up, click Advanced. It will mention `Installation root C:/texlive/2023` which we need later.  Uncheck Install TeXworks front end because we wont need it.  Under Scheme click "change" and choose `basic scheme`.  Hit Install.  It will take a while because it installs a lot of common latex packages, you can do the remaining steps while this installs.  You know it worked if you now have a `C:\texlive\2023\bin\windows\latex.exe`.
+2. From the Microsoft Store install Python 3.10 (3.8-3.12 is fine too if you already have it installed).  
+3. In a PowerShell terminal (click start menu then type powershell, or open a terminal in VSCode) run `pip install sphinx sphinxcontrib-tikz patreon`
+4. `cd` to the directory you cloned PySDR
+5. Separately, open "Tex live command-line" app from start menu, then run `tlmgr install dvisvgm pgf` (pgf is tikz). 
+
+Build the English version only using:
 
 ```
-sphinx-build -b html -D imgmath_latex="C:\Program Files\MiKTeX 2.9\miktex\bin\x64\latex.exe" . _build
+python -m sphinx.cmd.build -b html -D imgmath_latex="C:\texlive\2023\bin\windows\latex.exe" -D imgmath_dvisvgm="C:\texlive\2023\bin\windows\dvisvgm.exe" . _build
 ```
+
+The first time running this it might take a while because it has to download LaTeX packages.
 
 ## Creating a PDF Export
 

@@ -4,175 +4,175 @@
 Modulación Digital
 ###################
 
-In this chapter we will discuss *actually transmitting data* using digital modulation and wireless symbols!  We will design signals that convey "information", e.g., 1's and 0's, using modulation schemes like ASK, PSK, QAM, and FSK.  We will also discuss IQ plots and constellations, and end the chapter with some Python examples.
+En este capítulo discutiremos *la transmisión real de datos* usando modulación digital y símbolos inalámbricos. Diseñaremos señales que transmitan "información", por ejemplo, 1 y 0, utilizando esquemas de modulación como ASK, PSK, QAM y FSK. También discutiremos los diagramas y constelaciones de IQ y finalizaremos el capítulo con algunos ejemplos de Python.
 
-The main goal of modulation is to squeeze as much data into the least amount of spectrum possible.  Technically speaking we want to maximize "spectral efficiency" in units bits/sec/Hz.  Transmitting 1's and 0's faster will increase the bandwidth of our signal (recall Fourier properties), which means more spectrum is used. We will also examine other techniques besides transmitting faster.  There will be many trade-offs when deciding how to modulate, but there will also be room for creativity.
+El objetivo principal de la modulación es exprimir la mayor cantidad de datos en la menor cantidad de espectro posible. Técnicamente hablando, queremos maximizar la "eficiencia espectral" en unidades bits/seg/Hz. Transmitir unos y ceros más rápido aumentará el ancho de banda de nuestra señal (recordemos las propiedades de Fourier), lo que significa que se utiliza más espectro. También examinaremos otras técnicas además de transmitir más rápido. Habrá muchas compensaciones a la hora de decidir cómo modular, pero también habrá espacio para la creatividad.
 
 *******************
 Simbolos
 *******************
-New term alert!  Our transmit signal is going to be made up of "symbols".  Each symbol will carry some number of bits of information, and we will transmit symbols back to back, thousands or even millions in a row.
+¡Alerta de nuevo término! Nuestra señal de transmisión estará compuesta de "símbolos". Cada símbolo llevará una cierta cantidad de bits de información y transmitiremos símbolos uno tras otro, miles o incluso millones en fila.
 
-As a simplified example, let's say we have a wire and are sending 1's and 0's using high and low voltage levels.  A symbol is one of those 1's or 0's:
+Como ejemplo simplificado, digamos que tenemos un cable y estamos enviando unos y ceros usando niveles de voltaje alto y bajo. Un símbolo es uno de esos 1 o 0:
 
 .. image:: ../_images/symbols.png
    :scale: 60 %
    :align: center
    :alt: Pulse train of ones and zeros depicting the concept of a digital symbol that carries information
 
-In the above example each symbol represents one bit.  How can we convey more than one bit per symbol?  Let's study the signals that travel down Ethernet cables, which is defined in an IEEE standard called IEEE 802.3 1000BASE-T.  The common operating mode of ethernet uses a 4-level amplitude modulation (2 bits per symbol) with 8 ns symbols.
+En el ejemplo anterior, cada símbolo representa un bit. ¿Cómo podemos transmitir más de un bit por símbolo? Estudiemos las señales que viajan por los cables Ethernet, que se define en un estándar IEEE llamado IEEE 802.3 1000BASE-T. El modo de funcionamiento común de Ethernet utiliza una modulación de amplitud de 4 niveles (2 bits por símbolo) con símbolos de 8 ns.
 
 .. image:: ../_images/ethernet.svg
    :align: center
    :target: ../_images/ethernet.svg
    :alt: Plot of IEEE 802.3 1000BASE-T ethernet voltage signal showing 4-level amplitude shift keying (ASK)
 
-Take a moment to try to answer these questions:
+Tómate un momento para intentar responder estas preguntas:
 
-1. How many bits per second are transmitted in the example shown above?
-2. How many pairs of these data wires would be needed to transmit 1 gigabit/sec?
-3. If a modulation scheme has 16 different levels, how many bits per symbol is that?
-4. With 16 different levels and 8 ns symbols, how many bits per second is that?
+1. ¿Cuántos bits por segundo se transmiten en el ejemplo mostrado arriba?
+2. ¿Cuántos pares de estos cables de datos se necesitarían para transmitir 1 gigabit/seg?
+3. Si un esquema de modulación tiene 16 niveles diferentes, ¿cuántos bits por símbolo son?
+4. Con 16 niveles diferentes y símbolos de 8 ns, ¿cuántos bits por segundo son eso?
 
 .. raw:: html
 
    <details>
    <summary>Answers</summary>
 
-1. 250 Mbps - (1/8e-9)*2
-2. Four (which is what ethernet cables have)
-3. 4 bits per symbol - log_2(16)
-4. 0.5 Gbps - (1/8e-9)*4
+1. 250Mbps - (1/8e-9)*2
+2. Cuatro (que es lo que tienen los cables ethernet)
+3. 4 bits por símbolo - log_2(16)
+4. 0,5 Gbps - (1/8e-9)*4
 
 .. raw:: html
 
    </details>
 
-*******************
-Wireless Symbols
-*******************
-Question: Why can’t we directly transmit the ethernet signal shown in the figure above?  There are many reasons, the biggest two being:
+*********************************
+Simbolos por un medio inalámbrico
+*********************************
+Pregunta: ¿Por qué no podemos transmitir directamente la señal de Ethernet que se muestra en la figura anterior? Hay muchas razones, las dos más importantes son:
 
-1. Low frequencies require *huge* antennas, and the signal above contains frequencies down to DC (0 Hz).  We can’t transmit DC.
-2. Square waves take an excessive amount of spectrum for the bits per second--recall from the :ref:`freq-domain-chapter` chapter that sharp changes in time domain use a large amount of bandwidth/spectrum:
+1. Las bajas frecuencias requieren antenas *enormes*, y la señal anterior contiene frecuencias de hasta CC (0 Hz). No podemos transmitir DC.
+2. Las ondas cuadradas ocupan una cantidad excesiva de espectro para los bits por segundo. En el capitulo :ref:`freq-domain-chapter` vimos que los cambios bruscos en el dominio del tiempo utilizan una gran cantidad de ancho de banda/espectro: 
 
 .. image:: ../_images/square-wave.svg
    :align: center
    :target: ../_images/square-wave.svg
    :alt: A square wave in time and frequency domain showing the large amount of bandwidth that a square wave uses
 
-What we do for wireless signals is start with a carrier, which is just a sinusoid.  E.g., FM radio uses a carrier like 101.1 MHz or 100.3 MHz.  We modulate that carrier in some way (there are many).  For FM radio it’s an analog modulation, not digital, but it’s the same concept as digital modulation.
+Lo que hacemos con las señales inalámbricas es comenzar con una portadora, que es simplemente una sinusoide. Por ejemplo, la radio FM utiliza una portadora como 101,1 MHz o 100,3 MHz. Modulamos esa portadora de alguna manera (hay muchas). Para la radio FM es una modulación analógica, no digital, pero es el mismo concepto que la modulación digital.
 
-In what ways can we modulate the carrier?  Another way to ask the same question: what are the different properties of a sinusoid?
+¿De qué manera podemos modular la portadora? Otra forma de hacer la misma pregunta: ¿cuáles son las diferentes propiedades de una sinusoide?
 
-1. Amplitude
-2. Phase
-3. Frequency
+1. amplitud
+2. Fase
+3. Frecuencia
 
-We can modulate our data onto a carrier by modifying any one (or more) of these three.
+Podemos modular nuestros datos en un soporte modificando cualquiera (o más) de estos tres.
 
 ****************************
 Amplitude Shift Keying (ASK)
 ****************************
 
-Amplitude Shift Keying (ASK) is the first digital modulation scheme we will discuss because amplitude modulation is the simplest to visualize of the three sinusoid properties.  We literally modulate the **amplitude** of the carrier.  Here is an example of 2-level ASK, called 2-ASK:
+Amplitude Shift Keying (ASK) es el primer esquema de modulación digital que analizaremos porque la modulación de amplitud es la más sencilla de visualizar de las tres propiedades sinusoideas. Literalmente modulamos la **amplitud** de la portadora. Aquí hay un ejemplo de ASK de 2 niveles, llamado 2-ASK:
 
 .. image:: ../_images/ASK.svg
    :align: center
    :target: ../_images/ASK.svg
    :alt: Example of amplitude shift keying (ASK) in the time domain, specifically 2-ASK
 
-Note how the average value is zero; we always prefer this whenever possible.
+Observe cómo el valor promedio es cero; Siempre preferimos esto siempre que sea posible.
 
-We can use more than two levels, allowing for more bits per symbol.  Below shows an example of 4-ASK.  In this case each symbol carries 2 bits of information.
+Podemos usar más de dos niveles, lo que permite más bits por símbolo. A continuación se muestra un ejemplo de 4-ASK. En este caso cada símbolo lleva 2 bits de información.
 
 .. image:: ../_images/ask2.svg
    :align: center
    :target: ../_images/ask2.svg
    :alt: Example of amplitude shift keying (ASK) in the time domain, specifically 4-ASK
 
-Question: How many symbols are shown in the signal snippet above?  How many bits are represented total?
+Pregunta: ¿Cuántos símbolos se muestran en el fragmento de señal de arriba? ¿Cuántos bits están representados en total?
 
 .. raw:: html
 
    <details>
    <summary>Answers</summary>
 
-20 symbols, so 40 bits of information
+20 símbolos, es decir, 40 bits de información.
 
 .. raw:: html
 
    </details>
 
-How do we actually create this signal digitally, through code?  All we have to do is create a vector with N samples per symbol, then multiply that vector by a sinusoid.  This modulates the signal onto a carrier (the sinusoid acts as that carrier).  The example below shows 2-ASK with 10 samples per symbol.
+¿Cómo creamos realmente esta señal digitalmente, a través de código? Todo lo que tenemos que hacer es crear un vector con N muestras por símbolo y luego multiplicar ese vector por una sinusoide. Esto modula la señal sobre una portadora (la sinusoide actúa como esa portadora). El siguiente ejemplo muestra 2-ASK con 10 muestras por símbolo.
 
 .. image:: ../_images/ask3.svg
    :align: center
    :target: ../_images/ask3.svg
    :alt: Samples per symbol depiction using 2-ASK in the time domain, with 10 samples per symbol (sps)
 
-The top plot shows the discrete samples represented by red dots, i.e., our digital signal.  The bottom plot shows what the resulting modulated signal looks like, which could be transmitted over the air.  In real systems, the frequency of the carrier is usually much much higher than the rate the symbols are changing.  In this example there are only three cycles of the sinusoid in each symbol, but in practice there may be thousands, depending on how high in the spectrum the signal is being transmitted.
+El gráfico superior muestra las muestras discretas representadas por puntos rojos, es decir, nuestra señal digital. El gráfico inferior muestra cómo se ve la señal modulada resultante, que podría transmitirse por aire. En los sistemas reales, la frecuencia de la portadora suele ser mucho mayor que la velocidad a la que cambian los símbolos. En este ejemplo hay sólo tres ciclos de la sinusoide en cada símbolo, pero en la práctica puede haber miles, dependiendo de qué tan alto en el espectro se esté transmitiendo la señal.
 
 ************************
 Phase Shift Keying (PSK)
 ************************
 
-Now let's consider modulating the phase in a similar manner as we did with the amplitude.  The simplest form is Binary PSK, a.k.a. BPSK, where there are two levels of phase:
+Ahora consideremos modular la fase de manera similar a como lo hicimos con la amplitud. La forma más simple es PSK binario, también conocido como BPSK, donde hay dos niveles de fase:
 
-1. No phase change
-2. 180 degree phase change
+1. Sin cambio de fase
+2. Cambio de fase de 180 grados
 
-Example of BPSK (note the phase changes):
+Ejemplo de BPSK (tenga en cuenta los cambios de fase):
 
 .. image:: ../_images/bpsk.svg
    :align: center
    :target: ../_images/bpsk.svg
    :alt: Simple example of binary phase shift keying (BPSK) in the time domain, showing a modulated carrier
 
-It’s not very fun to look at plots like this:
+No es muy divertido ver tramas como esta:
 
 .. image:: ../_images/bpsk2.svg
    :align: center
    :target: ../_images/bpsk2.svg
    :alt: Phase shift keying like BPSK in the time domain is difficult to read, so we tend to use a constellation plot or complex plane
 
-Instead we usually represent the phase in the complex plane.
+En cambio, normalmente representamos la fase en el plano complejo.
 
-***********************
-IQ Plots/Constellations
-***********************
+****************************
+Gráficas IQ y Constelaciones
+****************************
 
-You have seen IQ plots before in the complex numbers subsection of the :ref:`sampling-chapter` chapter, but now we will use them in a new and fun way.  For a given symbol, we can show the amplitude and phase on an IQ plot.  For the BPSK example we said we had phases of 0 and 180 degrees.  Let's plot those two points on the IQ plot. We will assume a magnitude of 1. In practice it doesn't really matter what magnitude you use; a higher value means a higher power signal, but you can also just increase the amplifier gain instead.
+Ya has visto gráficos IQ antes en la subsección de números complejos del capitulo :ref:`sampling-chapter` , pero ahora los usaremos de una manera nueva y divertida. Para un símbolo dado, podemos mostrar la amplitud y la fase en un gráfico de IQ. Para el ejemplo de BPSK dijimos que teníamos fases de 0 y 180 grados. Tracemos esos dos puntos en el gráfico del coeficiente intelectual. Asumiremos una magnitud de 1. En la práctica, realmente no importa qué magnitud uses; un valor más alto significa una señal de mayor potencia, pero también puedes aumentar la ganancia del amplificador.
 
 .. image:: ../_images/bpsk_iq.png
    :scale: 80 %
    :align: center
    :alt: IQ plot or constellation plot of BPSK
 
-The above IQ plot shows what we will transmit, or rather the set of symbols we will transmit from.  It does not show the carrier, so you can think about it as representing the symbols at baseband.  When we show the set of possible symbols for a given modulation scheme, we call it the "constellation".  Many modulation schemes can be defined by their constellation.
+El gráfico IQ anterior muestra lo que transmitiremos, o más bien el conjunto de símbolos desde el que transmitiremos. No muestra la portadora, por lo que puedes pensar que representa los símbolos en la banda base. Cuando mostramos el conjunto de posibles símbolos para un esquema de modulación determinado, lo llamamos "constelación". Muchos esquemas de modulación pueden definirse por su constelación.
 
-To receive and decode BPSK we can use IQ sampling, like we learned about last chapter, and examine where the points end up on the IQ plot.  However, there will be a random phase rotation due to the wireless channel because the signal will have some random delay as it passes through the air between antennas.  The random phase rotation can be reversed using various methods we will learn about later.  Here is an example of a few different ways that BPSK signal might show up at the receiver (this does not include noise):
+Para recibir y decodificar BPSK podemos usar el muestreo IQ, como aprendimos en el capítulo anterior, y examinar dónde terminan los puntos en el gráfico de IQ. Sin embargo, habrá una rotación de fase aleatoria debido al canal inalámbrico porque la señal tendrá un retraso aleatorio a medida que pasa por el aire entre las antenas. La rotación de fase aleatoria se puede revertir utilizando varios métodos que aprenderemos más adelante. A continuación se muestra un ejemplo de algunas formas diferentes en que la señal BPSK podría aparecer en el receptor (esto no incluye el ruido):
 
 .. image:: ../_images/bpsk3.png
    :scale: 60 %
    :align: center
    :alt: A random phase rotation of BPSK occurs as the wireless signal travels through the air
 
-Back to PSK.  What if we want four different levels of phase?  I.e., 0, 90, 180, and 270 degrees.  In this case it would be represented like so on the IQ plot, and it forms a modulation scheme we call Quadrature Phase Shift Keying (QPSK):
+Volvamos a PSK. ¿Qué pasa si queremos cuatro niveles diferentes de fase? Es decir, 0, 90, 180 y 270 grados. En este caso, se representaría así en el gráfico IQ y forma un esquema de modulación que llamamos modulación por desplazamiento de fase en cuadratura (QPSK):
 
 .. image:: ../_images/qpsk.png
    :scale: 60 %
    :align: center
    :alt: Example of Quadrature Phase Shift Keying (QPSK) in the IQ plot or constellation plot
 
-For PSK we always have N different phases, equally spaced around 360 degrees for best results.  We often show the unit circle to emphasize that all points have the same magnitude:
+Para PSK siempre tenemos N fases diferentes, igualmente espaciadas alrededor de 360 grados para obtener mejores resultados. A menudo mostramos el círculo unitario para enfatizar que todos los puntos tienen la misma magnitud:
 
 .. image:: ../_images/psk_set.png
    :scale: 60 %
    :align: center
    :alt: Phase shift keying uses equally spaced constellation points on the IQ plot
 
-Question: What’s wrong with using a PSK scheme like the one in the below image?  Is it a valid PSK modulation scheme?
+Pregunta: ¿Qué hay de malo en usar un esquema PSK como el de la imagen de abajo? ¿Es un esquema de modulación PSK válido?
 
 .. image:: ../_images/weird_psk.png
    :scale: 60 %
@@ -184,118 +184,118 @@ Question: What’s wrong with using a PSK scheme like the one in the below image
    <details>
    <summary>Answer</summary>
 
-There is nothing invalid about this PSK scheme. You can certainly use it, but, because the symbols are not uniformly spaced, this scheme is not as effective as it could be. Scheme efficiency will become clear once we discuss how noise impacts our symbols.  The short answer is that we want to leave as much room as possible in between the symbols, in case there is noise, so that a symbol is not interpreted at the receiver as one of the other (incorrect) symbols.  We don't want a 0 being received as a 1.
+No hay nada inválido en este esquema PSK. Ciertamente puedes usarlo, pero debido a que los símbolos no están espaciados uniformemente, este esquema no es tan efectivo como podría ser. La eficiencia del esquema quedará clara una vez que analicemos cómo el ruido afecta nuestros símbolos. La respuesta corta es que queremos dejar tanto espacio como sea posible entre los símbolos, en caso de que haya ruido, para que el receptor no interprete un símbolo como uno de los otros símbolos (incorrectos). No queremos que un 0 se reciba como un 1.
 
 .. raw:: html
 
    </details>
 
-Let's detour back to ASK for a moment.  Note that we can show ASK on the IQ plot just like PSK.  Here is the IQ plot of 2-ASK, 4-ASK, and 8-ASK, in the bipolar configuration, as well as 2-ASK and 4-ASK in the unipolar configuration.
+Volvamos a PREGUNTAR por un momento. Tenga en cuenta que podemos mostrar ASK en el gráfico IQ al igual que PSK. Aquí está el gráfico de coeficiente intelectual de 2-ASK, 4-ASK y 8-ASK, en la configuración bipolar, así como de 2-ASK y 4-ASK en la configuración unipolar.
 
 .. image:: ../_images/ask_set.png
    :scale: 50 %
    :align: center
    :alt: Bipolar and unipolar amplitude shift keying (ASK) constellation or IQ plots
 
-As you may have noticed, bipolar 2-ASK and BPSK are the same. A 180 degree phase shift is the same as multiplying the sinusoid by -1.  We call it BPSK, probably because PSK is used way more than ASK.
+Como habrás notado, el 2-ASK bipolar y el BPSK son iguales. Un cambio de fase de 180 grados es lo mismo que multiplicar la sinusoide por -1. Lo llamamos BPSK, probablemente porque PSK se usa mucho más que ASK.
 
-**************************************
-Quadrature Amplitude Modulation (QAM)
-**************************************
-What if we combine ASK and PSK?  We call this modulation scheme Quadrature Amplitude Modulation (QAM). QAM usually looks something like this:
+*****************************************
+Modulación en Amplitud y Cuadratura (QAM)
+*****************************************
+¿Qué pasa si combinamos ASK y PSK? A este esquema de modulación lo llamamos modulación de amplitud en cuadratura (QAM). QAM normalmente se parece a esto:
 
 .. image:: ../_images/64qam.png
    :scale: 90 %
    :align: center
    :alt: Example of Quadrature Amplitude Modulation (QAM) on the IQ or constellation plot
 
-Here are some other examples of QAM:
+Aquí hay algunos otros ejemplos de QAM:
 
 .. image:: ../_images/qam.png
    :scale: 50 %
    :align: center
    :alt: Example of 16QAM, 32QAM, 64QAM, and 256QAM on the IQ or constellation plot
 
-For a QAM modulation scheme, we can technically put points wherever we want to on the IQ plot since the phase *and* amplitude are modulated.  The "parameters" of a given QAM scheme are best defined by showing the QAM constellation. Alternatively, you may list the I and Q values for each point, like below for QPSK:
+Para un esquema de modulación QAM, técnicamente podemos colocar puntos donde queramos en el gráfico IQ ya que la fase *y* la amplitud están moduladas. Los "parámetros" de un esquema QAM determinado se definen mejor mostrando la constelación QAM. Alternativamente, puede enumerar los valores I y Q para cada punto, como se muestra a continuación para QPSK:
 
 .. image:: ../_images/qpsk_list.png
    :scale: 80 %
    :align: center
    :alt: Constellation or IQ plots can also be represented using a table of symbols
 
-Note that most modulation schemes, except the various ASKs and BPSK, are pretty hard to "see" in the time domain.  To prove my point, here is an example of QAM in time domain. Can you distinguish between the phase of each symbol in the below image? It's tough.
+Tenga en cuenta que la mayoría de los esquemas de modulación, excepto los distintos ASK y BPSK, son bastante difíciles de "ver" en el dominio del tiempo. Para demostrar mi punto, aquí hay un ejemplo de QAM en el dominio del tiempo. ¿Puedes distinguir entre la fase de cada símbolo en la imagen de abajo? Está duro.
 
 .. image:: ../_images/qam_time_domain.png
    :scale: 50 %
    :align: center
    :alt: Looking at QAM in the time domain is difficult which is why we use constellation or IQ plots
 
-Given the difficulty discerning modulation schemes in the time domain, we prefer to use IQ plots over displaying the time domain signal.  We might, nonetheless, show the time domain signal if there's a certain packet structure or the sequence of symbols matters.
+Dada la dificultad para discernir esquemas de modulación en el dominio del tiempo, preferimos utilizar gráficos de IQ en lugar de mostrar la señal en el dominio del tiempo. No obstante, podríamos mostrar la señal en el dominio del tiempo si hay una determinada estructura de paquete o si la secuencia de símbolos importa.
 
 ****************************
 Frequency Shift Keying (FSK)
 ****************************
 
-Last on the list is Frequency Shift Keying (FSK).  FSK is fairly simple to understand--we just shift between N frequencies where each frequency is one possible symbol.  However, because we are modulating a carrier, it’s really our carrier frequency +/- these N frequencies. E.g.. we might be at a carrier of 1.2 GHz and shift between these four frequencies:
+El último en la lista es la manipulación por desplazamiento de frecuencia (FSK). FSK es bastante sencillo de entender: simplemente cambiamos entre N frecuencias donde cada frecuencia es un símbolo posible. Sin embargo, debido a que estamos modulando una portadora, en realidad es nuestra frecuencia portadora +/- estas N frecuencias. Por ejemplo, podríamos estar en una portadora de 1,2 GHz y cambiar entre estas cuatro frecuencias:
 
-1. 1.2005 GHz
-2. 1.2010 GHz
-3. 1.1995 GHz
-4. 1.1990 GHz
+1. 1,2005 GHz
+2. 1,2010 GHz
+3. 1,1995GHz
+4. 1,1990GHz
 
-The example above would be 4-FSK, and there would be two bits per symbol.  A 4-FSK signal in the frequency domain might look something like this:
+El ejemplo anterior sería 4-FSK y habría dos bits por símbolo. Una señal 4-FSK en el dominio de la frecuencia podría verse así:
 
 .. image:: ../_images/fsk.svg
    :align: center
    :target: ../_images/fsk.svg
    :alt: Example of Frequency Shift Keying (FSK), specifically 4FSK
 
-If you use FSK, you must ask a critical question: What should the spacing between frequencies be?  We often denote this spacing as :math:`\Delta f` in Hz. We want to avoid overlap in the frequency domain so that the receiver knows which frequency a given symbol used, so :math:`\Delta f` must be large enough.  The width of each carrier in frequency is a function of our symbol rate.  More symbols per second means shorter symbols, which means wider bandwidth (recall the inverse relationship between time and frequency scaling).  The faster we transmit symbols, the wider each carrier will get, and consequently the larger we have to make :math:`\Delta f` to avoid overlapping carriers.  We won't go into any more details about the design of FSK in this textbook.
+Si usa FSK, debe hacerse una pregunta crítica: ¿Cuál debería ser el espacio entre frecuencias? A menudo denotamos este espaciado como :math:`\Delta f` en Hz. Queremos evitar la superposición en el dominio de la frecuencia para que el receptor sepa qué frecuencia utilizó un símbolo determinado, por lo que :math:`\Delta f` debe ser lo suficientemente grande. El ancho de cada portadora en frecuencia es función de nuestra velocidad de símbolo. Más símbolos por segundo significa símbolos más cortos, lo que significa un ancho de banda más amplio (recuerde la relación inversa entre el escalado de tiempo y frecuencia). Cuanto más rápido transmitamos símbolos, más ancha se volverá cada portadora y, en consecuencia, más grandes tendremos que hacer. :math:`\Delta f` para evitar la superposición de portadores. No entraremos en más detalles sobre el diseño de FSK en este libro de texto.
 
-IQ plots can't be used to show different frequencies. They show magnitude and phase.  While it is possible to show FSK in the time domain, any more than 2 frequencies makes it difficult to distinguish between symbols:
+Los gráficos IQ no se pueden utilizar para mostrar diferentes frecuencias. Muestran magnitud y fase. Si bien es posible mostrar FSK en el dominio del tiempo, más de 2 frecuencias dificultan la distinción entre símbolos:
 
 .. image:: ../_images/fsk2.svg
    :align: center
    :target: ../_images/fsk2.svg
    :alt: Frequency Shift Keying (FSK) or 2FSK in the time domain
 
-As an aside, note that FM radio uses Frequency Modulation (FM) which is like an analog version of FSK.  Instead of having discrete frequencies we jump between, FM radio uses a continuous audio signal to modulate the frequency of the carrier.  Below is an example of FM and AM modulation where the "signal" at the top is the audio signal being modulated onto to the carrier.
+Además, tenga en cuenta que la radio FM utiliza modulación de frecuencia (FM), que es como una versión analógica de FSK. En lugar de tener frecuencias discretas entre las que saltamos, la radio FM utiliza una señal de audio continua para modular la frecuencia de la portadora. A continuación se muestra un ejemplo de modulación de FM y AM donde la "señal" en la parte superior es la señal de audio que se modula en la portadora.
 
 .. image:: ../_images/Carrier_Mod_AM_FM.webp
    :align: center
    :target: ../_images/Carrier_Mod_AM_FM.webp
    :alt: Animation of a carrier, amplitude modulation (AM), and frequency modulation (FM) in the time domain
 
-In this textbook we are mainly concerned about digital forms of modulation.
+En este libro de texto nos ocupamos principalmente de las formas digitales de modulación.
 
 *******************
-Differential Coding
+Codificación diferencial
 *******************
 
-In many wireless (and wired) communications protocols based on PSK or QAM, you are likely to run into a step that occurs right before bits are modulated (or right after demodulation), called differential coding.  To demonstrate its utility consider receiving a BPSK signal.  As the signal flies through the air it experiences some random delay between the transmitter and receiver, causing a random rotation in the constellation, as we mentioned earlier.  When the receiver synchronizes to it, and aligns the BPSK to the "I" (real) axis, it has no way of knowing if it is 180 degrees out of phase or not, because the constellation is symmetric.  One option is to transmit symbols the receiver knows the value of ahead of time, mixed into the information, known as pilot symbols.  The receiver can use these known symbols to determine which cluster is a 1 or 0, in the case of BPSK.  Pilot symbols must be sent at some period, related to how fast the wireless channel is changing, which will ultimately reduce the data rate.  Instead of having to mix pilot symbols into the transmitted waveform, we can choose to use differential coding.
+En muchos protocolos de comunicaciones inalámbricos (y cableados) basados en PSK o QAM, es probable que se encuentre con un paso que ocurre justo antes de que se modulen los bits (o inmediatamente después de la demodulación), llamado codificación diferencial. Para demostrar su utilidad, considere recibir una señal BPSK. A medida que la señal vuela por el aire, experimenta un retraso aleatorio entre el transmisor y el receptor, lo que provoca una rotación aleatoria en la constelación, como mencionamos anteriormente. Cuando el receptor se sincroniza con él y alinea el BPSK con el eje "I" (real), no tiene forma de saber si está desfasado 180 grados o no, porque la constelación es simétrica. Una opción es transmitir símbolos cuyo valor el receptor conoce de antemano, mezclados con la información, conocidos como símbolos piloto. El receptor puede utilizar estos símbolos conocidos para determinar qué grupo es 1 o 0, en el caso de BPSK. Los símbolos piloto deben enviarse en algún período, relacionado con la rapidez con la que cambia el canal inalámbrico, lo que en última instancia reducirá la velocidad de datos. En lugar de tener que mezclar símbolos piloto en la forma de onda transmitida, podemos optar por utilizar codificación diferencial.
 
-The simplest case of differential coding is when used alongside BPSK, which involves one bit per symbol.  Instead of simply transmitting a 1 for binary 1, and a -1 for binary 0, BPSK differential coding involves transmitting a 0 when the input bit is the same as the **encoding** of the previous bit (not the previous input bit itself), and transmitting a 1 when it differs.  We still transmit the same number of bits, aside from one extra bit that is needed at the beginning to start the output sequence, but now we don't have to worry about the 180 degree phase ambiguity.  This encoding scheme can be described using the following equation, where :math:`x` are the input bits and :math:`y` are the output bits that will get modulated with BPSK:
+El caso más simple de codificación diferencial es cuando se utiliza junto con BPSK, que implica un bit por símbolo. En lugar de simplemente transmitir un 1 para 1 binario y un -1 para 0 binario, la codificación diferencial BPSK implica transmitir un 0 cuando el bit de entrada es el mismo que la **codificación** del bit anterior (no el bit de entrada anterior en sí), y transmitiendo un 1 cuando difiere. Seguimos transmitiendo la misma cantidad de bits, aparte de un bit adicional que se necesita al principio para iniciar la secuencia de salida, pero ahora no tenemos que preocuparnos por la ambigüedad de fase de 180 grados. Este esquema de codificación se puede describir utilizando la siguiente ecuación, donde :math:`x` son los bits de entrada y :math:`y` son los bits de salida que se modularán con BPSK:
 
 .. math::
   y_i = y_{i-1} \oplus x_i
 
-Because the output is based on the previous step's output, we must start the output with an arbitrary 1 or 0, and as we'll show during the decoding process, it doesn't matter which one we choose (we must still transmit this starter symbol!).
+Debido a que la salida se basa en la salida del paso anterior, debemos comenzar la salida con un 1 o 0 arbitrario y, como mostraremos durante el proceso de decodificación, no importa cuál elijamos (aún debemos transmitir este ¡símbolo! inicial).
 
-For those visual learners, the differential encoding process can be represented as a diagram, where the delay block is a delay-by-1 operation:
+Para aquellos estudiantes visuales, el proceso de codificación diferencial se puede representar como un diagrama, donde el bloque de retardo es una operación de retardo por 1:
 
 .. image:: ../_images/differential_coding2.svg
    :align: center
    :target: ../_images/differential_coding2.svg
    :alt: Differential coding block diagram
 
-As an example of encoding, consider transmitting the 10 bits [1, 1, 0, 0, 1, 1, 1, 1, 1, 0] using BPSK.  Assume we start the output sequence with 1; it actually doesn't matter whether you use 1 or 0.  It helps to show the bits stacked on top of each other, making sure to shift the input to make room for the starting output bit:
+Como ejemplo de codificación, considere transmitir los 10 bits [1, 1, 0, 0, 1, 1, 1, 1, 1, 0] usando BPSK. Supongamos que comenzamos la secuencia de salida con 1; en realidad no importa si usas 1 o 0. Es útil mostrar los bits apilados uno encima del otro, asegurándote de cambiar la entrada para dejar espacio para el bit de salida inicial:
 
 .. code-block::
 
  Input:     1 1 0 0 1 1 1 1 1 0
  Output:  1
 
-Next you build the output by comparing the input bit with the previous **output** bit, and apply the XOR operation shown in the table above.  The next output bit is therefore a 0, because 1 and 1 match:
+A continuación, construye la salida comparando el bit de entrada con el bit de **salida** anterior y aplica la operación XOR que se muestra en la tabla anterior. Por lo tanto, el siguiente bit de salida es 0, porque 1 y 1 coinciden:
 
 .. code-block::
 
@@ -309,16 +309,16 @@ Repeat for the rest and you will get:
  Input:     1 1 0 0 1 1 1 1 1 0
  Output:  1 0 1 1 1 0 1 0 1 0 0
 
-After applying differential encoding, we would ultimately transmit [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0].  The 1's and 0's are still mapped to the positive and negative symbols we discussed earlier.
+Después de aplicar la codificación diferencial, finalmente transmitiríamos [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0]. Los 1 y 0 todavía están asignados a los símbolos positivos y negativos que analizamos anteriormente.
 
-The decoding process, which occurs at the receiver, compares the received bit with the previous **received** bit, which is much simpler to understand:
+El proceso de decodificación, que ocurre en el receptor, compara el bit recibido con el bit  anterior **recibido**, lo cual es mucho más sencillo de entender:
 
 .. math::
   x_i = y_i \oplus y_{i-1}
 
-If you were to receive the BPSK symbols [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0], you would start at the left and check if the first two match; in this case they don't so the first bit is a 1.  Repeat and you will get the sequence we started with, [1, 1, 0, 0, 1, 1, 1, 1, 1, 0].  It may not be obvious, but the starter bit we added could have been a 1 or a 0 and we would get the same result.
+Si recibiera los símbolos BPSK [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0], comenzaría por la izquierda y verificaría si los dos primeros coinciden; en este caso no es así, por lo que el primer bit es 1. Repita y obtendrá la secuencia con la que comenzamos, [1, 1, 0, 0, 1, 1, 1, 1, 1, 0]. Puede que no sea obvio, pero el bit inicial que agregamos podría haber sido un 1 o un 0 y obtendríamos el mismo resultado.
 
-The encoding and decoding process is summarized in the following graphic:
+El proceso de codificación y decodificación se resume en el siguiente gráfico:
 
 .. image:: ../_images/differential_coding.svg
    :align: center
@@ -326,17 +326,17 @@ The encoding and decoding process is summarized in the following graphic:
    :alt: Demonstration of differential coding using sequence of encoded and decoded bits
 
 
-The big downside to using differential coding is that if you have a bit error, it will lead to two bit errors.  The alternative to using differential coding for BPSK is to add pilot symbols periodically, as discussed earlier, which can also be used to reverse/invert multipath caused by the channel.  But one problem with pilot symbols is that the wireless channel can change very quickly, on the order of tens or hundreds of symbols if it's a moving receiver and/or transmitter, so you would need pilot symbols often enough to reflect the changing channel.  So if a wireless protocol is putting high emphasis on reducing the complexity of the receiver, such as RDS which we study in the :ref:`rds-chapter` chapter, it may choose to use differential coding.
+La gran desventaja de utilizar codificación diferencial es que si tiene un error de bit, se producirán errores de dos bits. La alternativa al uso de codificación diferencial para BPSK es agregar símbolos piloto periódicamente, como se analizó anteriormente, que también se pueden usar para revertir/invertir trayectos múltiples causados por el canal. Pero un problema con los símbolos piloto es que el canal inalámbrico puede cambiar muy rápidamente, del orden de decenas o cientos de símbolos si se trata de un receptor y/o transmisor en movimiento, por lo que necesitaría símbolos piloto con la frecuencia suficiente para reflejar el canal cambiante. Entonces, si un protocolo inalámbrico pone gran énfasis en reducir la complejidad del receptor, como el RDS que estudiamos en el capitulo :ref:`rds-chapter` , puede optar por utilizar codificación diferencial.
 
-Remember that the above differential coding example was specific to BPSK.  Differential coding applies at the symbol level, so to apply it to QPSK you work with pairs of bits at a time, and so on for higher order QAM schemes.  Differential QPSK is often referred to as DQPSK.
+Recuerde que el ejemplo de codificación diferencial anterior era específico de BPSK. La codificación diferencial se aplica a nivel de símbolo, por lo que para aplicarla a QPSK se trabaja con pares de bits a la vez, y así sucesivamente para esquemas QAM de orden superior. La QPSK diferencial a menudo se denomina DQPSK.
 
 *******************
-Python Example
+Ejemplo Python
 *******************
 
-As a short Python example, let's generate QPSK at baseband and plot the constellation.
+Como ejemplo breve de Python, generemos QPSK en banda base y grafiquemos la constelación.
 
-Even though we could generate the complex symbols directly, let's start from the knowledge that QPSK has four symbols at 90-degree intervals around the unit circle.  We will use 45, 135, 225, and 315 degrees for our points.  First we will generate random numbers between 0 and 3 and perform math to get the degrees we want before converting to radians.
+Aunque podríamos generar los símbolos complejos directamente, comencemos sabiendo que QPSK tiene cuatro símbolos a intervalos de 90 grados alrededor del círculo unitario. Usaremos 45, 135, 225 y 315 grados para nuestros puntos. Primero generaremos números aleatorios entre 0 y 3 y realizaremos cálculos para obtener los grados que queremos antes de convertirlos a radianes.
 
 .. code-block:: python
 
@@ -358,7 +358,7 @@ Even though we could generate the complex symbols directly, let's start from the
    :target: ../_images/qpsk_python.svg
    :alt: QPSK generated or simulated in Python
 
-Observe how all the symbols we generated overlap. There's no noise so the symbols all have the same value.  Let's add some noise:
+Observa cómo se superponen todos los símbolos que generamos. No hay ruido por lo que todos los símbolos tienen el mismo valor. Agreguemos algo de ruido:
 
 .. code-block:: python
 
@@ -374,9 +374,9 @@ Observe how all the symbols we generated overlap. There's no noise so the symbol
    :target: ../_images/qpsk_python2.svg
    :alt: QPSK with AWGN noise generated or simulated in Python
 
-Consider how additive white Gaussian noise (AWGN) produces a uniform spread around each point in the constellation.  If there's too much noise then symbols start passing the boundary (the four quadrants) and will be interpreted by the receiver as an incorrect symbol.  Try increasing :code:`noise_power` until that happens.
+Considere cómo el ruido blanco gaussiano aditivo (AWGN) produce una dispersión uniforme alrededor de cada punto de la constelación. Si hay demasiado ruido, los símbolos comenzarán a sobrepasar el límite (los cuatro cuadrantes) y el receptor los interpretará como un símbolo incorrecto. Intenta aumentar :code:`noise_power` hasta que eso suceda.
 
-For those interested in simulating phase noise, which could result from phase jitter within the local oscillator (LO), replace the :code:`r` with:
+Para aquellos interesados en simular el ruido de fase, que podría resultar de la fluctuación de fase dentro del oscilador local (LO), reemplace el :code:`r` con:
 
 .. code-block:: python
 
@@ -388,17 +388,17 @@ For those interested in simulating phase noise, which could result from phase ji
    :target: ../_images/phase_jitter.svg
    :alt: QPSK with phase jitter generated or simulated in Python
 
-You could even combine phase noise with AWGN to get the full experience:
+Incluso puedes combinar ruido de fase con AWGN para obtener la experiencia completa:
 
 .. image:: ../_images/phase_jitter_awgn.svg
    :align: center
    :target: ../_images/phase_jitter_awgn.svg
    :alt: QPSK with AWGN noise and phase jitter generated or simulated in Python
 
-We're going to stop at this point.  If we wanted to see what the QPSK signal looked like in the time domain, we would need to generate multiple samples per symbol (in this exercise we just did 1 sample per symbol). You will learn why you need to generate multiple samples per symbol once we discuss pulse shaping.  The Python exercise in the :ref:`pulse-shaping-chapter` chapter will continue where we left off here.
+Nos detendremos en este punto. Si quisiéramos ver cómo se ve la señal QPSK en el dominio del tiempo, necesitaríamos generar múltiples muestras por símbolo (en este ejercicio solo hicimos 1 muestra por símbolo). Aprenderá por qué necesita generar varias muestras por símbolo una vez que analicemos la configuración de pulsos. El ejercicio de Python en el capitulo :ref:`pulse-shaping-chapter` Continuaremos donde lo dejamos aquí.
 
 *******************
-Further Reading
+Otras lecturas
 *******************
 
 #. https://en.wikipedia.org/wiki/Differential_coding

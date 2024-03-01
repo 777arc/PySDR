@@ -41,7 +41,7 @@ Phased arrays and beamforming/DOA find use in all sorts of applications, althoug
 SDR Requirements
 *******************
 
-As discussed in the previous section, analog phased arrays utilize an analog phase shifter (usually also accompanied by an adjustable gain amplifier) for every element. This means that an analog phased array is a dedicated piece of hardware that must go alongside an SDR. In additon to this, in practise, pure analog systems, typically have a beamforming IC, that has dedicated compute and memory solutions with the express purpose of qucikly generating beams. On the other hand, any SDR that contains more than one channel can be used as a digital array with no extra RF hardware(except), as long as the channels are phase coherent and sampled using the same clock, which is typically the case for SDRs that have multiple recieve channels onboard.  There are many SDRs that contain **two** receive channels, such as the Ettus USRP B210 and Analog Devices Pluto (the 2nd channel is exposed using a uFL connector on the board itself).  Unfortunately, going beyond two channels involves entering the $10k+ segment of SDRs, at least as of 2023, such as the USRP N310.  The main problem is that low-cost SDRs are typically not able to be "chained" together to scale the number of channels.  The exception is the KerberosSDR (4 channels) and KrakenSDR (5 channels) which use multiple RTL-SDRs sharing an LO to form a low-cost digital array; the downside being the very limited sample rate (up to 2.56 MHz) and tuning range (up to 1766 MHz).  The KrakenSDR board and example antenna configuration is shown below.
+As discussed in the previous section, analog phased arrays utilize analog/digital(2-7 bits) phase shifters (and are also accompanied by an adjustable gain amplifier(2-8 bits)) for every element. This means that an analog phased array is a dedicated piece of hardware that must go alongside an SDR. In additon to this, analog array systems that are commercially implemented, typically have a dedicated beamforming IC, used to hold compute and memory solutions with the express purpose of qucikly generating beams. On the other hand, any SDR that contains more than one ADC channel(I/Q channels count as 1) can be used as a digital array with no extra RF hardware, as long as the channels are phase coherent and sampled using the same clock, which is typically the case for SDRs that have multiple recieve channels onboard.  There are many SDRs that contain **two** receive channels, such as the Ettus USRP B210 and Analog Devices Pluto (the 2nd channel is exposed using a uFL connector on the board itself).  Unfortunately, going beyond two channels involves entering the $10k+ segment of SDRs, at least as of 2023, such as the USRP N310 or the QuadMXFE(16 channels).  The main design challenge lies in the fact that low-cost SDRs can't be "chained" together to scale the number of channels.  The exception to this rule is the KerberosSDR (4 channels) and KrakenSDR (5 channels) which use multiple RTL-SDRs sharing an LO to form a low-cost digital array; the downside being the very limited sample rate (up to 2.56 MHz) and tuning range (up to 1766 MHz).  The KrakenSDR board and example antenna configuration is shown below.
 
 .. image:: ../_images/krakensdr.jpg
    :align: center 
@@ -115,7 +115,7 @@ Here are some common operations in both MATLAB and Python, as a sort of cheat sh
      - :code:`np.concatenate((A,A))`
 
 *******************
-Array Factor Math
+Steering Vector Math
 *******************
 
 To get to the fun part we have to get through a little bit of math, but the following section has been written so that the math is extremely simple and has diagrams to go along with it, only the most basic trig and exponential properties are used.  It's important to understand the basic math behind what we'll do in Python to perform DOA.
@@ -188,7 +188,7 @@ This is for adjacent elements, for the :math:`k`'th element we just need to mult
 .. math::
  s[n] e^{-2j \pi d k \sin(\theta)}
 
-And we're done! This equation above is what you'll see in DOA papers and implementations everywhere! We typically call that exponential term the "array factor" (often denoted as :math:`a`) and represent it as an array, a 1D array for a 1D antenna array, etc.  In python :math:`a` is:
+And we're done! This equation above is what you'll see in DOA papers and implementations everywhere! We typically call that exponential term the "Steering Vector" (often denoted as :math:`a`) and represent it as an array, a 1D array for a 1D antenna array, etc.  In python :math:`a` is:
 
 .. code-block:: python
 
@@ -202,7 +202,7 @@ Note how element 0 results in a 1+0j (because :math:`e^{0}=1`); this makes sense
 Receiving a Signal
 *******************
 
-Let's use the array factor concept to simulate a signal arriving at an array.  For a transmit signal we'll just use a tone for now:
+Let's use the Steering Vector concept to simulate a signal arriving at an array.  For a transmit signal we'll just use a tone for now:
 
 .. code-block:: python
 
@@ -217,7 +217,7 @@ Let's use the array factor concept to simulate a signal arriving at an array.  F
  f_tone = 0.02e6
  tx = np.exp(2j * np.pi * f_tone * t)
 
-Now let's simulate an array consisting of three omnidirectional antennas in a line, with 1/2 wavelength between adjacent ones (a.k.a. "half-wavelength spacing").  We will simulate the transmitter's signal arriving at this array at a certain angle, theta.  Understanding the array factor :code:`a` below is why we went through all that math above.
+Now let's simulate an array consisting of three omnidirectional antennas in a line, with 1/2 wavelength between adjacent ones (a.k.a. "half-wavelength spacing").  We will simulate the transmitter's signal arriving at this array at a certain angle, theta.  Understanding the Steering Vector :code:`a` below is why we went through all that math above.
 
 .. code-block:: python
 
@@ -225,10 +225,10 @@ Now let's simulate an array consisting of three omnidirectional antennas in a li
  Nr = 3
  theta_degrees = 20 # direction of arrival (feel free to change this, it's arbitrary)
  theta = theta_degrees / 180 * np.pi # convert to radians
- a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # array factor
+ a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Steering Vector
  print(a) # note that it's 3 elements long, it's complex, and the first element is 1+0j
 
-To apply the array factor we have to do a matrix multiplication of :code:`a` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`x.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
+To apply the Steering Vector we have to do a matrix multiplication of :code:`a` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`x.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
 
 .. code-block:: python
 
@@ -238,7 +238,7 @@ To apply the array factor we have to do a matrix multiplication of :code:`a` and
  print(tx.shape) # 10000x1
  
  # matrix multiply
- r = a @ tx.T  # dont get too caught up by the transpose, the important thing is we're multiplying the array factor by the tx signal
+ r = a @ tx.T  # dont get too caught up by the transpose, the important thing is we're multiplying the Steering Vector by the tx signal
  print(r.shape) # 3x10000.  r is now going to be a 2D array, 1D is time and 1D is the spatial dimension
 
 At this point :code:`r` is a 2D array, size 3 x 10000 because we have three array elements and 10000 samples simulated.  We can pull out each individual signal and plot the first 200 samples, below we'll plot the real part only, but there's also an imaginary part, like any baseband signal.  One annoying part of matrix math in Python is needing to add the :code:`.squeeze()`, which removes all dimensions with length 1, to get it back to a normal 1D NumPy array that plotting and other operations expects.
@@ -256,7 +256,7 @@ At this point :code:`r` is a 2D array, size 3 x 10000 because we have three arra
 
 Note the phase shifts between elements like we expect to happen (unless the signal arrives at boresight in which case it will reach all elements at the same time and there wont be a shift, set theta to 0 to see).  Element 0 appears to arrive first, with the others slightly delayed.  Try adjusting the angle and see what happens.
 
-As one final step, let's add noise to this received signal, as every signal we will deal with has some amount of noise. We want to apply the noise after the array factor is applied, because each element experiences an independent noise signal (we can do this because AWGN with a phase shift applied is still AWGN):
+As one final step, let's add noise to this received signal, as every signal we will deal with has some amount of noise. We want to apply the noise after the Steering Vector is applied, because each element experiences an independent noise signal (we can do this because AWGN with a phase shift applied is still AWGN):
 
 .. code-block:: python
 
@@ -385,6 +385,13 @@ While the main lobe gets wider as d gets lower, it still has a maximum at 20 deg
    :alt: Animation of direction of arrival (DOA) showing what happens when distance d is much less than half-wavelength and there are two signals present
 
 Once we get lower than λ/4 there is no distinguishing between the two different paths, and the array performs poorly.  As we will see later in this chapter, there are beamforming techniques that provide more precise beams than conventional beamforming, but keeping d as close to λ/2 as possible will continue to be a theme.
+
+
+**********************
+Bartlett Beamformer
+**********************
+Now that we've covered the basics, it would benefit our subsequent discussions if we take a quick detour into some notational and algebric details of what we just did. At the end of this disussion, you will have gained no new conceptual knowledge, but will gain the knowldge on how to mathematically represent sweeping beams across space in a condensed and elegant manner. First order of business: Giving the process of sweeping beams a name!Fortunately, for us, this is a solved problem and it goes by "Bartlett Beamforming"(some folks also call it Fourier beamforming, although some others call a different process Fourier beamforming, so we will stick to Bartlett beamforming to avoid any confusion). Lets do a quick recap of what we just did earlier in order to calculate our DOA, in the previous beam sweep method(henceforth called Bartlett beamforming), (1) Picked a bunch of directions to point at (2) We calculated the weights for the predetermined directions and pointed our beams there (3) Combined the outputs of the arrays (4) Calculated and Plotted the observed power (5) Picked peaks that were significant.  Now, if the signal of interest was in a given direction, it would impinge on the different array elements with different phases. A collective representation of all the different phases of a particular signal at the array is called the steering vector of the signal(lets denote this vector with the \hat{a}(r_{0}), where r_{0} denotes the direction of signal and \hat{a} denotes a 1xN steering vector). Now, if you closely examine, the steering vactor's values, you might realize that its just the conjugate of the weights you obtained in the delay and sum beamformer if pointed in direction r_{0}.We calculate the weights in step 2) by taking the conjucate of this steering vectorNow, if there are N signals of interest, there will be N steering vectors.The combination of the all the singals is called the received signal vector.
+
 
 **********************
 MVDR/Capon Beamformer
@@ -538,7 +545,7 @@ where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2
  theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # -180 to +180 degrees
  results = []
  for theta_i in theta_scan:
-     a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # array factor
+     a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Steering Vector
      a = a.reshape(-1,1)
      metric = 1 / (a.conj().T @ V @ V.conj().T @ a) # The main MUSIC equation
      metric = np.abs(metric.squeeze()) # take magnitude

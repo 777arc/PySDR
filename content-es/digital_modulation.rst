@@ -268,9 +268,9 @@ Además, tenga en cuenta que la radio FM utiliza modulación de frecuencia (FM),
 
 En este libro de texto nos ocupamos principalmente de las formas digitales de modulación.
 
-*******************
+************************
 Codificación diferencial
-*******************
+************************
 
 En muchos protocolos de comunicaciones inalámbricos (y cableados) basados en PSK o QAM, es probable que se encuentre con un paso que ocurre justo antes de que se modulen los bits (o inmediatamente después de la demodulación), llamado codificación diferencial. Para demostrar su utilidad, considere recibir una señal BPSK. A medida que la señal vuela por el aire, experimenta un retraso aleatorio entre el transmisor y el receptor, lo que provoca una rotación aleatoria en la constelación, como mencionamos anteriormente. Cuando el receptor se sincroniza con él y alinea el BPSK con el eje "I" (real), no tiene forma de saber si está desfasado 180 grados o no, porque la constelación es simétrica. Una opción es transmitir símbolos cuyo valor el receptor conoce de antemano, mezclados con la información, conocidos como símbolos piloto. El receptor puede utilizar estos símbolos conocidos para determinar qué grupo es 1 o 0, en el caso de BPSK. Los símbolos piloto deben enviarse en algún período, relacionado con la rapidez con la que cambia el canal inalámbrico, lo que en última instancia reducirá la velocidad de datos. En lugar de tener que mezclar símbolos piloto en la forma de onda transmitida, podemos optar por utilizar codificación diferencial.
 

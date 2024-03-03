@@ -34,7 +34,8 @@ Door het zware gebruik van animaties zal PySDR ook nooit als fysiek boek verschi
 .. image:: ../_images/fft_logo_wide.gif
    :scale: 70 %   
    :align: center
-   
+   :alt: The PySDR logo created using a Fourier transform
+     
 Dit boek heeft als doel concepten snel en vloeiend te introduceren waardoor de lezer in staat is om DSP toe te passen en SDR’s intelligent te gebruiken. 
 Het is niet bedoelt als verwijzing naar alle DSP/SDR onderwerpen; er zijn al veel geweldige boeken zoals `Analog Device's SDR boek
 <https://www.analog.com/en/education/education-library/software-defined-radio-for-engineers.html>`_ en `dspguide.com <http://www.dspguide.com/>`_.  Je kunt altijd Google gebruiken om goniometrische identiteiten of de limiet van Shannon op te zoeken. Zie dit boek als een poort tot de wereld van DSP en SDR: het is makkelijker en minder tijd- en geldconsumerend alternatief vergeleken met traditionele cursussen en boeken. 
@@ -71,7 +72,9 @@ Bedankt aan iedereen die dit boek heeft gelezen en van feedback heeft voorzien, 
 - Deidre Stuffer
 - Tarik Benaddi voor het `vertalen van PySDR naar het Frans <https://pysdr.org/fr/index-fr.html>`_
 - Daniel Versluis voor het `vertalen van PySDR naar het Nederlands <https://pysdr.org/nl/index-nl.html>`_
-
+- `mrbloom <https://github.com/mrbloom>`_ voor `vertalen van PySDR naar het Ukraiens <https://pysdr.org/ukraine/index-ukraine.html>`_
+- `Yimin Zhao <https://github.com/doctormin>`_ voor `vertalen van PySDR naar het Chinees <https://pysdr.org/zh/index-zh.html>`_
+  
 **********************
 Nederlandse vertaling
 **********************

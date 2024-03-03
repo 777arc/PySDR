@@ -93,7 +93,9 @@ or
 Visually Analyzing an RF File
 *****************************
 
-Although we learned how to create our own spectrogram plot in the :ref:`freq-domain-chapter` Chapter, nothing beats using an already created piece of software, and when it comes to analyzing a long RF recording, I recommend using `inspectrum <https://github.com/miek/inspectrum>`_.  Inspectrum is a fairly simple but powerful graphical tool for scanning through an RF file visually, with fine control over the colormap range and FFT size (zoom amount).  You can hold alt and use the scrollwheel to shift through time.  It has optional cursors to measure the delta-time between two bursts of energy, and the ability to export a slice of the RF file into a new file.  For installation on Debian-based platforms such as Ubuntu, use the following commands:
+Although we learned how to create our own spectrogram plot in the :ref:`freq-domain-chapter` Chapter, nothing beats using an already created piece of software.  When it comes to analyzing RF recordings without having to install anything, the go-to website is `IQEngine <https://iqengine.org>`_ which is an entire toolkit for analyzing, processing, and sharing RF recordings.
+
+For those who want a desktop app, there is also `inspectrum <https://github.com/miek/inspectrum>`_.  Inspectrum is a fairly simple but powerful graphical tool for scanning through an RF file visually, with fine control over the colormap range and FFT size (zoom amount).  You can hold alt and use the scrollwheel to shift through time.  It has optional cursors to measure the delta-time between two bursts of energy, and the ability to export a slice of the RF file into a new file.  For installation on Debian-based platforms such as Ubuntu, use the following commands:
 
 .. code-block:: bash
 
@@ -121,7 +123,8 @@ A signal that is saturated will look choppy in the time domain, like this:
 
 .. image:: ../_images/saturated_time.png
    :scale: 30 % 
-   :align: center 
+   :align: center
+   :alt: Example of a saturated receiver where the signal is clipped
 
 Because of the sudden changes in time domain, due to the truncation, the frequency domain might look smeared.  In other words, the frequency domain will include false features; features that resulted from the saturation and are not actually part of the signal, which can throw people off when analyzing a signal. 
 
@@ -131,7 +134,7 @@ SigMF and Annotating IQ Files
 
 Since the IQ file itself doesn't have any metadata associated with it, it's common to have a 2nd file, containing information about the signal, with the same filename but a .txt or other file extension.  This should at a minimum include the sample rate used to collect the signal, and the frequency to which the SDR was tuned.  After analyzing the signal, the metadata file could include information about sample ranges of interesting features, such as bursts of energy.  The sample index is simply an integer that starts at 0 and increments every complex sample.  If you knew that there was energy from sample 492342 to 528492, then you could read in the file and pull out that portion of the array: :code:`samples[492342:528493]`.
 
-Luckily, there is now an open standard that specifies a metadata format used to describe signal recordings, known as `SigMF <https://github.com/gnuradio/SigMF>`_.  By using an open standard like SigMF, multiple parties can share RF recordings more easily, and use different tools to operate on the same datasets.  It also prevents "bitrot" of RF datasets where details of the capture are lost over time due to details of the recording not being collocated with the recording itself.  
+Luckily, there is now an open standard that specifies a metadata format used to describe signal recordings, known as `SigMF <https://github.com/gnuradio/SigMF>`_.  By using an open standard like SigMF, multiple parties can share RF recordings more easily, and use different tools to operate on the same datasets, such as `IQEngine <https://iqengine.org/sigmf>`_.  It also prevents "bitrot" of RF datasets where details of the capture are lost over time due to details of the recording not being collocated with the recording itself.  
 
 The most simple (and minimal) way to use the SigMF standard to describe a binary IQ file you have created is to rename the .iq file to .sigmf-data and create a new file with the same name but .sigmf-meta extension, and make sure the datatype field in the meta file matches the binary format of your data file.  This meta file is a plaintext file filled with json, so you can simply open it with a text editor and fill it out manually (later we will discuss doing this programmatically).  Here is an example .sigmf-meta file you can use as a template:
 
@@ -199,7 +202,7 @@ The Python code to write the .sigmf-meta file for the example towards the beginn
  })
  
  # check for mistakes and write to disk
- assert meta.validate()
+ meta.validate()
  meta.tofile('bpsk_in_noise.sigmf-meta') # extension is optional
 
 Simply replace :code:`8000000` and :code:`915000000` with the variables you used to store sample rate and center frequency respectively. 
@@ -228,6 +231,7 @@ A little bonus for those who read this far; the SigMF logo is actually stored as
 .. image:: ../_images/sigmf_logo.gif
    :scale: 100 %   
    :align: center
+   :alt: The SigMF logo animation
 
 The Python code used to read in the logo file (located `here <https://github.com/gnuradio/SigMF/tree/master/logo>`_) and produce the animated gif above is shown below, for those curious:
 

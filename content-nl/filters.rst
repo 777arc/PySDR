@@ -37,7 +37,8 @@ Het volgende figuur plaatst een schema van een analoog filter tegenover het sche
 .. image:: ../_images/analog_digital_filter.png
    :scale: 70 % 
    :align: center 
-  
+   :alt: Analog vs digital filters
+   
 DSP's hebben signalen als in- en uitgangen. Een filter heeft een ingangssignaal en een uitgangssignaal:
 
 .. image:: images/filter.svg
@@ -59,6 +60,7 @@ Zolang de filters "reëel" zijn, zullen de filters gespiegeld zijn rondom 0 Hz.
 .. image:: ../_images/filter_types.png
    :scale: 70 % 
    :align: center 
+   :alt: Filter types, inc
 
 Inclusief negatieve frequenties:
 
@@ -111,6 +113,7 @@ Dit zouden we dan kunnen ontvangen:
 
 .. image:: images/filter_use_case.svg
    :align: center 
+   :alt: GNU Radio frequency domain plot of signal of interest and an interfering signal and noise floor
 
 We weten dat we een laagdoorlaatfilter nodig hebben omdat ons signaal al rond DC (0 Hz) is gecentreerd.
 We moeten de "kantelfrequentie" (Engels "cutoff") kiezen waar de doorlaatband overgaat in de stopband.
@@ -132,6 +135,7 @@ Na het maken en toepassen van een filter met een kantelfrequentie van 3 kHz krij
 .. image:: ../_images/filter_use_case4.png
    :scale: 70 % 
    :align: center 
+   :alt: GNU Radio frequency domain plot of signal of interest and an interfering signal and noise floor, with interference filtered out
 
 Dit gefilterde signaal ziet er misschien verwarrend uit totdat je beseft dat de ruisvloer rond de groene lijn *zat* op -70 dB.
 Ook al zien we het signaal rond de 10 kHz nog steeds, het is *sterk* in vermogen afgenomen.
@@ -149,6 +153,7 @@ De frequentie in dit figuur is genormaliseerd met de sample-frequentie.
 .. image:: ../_images/realistic_filter.png
    :scale: 100 % 
    :align: center 
+   :alt: Frequency response of a low-pass filter, showing ripple and transition width
 
 Nu vraag je je misschien af waarom we niet gewoon een zo'n kleine transitiebreedte als mogelijk kiezen. 
 De voornaamste reden is dat een kleinere breedte tot meer coëfficiënten zal leiden, en hoe meer coëfficiënten hoe intensiever het wordt om te berekenen. 
@@ -227,6 +232,7 @@ Wanneer we deze coëfficiënten in de tijd weergeven dan krijgen we de impulsres
 .. image:: ../_images/impulse_response.png
    :scale: 100 % 
    :align: center 
+   :alt: Example of impulse response of a filter, plotting the taps in the time domain
 
 De code om de frequentierespons van eerder te genereren wordt hieronder getoond. 
 Dit is iets ingewikkelder omdat we een x-as voor de frequenties moeten opzetten.
@@ -331,6 +337,7 @@ De driehoeken met een :math:`b_x` ernaast zijn de coëfficiënten en de driehoek
 .. image:: ../_images/discrete_convolution.png
    :scale: 80 % 
    :align: center 
+   :alt: Implementation of a finite impulse response (FIR) filter with delays and taps and summations
 
 Je ziet nu misschien wel waarom de coëfficiënten in het Engels "taps" worden genoemd, dit komt voort uit hoe het filter wordt geïmplementeerd.
 
@@ -353,6 +360,7 @@ Het onderstaande figuur laat het verschil zien tussen een FIR en IIR-filter. Ze 
 .. image:: ../_images/FIR_IIR.png
    :scale: 70 % 
    :align: center 
+   :alt: Comparing finite impulse response (FIR) and infinite impulse response (IIR) filters by observing frequency response
 
 Wat je hieruit kunt leren is dat het FIR-filter veel meer computerkracht vereist dan een IIR-filter voor hetzelfde gedrag.
 
@@ -411,6 +419,7 @@ Klik op de "Impulse Response" link boven de grafiek om de impulsrespons te zien,
 De app kan zelfs de C broncode genereren waarmee je dit filter kunt implementeren en gebruiken.
 De app heeft geen manier om een IIR-filter te implementeren omdat deze over het algemeen veel lastiger zijn om te ontwerpen.
 
+.. _convolution_nl-section:
 *************************
 Convolutie
 *************************
@@ -424,23 +433,39 @@ Convolutie is een andere manier om twee signalen te combineren, maar het is comp
 Convolutie van twee signalen is alsof je ze over elkaar schuift en dan integreert.
 Het lijkt *enorm* op kruiscorrelatie, als je daar bekend mee bent.
 Het is in veel gevallen eigenlijk hetzelfde als kruiscorrelatie.
+Meestal gebruiken we het ::code::`*` symbool om convolutie aan te geven.
 
 Ik ben overtuigd dat je convolutie het beste leert met hulp van voorbeelden.
 In dit eerste voorbeeld convolueren we twee blokgolven met elkaar.
 
-.. image:: ../_images/convolution_animation1.gif
+.. image:: ../_images/rect_rect_conv.gif
    :scale: 100 % 
    :align: center 
 
+Er zijn twee ingangssignalen (een rode en een blauwe) en de uitgang van de convolutie is in het zwart weergegeven.
+Je kunt zien dat de uitgang gelijk is aan de integratie van de twee signalen terwijl ze over elkaar schuiven.
 Omdat het gewoon schuivende integratie is, is het resultaat een driehoek met zijn maximum op het punt waar de twee golven perfect overlappen.
-Laten we eens kijken wat er gebeurt wanneer we convolutie op een vierkant- en een driehoeksignaal uitvoeren:
 
-.. image:: ../_images/convolution_animation2.gif
+Laten we nog een paar convoluties bekijken:
+
+.. image:: ../_images/rect_fat_rect_conv.gif
+   :scale: 90 % 
+   :align: center 
+
+|
+
+.. image:: ../_images/rect_exp_conv.gif
+   :scale: 90 % 
+   :align: center 
+
+|
+
+.. image:: ../_images/gaussian_gaussian_conv.gif
    :scale: 150 % 
    :align: center 
 
-In beide voorbeelden hebben we de twee ingangssignalen (rood en blauw) en het resultaat van de convolutie.
-Je ziet dat de uitgang gelijk is aan de integratie van de twee signalen terwijl ze over elkaar schuiven.
+Het convolueren van een Gaussische puls met een Gaussische puls geeft een Gaussische puls, maar breder en een lagere amplitude.
+
 Vanwege dit geschuif is de lengte van de uitgang groter dan de ingang. 
 Als het ene signaal :code:`M` samples heeft en het ander signaal :code:`N` samples, dan geeft de convolutie van de twee signalen :code:`N+M-1` samples.  
 Desalniettemin hebben functies zoals :code:`numpy.convolve()` een manier om aan te geven of je de volledige uitgang (:code:`max(M, N)` samples) wilt hebben, of alleen de samples waar de signalen overlapten(:code:`max(M, N) - min(M, N) + 1` als je nieuwsgierig was).
@@ -647,6 +672,7 @@ Hieronder is een voorbeeld te zien van een signaal met symbolen in de tijd (bove
 .. image:: ../_images/pulse_shaping_freq.png
    :scale: 90 % 
    :align: center 
+   :alt: Demonstration of pulse shaping of an RF signal to reduce occupied bandwidth
 
 Kijk eens hoeveel sneller het signaal in het frequentiedomein afzakt.
 De lobben aan de zijkant zijn ~30 dB zwakker na de pulsvorming; dat is 1000x minder!

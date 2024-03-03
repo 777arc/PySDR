@@ -6,14 +6,14 @@ door :ref:`Dr. Marc Lichtman<author-chapter>`
 
 .. toctree::
    :maxdepth: 2
-   :numbered: 1
+   :numbered: 2
    
    content-nl/intro
    content-nl/frequency_domain
    content-nl/sampling
    content-nl/digital_modulation
    content-nl/pluto
-   content/usrp
+   content-nl/usrp
    content-nl/noise
    content-nl/filters
    content-nl/link_budgets

@@ -414,7 +414,7 @@ Referentie API
 Voor de volledige lijst van functies en instellingen die je kunt aanroepen kun je de `pyadi-iio Pluto Python code (AD936X) <https://github.com/analogdevicesinc/pyadi-iio/blob/master/adi/ad936x.py>`_ raadplegen.
 
 ************************
-Python Oefeningen
+Pluto Python Oefeningen
 ************************
 
 In plaats van de volledige code te geven, heb ik meerdere opdrachten gemaakt waar 99% van de code al is gegeven en de overige code simpel is om te maken. De opdrachten zijn niet bedoeld om moeilijk te zijn. Ze missen net genoeg code om je na te laten denken.

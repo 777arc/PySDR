@@ -5,6 +5,7 @@ DOA & Beamforming
 ####################################
 
 We zullen in dit hoofdstuk het gaan hebben over de concepten van bundelvorming (eng: beamforming), direction-of-arrival (DOA) (Nederlands: aankomstrichting) en phased arrays. Met behulp van Python simulatievoorbeelden worden Technieken zoals Capon en MUSIC besproken. We behandelen beamforming vs. DOA en twee verschillende soorten phased arrays (passief en actief).
+**N.B. Dit hoofdstuk wordt momenteel vertaald en kan nog fouten bevatten.** 
 
 ************************
 Overzicht en termen
@@ -59,9 +60,9 @@ Er zijn veel SDR's die **twee** ontvangstkanalen bevatten, zoals de Ettus USRP B
 In dit hoofdstuk zullen we geen specifieke SDR's gebruiken; in plaats daarvan simuleren we het ontvangen van signalen met Python, en gaan we door de benodigde bewerkingen voor bundelvorming/DOA.
 
 
-**************************************
+********************************************
 Introductie Matrix wiskunde in Python/NumPy
-**************************************
+********************************************
 
 Python heeft veel voordelen ten opzichte van MATLAB. Het is gratis en open-source en heeft een diversiteit aan toepassingen. Het heeft een levendige gemeenschap, indexen beginnen bij 0 zoals in elke andere taal, het wordt gebruikt binnen AI/ML, en er lijkt een bibliotheek te zijn voor alles wat je maar kunt bedenken. 
 Maar waar Python tekort schiet, is de syntax van matrixmanipulatie (berekenings- /snelheidsgewijs is het snel genoeg, met functies die efficiënt in C/C++ zijn geïmplementeerd). Het helpt ook niet dat er meerdere manieren zijn om matrices in Python te vertegenwoordigen, waarbij de methode :code:`np.matrix` is verouderd ten gunste van :code:`np.ndarray`. In dit hoofdstuk geven we een korte inleiding over het uitvoeren van matrixwiskunde in Python met behulp van NumPy, zodat je je comfortabeler voelt wanneer we bij de DOA-voorbeelden komen.
@@ -212,11 +213,11 @@ Nu zijn we klaar! De bovenstaande vergelijking zul je in alle DOA artikelen en i
 
 Merk op dat het eerste element in een 1+0j resulteert (omdat :math:`e^{0}=1`); dit is logisch omdat alles hierboven relatief is aan dat eerste element, dus het ontvangt het signaal zoals het is zonder enige relatieve faseverschuivingen. Dit is puur hoe dat resulteert uit de wiskunde. In werkelijkheid kan elk element als referentie worden beschouwd, maar zoals je later in onze wiskunde/code zult zien, is het verschil in fase/amplitude dat tussen elementen wordt ontvangen wat telt. Het is allemaal relatief.
 
-*******************
+**********************
 Een signaal ontvangen
-*******************
+**********************
 
-Let's use the array factor concept to simulate a signal arriving at an array.  For a transmit signal we'll just use a tone for now:
+Laten we het bovenstaande concept gebruiken om een ontvangen signaal signaal te simuleren. Voorlopig gebruiken we een enkele toon als verzendsignaal:
 
 .. code-block:: python
 
@@ -224,25 +225,26 @@ Let's use the array factor concept to simulate a signal arriving at an array.  F
  import matplotlib.pyplot as plt
  
  sample_rate = 1e6
- N = 10000 # number of samples to simulate
+ N = 10000 # aantal samples om te simuleren
  
- # Create a tone to act as the transmitter signal
- t = np.arange(N)/sample_rate # time vector
+ # Maak een toon om het verzonden signaal mee te simuleren
+ t = np.arange(N)/sample_rate # tijdsvector
  f_tone = 0.02e6
  tx = np.exp(2j * np.pi * f_tone * t)
 
-Now let's simulate an array consisting of three omnidirectional antennas in a line, with 1/2 wavelength between adjacent ones (a.k.a. "half-wavelength spacing").  We will simulate the transmitter's signal arriving at this array at a certain angle, theta.  Understanding the array factor :code:`a` below is why we went through all that math above.
+Nu gaan we een antenne simuleren, met drie omnidirectionele antennes op een rij, elk een halve golflengte van elkaar verwijderd. We zullen simuleren dat het signaal van de zender op deze array aankomt onder een bepaalde hoek, :math:`\theta`. Het begrijpen van de factor :code:`a`, is de reden waarom we al die wiskunde hierboven hebben doorgenomen.
+
 
 .. code-block:: python
 
- d = 0.5 # half wavelength spacing
+ d = 0.5 #afstand van een halve golflengte
  Nr = 3
- theta_degrees = 20 # direction of arrival (feel free to change this, it's arbitrary)
- theta = theta_degrees / 180 * np.pi # convert to radians
- a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # array factor
- print(a) # note that it's 3 elements long, it's complex, and the first element is 1+0j
+ theta_degrees = 20 # aankomstrichting in graden
+ theta = theta_degrees / 180 * np.pi # naar radialen
+ a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # array factor van hierboven
+ print(a) # 3 complexe elementen, de eerste is 1+0j
 
-To apply the array factor we have to do a matrix multiplication of :code:`a` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`x.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
+Nu gaan we het signaal ontvangen. Om de array factor toe te passen moeten we een matrixvermenigvuldiging van :code:`a` en :code:`tx` uitvoeren, dus laten we beide omzetten naar 2D met de metode die we eerder hebben besproken toen we de matrixwiskunde in Python doornamen. Eerst zetten we het om naar rijvectoren met :code:`x.reshape(-1,1)`. Vervolgens voeren we de matrixvermenigvuldiging uit, aangegeven door het :code:`@`-symbool. Ook moeten we met een transpositie-operatie :code:`tx` omzetten van een rijvector naar een kolomvector (zie het als een rotatie van 90 graden), zodat de matrixvermenigvuldiging gelijke binnenste dimensies heeft.
 
 .. code-block:: python
 
@@ -251,15 +253,15 @@ To apply the array factor we have to do a matrix multiplication of :code:`a` and
  tx = tx.reshape(-1,1)
  print(tx.shape) # 10000x1
  
- # matrix multiply
- r = a @ tx.T  # dont get too caught up by the transpose, the important thing is we're multiplying the array factor by the tx signal
- print(r.shape) # 3x10000.  r is now going to be a 2D array, 1D is time and 1D is the spatial dimension
+ # matrixvermenigvuldiging
+ r = a @ tx.T  # laat je niet afleiden door het transponeren, het belangrijkste is dat we de het tx signaal vermenigvuldigen met de a-factor
+ print(r.shape) # 3x10000.  r  is nu tweedimensionaal: tijd en afstand
 
-At this point :code:`r` is a 2D array, size 3 x 10000 because we have three array elements and 10000 samples simulated.  We can pull out each individual signal and plot the first 200 samples, below we'll plot the real part only, but there's also an imaginary part, like any baseband signal.  One annoying part of matrix math in Python is needing to add the :code:`.squeeze()`, which removes all dimensions with length 1, to get it back to a normal 1D NumPy array that plotting and other operations expects.
+Op dit moment is :code:`r` een 2D array van 3 x 10000 elementen. Dit is omdat we drie array-elementen en 10000 gesimuleerde samples hebben. We kunnen elk individueel signaal eruit halen en de eerste 200 samples laten zien. Hieronder zullen we alleen de reële delen weergeven, maar net als bij elk basisbandsignaal is er ook een imaginair deel. Een vervelend onderdeel van matrixwiskunde in Python is dat we :code:`.squeeze()` moeten toevoegen oom de extra dimensies met lengte 1 te verwijderen, zodat we naar een normale 1D NumPy-array gaan die we verder kunnen gebruiken.
 
 .. code-block:: python
 
- plt.plot(np.asarray(r[0,:]).squeeze().real[0:200]) # the asarray and squeeze are just annoyances we have to do because we came from a matrix
+ plt.plot(np.asarray(r[0,:]).squeeze().real[0:200]) # asarray en squeeze zijn helaas noodzakelijk omdat we van een 2D array komen
  plt.plot(np.asarray(r[1,:]).squeeze().real[0:200])
  plt.plot(np.asarray(r[2,:]).squeeze().real[0:200])
  plt.show()

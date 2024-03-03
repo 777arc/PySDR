@@ -194,7 +194,7 @@ We will create a raised-cosine filter using a :math:`\beta` of 0.35, and we will
     beta = 0.35
     Ts = sps # Assume sample rate is 1 Hz, so sample period is 1, so *symbol* period is 8
     t = np.arange(num_taps) - (num_taps-1)//2
-    h = 1/Ts*np.sinc(t/Ts) * np.cos(np.pi*beta*t/Ts) / (1 - (2*beta*t/Ts)**2)
+    h = np.sinc(t/Ts) * np.cos(np.pi*beta*t/Ts) / (1 - (2*beta*t/Ts)**2)
     plt.figure(1)
     plt.plot(t, h, '.')
     plt.grid(True)

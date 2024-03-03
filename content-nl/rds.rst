@@ -16,7 +16,7 @@ Naast de audio worden, in een FM-signaal, nog meer informatiecomponenten frequen
 In plaats van de signaalstructuur te Googelen kunnen we ook naar de PSD (spectrale vermogensdichtheid) kijken van een FM-signaal *na* demodulatie.
 We bekijken enkel het positieve deel omdat een gedemoduleerd FM-signaal reëel is, zelfs als de ingang complex was.
 
-.. _PSD:
+.. _psd:
 .. figure:: ../_images/fm_psd.svg
    :align: center 
    :target: ../_images/fm_psd.svg
@@ -38,7 +38,7 @@ Dit is alles wat we uit de PSD kunnen halen, en let op dat dit *na* de FM demodu
    :alt: Power spectral density (PSD) of an FM radio signal before any demodulation
       
 Toch is het belangrijk te beseffen dat wanneer je een signaal frequentiemoduleert, een hogere frequentie in de data ook een hogere frequentie in het FM-signaal zal opleveren.
-Dus het signaal op 67 kHz zorgt ervoor dat de totale bandbreedte van het signaal toeneemt, de hoogste frequentiecomponent is ongeveer 75 kHz volgens figuur :numref:`PSD`.
+Dus het signaal op 67 kHz zorgt ervoor dat de totale bandbreedte van het signaal toeneemt, de hoogste frequentiecomponent is ongeveer 75 kHz volgens figuur :ref:`PSD`.
 Wanneer we `de bandbreedte-regel van Carson <https://en.wikipedia.org/wiki/Carson_bandwidth_rule>`_ op FM toepassen, zegt dit dat een FM-zender ongeveer 250 kHz aan spectrum inneemt. Om deze reden samplen we meestal op 250 kHz (vergeet niet dat bij kwadratuur/IQ-sampling de ontvangen bandbreedte gelijk is aan de samplerate).
 
 Sommige lezers die gewend zijn om de FM-band met een SDR of spectrumanalyzer te bekijken herkennen het volgende diagram. Misschien denk je dat de blokkige signalen naast de FM-zenders RDS zijn.
@@ -295,9 +295,9 @@ Eindelijk kunnen we de symbool/tijdsynchronisatie gaan toepassen. We gebruiken e
 
 Mocht je een eigen FM-signaal gebruiken, en je krijgt nu niet twee aparte clusters van complexe samples, dan kan het synchronisatie-algoritme van hierboven niet synchroniseren of je hebt in de eerdere stappen een fout gemaakt. Je hoeft de constellatie niet te animeren, maar probeer niet alle samples te weergeven want dan zie je alleen een cirkel. Als je 100 of 200 samples per keer laat zien dan heb je een beter gevoel of dat er twee clusters zijn of niet, zelfs als ze ronddraaien.
 
-********************************
-Fijne Frequentiesynchronisatie
-********************************
+*****************************************
+Fijne Frequentiesynchronisatie uitvoeren
+*****************************************
 
 .. code-block:: python
 
@@ -1105,7 +1105,7 @@ De meeste RDS-code is overgenomen van het RDS Out-Of-Tree blok voor GNU Radio. D
 Om dit hoofdstuk op te zetten ben ik begonnen met gr-rds in GNU Radio. Met behulp van een werkende FM-opname ben ik langzaam elk blok gaan omzetten naar Python. Dit koste best veel tijd omdat er nuances bij de ingebouwde blokken zitten die makkelijk te missen zijn, en het omzetten van stream-achtige signaalbewerking naar een blok code in Python is zo simpel nog niet. GNU Radio is een geweldige tool voor dit soort prototyping en ik had dit nooit kunnen maken zonder GNU Radio.
 
 ********************************
-Extra leesmateriaal
+Extra leesmateriaal RDS
 ********************************
 
 #. https://en.wikipedia.org/wiki/Radio_Data_System

@@ -60,7 +60,6 @@ Vraag: Waarom kunnen we het ethernet signaal van hierboven niet direct versturen
    :align: center 
    :target: ../_images/square-wave.svg
    :alt: Een blokgolf in het tijd- en frequentiedomein dat laat zien dat het een groot deel van het spectrum gebruikt.
-   :alt: A square wave in time and frequency domain showing the large amount of bandwidth that a square wave uses
 
 Wat we voor draadloze signalen doen is beginnen met een draaggolf, wat gewoon een sinusoïde is. FM-radio gebruikt bijvoorbeeld een draaggolf als 101.1 MHz of 100.3 MHz. We moduleren die draaggolf op een bepaalde manier (er zijn vele). In geval van FM-radio is dit analoge modulatie, niet digitaal, maar het concept is hetzelfde als bij digitale modulatie. 
 
@@ -304,8 +303,7 @@ In dit boek maken we ons vooral druk over de digitale vormen van modulatie.
 **********************
 Differentiële Codering
 **********************
-.. 
-   todo - This chapter  has a bunch of terms that haven't come up yet in the book, this doesn't help readers understand the material. Also the bitsequence in the text didn't correspond with the image, another possible source of confusion.
+
 Je zult waarschijnlijk in de meeste draadloze (en bedraade) op PSK of QAM gebaseerde communicatieprotocollen, een stap tegenkomen dat net voor (of na) de bitmodulatie plaatsvindt. Deze stap wordt differentiële codering genoemd.
 Om het nut hiervan aan te tonen, gaan we naar de ontvangst van een BPSK-signaal kijken.
 Zoals eerder is verteld, wanneer dit signaal door de lucht vliegt ervaart het een willekeurige vertraging tussen zender en ontvanger, dit veroorzaakt een willekeurige draaiing/rotatie in de constellatie.

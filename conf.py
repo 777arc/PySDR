@@ -30,7 +30,7 @@ if creator_id:
     # Patreon Supporters
     html_string = ''
     html_string += '<div style="font-size: 120%; margin-top: 5px;">A big thanks to all PySDR<br><a href="https://www.patreon.com/PySDR" target="_blank">Patreon</a> supporters:</div>'
-    html_string += '<div style="font-size: 120%; margin-bottom: 0px; margin-top: 0px;">'
+    html_string += '<div style="font-size: 120%; margin-bottom: 80px; margin-top: 0px;">'
     for name in names:
         html_string += '&#9900; ' + name + "<br />"
     # Organizations that are sponsoring (Manually added to get logo included)

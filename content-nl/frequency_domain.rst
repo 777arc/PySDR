@@ -246,8 +246,8 @@ Praktisch gezien heeft deze factor geen invloed.
 .. math::
    \int x(\tau) y(t-\tau) d\tau  \leftrightarrow X(f)Y(f)
 
-Dit heet de convolutie-eigenschap omdat we in het tijddomein :math:`x(t)` en :math:`y(t)` convolueren. convolution_nl-section
-Misschien ken je de convolutie-operatie nog niet, dus bekijk het voor nu als een kruiscorrelatie (deze :ref:`paragraaf <>` gaat er dieper op in). 
+Dit heet de convolutie-eigenschap omdat we in het tijddomein :math:`x(t)` en :math:`y(t)` convolueren. 
+Misschien ken je de convolutie-operatie nog niet, dus bekijk het voor nu als een kruiscorrelatie (deze :ref:`paragraaf <convolution_nl-section>` gaat er dieper op in). 
 Wanneer we tijddomein-signalen convolueren is dit gelijkwaardig aan het vermenigvuldigen van de frequentiedomein-signalen. 
 Het is totaal anders dan twee signalen bij elkaar optellen. 
 Wanneer je twee signalen bij elkaar optelt, gebeurt er bijna niets, zoals je hebt gezien, je telt gewoon de frequentiedomein-versies bij elkaar op. 

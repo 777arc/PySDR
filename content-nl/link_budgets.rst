@@ -13,7 +13,7 @@ Introductie
 Een "link" budget is een opsomming van alle winsten en verliezen tussen de zender en ontvanger van een communicatiesysteem.
 Het beschrijft één richting van een draadloos kanaal.
 De meeste communicatiesystemen zijn echter bidirectioneel en hebben dus aparte up- en downlink budgetten.
-Het resultaat van zo'n budget geeft je een grove inschatting van de signaal-ruisverhouding (SNR) die je kunt verwachten bij de ontvanger.
+Het resultaat van zo'n budget geeft je een grove inschatting van de signaal-ruisverhouding (SNR) die je bij de ontvanger kunt verwachten.
 Na verdere analyse kun je dan besluiten of de SNR hoog genoeg is voor jouw doel.
 
 We bestuderen linkbudgetten niet zodat je er zelf een op kunt stellen, maar meer om een beeld te krijgen van draadloze communicatie op systeemniveau.

@@ -16,7 +16,7 @@ Naast de audio worden, in een FM-signaal, nog meer informatiecomponenten frequen
 In plaats van de signaalstructuur te Googelen kunnen we ook naar de PSD (spectrale vermogensdichtheid) kijken van een FM-signaal *na* demodulatie.
 We bekijken enkel het positieve deel omdat een gedemoduleerd FM-signaal reëel is, zelfs als de ingang complex was.
 
-.. _psd:
+.. _PSD:
 .. figure:: ../_images/fm_psd.svg
    :align: center 
    :target: ../_images/fm_psd.svg
@@ -38,7 +38,7 @@ Dit is alles wat we uit de PSD kunnen halen, en let op dat dit *na* de FM demodu
    :alt: Power spectral density (PSD) of an FM radio signal before any demodulation
       
 Toch is het belangrijk te beseffen dat wanneer je een signaal frequentiemoduleert, een hogere frequentie in de data ook een hogere frequentie in het FM-signaal zal opleveren.
-Dus het signaal op 67 kHz zorgt ervoor dat de totale bandbreedte van het signaal toeneemt, de hoogste frequentiecomponent is ongeveer 75 kHz volgens figuur :ref:`PSD`.
+Dus het signaal op 67 kHz zorgt ervoor dat de totale bandbreedte van het signaal toeneemt, de hoogste frequentiecomponent is ongeveer 75 kHz volgens :ref:`de PSD <PSD>`.
 Wanneer we `de bandbreedte-regel van Carson <https://en.wikipedia.org/wiki/Carson_bandwidth_rule>`_ op FM toepassen, zegt dit dat een FM-zender ongeveer 250 kHz aan spectrum inneemt. Om deze reden samplen we meestal op 250 kHz (vergeet niet dat bij kwadratuur/IQ-sampling de ontvangen bandbreedte gelijk is aan de samplerate).
 
 Sommige lezers die gewend zijn om de FM-band met een SDR of spectrumanalyzer te bekijken herkennen het volgende diagram. Misschien denk je dat de blokkige signalen naast de FM-zenders RDS zijn.
@@ -87,7 +87,7 @@ RDS maakt gebruik van differentiële codering zodat we niet langer zorgen hoeven
 De BPSK-symbolen worden verstuurd op een snelheid van 1187.5 symbolen per seconde.
 Omdat BPSK slechts 1 bit per symbool gebruikt komt dit neer op een transmissiesnelheid van ongeveer 1.2 kbps.
 RDS gebruikt geen kanaalcodering (foutcorrectie) maar bevat wel een CRC-som om fouten te kunnen detecteren.
-De ervaren BPSK-er vraagt zich misschien af waarom het signaal twee zijbanden heeft in figuur :numref:`PSD`; meestal heeft BPSK maar 1 zijband.
+De ervaren BPSK-er vraagt zich misschien af waarom het signaal twee zijbanden heeft in :ref:`de PSD <PSD>`; meestal heeft BPSK maar 1 zijband.
 RDS blijkt het BPSK-signaal te dupliceren/spiegelen rondom 57 kHz voor extra redundantie. 
 Wanneer we de Pythoncode gaan bekijken gebruiken we een filter om slechts een van deze BPSK-signalen te demoduleren.
 
@@ -247,7 +247,7 @@ Banddoorlaatfilter
  taps = firwin(numtaps=501, cutoff=[0.05e3, 2e3], fs=sample_rate, pass_zero=False)
  x = np.convolve(x, taps, 'valid')
 
-We weten dat RDS twee identieke BPSK signalen bevat gezien de vorm van de PSD (figuur :numref:`PSD`).  We moeten er een kiezen, dus we kiezen er willekeurig voor om het positieve deel te behouden door middel van een banddoorlaatfilter. Weer gebruiken we :code:`firwin()`, maar nu met  :code:`pass_zero=False` waarmee we aangeven dat het om een banddoorlaatfilter gaat. Er zijn dus twee kantelfrequenties nodig. Omdat we 0 Hz niet als kantelfrequentie kunnen opgeven, kiezen we voor 50 Hz. Als laatste verhogen we ook het aantal coëfficiënten zodat we een scherp filter krijgen. We kunnen deze instelling verifiëren door het filter in het tijd- en frequentiedomein te bekijken, d.m.v. de coëfficiënten en de FFT ervan. Zie dat de doorlaatband in het frequentiedomein tot bijna 0 Hz gaat.
+We weten dat RDS twee identieke BPSK signalen bevat gezien de vorm van :ref:`de PSD<PSD>`.  We moeten er een kiezen, dus we kiezen er willekeurig voor om het positieve deel te behouden door middel van een banddoorlaatfilter. Weer gebruiken we :code:`firwin()`, maar nu met  :code:`pass_zero=False` waarmee we aangeven dat het om een banddoorlaatfilter gaat. Er zijn dus twee kantelfrequenties nodig. Omdat we 0 Hz niet als kantelfrequentie kunnen opgeven, kiezen we voor 50 Hz. Als laatste verhogen we ook het aantal coëfficiënten zodat we een scherp filter krijgen. We kunnen deze instelling verifiëren door het filter in het tijd- en frequentiedomein te bekijken, d.m.v. de coëfficiënten en de FFT ervan. Zie dat de doorlaatband in het frequentiedomein tot bijna 0 Hz gaat.
 
 .. image:: ../_images/bandpass_filter_taps.svg
    :align: center 

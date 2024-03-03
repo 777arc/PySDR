@@ -86,7 +86,7 @@ Na het uitvoeren van matrixwiskunde, kan het resultaat er ongeveer zo uitzien: :
 Dit komt omdat het resultaat technisch gezien een 2D-Pythonarray is. Je moet  het naar een 1D-array omzetten met :code:`a.squeeze()`. 
 De :code:`squeeze()`-functie verwijdert alle dimensies met lengte 1, en is handig bij het uitvoeren van matrixwiskunde in Python. In het bovenstaande voorbeeld zou het resultaat :code:`[ 0.  0.125  0.251  -0.376  -0.251 ...]` zijn (let op de ontbrekende tweede haakjes). Dit kan nu verder gebruikt worden om een grafiek te plotten of iets anders te doen.
 
-De beste check die je kunt uitvoeren op je matrixwiskunde is het afdrukken van de dimensies (met :code:`A.shape`) en te controleren of ze zijn wat je verwacht. Overweeg om de dimensies op elke regel als commentaar te plaatsen, zodat nadien controleren makkelijker wordt.
+De beste check die je op je matrixwiskunde kunt uitvoeren is het afdrukken van de dimensies (met :code:`A.shape`) en te controleren of ze zijn wat je verwacht. Overweeg om de dimensies op elke regel als commentaar te plaatsen, zodat nadien controleren makkelijker wordt.
 
 Hier zijn enkele veelvoorkomende bewerkingen in zowel MATLAB als Python, als een soort spiekbriefje:
 
@@ -153,7 +153,7 @@ Als je SOS CAS TOA nog kent, zijn we in dit geval geinteresseerd in de "aanligge
 .. math::
   \cos(90 - \theta) = \frac{\mathrm{aanliggende}}{\mathrm{schuine}}
 
-De aanliggende vertelt ons hoe ver het signaal moet reizen tussen het raken van het eerste en het raken van het volgende element. We moeten de aanliggende berekenen omdat dat ons vertelt hoe ver het signaal moet reizen tussen het raken van het eerste en het raken van het volgende element, dus het wordt aanliggende :math:`= d \cos(90 - \theta)`. Nu is er een goniometrische identiteit die ons in staat stelt dit om te zetten in aanliggende :math:`= d \sin(\theta)`. Dit is slechts een afstand, we moeten dit omzetten in een tijd met behulp van de lichtsnelheid: verstreken tijd :math:`= d \sin(\theta) / c` [seconden]. Deze vergelijking geldt tussen elk aangrenzend element van onze array, hoewel we het hele ding met een geheel getal kunnen vermenigvuldigen om tussen niet-aangrenzende elementen te berekenen, omdat ze gelijkmatig verdeeld zijn (dit zullen we later doen).
+De aanliggende vertelt ons hoe ver het signaal moet reizen tussen het raken van het eerste en het raken van het volgende element, dus het wordt aanliggende :math:`= d \cos(90 - \theta)`. Nu is er een goniometrische identiteit die ons in staat stelt dit om te zetten in aanliggende :math:`= d \sin(\theta)`. Dit is slechts een afstand, we moeten dit omzetten in een tijd met behulp van de lichtsnelheid: verstreken tijd :math:`= d \sin(\theta) / c` [seconden]. Deze vergelijking geldt tussen elk aangrenzend element van onze array, hoewel we het hele ding met een geheel getal kunnen vermenigvuldigen om de niet-aangrenzende elementen te berekenen, omdat ze gelijkmatig verdeeld zijn (dit zullen we later doen).
 
 Nu zullen we deze formules koppelen aan de DSP-wereld. Laten we ons signaal op de basisband :math:`s(t)` noemen en het verzenden op een bepaalde frequentie, :math:`f_c`, dus het verzonden signaal is :math:`s(t) e^{2j \pi f_c t}`. Laten we zeggen dat dit signaal het eerste element op tijd :math:`t = 0` raakt, wat betekent dat het volgende element na :math:`d \sin(\theta) / c` [seconden] wordt geraakt, zoals we hierboven hebben berekend. Het tweede element ontvangt dan:
 
@@ -173,11 +173,9 @@ De ontvanger of SDR vermenigvuldigt effectief het signaal met de draaggolf, maar
 .. math::
  = s(t - \Delta t) e^{-2j \pi f_c \Delta t}
 
-Met een kleine truuk is dit nog verder te vereenvoudigen. Bedenk 
+Met een kleine truc is dit nog verder te vereenvoudigen. Bedenk dat wanneer we een signaal samplen, we dit kunnen modelleren door :math:`t` te vervangen door :math:`nT` waar :math:`T` de sampleperiodetijd is en :math:`n` gewoon 0, 1, 2, 3... . Door dit in te vullen krijgen we :math:`s(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. Welnu, :math:`nT` is zoveel groter dan :math:`\Delta t` dat we het eerste :math:`\Delta t`-termijn kunnen weglaten en we :math:`s(nT) e^{-2j \pi f_c \Delta t}` overhouden. Als de samplefrequentie ooit snel genoeg wordt om de snelheid van het licht over een kleine afstand te benaderen, kunnen we dit opnieuw bekijken, maar onthoud dat onze samplefrequentie slechts een beetje hoger moet zijn dan de bandbreedte van het signaal van belang.
 
-Now we can do a little trick to simplify this even further; consider how when we sample a signal it can be modeled by substituting :math:`t` for :math:`nT` where :math:`T` is sample period and :math:`n` is just 0, 1, 2, 3...  Substituting this in we get :math:`s(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. Well, :math:`nT` is so much greater than :math:`\Delta t` that we can get rid of the first :math:`\Delta t` term and we are left with :math:`s(nT) e^{-2j \pi f_c \Delta t}`.  If the sample rate ever gets fast enough to approach the speed of light over a tiny distance, we can revisit this, but remember that our sample rate only needs to be a bit larger than the signal of interest's bandwidth.
-
-Let's keep going with this math but we'll start representing things in discrete terms so that it will better resemble our Python code.  The last equation can be represented as the following, let's plug back in :math:`\Delta t`:
+Laten we doorgaan met deze wiskunde maar dingen in discrete termen gaan vertegenwoordigen zodat het meer op onze Python-code lijkt. De laatste vergelijking kan als volgt worden voorgesteld, laten we :math:`\Delta t` weer invullen:
 
 .. math::
  s[n] e^{-2j \pi f_c \Delta t}
@@ -185,7 +183,7 @@ Let's keep going with this math but we'll start representing things in discrete 
 .. math::
  = s[n] e^{-2j \pi f_c d \sin(\theta) / c}
 
-We're almost done, but luckily there's one more simplification we can make.  Recall the relationship between center frequency and wavelength: :math:`\lambda = \frac{c}{f_c}` or the form we'll use: :math:`f_c = \frac{c}{\lambda}`.  Plugging this in we get:
+We zijn bijna klaar. Gelukkig is er nog een vereenvoudiging die we kunnen maken. Herinner je de relatie tussen middenfrequentie en golflengte: :math:`\lambda = \frac{c}{f_c}` of de vorm die we zullen gebruiken: :math:`f_c = \frac{c}{\lambda}`. Als we dit invullen krijgen we:
 
 .. math::
  s[n] e^{-2j \pi \frac{c}{\lambda} d \sin(\theta) / c}
@@ -193,29 +191,29 @@ We're almost done, but luckily there's one more simplification we can make.  Rec
 .. math::
  = s[n] e^{-2j \pi d \sin(\theta) / \lambda}
 
-
-In DOA what we like to do is represent :math:`d`, the distance between adjacent elements, as a fraction of wavelength (instead of meters), the most common value chosen for :math:`d` during the array design process is to use one half the wavelength. Regardless of what :math:`d` is, from this point on we're going to represent :math:`d` as a fraction of wavelength instead of meters, making the equation and all our code simpler:
+Wat we normaal willen doen met DOA si de afstand tussen twee elementen uit te drukken als een fractie van de golflengte. De meest gekozen waarde tijdens het ontwerpen van een array is om voor :math:`d` een halve golflengte te gebruiken. Ongeacht wat :math:`d` is, vanaf dit punt gaan we :math:`d` uitdrukken als een fractie van de golflengte in plaats van meters, waardoor de vergelijking en al onze code eenvoudiger wordt:
 
 .. math::
  s[n] e^{-2j \pi d \sin(\theta)}
 
-This is for adjacent elements, for the :math:`k`'th element we just need to multiply :math:`d` times :math:`k`:
+Dit is voor aangrenzende elementen, voor het :math:`k`'de element moeten we gewoon :math:`d` keer :math:`k` vermenigvuldigen:
 
 .. math::
  s[n] e^{-2j \pi d k \sin(\theta)}
 
-And we're done! This equation above is what you'll see in DOA papers and implementations everywhere! We typically call that exponential term the "array factor" (often denoted as :math:`a`) and represent it as an array, a 1D array for a 1D antenna array, etc.  In python :math:`a` is:
+Nu zijn we klaar! De bovenstaande vergelijking zul je in alle DOA artikelen en implementaties tegenkomen! We noemen die exponentiële term de "array factor" (vaak aangeduid als :math:`a`) en stellen het voor als een array, een 1D array voor een 1D antenne array, enz. In Python is :math:`a`:
 
 .. code-block:: python
 
- a = [np.exp(-2j*np.pi*d*0*np.sin(theta)), np.exp(-2j*np.pi*d*1*np.sin(theta)), np.exp(-2j*np.pi*d*2*np.sin(theta)), ...] # note the increasing k
- # or
- a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # where Nr is the number of receive antenna elements
+ a = [np.exp(-2j*np.pi*d*0*np.sin(theta)), np.exp(-2j*np.pi*d*1*np.sin(theta)), np.exp(-2j*np.pi*d*2*np.sin(theta)), ...] # let op de oplopende k
+ # of
+ a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Nr is het aantal elementen in de array
 
-Note how element 0 results in a 1+0j (because :math:`e^{0}=1`); this makes sense because everything above was relative to that first element, so it's receiving the signal as-is without any relative phase shifts.  This is purely how the math works out, in reality any element could be thought of as the reference, but as you'll see in our math/code later on, what matters is the difference in phase/amplitude received between elements.  It's all relative.
+
+Merk op dat het eerste element in een 1+0j resulteert (omdat :math:`e^{0}=1`); dit is logisch omdat alles hierboven relatief is aan dat eerste element, dus het ontvangt het signaal zoals het is zonder enige relatieve faseverschuivingen. Dit is puur hoe dat resulteert uit de wiskunde. In werkelijkheid kan elk element als referentie worden beschouwd, maar zoals je later in onze wiskunde/code zult zien, is het verschil in fase/amplitude dat tussen elementen wordt ontvangen wat telt. Het is allemaal relatief.
 
 *******************
-Receiving a Signal
+Een signaal ontvangen
 *******************
 
 Let's use the array factor concept to simulate a signal arriving at an array.  For a transmit signal we'll just use a tone for now:

@@ -78,7 +78,7 @@ De x-as stelt dan geen tijd, maar frequentie voor.
 We kunnen een signaal beide in het tijddomein *en* frequentiedomein tonen.
 Laten we om te beginnen naar een paar simpele voorbeelden kijken.
 
-Dit is hoe een sinus met frequentie f eruitziet in het tijd- en frequentiedomein:
+Dit is hoe een sinus met frequentie f in het tijd- en frequentiedomein eruitziet:
 
 .. image:: ../_images/sine-wave.png
    :scale: 70 % 
@@ -102,10 +102,10 @@ Dit tijd-frequentie paar is minder intuïtief.
 
 Zoals je ziet, een piek in het tijddomein is een vlakke lijn in het frequentiedomein, en theoretisch bevat het elke frequentie. 
 Er is geen praktisch perfecte piek in het tijddomein, want dit zou oneindig kort moeten duren. 
-Net als de sinus maakt het niet uit waar in het tijddomein de piek plaatsvindt. 
+Net als de sinus, maakt het niet uit waar de piek in het tijddomein plaatsvindt. 
 Wat je moet onthouden is dat snelle veranderingen in het tijddomein zullen leiden tot vele frequenties.
 
-Laten we nu naar de tijd- en frequentiedomein-figuren kijken van een blokgolf:
+Laten we nu de de tijd- en frequentiedomein-figuren van een blokgolf bekijken:
 
 .. image:: ../_images/square-wave.svg
    :align: center 
@@ -130,7 +130,7 @@ Omdat er geen frequentie is, ontstaat er een piek op 0 Hz in het frequentiedomei
 Als je er over nadenkt, is dit logisch. 
 Het frequentiedomein is niet "leeg", want dat zou alleen gebeuren als er helemaal geen signaal is (alleen nullen in het tijddomein). 
 We noemen 0 Hz in het frequentiedomein DC omdat het ontstaat door een dc-signaal in de tijd (een constant signaal wat niet verandert). 
-Let op dat wanneer we de amplitude van het dc-signaal groter maken, de piek op 0 Hz in het frequentiedomein ook groter wordt.
+Let er op, dat wanneer we de amplitude van het dc-signaal groter maken, de piek op 0 Hz in het frequentiedomein ook groter wordt.
 
 Later leren we wat de y-as in het frequentiedomein precies betekent. 
 Voor nu kun je het bekijken als een soort amplitude dat beschrijft hoe sterk een frequentie aanwezig was in het tijddomein-signaal.
@@ -157,7 +157,7 @@ Teruggaan naar het tijddomein vanuit het frequentiedomein is bijna hetzelfde, af
 .. math::
    x(t) = \frac{1}{2 \pi} \int X(f) e^{j2\pi ft} df
 
-Let op dat veel boeken :math:`w` gebruiken in plaats van :math:`2\pi f`.  :math:`w` is de hoekfrequentie in radialen per seconde terwijl  :math:`f` in Hz is. Het enige wat je moet weten is
+Veel boeken gebruiken :math:`w` in plaats van :math:`2\pi f`.  :math:`w` is de hoekfrequentie in radialen per seconde terwijl  :math:`f` in Hz is. Het enige wat je moet weten is
 
 .. math::
    \omega = 2 \pi f
@@ -182,16 +182,16 @@ Tijd-Frequentie Eigenschappen
 *****************************
 
 We hebben eerder gekeken naar hoe signalen eruitzien in het tijd- en frequentiedomein. 
-Nu zullen we vijf belangrijke "Fourier eigenschappen" gaan behandelen. 
+Nu zullen we vijf belangrijke "Fouriereigenschappen" gaan behandelen. 
 Deze eigenschappen verklaren dat als we ____ doen op het tijdsignaal, dat er ____ gebeurt op het signaal in het frequentiedomein. 
-Dit zal ons belangrijke inzichten verschaffen over welke Digitale Signaal Bewerkingen (DSP) we in de praktijk zullen toepassen op onze signalen in het tijddomein.
+Dit zal ons belangrijke inzichten verschaffen, over welke Digitale SignaalBewerkingen (DSP) we in de praktijk op onze signalen in het tijddomein zullen toepassen.
 
 1. Lineariteit:
 
 .. math::
    a x(t) + b y(t) \leftrightarrow a X(f) + b Y(f)
 
-Deze eigenschap is waarschijnlijk het makkelijkst om te begrijpen. Als we twee tijdsignalen optellen, dan zal het frequentiedomein ook de optelling van twee (frequentie)signalen bestaan. 
+Deze eigenschap is waarschijnlijk het makkelijkst om te begrijpen. Als we twee tijdsignalen optellen, dan zal het frequentiedomein ook uit de optelling van twee (frequentie)signalen bestaan. 
 Dit vertelt ons ook dat als we enig signaal vermenigvuldigen met een factor, het signaal in het frequentiedomein met dezelfde factor zal groeien/krimpen. 
 Het nut van deze eigenschap zal duidelijker worden wanneer we meerdere signalen gaan optellen.
 
@@ -203,7 +203,7 @@ Het nut van deze eigenschap zal duidelijker worden wanneer we meerdere signalen 
 De term links van :math:`x(t)` noemen we een "complexe sinusoïde" of een "complex exponent". 
 Voor nu hoef je alleen te weten dat dit effectief een sinus is met frequentie :math:`f_0`.  
 Deze eigenschap vertelt ons dat wanneer we :math:`x(t)` vermenigvuldigen met een sinus, we in het frequentiedomein :math:`X(f)` krijgen, maar verschoven met een frequentie :math:`f_0`. 
-Het is makkelijker om deze frequentieverschuiving visueel te weergeven:
+Het is makkelijker om deze frequentieverschuiving te visualiseren:
 
 .. image:: ../_images/freq-shift.svg
    :align: center 
@@ -246,7 +246,7 @@ Praktisch gezien heeft deze factor geen invloed.
 .. math::
    \int x(\tau) y(t-\tau) d\tau  \leftrightarrow X(f)Y(f)
 
-Dit heet de convolutie eigenschap omdat we in het tijddomein :math:`x(t)` en :math:`y(t)` convolueren. convolution_nl-section
+Dit heet de convolutie-eigenschap omdat we in het tijddomein :math:`x(t)` en :math:`y(t)` convolueren. convolution_nl-section
 Misschien ken je de convolutie-operatie nog niet, dus bekijk het voor nu als een kruiscorrelatie (deze :ref:`paragraaf <>` gaat er dieper op in). 
 Wanneer we tijddomein-signalen convolueren is dit gelijkwaardig aan het vermenigvuldigen van de frequentiedomein-signalen. 
 Het is totaal anders dan twee signalen bij elkaar optellen. 
@@ -267,7 +267,7 @@ Wat als we het onderstaande masker zouden kunnen maken, en dit kunnen vermenigvu
    :align: center
    :target: ../_images/masking.svg
 
-Meestal voeren we DSP-operaties uit in het tijddomein, dus laten we de convolutie eigenschap gebruiken om te kijken hoe we dit in het tijddomein voor elkaar kunnen krijgen. 
+Meestal voeren we DSP-operaties uit in het tijddomein, dus laten we de convolutie-eigenschap gebruiken om te kijken hoe we dit in het tijddomein voor elkaar kunnen krijgen. 
 Laten we zeggen dat :math:`x(t)` ons ontvangen signaal is. 
 Laat :math:`Y(f)` het masker zijn wat we in het frequentiedomein willen toepassen. 
 Dat zou betekenen dat :math:`y(t)` de tijddomein-versie is van ons masker, en wanneer we dit convolueren met :math:`x(t)` het signaal "wegfilteren" dat we niet willen.
@@ -276,11 +276,11 @@ Dat zou betekenen dat :math:`y(t)` de tijddomein-versie is van ons masker, en wa
    :scale: 100 % 
    :align: center 
 
-Wanneer we filters gaan behandelen zal de convolutie eigenschap duidelijker worden.
+Wanneer we filters gaan behandelen zal de convolutie-eigenschap duidelijker worden.
 
 1. Convolutie in Frequentie:
 
-Als laatste wil ik opmerken dat de convolutie eigenschap ook omgekeerd werkt, maar dit zullen we niet zoveel gebruiken als convolutie in het tijddomein:
+Als laatste wil ik opmerken dat de convolutie-eigenschap ook omgekeerd werkt, maar dit zullen we niet zoveel gebruiken als convolutie in het tijddomein:
 
 .. math::
    x(t)y(t)  \leftrightarrow  \int X(g) Y(f-g) dg
@@ -481,7 +481,7 @@ We zien onze piek op 0.15 Hz, de frequentie die we gebruikten voor onze sinus. D
 Vensterfunctie
 **************
 
-Wanneer we een FFT gebruiken om de frequenties in ons signaal te bepalen, gaat de FFT ervan uit dat de ingang een *periodiek* signaal bevat. Het gedraagt zich alsof het signaal dat we geven zich oneindig herhaalt. Het is alsof het laatste sample is verbonden aan het eerste sample. Dit vindt zijn basis in de theorie achter de Fouriertransformatie. Het betekent ook dat we plotselinge overgangen willen voorkomen tussen het eerste en laatste sample, want plotselinge veranderingen lijken op een boel frequenties. In werkelijkheid verbindt ons laatste sample niet met het eerste. Simpel gezegd: Wanneer we een FFT uitvoeren van 100 samples met :code:`np.fft.fft(x)`, willen we dat :code:`x[0]` en :code:`x[99]` (bijna) gelijk zijn.
+Wanneer we een FFT gebruiken om de frequenties in ons signaal te bepalen, gaat de FFT ervan uit dat de ingang een *periodiek* signaal bevat. Het gedraagt zich alsof het gegeven signaal, zich oneindig herhaalt. Het is alsof het laatste sample is verbonden aan het eerste sample. Dit vindt zijn basis in de theorie achter de Fouriertransformatie. Het betekent ook dat we plotselinge overgangen willen voorkomen tussen het eerste en laatste sample, want plotselinge veranderingen lijken op een boel frequenties. In werkelijkheid verbindt ons laatste sample niet met het eerste. Simpel gezegd: Wanneer we een FFT uitvoeren van 100 samples met :code:`np.fft.fft(x)`, willen we dat :code:`x[0]` en :code:`x[99]` (bijna) gelijk zijn.
 
 We kunnen aan deze cyclische eigenschap voldoen met behulp van een "venster". Net voor de FFT vermenigvuldigen we het signaal met een vensterfunctie. Dit is een functie dat aan beide kanten naar 0 gaat. Dit zal ervoor zorgen dat het signaal zal beginnen en eindigen bij 0, en dus zal verbinden. Veel voorkomende vensterfuncties zijn Hamming, Hanning, Blackman en Kaiser. Wanneer je geen venster toepast heet het een "rechthoekig" venster want het is alsof je het vermenigvuldigt met een array vol enen. Dit is hoe diverse vensterfuncties eruitzien:
 
@@ -502,13 +502,13 @@ Niet bang zijn om het verkeerde venster te kiezen. Het verschil tussen Hamming, 
 FFT-grootte
 ***********
 
-Het laatste om te behandelen is de FFT-grootte. Vanwege de manier waarop de FFT is geïmplementeerd is de beste lengte van de FFT altijd een macht van 2. Je kunt wel een andere lengte gebruiken, maar dat is langzamer. Veelgebruikte lengtes zijn tussen de 128 en 4096, maar het kan zeker langer zijn. In de praktijk moeten we signalen verwerken die misschien wel miljoenen of miljarden samples lang zijn, en dus moeten opbreken in vele FFT’s. Dit betekent dat we ook vele uitgangen krijgen. We kunnen al die uitgangen middelen of over de tijd weergeven (zeker wanneer het signaal over de tijd verandert). Je hoeft niet *elk* sample van een signaal in de FFT te stoppen om een goede voorstelling te krijgen van de frequentiedomein-versie van dat signaal. Je zou bijvoorbeeld een 1024 FFT op elke 100e3 samples van een signaal kunnen uitvoeren en het zal er waarschijnlijk nog steeds goed uitzien, zolang het signaal altijd aan blijft.
+Het laatste om te behandelen is de FFT-grootte. Vanwege de manier waarop de FFT is geïmplementeerd, is de beste lengte van de FFT altijd een macht van 2. Je kunt wel een andere lengte gebruiken, maar dat is langzamer. Veelgebruikte lengtes zijn tussen de 128 en 4096, maar het kan zeker langer zijn. In de praktijk moeten we signalen verwerken die misschien wel miljoenen of miljarden samples lang zijn, en dus moeten opbreken in vele FFT’s. Dit betekent dat we ook vele uitgangen krijgen. We kunnen al die uitgangen middelen of over de tijd weergeven (zeker wanneer het signaal over de tijd verandert). Je hoeft niet *elk* sample van een signaal in de FFT te stoppen om een goede voorstelling te krijgen van de frequentiedomein-versie van dat signaal. Je zou bijvoorbeeld een 1024 FFT op elke 100e3 samples van een signaal kunnen uitvoeren en het zal er waarschijnlijk nog steeds goed uitzien, zolang het signaal altijd aan blijft.
 
 ********************
 Spectrogram/Waterval
 ********************
 
-Een spectrogram is een plot dat de frequentieverandering over de tijd laat zien. Het is simpelweg een hoop op elkaar gestapelde FFT’s (verticaal als je de frequentie op de horizontale as wilt hebben). We kunnen het ook real-time laten zien, dit heet meestal een waterval. Een spectrumanalyzer is het apparaat wat dit spectrogram/waterval laat zien. 
+Een spectrogram is een plot, dat de frequentieverandering over de tijd laat zien. Het is simpelweg een hoop op elkaar gestapelde FFT’s (verticaal als je de frequentie op de horizontale as wilt hebben). We kunnen het ook real-time laten zien, dit heet meestal een waterval. Een spectrumanalyzer is het apparaat wat dit spectrogram/waterval laat zien. 
 Het onderstaande diagram laat zien hoe een lijst van IQ samples kan worden opgedeeld om een spectrogram te vormen:
 
 .. image:: ../_images/spectrogram_diagram.svg
@@ -517,7 +517,7 @@ Het onderstaande diagram laat zien hoe een lijst van IQ samples kan worden opged
    :alt: Spectrogram (a.k.a. waterfall) diagram showing how FFT slices are arrange/stacked to form a time-frequency plot
 
 Omdat elke *lijn* van een spectogram 2D data bevat, is het effectief een 3D plot, dus we moeten kleuren gebruiken om de FFT-magnituden te laten zien.
-Hier is een voorbeeld van een spectrogram, met de frequentie op de horizontale/x-as en tijd op de verticale/y-as. Blauw stelt de laagste energie voor, en rood de hoogste. We zien in het midden een sterke piek op DC (0 Hz) met daaromheen een variërend signaal. Blauw laat hier onze ruisvloer zien.
+Hier is een voorbeeld van een spectrogram, met de frequentie op de horizontale/x-as en tijd op de verticale/y-as. Blauw stelt de laagste energie voor, en rood de hoogste. In het midden zien we een sterke piek op DC (0 Hz) met daaromheen een variërend signaal. Blauw laat hier onze ruisvloer zien.
 
 .. image:: ../_images/waterfall.png
    :scale: 120 % 

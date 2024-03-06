@@ -45,7 +45,7 @@ The terminal commands below should build and install the latest version of UHD, 
  cd uhd/host
  mkdir build
  cd build
- cmake -DENABLE_TESTS=OFF -DENABLE_C_API=OFF -DENABLE_MANUAL=OFF ..
+ cmake -DENABLE_TESTS=OFF -DENABLE_C_API=OFF -DENABLE_PYTHON_API=ON -DENABLE_MANUAL=OFF ..
  make -j8
  sudo make install
  sudo ldconfig

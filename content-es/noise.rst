@@ -11,10 +11,11 @@ Ruido Gausiano
 ************************
 
 En este capítulo analizaremos el ruido, incluido cómo se modela y maneja en un sistema de comunicaciones inalámbricas. Los conceptos incluyen AWGN, complejo de ruido y SNR/SINR. También introduciremos los decibelios (dB) a lo largo del camino, ya que están ampliamente presentes en las comunicaciones inalámbricas y SDR.
+
 .. image:: ../_images/noise.png
    :scale: 70 % 
-   :align: center 
-
+   :align: center
+ 
 Observe cómo el valor promedio es cero en el gráfico en el dominio del tiempo. Si el valor promedio no fuera cero, entonces podríamos restar el valor promedio, llamarlo sesgo, y nos quedaría un promedio de cero. También tenga en cuenta que los puntos individuales en el gráfico *no* son "uniformemente aleatorios", es decir, los valores más grandes son más raros, la mayoría de los puntos están más cerca de cero.
 
 A este tipo de ruido lo llamamos "ruido gaussiano". Es un buen modelo para el tipo de ruido que proviene de muchas fuentes naturales, como las vibraciones térmicas de los átomos en el silicio de los componentes de RF de nuestro receptor. El **teorema del límite central** nos dice que la suma de muchos procesos aleatorios tenderá a tener una distribución gaussiana, incluso si los procesos individuales tienen otras distribuciones. En otras palabras, cuando suceden y se acumulan muchas cosas aleatorias, el resultado parece aproximadamente gaussiano, incluso cuando las cosas individuales no tienen una distribución gaussiana.

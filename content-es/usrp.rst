@@ -11,9 +11,9 @@ USRP en Python
    
 En este capítulo aprenderemos cómo usar la API UHD Python para controlar y recibir/transmitir señales con un `USRP <https://www.ettus.com/>`_ que es una serie de SDR fabricados por Ettus Research (ahora parte de NI). Analizaremos la transmisión y recepción en USRP en Python y profundizaremos en temas específicos de USRP, incluidos argumentos de transmisión, subdispositivos, canales, sincronización de 10 MHz y PPS. 
 
-*******************************
-Instalación de Software/Drivers
-*******************************
+************************************
+Instalación de Software/Drivers USRP
+************************************
 
 Si bien el código Python proporcionado en este libro de texto debería funcionar en Windows, Mac y Linux, solo proporcionaremos instrucciones de instalación de controladores/API específicas para Ubuntu 22 (aunque las instrucciones a continuación deberían funcionar en la mayoría de las distribuciones basadas en Debian). Comenzaremos creando una VM VirtualBox Ubuntu 22; no dude en omitir la parte de VM si ya tiene su sistema operativo listo para funcionar. Alternativamente, si está en Windows 11, el Subsistema de Windows para Linux (WSL) que usa Ubuntu 22 tiende a funcionar bastante bien y admite gráficos listos para usar.
 
@@ -81,7 +81,7 @@ Si utilizó la instalación estándar desde el origen, el siguiente comando debe
 
 
 ************************
-Recepción
+Recepción USRP
 ************************
 
 Recibir muestras de un USRP es extremadamente fácil usando la función incorporada "recv_num_samps()", a continuación se muestra el código Python que sintoniza el USRP a 100 MHz, usando una frecuencia de muestreo de 1 MHz, y toma 10,000 muestras del USRP, usando una ganancia de recepción de 50 dB:
@@ -234,7 +234,7 @@ De manera similar al lado de recepción, el rango de ganancia de transmisión va
 También hay una función set_normalized_tx_gain() si desea especificar la ganancia de transmisión usando el rango de 0 a 1.
 
 ************************************************
-Transmitir y recibir simultáneamente
+Transmitir y recibir simultáneamente con USRP
 ************************************************
 
 Si deseas transmitir y recibir usando el mismo USRP al mismo tiempo, la clave es hacerlo usando múltiples hilos dentro del mismo proceso; el USRP no puede abarcar múltiples procesos. Por ejemplo, en el `txrx_loopback_to_file <https://github.com/EttusResearch/uhd/blob/master/host/examples/txrx_loopback_to_file.cpp>`_ en el ejemplo de C++ se crea un hilo separado para ejecutar el transmisor y la recepción se realiza en el hilo principal. También puedes generar dos hilos, uno para transmitir y otro para recibir, como se hace en el `benchmark_rate <https://github.com/EttusResearch/uhd/blob/master/host/examples/python/benchmark_rate.py>`_ del ejemplo en Python. Aquí no se muestra un ejemplo completo, simplemente porque sería un ejemplo bastante largo y benchmark_rate.py de Ettus siempre puede actuar como punto de partida para alguien.

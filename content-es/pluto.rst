@@ -11,9 +11,9 @@ PlutoSDR en Python
    
 En este capítulo aprenderemos cómo usar la API de Python para `PlutoSDR <https://www.analog.com/en/design-center/evaluation-hardware-and-software/evaluation-boards-kits/adalm-pluto.html>`_, que es un SDR de bajo costo de Analog Devices. Cubriremos los pasos de instalación de PlutoSDR para ejecutar los controladores/software y luego analizaremos la transmisión y recepción con PlutoSDR en Python.
 
-*******************************
-Instalación de Software/Drivers
-*******************************
+*************************************
+Instalación de Software/Drivers Pluto
+*************************************
 
 Configurando la máquina virtual
 ###############################

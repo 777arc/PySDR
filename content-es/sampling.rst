@@ -425,8 +425,8 @@ Output:
 .. image:: ../_images/fft_example1.svg
    :align: center
 
-******************
-Otras lecturas
-******************
+**************************
+Otras lecturas de sampling
+**************************
 
 #. http://rfic.eecs.berkeley.edu/~niknejad/ee242/pdf/eecs242_lect3_rxarch.pdf

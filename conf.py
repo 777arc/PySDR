@@ -26,6 +26,8 @@ if creator_id:
         # Manual substitutions to make it look nicer
         full_name = full_name.replace("Jon Kraft, Analog Devices", "Jon Kraft")
         full_name = full_name.replace("vince baker", "Vince Baker")
+        if full_name == "Дмитрий Ступаков":
+            continue
         names.append(full_name) # there's also 'first_name' which might be better for a public display name
     # Patreon Supporters
     html_string = ''

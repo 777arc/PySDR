@@ -68,6 +68,8 @@ imgmath_image_format = 'svg' # way better looking than pngs (its vectorized afte
 imgmath_embed = True #turned this on since latest update broke html formula output, generated wrong svg src links.
 imgmath_font_size = 14 # default is 12 and it looked a bit small
 
+html_favicon = 'myicon.png' # should be in same dir as conf.py
+
 # Additional LaTeX code to put into the preamble of the LaTeX files used to translate the math snippets. This is left empty by default. Use it e.g. to add packages which modify the fonts used for math, such as '\\usepackage{newtxsf}' for sans-serif fonts, or '\\usepackage{fouriernc}' for serif fonts. Indeed, the default LaTeX math fonts have rather thin glyphs which (in HTML output) often do not match well with the font for text.
 # The code below makes math equations not right-align which was so ugly
 imgmath_latex_preamble = r'''
@@ -249,11 +251,6 @@ html_title = project # so it leaves out version and "documentation", didn't want
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #html_logo = None
-
-# The name of an image file (relative to this directory) to use as a favicon of
-# the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
-# pixels large.
-#html_favicon = None
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

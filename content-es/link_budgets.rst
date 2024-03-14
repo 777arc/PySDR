@@ -1,7 +1,7 @@
 .. _link-budgets-chapter:
 
 #######################
-Presupuestos de enlaces
+Presupuesto de enlace
 #######################
 
 Este capítulo cubre los presupuestos de enlace, una gran parte del cual consiste en comprender la potencia de transmisión/recepción, la pérdida de camino, la ganancia de la antena, el ruido y la SNR. Terminamos construyendo un ejemplo de presupuesto de enlace para ADS-B, que son señales transmitidas por aviones comerciales para compartir su posición y otra información.

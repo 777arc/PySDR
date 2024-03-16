@@ -1,8 +1,7 @@
 
 /* See https://github.com/bitprophet/alabaster/issues/139 */
 div.body {
-    min-width: auto;
-    max-width: auto;
+    max-width: fit-content;
 }
 
 /* Makes sidebar scrollable when the window isn't big enough to show all content */

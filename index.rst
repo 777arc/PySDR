@@ -14,6 +14,7 @@ by :ref:`Dr. Marc Lichtman<author-chapter>`
    content/digital_modulation
    content/pluto
    content/usrp
+   content/bladerf
    content/rtlsdr
    content/noise
    content/filters

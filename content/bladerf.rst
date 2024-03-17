@@ -15,15 +15,22 @@ The bladeRF 2.0 (a.k.a bladeRF 2.0 micro) from the company `Nuand <https://www.n
 bladeRF Architecture
 ********************************
 
-
-At the end of this chapter we discuss the VCTCXO oscillator and PLL.
-
-Block diagram:
+At a high level, the bladeRF 2.0 is based on the AD9361 RF integrated circuit (RFIC), combined with a Cyclone V FPGA (either the 49 kLE :code:`5CEA4` or 301 kLE :code:`5CEA9`), and a Cypress FX3 USB 3.0 controller that has a 200 MHz ARM9 core inside loaded with custom firmware.  The block diagram of the bladeRF 2.0 is shown below:
 
 .. image:: ../_images/bladeRF-2.0-micro-Block-Diagram-4.png
    :scale: 80 %
    :align: center 
    :alt: bladeRF 2.0 block diagram
+
+The FPGA controls the RFIC, performs digital filtering, and frames packets for transfer over USB (among other things).  The `source code <https://github.com/Nuand/bladeRF/tree/master/hdl>`_ for the FPGA image is written in VHDL and requires the free Quartus Prime Lite design software to compile custom images.  Precompiled images are available `here <https://www.nuand.com/fpga_images/>`_.
+
+The `source code <https://github.com/Nuand/bladeRF/tree/master/fx3_firmware>`_ for the Cypress FX3 firmware is open-source and includes code to:
+
+1. Load the FPGA image
+2. Transfer IQ samples between the FPGA and host over USB 3.0
+3. Control GPIO of the FPGA over UART
+
+At the end of this chapter we discuss the VCTCXO oscillator and PLL.
 
 ********************************
 Software and Hardware Setup

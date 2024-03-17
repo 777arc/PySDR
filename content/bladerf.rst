@@ -15,6 +15,9 @@ The bladeRF 2.0 (a.k.a bladeRF 2.0 micro) from the company `Nuand <https://www.n
 bladeRF Architecture
 ********************************
 
+
+At the end of this chapter we discuss the VCTCXO oscillator and PLL.
+
 Block diagram:
 
 .. image:: ../_images/bladeRF-2.0-micro-Block-Diagram-4.png
@@ -221,7 +224,11 @@ To set the main parameters of the SDR, we can add the following code:
  rx_ch.gain_mode = _bladerf.GainMode.Manual
  rx_ch.gain = gain
 
-Next, we will receive 1M samples in the FM radio band, at 10 MHz sample rate, just like we did before.  Any antenna on the RX1 port should be able to receive FM, since it is so strong.  The code below shows how the bladeRF synchronous stream API works; it must be configured and a receive buffer must be created, before the receiving begins.  The :code:`while True:` loop will continue to receive samples until the number of samples requested is reached.  The received samples are stored in a separate numpy array, so that we can process them after the loop finishes.
+********************************
+Receiving Samples in Python
+********************************
+
+Next, we will work off the previous code block to receive 1M samples in the FM radio band, at 10 MHz sample rate, just like we did before.  Any antenna on the RX1 port should be able to receive FM, since it is so strong.  The code below shows how the bladeRF synchronous stream API works; it must be configured and a receive buffer must be created, before the receiving begins.  The :code:`while True:` loop will continue to receive samples until the number of samples requested is reached.  The received samples are stored in a separate numpy array, so that we can process them after the loop finishes.
 
 .. code-block:: python
 
@@ -287,6 +294,44 @@ In order to visualize the received signal, let's display the IQ samples using a 
    :alt: bladeRF spectrogram example
 
 Each vertical squigly line is an FM radio signal.  No clue what the pulsing on the right side is from, lowering the gain didn't make it go away.
+
+
+********************************
+Transmitting Samples in Python
+********************************
+
+
+
+
+***********************************
+Oscillators, PLLs, and Calibration
+***********************************
+
+All direct-conversion SDRs (including all AD9361-based SDRs like the USRP B2X0, Analog Devices Pluto, and bladeRF) rely on a single  oscillator to provide a stable clock for the RF transceiver.  Any offsets or jitter in the frequency produced by this oscillator will translate to frequency offset and frequency jitter in the received or transmitted signal.  This oscillator is onboard, but can optionally be "disciplined" using a separate square or sine wave fed into the SDR through a connector such as SMA or U.FL (the bladeRF 2.0 uses U.FL).  
+
+Onboard the bladeRF is an `Abracon VCTCXO <https://abracon.com/Oscillators/ASTX12_ASVTX12.pdf>`_ (Voltage-controlled 
+temperature-compensated oscillator) with a frequency of 38.4 MHz. The "temperature-compensated" aspect means it is designed to be stable over a wide range of temperatures.  The voltage controlled aspect means that a voltage level is used to cause slight tweaks to the oscillator frequency, and on the bladeRF this voltage is provided by a separate 10-bit digital-to-analog converter (DAC) as shown in green in the block diagram below.  This means through software we can make fine adjustments in the frequency of the oscillator, and this is how we calibrate (a.k.a. trim) the bladeRF's VCTCXO.  Luckily, the bladeRFs are calibrated at the factory, as we discuss later in this section, but if you have the test equipment available you can always fine-tune this value, especially as years go by and the oscillator's frequency drifts.
+
+.. image:: ../_images/bladeRF-2.0-micro-Block-Diagram-4-oscillator.png
+   :scale: 80 %
+   :align: center 
+   :alt: bladeRF 2.0 glamour shot
+
+When using an external frequency reference (which can be nearly any frequency up to 300 MHz), the reference signal is fed directly into the `Analog Devices ADF4002 <http://www.analog.com/en/adf4002>`_ PLL onboard the bladeRF.  This PLL locks on to the reference signal and sends a signal to the VCTCXO (as shown in blue above) that is proportional to the difference in frequency and phase between the (scaled) reference input and VCTCXO output. Once the PLL is locked, this signal between the PLL and VCTCXO is a steady-state DC voltage that keeps the VCTCXO output at "exactly" 38.4 MHz (assuming the reference was correct), and phase-locked to the reference input.  As part of using an external reference you must enable :code:`clock_ref` (either through Python or the CLI), and set the input reference frequency (a.k.a. :code:`refin_freq`), which is 10 MHz by default.  Reasons to use an external reference include better frequency accuracy, and the ability to synchronize multiple SDRs to the same reference.
+
+Each bladeRF VCTCXO DAC trim value is calibrated at the factory to be within 1 Hz at 38.4 MHz at room temperature, and you can enter your serial number into `this page <https://www.nuand.com/calibration/>`_ to see what the factory calibrated value was (find your serial number on the board or using :code:`bladerf-tool probe`).  A fresh board should be well within 0.5 ppm and likely closer to 0.1 ppm, according to Nuand.  If you have test equipment to measure the frequency accuracy, or want to set it to the factory value, you can use the commands:
+
+.. code-block:: bash
+
+ $ bladeRF-cli -i
+ bladeRF> flash_init_cal 301 0x2049
+
+swapping :code:`301` with your bladeRF size and :code:`0x2049` with the hex format of your VCTCXO DAC trim value.  You must power cycle for it to go into effect.
+
+***********************************
+Expansion Ports
+***********************************
+
 
 ********************************
 Further Reading

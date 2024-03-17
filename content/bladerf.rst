@@ -15,7 +15,7 @@ The bladeRF 2.0 (a.k.a. bladeRF 2.0 micro) from the company `Nuand <https://www.
 bladeRF Architecture
 ********************************
 
-At a high level, the bladeRF 2.0 is based on the AD9361 RFIC, combined with a Cyclone V FPGA (either the 49 kLE :code:`5CEA4` or 301 kLE :code:`5CEA9`), and a Cypress FX3 USB 3.0 controller that has a 200 MHz ARM9 core inside loaded with custom firmware.  The block diagram of the bladeRF 2.0 is shown below:
+At a high level, the bladeRF 2.0 is based on the AD9361 RFIC, combined with a Cyclone V FPGA (either the 49 kLE :code:`5CEA4` or 301 kLE :code:`5CEA9`), and a Cypress FX3 USB 3.0 controller that has a 200 MHz ARM9 core inside, loaded with custom firmware.  The block diagram of the bladeRF 2.0 is shown below:
 
 .. image:: ../_images/bladeRF-2.0-micro-Block-Diagram-4.png
    :scale: 80 %
@@ -30,7 +30,11 @@ The `source code <https://github.com/Nuand/bladeRF/tree/master/fx3_firmware>`_ f
 2. Transfer IQ samples between the FPGA and host over USB 3.0
 3. Control GPIO of the FPGA over UART
 
-At the end of this chapter, we discuss the VCTCXO oscillator and PLL.
+From a signal flow perspective, there are two receive channels and two transmit channels, and each channel has a low and high frequency input/output to the RFIC, depending on which band is being used.  It is for this reason that a single pole double throw (SPDT) electronic RF switch is needed between the RFIC and SMA connectors.  The bias tee is an onboard circuit that provides ~4.5V DC on the SMA connector, and is used to conveniently power an external amplifier or other RF components.  This extra DC offset is on the RF side of the SDR so it does not interfere with the basic receiving/transmitting operation.
+
+JTAG is a type of debugging interface, allowing for testing and verifying designs during the development process.
+
+At the end of this chapter, we discuss the VCTCXO oscillator, PLL, and expansion port.
 
 ********************************
 Software and Hardware Setup
@@ -81,9 +85,7 @@ and paste in the following line:
 
  ATTRS{idVendor}=="2cf0", ATTRS{idProduct}=="5250", MODE="0666"
 
-To save and exit from nano, use: control-o, then Enter, then control-x.
-
-To refresh udev, run:
+To save and exit from nano, use: control-o, then Enter, then control-x.  To refresh udev, run:
 
 .. code-block:: bash
 
@@ -360,16 +362,18 @@ The process of transmitting samples with the bladeRF is very similar to receivin
  print("Stopping transmit")
  tx_ch.enable = False
 
+A few :code:`Hit stall for buffer`'s at the end is expected.
+
 In order to transmit and receive at the same time, you have to use threads, and you might as well just use Nuand's example `txrx.py <https://github.com/Nuand/bladeRF/blob/624994d65c02ad414a01b29c84154260912f4e4f/host/examples/python/txrx/txrx.py>`_ which does exactly that.
 
 ***********************************
 Oscillators, PLLs, and Calibration
 ***********************************
 
-All direct-conversion SDRs (including all AD9361-based SDRs like the USRP B2X0, Analog Devices Pluto, and bladeRF) rely on a single oscillator to provide a stable clock for the RF transceiver.  Any offsets or jitter in the frequency produced by this oscillator will translate to frequency offset and frequency jitter in the received or transmitted signal.  This oscillator is onboard, but can optionally be "disciplined" using a separate square or sine wave fed into the SDR through a connector such as SMA or U.FL (the bladeRF 2.0 uses U.FL).  
+All direct-conversion SDRs (including all AD9361-based SDRs like the USRP B2X0, Analog Devices Pluto, and bladeRF) rely on a single oscillator to provide a stable clock for the RF transceiver.  Any offsets or jitter in the frequency produced by this oscillator will translate to frequency offset and frequency jitter in the received or transmitted signal.  This oscillator is onboard, but can optionally be "disciplined" using a separate square or sine wave fed into the bladeRF through a U.FL connector on the board.  
 
 Onboard the bladeRF is an `Abracon VCTCXO <https://abracon.com/Oscillators/ASTX12_ASVTX12.pdf>`_ (Voltage-controlled 
-temperature-compensated oscillator) with a frequency of 38.4 MHz. The "temperature-compensated" aspect means it is designed to be stable over a wide range of temperatures.  The voltage controlled aspect means that a voltage level is used to cause slight tweaks to the oscillator frequency, and on the bladeRF this voltage is provided by a separate 10-bit digital-to-analog converter (DAC) as shown in green in the block diagram below.  This means through software we can make fine adjustments in the frequency of the oscillator, and this is how we calibrate (a.k.a. trim) the bladeRF's VCTCXO.  Luckily, the bladeRFs are calibrated at the factory, as we discuss later in this section, but if you have the test equipment available you can always fine-tune this value, especially as years go by and the oscillator's frequency drifts.
+temperature-compensated oscillator) with a frequency of 38.4 MHz. The "temperature-compensated" aspect means it is designed to be stable over a wide range of temperatures.  The voltage controlled aspect means that a voltage level is used to cause slight tweaks to the oscillator frequency, and on the bladeRF this voltage is provided by a separate 10-bit digital-to-analog converter (DAC) as shown in green in the block diagram below.  This means through software we can make fine adjustments to the frequency of the oscillator, and this is how we calibrate (a.k.a. trim) the bladeRF's VCTCXO.  Luckily, the bladeRFs are calibrated at the factory, as we discuss later in this section, but if you have the test equipment available you can always fine-tune this value, especially as years go by and the oscillator's frequency drifts.
 
 .. image:: ../_images/bladeRF-2.0-micro-Block-Diagram-4-oscillator.png
    :scale: 80 %

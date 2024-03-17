@@ -339,6 +339,7 @@ swapping :code:`301` with your bladeRF size and :code:`0x2049` with the hex form
 Expansion Ports
 ***********************************
 
+The bladeRF 2.0 includes an expansion port using a BSH-030 connector.  More information on using this port coming soon!
 
 ********************************
 Further Reading

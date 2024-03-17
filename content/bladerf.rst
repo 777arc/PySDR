@@ -4,7 +4,7 @@
 BladeRF in Python
 ##################
 
-The bladeRF 2.0 (a.k.a bladeRF 2.0 micro) from the company `Nuand <https://www.nuand.com>`_ is a USB 3.0-based SDR with two receive channels, two transmit channels, a tunable range of 47 MHz to 6 GHz, and the ability to sample up to 61 MHz or as high as 122 MHz when hacked.  It uses the AD9361 RFIC just like the USRP B210 and PlutoSDR, so RF performance will be similar.  The bladeRF 2.0 was released in 2021, maintains a small formfactor at 2.5" x 4.5", and comes in two different FPGA sizes (xA4 and xA9).  While this chapter focuses on the bladeRF 2.0, a lot of the code will also apply to the original bladeRF which `came out in 2013 <https://www.kickstarter.com/projects/1085541682/bladerf-usb-30-software-defined-radio>`_.
+The bladeRF 2.0 (a.k.a. bladeRF 2.0 micro) from the company `Nuand <https://www.nuand.com>`_ is a USB 3.0-based SDR with two receive channels, two transmit channels, a tunable range of 47 MHz to 6 GHz, and the ability to sample up to 61 MHz or as high as 122 MHz when hacked.  It uses the AD9361 RF integrated circuit (RFIC) just like the USRP B210 and PlutoSDR, so RF performance will be similar.  The bladeRF 2.0 was released in 2021, maintains a small formfactor at 2.5" x 4.5", and comes in two different FPGA sizes (xA4 and xA9).  While this chapter focuses on the bladeRF 2.0, a lot of the code will also apply to the original bladeRF which `came out in 2013 <https://www.kickstarter.com/projects/1085541682/bladerf-usb-30-software-defined-radio>`_.
 
 .. image:: ../_images/bladeRF_micro.png
    :scale: 35 %
@@ -15,7 +15,7 @@ The bladeRF 2.0 (a.k.a bladeRF 2.0 micro) from the company `Nuand <https://www.n
 bladeRF Architecture
 ********************************
 
-At a high level, the bladeRF 2.0 is based on the AD9361 RF integrated circuit (RFIC), combined with a Cyclone V FPGA (either the 49 kLE :code:`5CEA4` or 301 kLE :code:`5CEA9`), and a Cypress FX3 USB 3.0 controller that has a 200 MHz ARM9 core inside loaded with custom firmware.  The block diagram of the bladeRF 2.0 is shown below:
+At a high level, the bladeRF 2.0 is based on the AD9361 RFIC, combined with a Cyclone V FPGA (either the 49 kLE :code:`5CEA4` or 301 kLE :code:`5CEA9`), and a Cypress FX3 USB 3.0 controller that has a 200 MHz ARM9 core inside loaded with custom firmware.  The block diagram of the bladeRF 2.0 is shown below:
 
 .. image:: ../_images/bladeRF-2.0-micro-Block-Diagram-4.png
    :scale: 80 %
@@ -30,7 +30,7 @@ The `source code <https://github.com/Nuand/bladeRF/tree/master/fx3_firmware>`_ f
 2. Transfer IQ samples between the FPGA and host over USB 3.0
 3. Control GPIO of the FPGA over UART
 
-At the end of this chapter we discuss the VCTCXO oscillator and PLL.
+At the end of this chapter, we discuss the VCTCXO oscillator and PLL.
 
 ********************************
 Software and Hardware Setup
@@ -277,7 +277,7 @@ Next, we will work off the previous code block to receive 1M samples in the FM r
  print(x[0:10]) # look at first 10 IQ samples
  print(np.max(x)) # if this is close to 1, you are overloading the ADC, and should reduce the gain
 
-A few :code:`Hit stall for buffer` is expected at the end.  The last number printed shows the maximum sample received; you will want to adjust your gain to try to get that value around 0.5 to 0.8.  If it is 0.999 that means your receiver is overloaded/saturated and the signal is going to be distored (it will look smeared throughout the frequency domain).
+A few :code:`Hit stall for buffer` is expected at the end.  The last number printed shows the maximum sample received; you will want to adjust your gain to try to get that value around 0.5 to 0.8.  If it is 0.999 that means your receiver is overloaded/saturated and the signal is going to be distorted (it will look smeared throughout the frequency domain).
 
 In order to visualize the received signal, let's display the IQ samples using a spectrogram (see :ref:`spectrogram-section` for more details on how spectrograms work).  Add the following to the end of the previous code block:
 
@@ -300,7 +300,7 @@ In order to visualize the received signal, let's display the IQ samples using a 
    :target: ../_images/bladerf-waterfall.svg
    :alt: bladeRF spectrogram example
 
-Each vertical squigly line is an FM radio signal.  No clue what the pulsing on the right side is from, lowering the gain didn't make it go away.
+Each vertical squiggly line is an FM radio signal.  No clue what the pulsing on the right side is from, lowering the gain didn't make it go away.
 
 
 ********************************
@@ -366,7 +366,7 @@ In order to transmit and receive at the same time, you have to use threads, and 
 Oscillators, PLLs, and Calibration
 ***********************************
 
-All direct-conversion SDRs (including all AD9361-based SDRs like the USRP B2X0, Analog Devices Pluto, and bladeRF) rely on a single  oscillator to provide a stable clock for the RF transceiver.  Any offsets or jitter in the frequency produced by this oscillator will translate to frequency offset and frequency jitter in the received or transmitted signal.  This oscillator is onboard, but can optionally be "disciplined" using a separate square or sine wave fed into the SDR through a connector such as SMA or U.FL (the bladeRF 2.0 uses U.FL).  
+All direct-conversion SDRs (including all AD9361-based SDRs like the USRP B2X0, Analog Devices Pluto, and bladeRF) rely on a single oscillator to provide a stable clock for the RF transceiver.  Any offsets or jitter in the frequency produced by this oscillator will translate to frequency offset and frequency jitter in the received or transmitted signal.  This oscillator is onboard, but can optionally be "disciplined" using a separate square or sine wave fed into the SDR through a connector such as SMA or U.FL (the bladeRF 2.0 uses U.FL).  
 
 Onboard the bladeRF is an `Abracon VCTCXO <https://abracon.com/Oscillators/ASTX12_ASVTX12.pdf>`_ (Voltage-controlled 
 temperature-compensated oscillator) with a frequency of 38.4 MHz. The "temperature-compensated" aspect means it is designed to be stable over a wide range of temperatures.  The voltage controlled aspect means that a voltage level is used to cause slight tweaks to the oscillator frequency, and on the bladeRF this voltage is provided by a separate 10-bit digital-to-analog converter (DAC) as shown in green in the block diagram below.  This means through software we can make fine adjustments in the frequency of the oscillator, and this is how we calibrate (a.k.a. trim) the bladeRF's VCTCXO.  Luckily, the bladeRFs are calibrated at the factory, as we discuss later in this section, but if you have the test equipment available you can always fine-tune this value, especially as years go by and the oscillator's frequency drifts.

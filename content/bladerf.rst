@@ -4,7 +4,7 @@
 BladeRF in Python
 ##################
 
-The bladeRF 2.0 (a.k.a bladeRF 2.0 micro) from the company `Nuand <https://www.nuand.com>`_ is a USB 3.0-based SDR with two receive channels, two transmit channels, a tunable range of 47MHz to 6GHz, and the ability to sample up to 61MHz or as high as 122MHz when hacked.  It uses the AD9361 RFIC just like the USRP B210 and PlutoSDR, so RF performance will be similar.  The bladeRF 2.0 was released in 2021, maintains a small formfactor at 2.5" x 4.5", and comes in two different FPGA sizes (xA4 and xA9).  While this chapter focuses on the bladeRF 2.0, a lot of the code will also apply to the original bladeRF which `came out in 2013 <https://www.kickstarter.com/projects/1085541682/bladerf-usb-30-software-defined-radio>`_.
+The bladeRF 2.0 (a.k.a bladeRF 2.0 micro) from the company `Nuand <https://www.nuand.com>`_ is a USB 3.0-based SDR with two receive channels, two transmit channels, a tunable range of 47 MHz to 6 GHz, and the ability to sample up to 61 MHz or as high as 122 MHz when hacked.  It uses the AD9361 RFIC just like the USRP B210 and PlutoSDR, so RF performance will be similar.  The bladeRF 2.0 was released in 2021, maintains a small formfactor at 2.5" x 4.5", and comes in two different FPGA sizes (xA4 and xA9).  While this chapter focuses on the bladeRF 2.0, a lot of the code will also apply to the original bladeRF which `came out in 2013 <https://www.kickstarter.com/projects/1085541682/bladerf-usb-30-software-defined-radio>`_.
 
 .. image:: ../_images/bladeRF_micro.png
    :scale: 35 %
@@ -168,12 +168,12 @@ To start with, let's poll the bladeRF for some useful information, using the fol
  print("Firmware version:", sdr.get_fw_version()) # v2.4.0
  print("FPGA version:", sdr.get_fpga_version())   # v0.15.0
  
- rx_ch = sdr.Channel(0) # ch 0 or 1
+ rx_ch = sdr.Channel(_bladerf.CHANNEL_RX(0)) # give it a 0 or 1
  print("sample_rate_range:", rx_ch.sample_rate_range)
  print("bandwidth_range:", rx_ch.bandwidth_range)
  print("frequency_range:", rx_ch.frequency_range)
  print("gain_modes:", rx_ch.gain_modes)
- print("manual gain range:", sdr.get_gain_range(0)) # ch 0 or 1
+ print("manual gain range:", sdr.get_gain_range(_bladerf.CHANNEL_RX(0))) # ch 0 or 1
 
 For the bladeRF 2.0 xA9, the output should look something like:
 
@@ -307,8 +307,60 @@ Each vertical squigly line is an FM radio signal.  No clue what the pulsing on t
 Transmitting Samples in Python
 ********************************
 
+The process of transmitting samples with the bladeRF is very similar to receiving.  The main difference is that we must generate the samples to transmit, and then write them to the bladeRF using the :code:`sync_tx` method which can handle our entire batch of samples at once (up to ~4B samples).  The code below shows how to transmit a simple tone, and then repeat it 30 times.  The tone is generated using numpy, and then scaled to be between -32767 and 32767, so that it can be stored as int16s.  The tone is then converted to bytes and used as the transmit buffer.  The synchronous stream API is used to transmit the samples, and the :code:`while True:` loop will continue to transmit samples until the number of repeats requested is reached.  If you want to transmit samples from a file instead, simply use :code:`samples = np.fromfile('yourfile.iq', dtype=np.int16)` (or whatever datatype they are) to read the samples, and then convert them to bytes using :code:`samples.tobytes()`.
 
+.. code-block:: python
 
+ from bladerf import _bladerf
+ import numpy as np
+ 
+ sdr = _bladerf.BladeRF()
+ tx_ch = sdr.Channel(_bladerf.CHANNEL_TX(0)) # give it a 0 or 1
+ 
+ sample_rate = 10e6
+ center_freq = 100e6
+ gain = 0 # -15 to 60 dB. for transmitting, start low and slowly increase, and make sure antenna is connected
+ num_samples = int(1e6)
+ repeat = 30 # number of times to repeat our signal
+ print('duration of transmission:', num_samples/sample_rate*repeat, 'seconds')
+ 
+ # Generate IQ samples to transmit (in this case, a simple tone)
+ t = np.arange(num_samples) / sample_rate
+ f_tone = 1e6
+ samples = np.exp(1j * 2 * np.pi * f_tone * t) # will be -1 to +1
+ samples = samples.astype(np.complex64)
+ samples *= 32767 # scale so they can be stored as int16s
+ samples = samples.view(np.int16)
+ buf = samples.tobytes() # convert our samples to bytes and use them as transmit buffer
+ 
+ tx_ch.frequency = center_freq
+ tx_ch.sample_rate = sample_rate
+ tx_ch.bandwidth = sample_rate/2
+ tx_ch.gain = gain
+  
+ # Setup synchronous stream
+ sdr.sync_config(layout=_bladerf.ChannelLayout.TX_X1, # or TX_X2
+                 fmt=_bladerf.Format.SC16_Q11, # int16s
+                 num_buffers=16,
+                 buffer_size=8192,
+                 num_transfers=8,
+                 stream_timeout=3500)
+ 
+ print("Starting transmit!")
+ repeats_remaining = repeat - 1
+ tx_ch.enable = True
+ while True:
+     sdr.sync_tx(buf, num_samples) # write to bladeRF
+     print(repeats_remaining)
+     if repeats_remaining > 0:
+         repeats_remaining -= 1
+     else:
+         break
+ 
+ print("Stopping transmit")
+ tx_ch.enable = False
+
+In order to transmit and receive at the same time, you have to use threads, and you might as well just use Nuand's example `txrx.py <https://github.com/Nuand/bladeRF/blob/624994d65c02ad414a01b29c84154260912f4e4f/host/examples/python/txrx/txrx.py>`_ which does exactly that.
 
 ***********************************
 Oscillators, PLLs, and Calibration
@@ -334,6 +386,12 @@ Each bladeRF VCTCXO DAC trim value is calibrated at the factory to be within 1 H
  bladeRF> flash_init_cal 301 0x2049
 
 swapping :code:`301` with your bladeRF size and :code:`0x2049` with the hex format of your VCTCXO DAC trim value.  You must power cycle for it to go into effect.
+
+***********************************
+Sampling at 122 MHz
+***********************************
+
+Coming Soon!
 
 ***********************************
 Expansion Ports

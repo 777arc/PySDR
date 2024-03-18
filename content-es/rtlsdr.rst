@@ -1,10 +1,10 @@
 .. _rtlsdr-chapter:
 
 ##################
-RTL-SDR in Python
+RTL-SDR en Python
 ##################
 
-The RTL-SDR is by far the cheapest SDR, at around $30, and a great SDR to start with.  While it is receive-only and can only tune up to ~1.75 GHz, there are numerous applications it can be used for.  In this chapter, we learn how to set up the RTL-SDR software and use its Python API.
+El RTL-SDR es, con diferencia, el SDR más barato, alrededor de 30 dólares, y un excelente SDR para empezar. Si bien es solo de recepción y solo puede sintonizar hasta ~1,75 GHz, existen numerosas aplicaciones para las que se puede utilizar. En este capítulo, aprendemos cómo configurar el software RTL-SDR y utilizar su API Python.
 
 .. image:: ../_images/rtlsdrs.svg
    :align: center 
@@ -12,41 +12,41 @@ The RTL-SDR is by far the cheapest SDR, at around $30, and a great SDR to start 
    :alt: Example RTL-SDRs
 
 ********************************
-RTL-SDR Background
+Antecedentes RTL-DEG
 ********************************
 
-The RTL-SDR came into existence around 2010 when folks discovered they could hack low-cost DVB-T dongles that contained the Realtek RTL2832U chip.  DVB-T is a digital television standard primarily used in Europe, but what was interesting about the RTL2832U was that the raw IQ samples could be directly accessed, allowing the chip to be used to build a general purpose receive-only SDR.  
+El RTL-SDR surgió alrededor de 2010 cuando la gente descubrió que podían piratear dongles DVB-T de bajo costo que contenían el chip Realtek RTL2832U. DVB-T es un estándar de televisión digital utilizado principalmente en Europa, pero lo interesante del RTL2832U fue que se podía acceder directamente a las muestras de IQ sin procesar, lo que permitía utilizar el chip para construir un SDR de uso general y solo para recepción. 
 
-The RTL2832U chip includes the analog-to-digital converter (ADC) and USB controller, but it must be paired with an RF tuner.  Popular tuner chips include the Rafael Micro R820T, R828D, and Elonics E4000.  The tunable frequency range is based on the tuner chip and is usually around 50 - 1700 MHz.  The maximum sample rate, on the other hand, is determined by the RTL2832U and your computer's USB bus, and is usually around 2.4 MHz without dropping too many samples.  Keep in mind that these tuners are extremely low-cost and have very poor RF sensitivity, so adding a low-noise amplifier (LNA) and bandpass filter is often necessary to receive weak signals.
+El chip RTL2832U incluye el convertidor analógico a digital (ADC) y el controlador USB, pero debe emparejarse con un sintonizador de RF. Los chips sintonizadores populares incluyen Rafael Micro R820T, R828D y Elonics E4000. El rango de frecuencia sintonizable se basa en el chip sintonizador y suele estar entre 50 y 1700 MHz. La frecuencia de muestreo máxima, por otro lado, está determinada por el RTL2832U y el bus USB de su computadora, y suele ser de alrededor de 2,4 MHz sin perder demasiadas muestras. Tenga en cuenta que estos sintonizadores son de costo extremadamente bajo y tienen una sensibilidad de RF muy pobre, por lo que a menudo es necesario agregar un amplificador de bajo ruido (LNA) y un filtro de paso de banda para recibir señales débiles.
 
-The RTL2832U always uses 8-bit samples, so the host machine will receive two bytes per IQ sample.  Premium RTL-SDRs usually come with a temperature-controlled oscillator (a.k.a. TCXO) in place of the cheaper crystal oscillator, which provides better frequency stability.  Another optional feature is a bias tee (a.k.a. bias-T), which is an onboard circuit that provides ~4.5V DC on the SMA connector, used to conveniently power an external LNA or other RF components.  This extra DC offset is on the RF side of the SDR so it does not interfere with the basic receiving operation.
+El RTL2832U siempre utiliza muestras de 8 bits, por lo que la máquina host recibirá dos bytes por muestra de IQ. Los RTL-SDR premium suelen venir con un oscilador con temperatura controlada (también conocido como TCXO) en lugar del oscilador de cristal más económico, que proporciona una mejor estabilidad de frecuencia. Otra característica opcional es una T de polarización (también conocida como diagonal-T), que es un circuito integrado que proporciona ~4,5 V CC en el conector SMA, que se utiliza para alimentar cómodamente un LNA externo u otros componentes de RF. Esta compensación de DC adicional se encuentra en el lado de RF del SDR, por lo que no interfiere con la operación de recepción básica.
 
-For those interested in direction of arrival (DOA) or other beamforming applications, the `KrakenSDR <https://www.crowdsupply.com/krakenrf/krakensdr>`_ is a phase-coherent SDR made from five RTL-SDRs that share an oscillator and sample clock.
+Para aquellos interesados en la dirección de llegada (DOA) u otras aplicaciones de beamforming, el `KrakenSDR <https://www.crowdsupply.com/krakenrf/krakensdr>`_ es un SDR de fase coherente fabricado a partir de cinco RTL-SDR que comparten un oscilador y un reloj de muestra.
 
 ********************************
-Software Setup
+Configuración del software
 ********************************
 
-Ubuntu (or Ubuntu within WSL)
+Ubuntu (o Ubuntu con WSL)
 #############################
 
-On Ubuntu 20, 22, and other Debian-based systems, you can install the RTL-SDR software with the following command.  
+En Ubuntu 20, 22 y otros sistemas basados en Debian, puede instalar el software RTL-SDR con el siguiente comando.
 
 .. code-block:: bash
 
  sudo apt install rtl-sdr
 
-This will install the librtlsdr library, and command line tools such as rtl_sdr, rtl_tcp, rtl_fm, and rtl_test.
+Esto instalará la biblioteca librtlsdr y herramientas de línea de comandos como rtl_sdr, rtl_tcp, rtl_fm y rtl_test.
 
-Next, install the Python wrapper for librtlsdr using:
+A continuación, instale el contenedor Python para librtlsdr usando:
 
 .. code-block:: bash
 
  sudo pip install pyrtlsdr
 
-If you are using Ubuntu through WSL, on the Windows side download the latest `Zadig <https://zadig.akeo.ie/>`_ and run it to install the "WinUSB" driver for the RTL-SDR (there may be two Bulk-In Interfaces, in which case install "WinUSB" on both).  Unplug and replug the RTL-SDR once Zadig finishes.  
+Si está utilizando Ubuntu a través de WSL, en el lado de Windows descargue la última versión `Zadig <https://zadig.akeo.ie/>`_ y ejecútelo para instalar el controlador "WinUSB" para RTL-SDR (puede haber dos interfaces masivas, en cuyo caso instale "WinUSB" en ambas). Desenchufe y vuelva a enchufar el RTL-SDR una vez que finalice Zadig. 
 
-Next, you will need to forward the RTL-SDR USB device to WSL, first by installing the latest `usbipd utility msi <https://github.com/dorssel/usbipd-win/releases>`_ (this guide assumes you have usbipd-win 4.0.0 or higher), then opening PowerShell in administrator mode and running:
+A continuación, deberá reenviar el dispositivo USB RTL-SDR a WSL, primero instalando la última versión `usbipd utility msi <https://github.com/dorssel/usbipd-win/releases>`_ (esta guía supone que tiene usbipd-win 4.0.0 o superior), luego abre PowerShell en modo administrador y ejecuta:
 
 .. code-block:: bash
 
@@ -58,41 +58,41 @@ Next, you will need to forward the RTL-SDR USB device to WSL, first by installin
     usbipd bind --busid 1-5
     usbipd attach --wsl --busid 1-5
 
-On the WSL side, you should be able to run :code:`lsusb` and see a new item called RTL2838 DVB-T or something similar.
+En el lado WSL, debería poder ejecutar :code:`lsusb` y ver un nuevo elemento llamado RTL2838 DVB-T o algo similar.
 
-If you run into permissions issues (e.g., the test below only works when using :code:`sudo`), you will need to setup udev rules.  First run :code:`lsusb` to find the ID of the RTL-SDR, then create the file :code:`/etc/udev/rules.d/10-rtl-sdr.rules` with the following content, substituting the idVendor and idProduct of your RTL-SDR if yours is different:
+Si tiene problemas de permisos (por ejemplo, la prueba a continuación solo funciona cuando se usa :code:`sudo`), necesitará configurar reglas de udev. Primero ejecute :code:`lsusb` para encontrar el ID del RTL-SDR, luego cree el archivo :code:`/etc/udev/rules.d/10-rtl-sdr.rules` con el siguiente contenido, sustituyendo el idVendor e idProduct de tu RTL-SDR si el tuyo es diferente:
 
 .. code-block::
 
  SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838", MODE="0666"
 
-To refresh udev, run:
+Para actualizar udev, ejecute:
 
 .. code-block:: bash
 
     sudo udevadm control --reload-rules
     sudo udevadm trigger
 
-You may also need to unplug and replug the RTL-SDR (for WSL you will have to :code:`usbipd attach` again). 
+Es posible que también necesite desconectar y volver a conectar el RTL-SDR (para WSL tendrá que :code:`usbipd adjunto` nuevamente).
 
 Windows
 ###################
 
-For Windows users, see https://www.rtl-sdr.com/rtl-sdr-quick-start-guide/.  
+Para usuarios windows, ver https://www.rtl-sdr.com/rtl-sdr-quick-start-guide/.  
 
 ********************************
-Testing the RTL-SDR
+Probando el RTL-SDR
 ********************************
 
-If the software setup worked, you should be able to run the following test, which will tune the RTL-SDR to the FM radio band and record 1 million samples to a file called recording.iq in /tmp.
+Si la configuración del software funcionó, debería poder ejecutar la siguiente prueba, que sintonizará el RTL-SDR a la banda de radio FM y grabará 1 millón de muestras en un archivo llamado Recording.iq en /tmp.
 
 .. code-block:: bash
 
     rtl_sdr /tmp/recording.iq -s 2e6 -f 100e6 -n 1e6
 
-If you get :code:`No supported devices found`, even when adding a :code:`sudo` to the beginning, then linux is unable to see the RTL-SDR at all.  If it works with :code:`sudo`, then it's a udev rules problem, try restarting the computer after going through the udev setup instructions above.  Alternatively, you can just use :code:`sudo` for everything, including running Python.
+Si obtiene :code:`No supported devices found`, incluso cuando agrega un :code:`sudo` al principio, entonces Linux no puede ver el RTL-SDR en absoluto. Si funciona con :code:`sudo`, entonces es un problema de reglas de udev, intente reiniciar la computadora después de seguir las instrucciones de configuración de udev anteriores. Alternativamente, puedes usar :code:`sudo` para todo, incluso ejecutar Python.
 
-You can test out Python's ability to see the RTL-SDR using the following script:
+Puede probar la capacidad de Python para ver RTL-SDR utilizando el siguiente script:
 
 .. code-block:: python
 
@@ -107,7 +107,7 @@ You can test out Python's ability to see the RTL-SDR using the following script:
  print(len(sdr.read_samples(1024)))
  sdr.close()
 
-which should output:
+lo cual debería mostrar:
 
 .. code-block:: bash
 
@@ -116,20 +116,20 @@ which should output:
  1024
 
 ********************************
-RTL-SDR Python Code
+Codigo RTL-SDR en Python
 ********************************
 
-The code above can be considered a basic usage example of the RTL-SDR in Python.  The following sections will go into more detail on the various settings and usage tricks.
+El código anterior puede considerarse un ejemplo de uso básico de RTL-SDR en Python. Las siguientes secciones entrarán en más detalles sobre las diversas configuraciones y trucos de uso.
 
-Avoiding RTL-SDR Glitching
+Evitar fallas en RTL-SDR
 ###############################
 
-At the end of our script, or whenever we are done grabbing samples off the RTL-SDR, we will call :code:`sdr.close()`, which will help prevent the RTL-SDR from going into a glitched out state where it needs to be unplugged/replugged.  Even using close() it can still happen, you will know it if the RTL-SDR stalls during the read_samples() call.  If this happens, you will need to unplug and replug the RTL-SDR, and possibly restart your computer.  If you are using WSL, you will need to reattach the RTL-SDR using usbipd.
+Al final de nuestro script, o cuando hayamos terminado de tomar muestras del RTL-SDR, llamaremos a :code:`sdr.close()`, lo que ayudará a evitar que el RTL-SDR entre en un estado de falla en el que es necesario desconectarlo/volverlo a enchufar. Incluso usando close() todavía puede suceder, lo sabrás si el RTL-SDR se detiene durante la llamada read_samples(). Si esto sucede, deberá desconectar y volver a conectar el RTL-SDR y posiblemente reiniciar su computadora. Si está utilizando WSL, deberá volver a conectar el RTL-SDR mediante usbipd.
 
-Gain Setting
-#############
+Configuración de ganancia
+#########################
 
-By setting :code:`sdr.gain = 'auto'` we are enabling automatic gain control (AGC), which will cause the RTL-SDR to adjust the receive gain based on the signals it receives, attempting to fill out the 8-bit ADC without saturating it.  For a lot of situations, such as making a spectrum analyzer, it is useful to keep the gain at a constant value, meaning we have to set a manual gain.  The RTL-SDR does not have an infinitely adjustable gain; you can see the list of valid gain values using :code:`print(sdr.valid_gains_db)`.  That being said, if you set it to a gain not on this list, it will autmoatically pick the closest allowable value.  You can always check what the current gain is set to with :code:`print(sdr.gain)`.  In the example below, we set the gain to a 49.6 dB and receive 4096 samples, then plot them in the time domain:
+Al configurar :code:`sdr.gain = 'auto'` estamos habilitando el control automático de ganancia (AGC), lo que hará que el RTL-SDR ajuste la ganancia de recepción en función de las señales que recibe, intentando completar el 8- bit ADC sin saturarlo. Para muchas situaciones, como por ejemplo hacer un analizador de espectro, es útil mantener la ganancia en un valor constante, lo que significa que tenemos que configurar una ganancia manual. El RTL-SDR no tiene una ganancia infinitamente ajustable; puede ver la lista de valores de ganancia válidos usando :code:`print(sdr.valid_gains_db)`. Dicho esto, si lo configura en una ganancia que no está en esta lista, seleccionará automáticamente el valor permitido más cercano. Siempre puedes comprobar cuál está configurada la ganancia actual con :code:`print(sdr.gain)`. En el siguiente ejemplo, configuramos la ganancia en 49,6 dB y recibimos 4096 muestras, luego las trazamos en el dominio del tiempo:
 
 .. code-block:: python
 
@@ -159,14 +159,14 @@ By setting :code:`sdr.gain = 'auto'` we are enabling automatic gain control (AGC
    :target: ../_images/rtlsdr-gain.svg
    :alt: RTL-SDR manual gain example
 
-There are a couple things to note here.  The first ~2k samples do not seem to have much signal power in them, because they represent transients.  It is recommended to throw away the first 2k samples each script, e.g., using :code:`sdr.read_samples(2048)` and not doing anything with the output.  The other thing we notice is that pyrtlsdr is returning the samples to us as floats, in between -1 and +1.  Even though it uses an 8-bit ADC and produces integer values, pyrtlsdr is dividing by 127.0 for our convinience.
+Hay un par de cosas a tener en cuenta aquí. Las primeras muestras de ~2k no parecen tener mucha potencia de señal, porque representan transitorios. Se recomienda desechar las primeras 2k muestras de cada script, por ejemplo, usando :code:`sdr.read_samples(2048)` y no hacer nada con la salida. La otra cosa que notamos es que pyrtlsdr nos devuelve las muestras como flotantes, entre -1 y +1. Aunque utiliza un ADC de 8 bits y produce valores enteros, pyrtlsdr divide por 127,0 para nuestra conveniencia.
 
-Allowed Sample Rates
-#####################
+Frecuencias de muestreo permitidas
+##################################
 
-Most RTL-SDRs require the sample rate to be set either between 230-300 kHz, or between 900-3.2 MHz.  Note that the higher rates, especially above 2.4 MHz, may not get 100% of samples through the USB connection.  If you give it an unsupported sample rate, it will simply return with the error :code:`rtlsdr.rtlsdr.LibUSBError: Error code -22: Could not set sample rate to 899000 Hz`.  When setting an allowable sample rate, you will notice the console message showing the exact sample rate; this exact value can also be retrieved by calling :code:`sdr.sample_rate`.  Some applications may benefit from having a more exact value used in calculations.
+La mayoría de los RTL-SDR requieren que la frecuencia de muestreo se establezca entre 230 y 300 kHz o entre 900 y 3,2 MHz. Tenga en cuenta que es posible que las velocidades más altas, especialmente por encima de 2,4 MHz, no obtengan el 100% de las muestras a través de la conexión USB. Si le asigna una frecuencia de muestreo no compatible, simplemente regresará con el error :código:`rtlsdr.rtlsdr.LibUSBError: Error code -22: Could not set sample rate to 899000 Hz`. Al configurar una frecuencia de muestreo permitida, notará el mensaje de la consola que muestra la frecuencia de muestreo exacta; este valor exacto también se puede recuperar llamando a :code:`sdr.sample_rate`. Algunas aplicaciones pueden beneficiarse al utilizar un valor más exacto en los cálculos.
 
-As an exercise, we will set the sample rate to 2.4 MHz and create a spectrogram of the FM radio band:
+Como ejercicio, estableceremos la frecuencia de muestreo en 2,4 MHz y crearemos un espectrograma de la banda de radio FM:
 
 .. code-block:: python
 
@@ -194,15 +194,15 @@ As an exercise, we will set the sample rate to 2.4 MHz and create a spectrogram 
    :target: ../_images/rtlsdr-waterfall.svg
    :alt: RTL-SDR waterfall (aka spectrogram) example
 
-PPM Setting
-############
+Configuración de PPM
+####################
 
-For those curious about the ppm setting, every RTL-SDR has a small frequency offset/error, due to the low-cost nature of the tuner chips and lack of calibration.  The frequency offset should be relatively linear (not a constant frequency shift) across the spectrum, so we can correct for it by entering a PPM value in parts per million.  For example, if you tune to 100 MHz and set the PPM to 25, it will shift the received signal up by 100e6/1e6*25=2500 Hz.  Narrower signals will have a greater impact from frequency error.  That being said, many modern signals involve a frequency synchronization step that will correct for any frequency offset on the transmitter, receiver, or due to Doppler shift.
+Para aquellos curiosos sobre la configuración de ppm, cada RTL-SDR tiene un pequeño desfase/error de frecuencia, debido al bajo costo de los chips sintonizadores y la falta de calibración. El desplazamiento de frecuencia debe ser relativamente lineal (no un cambio de frecuencia constante) en todo el espectro, por lo que podemos corregirlo ingresando un valor de PPM en partes por millón. Por ejemplo, si sintoniza 100 MHz y configura PPM en 25, la señal recibida aumentará en 100e6/1e6*25=2500 Hz. Las señales más estrechas tendrán un mayor impacto por error de frecuencia. Dicho esto, muchas señales modernas implican un paso de sincronización de frecuencia que corregirá cualquier compensación de frecuencia en el transmisor, el receptor o debido al desplazamiento Doppler.
 
 ********************************
-Further Reading
+Lecturas Futuras
 ********************************
 
-#. `RTL-SDR.com's About Page <https://www.rtl-sdr.com/about-rtl-sdr/>`_
+#. `Página Acerca de de RTL-SDR.com <https://www.rtl-sdr.com/about-rtl-sdr/>`_
 #. https://hackaday.com/2019/07/31/rtl-sdr-seven-years-later/
 #. https://osmocom.org/projects/rtl-sdr/wiki/Rtl-sdr

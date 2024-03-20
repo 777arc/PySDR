@@ -73,6 +73,15 @@ To refresh udev, run:
     sudo udevadm control --reload-rules
     sudo udevadm trigger
 
+If you are using WSL and it says :code:`Failed to send reload request: No such file or directory`, that means the udev service isn't running, and you will need to :code:`sudo nano /etc/wsl.conf` and add the lines:
+
+.. code-block:: bash
+
+ [boot]
+ command="service udev start"
+
+then restart WSL using the following command in PowerShell with admin: :code:`wsl.exe --shutdown`.
+
 You may also need to unplug and replug the RTL-SDR (for WSL you will have to :code:`usbipd attach` again). 
 
 Windows

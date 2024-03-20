@@ -12,7 +12,7 @@ El RTL-SDR es, con diferencia, el SDR más barato, alrededor de 30 dólares, y u
    :alt: Example RTL-SDRs
 
 ********************************
-Antecedentes RTL-DEG
+Antecedentes RTL-SDR
 ********************************
 
 El RTL-SDR surgió alrededor de 2010 cuando la gente descubrió que podían piratear dongles DVB-T de bajo costo que contenían el chip Realtek RTL2832U. DVB-T es un estándar de televisión digital utilizado principalmente en Europa, pero lo interesante del RTL2832U fue que se podía acceder directamente a las muestras de IQ sin procesar, lo que permitía utilizar el chip para construir un SDR de uso general y solo para recepción. 
@@ -164,7 +164,7 @@ Hay un par de cosas a tener en cuenta aquí. Las primeras muestras de ~2k no par
 Frecuencias de muestreo permitidas
 ##################################
 
-La mayoría de los RTL-SDR requieren que la frecuencia de muestreo se establezca entre 230 y 300 kHz o entre 900 y 3,2 MHz. Tenga en cuenta que es posible que las velocidades más altas, especialmente por encima de 2,4 MHz, no obtengan el 100% de las muestras a través de la conexión USB. Si le asigna una frecuencia de muestreo no compatible, simplemente regresará con el error :código:`rtlsdr.rtlsdr.LibUSBError: Error code -22: Could not set sample rate to 899000 Hz`. Al configurar una frecuencia de muestreo permitida, notará el mensaje de la consola que muestra la frecuencia de muestreo exacta; este valor exacto también se puede recuperar llamando a :code:`sdr.sample_rate`. Algunas aplicaciones pueden beneficiarse al utilizar un valor más exacto en los cálculos.
+La mayoría de los RTL-SDR requieren que la frecuencia de muestreo se establezca entre 230 y 300 kHz o entre 900 y 3,2 MHz. Tenga en cuenta que es posible que las velocidades más altas, especialmente por encima de 2,4 MHz, no obtengan el 100% de las muestras a través de la conexión USB. Si le asigna una frecuencia de muestreo no compatible, simplemente regresará con el error :code:`rtlsdr.rtlsdr.LibUSBError: Error code -22: Could not set sample rate to 899000 Hz`. Al configurar una frecuencia de muestreo permitida, notará el mensaje de la consola que muestra la frecuencia de muestreo exacta; este valor exacto también se puede recuperar llamando a :code:`sdr.sample_rate`. Algunas aplicaciones pueden beneficiarse al utilizar un valor más exacto en los cálculos.
 
 Como ejercicio, estableceremos la frecuencia de muestreo en 2,4 MHz y crearemos un espectrograma de la banda de radio FM:
 

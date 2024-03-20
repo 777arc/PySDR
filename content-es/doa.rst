@@ -169,7 +169,7 @@ Sigamos con estos cálculos, pero comenzaremos a representar las cosas en térmi
 .. math::
  = s[n] e^{-2j \pi f_c d \sin(\theta) / c}
 
-Ya casi hemos terminado, pero afortunadamente hay una simplificación más que podemos hacer. Recuerde la relación entre la frecuencia central y la longitud de onda: :math:`\lambda = \frac{c}{f_c}` o la forma que usaremos: :math:`f_c = \frac{c}{\lambda} `. Al conectar esto obtenemos:
+Ya casi hemos terminado, pero afortunadamente hay una simplificación más que podemos hacer. Recuerde la relación entre la frecuencia central y la longitud de onda: :math:`\lambda = \frac{c}{f_c}` o la forma que usaremos: :math:`f_c = \frac{c}{\lambda}`. Al conectar esto obtenemos:
 
 .. math::
  s[n] e^{-2j \pi \frac{c}{\lambda} d \sin(\theta) / c}
@@ -188,7 +188,7 @@ Esto es para elementos adyacentes, para el :math:`k`'ésimo elemento solo necesi
 .. math::
  s[n] e^{-2j \pi d k \sin(\theta)}
 
-¡Y hemos terminado! ¡Esta ecuación anterior es lo que verá en los documentos e implementaciones de DOA en todas partes! Normalmente llamamos a ese término exponencial el "factor de matriz" (a menudo indicado como :math:`a`) y lo representamos como una matriz, una matriz 1D para una matriz de antenas 1D, etc. En Python :math:`a `es:
+¡Y hemos terminado! ¡Esta ecuación anterior es lo que verá en los documentos e implementaciones de DOA en todas partes! Normalmente llamamos a ese término exponencial el "factor de matriz" (a menudo indicado como :math:`a`) y lo representamos como una matriz, una matriz 1D para una matriz de antenas 1D, etc. En Python :math:`a` es:
 
 .. code-block:: python
 

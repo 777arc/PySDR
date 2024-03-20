@@ -1,24 +1,24 @@
 .. _phaser-chapter:
 
 ####################################
-Phased Arrays with Phaser
+Phased Arrays con Phaser
 ####################################
    
-In this chapter we use the `Analog Devices Phaser <https://wiki.analog.com/resources/eval/user-guides/circuits-from-the-lab/cn0566>`_, (a.k.a. CN0566 or ADALM-PHASER) which is an 8-channel low-cost phased array SDR that combines a PlutoSDR, Raspberry Pi, and ADAR1000 beamformers, designed to operate around 10.25 GHz.  We will cover the setup and calibration steps, and then go through some beamforming examples in Python.  For those that do not have a Phaser, we have included screenshots and animations of what the user would see.
+En este capítulo usaremos el `Analog Devices Phaser <https://wiki.analog.com/resources/eval/user-guides/circuits-from-the-lab/cn0566>`_, (también conocido como CN0566 o ADALM-PHASER), que es un Phased Array SDR de bajo costo de 8 canales que combina PlutoSDR, Raspberry Pi y beamformers ADAR1000, diseñado para operar alrededor de 10,25 GHz. Cubriremos los pasos de configuración y calibración y luego veremos algunos ejemplos de formación de haces en Python. Para aquellos que no tienen una Phaser, hemos incluido capturas de pantalla y animaciones de lo que vería el usuario.
 
 .. image:: ../_images/phaser_on_tripod.png
    :scale: 60 % 
    :align: center
    :alt: The Phaser (CN0566) by Analog Devices
 
-************************
-Intro to Phased Arrays
-************************
+*****************************
+Introducción al Phased Arrays
+*****************************
 
-Coming soon!
+Proximamente!
 
 ************************
-Hardware Overview
+Revisión del Hardware
 ************************
 
 .. image:: ../_images/phaser_front_and_back.png
@@ -26,23 +26,23 @@ Hardware Overview
    :align: center
    :alt: The front and back of the Phaser unit
 
-The Phaser is a single board containing the phased array and a bunch of other components, with a Raspberry Pi plugged in on one side and a Pluto mounted to the other side.  The high-level block diagram is shown below.  Some items to note:
+El Phaser es una placa única que contiene un Phased Array y muchos otros componentes, con una Raspberry Pi conectada en un lado y un Pluto montado en el otro lado. El diagrama de bloques de alto nivel se muestra a continuación. Algunos elementos a tener en cuenta:
 
-1. Even though it looks like a 32-element 2d array, it's really an 8-element 1d array
-2. Both receive channels on the Pluto are used (the second channel uses a u.FL connector)
-3. The LO onboard is used to downconvert the received signal from around 10.25 GHz to around 2 GHz, so that the Pluto can receive it
-4. Each ADAR1000 has four phase shifters with adjustable gain, and all four channels are summed together before being sent to the Pluto
-5. The Phaser essentially contains two "subarrays" which each subarray containing four channels
-6. Not shown below are GPIO and serial signals from the Raspberry Pi used to control various components on the Phaser
+1. Aunque parece una matriz 2D de 32 elementos, en realidad es una matriz 1D de 8 elementos.
+2. Se utilizan ambos canales de recepción en el Pluto (el segundo canal usa un conector u.FL)
+3. El LO a bordo se utiliza para convertir la señal recibida de aproximadamente 10,25 GHz a aproximadamente 2 GHz, para que el Pluto pueda recibirla.
+4. Cada ADAR1000 tiene cuatro desfasadores con ganancia ajustable y los cuatro canales se suman antes de enviarse al Pluto.
+5. El Phaser contiene esencialmente dos "subarreglos", cada uno de los cuales contiene cuatro canales.
+6. No se muestran a continuación las señales GPIO y seriales de Raspberry Pi utilizadas para controlar varios componentes en Phaser.
 
 .. image:: ../_images/phaser_components.png
    :scale: 40 % 
    :align: center
    :alt: The components of the Phaser (CN0566) including ADF4159, LTC5548, ADAR1000
 
-For now let's ignore the transmit side of the Phaser, as in this chapter we will only be using the HB100 device as a test transmitter.  The ADF4159 is a frequency synthesizer that produces a tone up to 13 GHz in frequency, what we call the local oscillator or LO.  This LO is fed into a mixer, the LTC5548, which is able to do upconversion or downconversion, although we'll be using it for downconversion.  For downconversion it takes in the LO as well as a signal anywhere from 2 - 14 GHz, and multiplies the two together which performs a frequency shift.  The resulting downconverted signal can be anywhere from DC to 6 GHz, although we are going to target around 2 GHz.  The ADAR1000 is a 4-channel analog beamformer, so the Phaser utilizes two of them.  An analog beamformer has independently adjustable phase shifters and gain for each channel, allowing each channel to be time-delayed and attenuated before being summed together in the analog domain (resulting in a single channel).  On the Phaser, each ADAR1000 outputs a signal which gets downconverted and then received by the Pluto.  Using the Raspberry Pi we can control the phase and gain of all eight channels in realtime, to perform beamforming.  We also have the option to do two-channel digital beamforming/array processing, discussed in the next chapter.
+Por ahora ignoremos el lado de transmisión del Phaser, ya que en este capítulo solo usaremos el dispositivo HB100 como transmisor de prueba. El ADF4159 es un sintetizador de frecuencia que produce un tono de hasta 13 GHz de frecuencia, lo que llamamos oscilador local o LO. Este LO se alimenta a un mezclador, el LTC5548, que es capaz de realizar una conversión ascendente o descendente, aunque lo usaremos para una conversión descendente. Para la conversión descendente, toma el LO y una señal entre 2 y 14 GHz y los multiplica, lo que realiza un cambio de frecuencia. La señal convertida resultante puede oscilar entre DC y 6 GHz, aunque nuestro objetivo será alrededor de 2 GHz. El ADAR1000 es un beamforming analógico de 4 canales, por lo que el Phaser utiliza dos de ellos. Un beamforming analógico tiene desfasadores y ganancia ajustables independientemente para cada canal, lo que permite que cada canal se retrase y se atenúe antes de sumarse en el dominio analógico (lo que da como resultado un solo canal). En el Phaser, cada ADAR1000 emite una señal que se convierte y luego se recibe en el Pluto. Usando Raspberry Pi podemos controlar la fase y la ganancia de los ocho canales en tiempo real para realizar la formación de haces. También tenemos la opción de realizar procesamiento de matriz/beamforming digital de dos canales, que se analiza en el siguiente capítulo.
 
-For those interested, a slightly more detailed block diagram is provided below.
+Para aquellos interesados, a continuación se proporciona un diagrama de bloques un poco más detallado.
 
 .. image:: ../_images/phaser_detailed_block_diagram.png
    :scale: 80 % 
@@ -50,26 +50,26 @@ For those interested, a slightly more detailed block diagram is provided below.
    :alt: Detailed block diagram of the Phaser (CN0566)
 
 
-************************
-SD Card Preparation
-************************
+****************************
+Preparación de la tarjeta SD
+****************************
 
-We will assume you are using the Raspberry Pi onboard the Phaser (directly, with a monitor/keyboard/mouse).  This simplifies setup, as Analog Devices publishes a pre-built SD card image with all the necessary drivers and software.  You can download the SD card image and find SD imaging instructions `here <https://wiki.analog.com/resources/tools-software/linux-software/kuiper-linux>`_.  The image is based on Raspberry Pi OS and includes all the software you'll need already installed.  
-
-************************
-Hardware Preparation
-************************
-
-1. Connect Pluto's CENTER micro-USB port to Raspberry Pi
-2. Optionally, carefully thread the tripod into the tripod mount
-3. We will assume you're using an HDMI display, USB keyboard, and USB mouse connected to the Raspberry pi
-4. Power the Pi and Phaser board through the type-C port of the Phaser (CN0566), i.e. do NOT connect a supply to the Raspberry Pi's USB C
+Asumiremos que está utilizando la Raspberry Pi integrada en el Phaser (directamente, con un monitor/teclado/ratón). Esto simplifica la configuración, ya que Analog Devices publica una imagen de tarjeta SD prediseñada con todos los controladores y software necesarios. Puede descargar la imagen de la tarjeta SD y encontrar instrucciones de imágenes SD `aqui <https://wiki.analog.com/resources/tools-software/linux-software/kuiper-linux>`_.  La imagen está basada en el sistema operativo Raspberry Pi e incluye todo el software que necesitará ya instalado.  
 
 ************************
-Software Install
+Preparación del hardware
 ************************
 
-Once you have booted into the Raspberry Pi using the pre-build image, using the default user/pass analog/analog, it is recommended to run the following steps:
+1. Conecte el puerto micro-USB CENTRAL del Pluto a la Raspberry Pi
+2. Opcionalmente, enrosque con cuidado el trípode en el soporte del trípode.
+3. Asumiremos que estás usando una pantalla HDMI, un teclado USB y un mouse USB conectados a la Raspberry pi.
+4. Encienda la placa Pi y Phaser a través del puerto tipo C del Phaser (CN0566), es decir, NO conecte una fuente al USB C de Raspberry Pi.
+
+************************
+Instalación de software
+************************
+
+Una vez que haya booteado la Raspberry Pi usando la imagen preconstruida, usando el usuario/contraseña analog/analog predeterminado, se recomienda ejecutar los siguientes pasos:
 
 .. code-block:: bash
 
@@ -80,10 +80,10 @@ Once you have booted into the Raspberry Pi using the pre-build image, using the 
  
  sudo raspi-config
 
-For more assistance setting up the Phaser, reference the `Phaser wiki quickstart page <https://wiki.analog.com/resources/eval/user-guides/circuits-from-the-lab/cn0566/quickstart>`_.
+Para obtener más ayuda con la configuración de Phaser, consulte la `Phaser wiki quickstart page <https://wiki.analog.com/resources/eval/user-guides/circuits-from-the-lab/cn0566/quickstart>`_.
 
 ************************
-HB100 Setup
+Configuración del HB100
 ************************
 
 .. image:: ../_images/phaser_hb100.png
@@ -91,40 +91,40 @@ HB100 Setup
    :align: center
    :alt: HB100 that comes with Phaser
 
-The HB100 that comes with the Phaser is a low-cost Doppler radar module that we will be using as a test transmitter, as it transmits a continuous tone around 10 GHz.  It runs off 2 AA batteries or a 3V benchtop supply, and when it's on it will have a solid red LED.
+El HB100 que viene con el Phaser es un módulo de radar Doppler de bajo costo que usaremos como transmisor de prueba, ya que transmite un tono continuo alrededor de los 10 GHz. Funciona con 2 baterías AA o una fuente de mesa de 3V, y cuando esté encendido, tendrá un LED rojo fijo.
 
-Because the HB100 is low-cost and uses cheap RF components, its transmit frequency varies from unit to unit, over hundreds of MHz, which is a range that is greater than the highest bandwidth we can receive using the Pluto (56 MHz).  So to make sure we are tuning our Pluto and downconverter in a manner that will always receive the HB100 signal, we must determine the HB100's transmit frequency.  This is done using an example app from Analog Devices, which performs a frequency sweep and calculates FFTs while looking for a spike.  Make sure your HB100 is on and in the general vicinity of the Phaser, and then run the utility with:
+Debido a que el HB100 es de bajo costo y utiliza componentes de RF baratos, su frecuencia de transmisión varía de una unidad a otra, en cientos de MHz, que es un rango mayor que el ancho de banda más alto que podemos recibir usando el Pluto (56 MHz). Entonces, para asegurarnos de que estamos sintonizando nuestro Pluto y nuestro convertidor descendente de manera que siempre reciban la señal HB100, debemos determinar la frecuencia de transmisión del HB100. Esto se hace usando una aplicación de ejemplo de Analog Devices, que realiza un barrido de frecuencia y calcula FFT mientras busca un pico. Asegúrese de que su HB100 esté encendido y cerca del Phaser y luego ejecute la utilidad con:
 
 .. code-block:: bash
 
  cd ~/pyadi-iio/examples/phaser
  python phaser_find_hb100.py
 
-It should create a file called hb100_freq_val.pkl in the same directory.  This file contains the HB100 transmit frequency in Hz (pickled, so not viewable in plaintext) which we will use in the next step.
+Debería crear un archivo llamado hb100_freq_val.pkl en el mismo directorio. Este archivo contiene la frecuencia de transmisión del HB100 en Hz (decapada, por lo que no se puede ver en texto sin formato) que usaremos en el siguiente paso.
 
 ************************
-Calibration
+Calibración
 ************************
 
-Lastly, we need to calibrate the phased array.  This requires holding the HB100 at the array's boresight (0 degrees).  The side of the HB100 with the barcode is the side that transmits the signal, so that face should be held a few feet away from the Phaser, right in-front and centered to it, and then pointed straight at the Phaser.  In the next step you can experiment with different angles and orientations, but for now let's run the calibration utility:
+Por último, necesitamos calibrar el phased array. Esto requiere sostener el HB100 apuntando al arreglo (0 grados). Del lado del HB100 con el código de barras es el lado que transmite la señal, por lo que esa cara debe mantenerse a unos metros de distancia del Phaser, justo enfrente y centrada, y luego apuntar directamente al Phaser. En el siguiente paso puedes experimentar con diferentes ángulos y orientaciones, pero por ahora ejecutemos la utilidad de calibración:
 
 .. code-block:: bash
 
  python phaser_examples.py cal
 
-This will create two more pickle files: phase_cal_val.pkl and gain_cal_val.pkl, in the same directory.  Each one contains an array of 8 numbers corresponding to the phase and gain tweaks needed to calibrate each channel.  These values are unique to each Phaser, as they can very during manufacturing.  Subsequent runs of this utility will lead to slightly different values which is normal.
+Esto creará dos archivos pickle: fase_cal_val.pkl y ganancia_cal_val.pkl, en el mismo directorio. Cada uno contiene una serie de 8 números correspondientes a la fase y los ajustes de ganancia necesarios para calibrar cada canal. Estos valores son únicos para cada Phaser, como pueden variar durante la fabricación. Las ejecuciones posteriores de esta utilidad generarán valores ligeramente diferentes, lo cual es normal.
 
 ************************
-Pre-built Example App
+Aplicación de ejemplo
 ************************
 
-Now that we have calibrated our Phaser and found the HB100 frequency, we can run the example app that Analog Devices provides.
+Ahora que hemos calibrado nuestro Phaser y encontramos la frecuencia HB100, podemos ejecutar la aplicación de ejemplo que proporciona Analog Devices.
 
 .. code-block:: bash
 
  python phaser_gui.py
 
-If you check the "Auto Refresh Data" checkbox in the bottom-left it should begin running.  You should see something similar to the following when holding the HB100 in the Phaser's boresight.
+Si marca la casilla de verificación "Actualizar datos automáticamente" en la parte inferior izquierda, debería comenzar a ejecutarse. Debería ver algo similar a lo siguiente cuando sostenga el HB100 apuntando al Phaser.
 
 .. image:: ../_images/phaser_gui.png
    :scale: 50 % 
@@ -132,17 +132,17 @@ If you check the "Auto Refresh Data" checkbox in the bottom-left it should begin
    :alt: Phaser example GUI tool by Analog Devices
 
 ************************
-Phaser in Python
+Phaser en Python
 ************************
 
-We will now dive into the hands-on Python portion.  For those who don't have a Phaser, screenshots and animations are provided.
+Ahora nos sumergiremos en la parte práctica en Python. Para aquellos que no tienen una Phaser, se proporcionan capturas de pantalla y animaciones.
 
-Initializing Phaser and Pluto
+Inicialización del Phaser y Pluto
 ##############################
 
-The following Python code sets up our Phaser and Pluto.  By this point you should have already run the calibration steps, which produce three pickle files.  Make sure you are running the Python script below from within the same directory as these pickle files.
+El siguiente código Python configura nuestro Phaser y Pluto. En este punto, ya debería haber ejecutado los pasos de calibración, que producen tres archivos pickle. Asegúrese de ejecutar el siguiente script de Python desde el mismo directorio que estos archivos pickle.
 
-There are a lot of settings to deal with, so it's OK if you don't absorb the entire code snippet below, just note that we are using a sample rate of 30 MHz, manual gain which we set very low, we set all of the element gains to the same value, and point the array towards boresight (0 degrees).  
+Hay muchas configuraciones con las que lidiar, por lo que está bien si no absorbes todo el fragmento de código a continuación, solo ten en cuenta que estamos usando una frecuencia de muestreo de 30 MHz, ganancia manual que configuramos muy baja, configuramos todos los elementos de ganancia al mismo valor y apuntar el phase array de frente (0 grados). 
 
 .. code-block:: python
 
@@ -204,10 +204,10 @@ There are a lot of settings to deal with, so it's OK if you don't absorb the ent
  phaser.lo = int(signal_freq + sdr.rx_lo - offset)
 
 
-Receiving Samples from the Pluto
+Reciviendo muestras del Pluto
 ################################
 
-At this point the Phaser and Pluto are configured and ready to go.  We can now start receiving data from the Pluto.  Let's grab a single batch of 1024 samples, then take the FFT of each of the two channels.
+En este punto, el Phaser y el Pluto están configurados y listos para funcionar. Ahora podemos empezar a recibir datos del Pluto. Tomemos un solo lote de 1024 muestras y luego tomemos la FFT de cada uno de los dos canales.
 
 .. code-block:: python
 
@@ -235,31 +235,31 @@ At this point the Phaser and Pluto are configured and ready to go.  We can now s
  plt.tight_layout()
  plt.show()
 
-What you see at this point will depend if your HB100 is on and where it's pointing.  If you hold it a few feet from the Phaser and point it towards the center, you should see something like this:
+Lo que veas en este punto dependerá de si tu HB100 está encendido y hacia dónde apunta. Si lo sostienes a unos metros del Phaser y lo apuntas hacia el centro, deberías ver algo como esto:
 
 .. image:: ../_images/phaser_rx_psd.png
    :scale: 100 % 
    :align: center
    :alt: Phaser initial example
 
-Note the strong spike near 0 Hz, the 2nd shorter spike is simply an artifact that can be ignored, since it's around 40 dB down.  The top plot, showing the time domain, displays the real part of the two channels, so the relative amplitude between the two will vary slightly depending on where you hold the HB100.
+Tenga en cuenta el fuerte pico cerca de 0 Hz, el segundo pico más corto es simplemente un artefacto que puede ignorarse, ya que tiene alrededor de 40 dB menos. El gráfico superior, que muestra el dominio del tiempo, muestra la parte real de los dos canales, por lo que la amplitud relativa entre los dos variará ligeramente dependiendo de dónde sostenga el HB100.
 
-Performing Beamforming
+Desempeño Beamforming
 ##############################
 
-Next, let's actually sweep the phase!  In the following code we sweep the phase from negative 180 to positive 180 degrees, at a 2 degree step.  Note that this is not the angle the beamformer points; it's the phase difference between adjacent channels.  We must calculate the angle of arrival corresponding to each phase step, using knowledge of the speed of light, the RF frequency of the received signal, and the Phaser's element spacing.  The phase difference between adjacent elements is given by:
+A continuación, ¡hacemos un barrido en la fase! En el siguiente código barremos la fase de 180 negativos a 180 grados positivos, en un paso de 2 grados. Tenga en cuenta que este no es el ángulo que apunta el formador de haz; es la diferencia de fase entre canales adyacentes. Debemos calcular el ángulo de llegada correspondiente a cada paso de fase, utilizando el conocimiento de la velocidad de la luz, la frecuencia de RF de la señal recibida y el espaciamiento de los elementos del Phaser. La diferencia de fase entre elementos adyacentes viene dada por:
 
 .. math::
 
  \phi = \frac{2 \pi d}{\lambda} \sin(\theta_{AOA})
 
-where :math:`\theta_{AOA}` is the angle of arrival of the signal with respect to boresight, :math:`d` is the antenna spacing in meters, and :math:`\lambda` is the wavelength of the signal. Using the formula for wavelength and solving for :math:`\theta_{AOA}` we get:
+donde :math:`\theta_{AOA}` es el ángulo de llegada de la señal con respecto a la orientación frontal, :math:`d` es el espacio entre antenas en metros y :math:`\lambda` es la longitud de onda de la señal. Usando la fórmula para la longitud de onda y resolviendo :math:`\theta_{AOA}` obtenemos:
 
 .. math::
 
  \theta_{AOA} = \sin^{-1}\left(\frac{c \phi}{2 \pi f d}\right)
 
-You'll see this when we calculate :code:`steer_angle` below:
+Veremos esto cuando calculemos :code:`steer_angle` abajo:
 
 .. code-block:: python
 
@@ -290,16 +290,16 @@ You'll see this when we calculate :code:`steer_angle` below:
  plt.ylabel("Magnitude [dB]")
  plt.show()
 
-For each :code:`phase` value (remember, this is the phase between adjacent elements) we set the phase shifters, after adding in the phase calibration values and forcing the degrees to be between 0 and 360.  We then grab one batch of samples with :code:`rx()`, sum the two channels, then calculate the power in the signal.  We then plot power over angle of arrival.  The result should look something like this:
+Para cada valor de :code:`phase` (recuerde, esta es la fase entre elementos adyacentes) configuramos los desfasadores, después de agregar los valores de calibración de fase y forzar que los grados estén entre 0 y 360. Luego tomamos un lote de muestras con :code:`rx()`, sume los dos canales y luego calcule la potencia en la señal. Luego graficamos la potencia sobre el ángulo de llegada. El resultado debería verse así:
 
 .. image:: ../_images/phaser_sweep.png
    :scale: 100 % 
    :align: center
    :alt: Phaser single sweep
 
-In this example the HB100 was held slightly to the side of boresight.
+En este ejemplo, el HB100 se mantuvo ligeramente hacia el lado de la mira.
 
-If you want a polar plot you can instead using the following:
+Si desea un gráfico polar, puede utilizar lo siguiente:
 
 .. code-block:: python
 
@@ -319,12 +319,12 @@ If you want a polar plot you can instead using the following:
    :align: center
    :alt: Phaser single sweep using a polar plot
 
-By taking the max we can estimate the direction of arrival of the signal!
+¡Tomando el máximo podemos estimar la dirección de llegada de la señal!
 
-Realtime and with Spatial Tapering
-##################################
+En tiempo real y con reducción espacial
+#######################################
 
-Now let's take a moment to talk about spatial tapering.  So far we have left the gain adjustments of each channel to equal values, so that all eight channels get summed equally.  Just like we applied a window before taking an FFT, we can apply a window in the spatial domain by applying weights to these eight channels.  We'll use the exact same windowing functions like Hanning, Hamming, etc.  Let's also tweak the code to run in realtime so that it's a little more fun:
+Ahora tomemos un momento para hablar sobre la reducción espacial. Hasta ahora hemos dejado los ajustes de ganancia de cada canal en valores iguales, de modo que los ocho canales se sumen equitativamente. Así como aplicamos una ventana antes de tomar una FFT, podemos aplicar una ventana en el dominio espacial aplicando pesos a estos ocho canales. Usaremos exactamente las mismas funciones de ventanas como Hanning, Hamming, etc. También modifiquemos el código para que se ejecute en tiempo real para que sea un poco más divertido:
 
 .. code-block:: python
 
@@ -372,36 +372,36 @@ Now let's take a moment to talk about spatial tapering.  So far we have left the
  except KeyboardInterrupt:
      sys.exit() # quit python
 
-You should see a realtime version of the previous exercise.  Try switching which :code:`gain_list` is used, to play around with the different windows.  Here is an example of the Rectangular window (i.e., no windowing function):
+Deberías ver una versión en tiempo real del ejercicio anterior. Intente cambiar qué :code:`gain_list` se utiliza para jugar con las diferentes ventanas. A continuación se muestra un ejemplo de ventana rectangular (es decir, sin función de ventana):
 
 .. image:: ../_images/phaser_animation_rect.gif
    :scale: 100 % 
    :align: center
    :alt: Beamforming animation using the Phaser and a rectangular window
 
-and here is an example of the Hamming window:
+y aquí hay un ejemplo de la ventana Hamming:
 
 .. image:: ../_images/phaser_animation_hamming.gif
    :scale: 100 % 
    :align: center
    :alt: Beamforming animation using the Phaser and a Hamming window
 
-Note the lack of sidelobes for Hamming.  In fact, every window aside from Rectangular will greatly reduce the sidelobes, but in return the main lobe will be a little wider.
+Obsérvese la falta de lóbulos laterales para Hamming. De hecho, todas las ventanas, excepto la rectangular, reducirán en gran medida los lóbulos laterales, pero a cambio el lóbulo principal será un poco más ancho.
 
 ************************
-Monopulse Tracking
+Seguimiento monopulso
 ************************
 
-Up until this point we have been performing individual sweeps in order to find the angle of arrival of a test transmitter (the HB100).  But lets say we wish to continuously receive a communications or radar signal, that may be moving an causing the angle of arrival to change over time.  We refer to this process as tracking, and it assumes we already have a rough estimate of the angle of arrival (i.e., the initial sweep has identified a signal of interest).  We will use monopulse tracking to adaptively update the weights in order to keep the main lobe pointed at the signal over time, although note that there are other methods of tracking besides monopulse.
+Hasta este punto hemos estado realizando barridos individuales para encontrar el ángulo de llegada de un transmisor de prueba (el HB100). Pero digamos que deseamos recibir continuamente una señal de radar o de comunicaciones, que puede estar en movimiento y provocar que el ángulo de llegada cambie con el tiempo. Nos referimos a este proceso como seguimiento y supone que ya tenemos una estimación aproximada del ángulo de llegada (es decir, el barrido inicial ha identificado una señal de interés). Usaremos el seguimiento monopulso para actualizar de forma adaptativa los pesos a fin de mantener el lóbulo principal apuntando a la señal a lo largo del tiempo, aunque tenga en cuenta que existen otros métodos de seguimiento además del monopulso.
 
-Invented in 1943 by Robert Page at the Naval Research Laboratory (NRL), the basic concept of monopulse tracking is to use two beams, both slightly offset from the current angle of arrival (or at least our estimate of it), but on different sides as shown in the diagram below.  
+Inventado en 1943 por Robert Page en el Laboratorio de Investigación Naval (NRL), el concepto básico del seguimiento monopulso es utilizar dos haces, ambos ligeramente desviados del ángulo de llegada actual (o al menos nuestra estimación del mismo), pero en lados diferentes como se muestra en el siguiente diagrama.  
 
 .. image:: ../_images/monopulse.svg
    :align: center 
    :target: ../_images/monopulse.svg
    :alt: Monopulse beam diagram showing two beams and the sum beam
 
-We then take both the sum and difference (a.k.a. delta) of these two beams digitally, which means we must use two digital channels of the Phaser, making this a hybrid array approach (although you could certainly do the sum and difference in analog with custom hardware).  The sum beam will equate to a beam centered at the current angle of arrival estimate, as shown above, which means this beam can be used for demod/decoding the signal of interest.  The delta beam, as we will call it, is harder to visualize, but it will have a null at the angle of arrival estimate.  We can use the ratio between the sum beam and delta beam (refered to as the error) to perform our tracking.  This process is best explained with a short Python snippet; recall that the :code:`rx()` function returns a batch of samples from both channels, so in the code below :code:`data[0]` is the first channel of the Pluto (first set of four Phaser elements) and :code:`data[1]` is the second channel (second set of four elements).  In order to create two beams, we will steer each of the two sets separately.  We can calculate the sum, delta, and error as follows:
+Luego tomamos la suma y la diferencia (también conocida como delta) de estos dos haces digitales, lo que significa que debemos usar dos canales digitales del Phaser, lo que hace que este sea un enfoque de matriz híbrida (aunque ciertamente se podría hacer la suma y la diferencia en analógico con dispositivos de hardware personalizados). El haz suma equivaldrá a un haz centrado en el ángulo actual de llegada estimado, como se muestra arriba, lo que significa que este haz se puede utilizar para demodular/decodificar la señal de interés. El haz delta, como lo llamaremos, es más difícil de visualizar, pero tendrá una estimación nula en el ángulo de llegada. Podemos usar la relación entre el haz suma y el haz delta (denominado error) para realizar nuestro seguimiento. Este proceso se explica mejor con un breve fragmento de Python; Recuerde que la función :code:`rx()` devuelve un lote de muestras de ambos canales, por lo que en el siguiente código :code:`data[0]` es el primer canal del Pluto (primer conjunto de cuatro elementos del Phaser) y :code:`data[1]` es el segundo canal (segundo conjunto de cuatro elementos). Para crear dos direcciones, para cada uno de los dos conjuntos por separado. Podemos calcular la suma, delta y error de la siguiente manera:
 
 .. code-block:: python
 
@@ -410,9 +410,9 @@ We then take both the sum and difference (a.k.a. delta) of these two beams digit
    delta_beam = data[0] - data[1]
    error = np.mean(np.real(delta_beam / sum_beam))
 
-The sign of the error tells us which direction the signal is actually coming from, and the magnitude tells us how far off we are from the signal.  We can then use this information to update the angle of arrival estimate and weights.  By repeating this process in realtime we can track the signal.
+El signo del error nos dice de qué dirección proviene realmente la señal y la magnitud nos dice a qué distancia estamos de la señal. Luego podemos usar esta información para actualizar la estimación del ángulo de llegada y los pesos. Repitiendo este proceso en tiempo real podemos rastrear la señal.
 
-Now jumping into the full Python example, we will start by copying the code we used earlier to perform a 180 degree sweep.  The only code we will add is to pull out the phase at which the received power was maximum:
+Ahora, saltando al ejemplo completo de Python, comenzaremos copiando el código que usamos anteriormente para realizar un barrido de 180 grados. El único código que agregaremos es sacar la fase en la que la potencia recibida era máxima:
 
 .. code-block:: python
 
@@ -421,7 +421,7 @@ Now jumping into the full Python example, we will start by copying the code we u
    current_phase = phase_angles[np.argmax(powers)]
    print("max_phase:", current_phase)
 
-Next we will create two beams, we will start by trying 5 degrees lower and 5 degrees higher than the current estimate, although note that this is in units of phase, we haven't converted to steering angle, although they are similar.  The following code is essentially two copies of the code we used earlier to set the phase shifters of each channel, except we use the first 4 elements for the lower beam and last 4 elements for upper beam:
+A continuación crearemos dos haces, comenzaremos probando 5 grados más bajos y 5 grados más altos que la estimación actual, aunque tenga en cuenta que esto está en unidades de fase, no los hemos convertido a ángulo de dirección, aunque son similares. El siguiente código es esencialmente dos copias del código que usamos anteriormente para configurar los desfasadores de cada canal, excepto que usamos los primeros 4 elementos para el haz inferior y los últimos 4 elementos para el haz superior:
 
 .. code-block:: python
 
@@ -439,7 +439,7 @@ Next we will create two beams, we will start by trying 5 degrees lower and 5 deg
       phaser.elements.get(i + 1).rx_phase = channel_phase
    phaser.latch_rx_settings() # apply settings
 
-Before doing the actual tracking, lets test the above by keeping the beam weights constant and moving the HB100 left and right (after it finishes initializing to find the starting angle):
+Antes de realizar el seguimiento real, probemos lo anterior manteniendo constantes los pesos del haz y moviendo el HB100 hacia la izquierda y hacia la derecha (después de que termine de inicializarse para encontrar el ángulo inicial):
 
 .. code-block:: python
 
@@ -465,9 +465,9 @@ Before doing the actual tracking, lets test the above by keeping the beam weight
    :target: ../_images/monopulse_waving.svg
    :alt: Showing error function for monopulse tracking without actually updating the weights
 
-What's happening in this example is I'm moving the HB100 around.  I start by holding it in a steady position while the 180 degree sweep happens, then after it's done I move it a little to the right, and wiggle it around, then I move it to the left of where I started and wiggle it around.  Then around time = 400 in the plot I move it back to the other side and hold it there for a moment, before waving it around one more time.  The take-away is that the further the HB100 gets from the starting angle, the higher the error, and the sign of the error tells us which side the HB100 is on relative to the starting angle.
+Lo que sucede en este ejemplo es que estoy moviendo el HB100. Empiezo manteniéndolo en una posición estable mientras se realiza el barrido de 180 grados, luego, una vez hecho, lo muevo un poco hacia la derecha y lo muevo, luego lo muevo hacia la izquierda de donde comencé y lo muevo. Luego, alrededor del tiempo = 400 en la trama, lo muevo hacia el otro lado y lo mantengo allí por un momento, antes de agitarlo una vez más. La conclusión es que cuanto más se aleja el HB100 del ángulo inicial, mayor es el error, y el signo del error nos indica de qué lado está el HB100 en relación con el ángulo inicial.
 
-Now lets use the error value to update the weights.  We will get rid of the previous for loop, and make a new for loop around the entire process.  For the sake of clarity we have the entire code example below, except for the initial part where we did the 180 degree sweep:
+Ahora usemos el valor de error para actualizar los pesos. Nos desharemos del bucle for anterior y crearemos un nuevo bucle for durante todo el proceso. Para mayor claridad, tenemos el ejemplo de código completo a continuación, excepto la parte inicial donde hicimos el barrido de 180 grados:
 
 .. code-block:: python
 
@@ -528,19 +528,19 @@ Now lets use the error value to update the weights.  We will get rid of the prev
    :target: ../_images/monopulse_tracking.svg
    :alt: Monopulse tracking demo using a Phaser and HB100 being waved around infront of it
 
-You can see the error is essentially the derivative of the phase estimate; because we're performing successful tracking, the phase estimate is more or less the actual angle of arrival.  It's not clear looking only at these plots, but when there is a sudden movement, it takes the system a small fraction of a second to adjust and catch up.  The goal is for the change in angle of arrival to never be so quick that the signal arrives beyond the main lobes of the two beams.
+Puede ver que el error es esencialmente la derivada de la estimación de fase; debido a que estamos realizando un seguimiento exitoso, la estimación de fase es más o menos el ángulo de llegada real. No está claro mirando sólo estos gráficos, pero cuando hay un movimiento repentino, al sistema le toma una pequeña fracción de segundo ajustarse y ponerse al día. El objetivo es que el cambio de ángulo de llegada nunca sea tan rápido como para que la señal llegue más allá de los lóbulos principales de los dos haces.
 
-It is a lot easier to visualize the process when the array is only 1D, but practical use-cases of monopulse tracking are almost always 2D (using a 2D/planar array instead of a linear array like the Phaser).  For the 2D case, there are four beams created instead of two, and after process there is a single sum beam and four delta beams used to steer in both dimensions.
-
-************************
-Radar with Phaser
-************************
-
-Coming soon!
+Es mucho más fácil visualizar el proceso cuando la matriz es solo 1D, pero los casos de uso prácticos de seguimiento monopulso casi siempre son 2D (usando una matriz 2D/planar en lugar de una matriz lineal como el Phaser). Para el caso 2D, se crean cuatro direcciones en lugar de dos, y después del proceso hay una dirección de suma única y cuatro direcciones delta que se utilizan para dirigir en ambas dimensiones.
 
 ************************
-Conclusion
+Radar con Phaser
 ************************
 
-The entire code used to generate the figures in this chapter is available on the textbook's GitHub page.
+Proximamente!
+
+************************
+Conclusiones
+************************
+
+El código completo utilizado para generar las figuras de este capítulo está disponible en la página GitHub del libro de texto.
 

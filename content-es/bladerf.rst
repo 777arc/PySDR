@@ -15,7 +15,7 @@ El bladeRF 2.0 (también conocido como bladeRF 2.0 micro) de la empresa `Nuand <
 Arquitectura del bladeRF 
 ********************************
 
-En un nivel alto, el bladeRF 2.0 se basa en el RFIC AD9361, combinado con un FPGA Cyclone V (ya sea el 49 kLE :código:`5CEA4` o el 301 kLE :código:`5CEA9`) y un controlador Cypress FX3 USB 3.0. que tiene un núcleo ARM9 de 200 MHz en su interior, cargado con firmware personalizado. El diagrama de bloques del bladeRF 2.0 se muestra a continuación:
+En un nivel alto, el bladeRF 2.0 se basa en el RFIC AD9361, combinado con un FPGA Cyclone V (ya sea el 49 kLE :code:`5CEA4` o el 301 kLE :code:`5CEA9`) y un controlador Cypress FX3 USB 3.0. que tiene un núcleo ARM9 de 200 MHz en su interior, cargado con firmware personalizado. El diagrama de bloques del bladeRF 2.0 se muestra a continuación:
 
 .. image:: ../_images/bladeRF-2.0-micro-Block-Diagram-4.png
    :scale: 80 %

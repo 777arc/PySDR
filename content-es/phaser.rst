@@ -138,7 +138,7 @@ Phaser en Python
 Ahora nos sumergiremos en la parte práctica en Python. Para aquellos que no tienen una Phaser, se proporcionan capturas de pantalla y animaciones.
 
 Inicialización del Phaser y Pluto
-##############################
+##################################
 
 El siguiente código Python configura nuestro Phaser y Pluto. En este punto, ya debería haber ejecutado los pasos de calibración, que producen tres archivos pickle. Asegúrese de ejecutar el siguiente script de Python desde el mismo directorio que estos archivos pickle.
 

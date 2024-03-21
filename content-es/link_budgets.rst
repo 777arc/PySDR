@@ -6,9 +6,9 @@ Presupuesto de enlace
 
 Este capítulo cubre los presupuestos de enlace, una gran parte del cual consiste en comprender la potencia de transmisión/recepción, la pérdida de camino, la ganancia de la antena, el ruido y la SNR. Terminamos construyendo un ejemplo de presupuesto de enlace para ADS-B, que son señales transmitidas por aviones comerciales para compartir su posición y otra información.
 
-*************************
-Introducción
-*************************
+*************************************
+Introducción al Presupuesto de enlace
+*************************************
 
 El proposito de un presupuesto de enlace es contabilizar todas las ganancias y pérdidas del transmisor al receptor en un sistema de comunicación. El presupuesto de enlace describe una dirección del enlace inalámbrico. La mayoría de los sistemas de comunicaciones son bidireccionales, por lo que debe haber un presupuesto separado para el enlace ascendente y el enlace descendente. El "resultado" del presupuesto del enlace le indicará aproximadamente cuánta relación señal-ruido (abreviada como SNR, que utiliza este libro de texto, o S/N) debe esperar tener en su receptor. Se necesitarían más análisis para comprobar si esa SNR es lo suficientemente alta para su aplicación.
 

@@ -22,9 +22,9 @@ En un nivel alto, el bladeRF 2.0 se basa en el RFIC AD9361, combinado con un FPG
    :align: center 
    :alt: bladeRF 2.0 block diagram
 
-La FPGA controla el RFIC, realiza filtrado digital y enmarca paquetes para transferirlos a través de USB (entre otras cosas). El `codigo fuente <https://github.com/Nuand/bladeRF/tree/master/hdl>`_ la imagen FPGA está escrita en VHDL y requiere el software de diseño gratuito Quartus Prime Lite para compilar imágenes personalizadas. Imágenes precompiladas disponibles `aqui <https://www.nuand.com/fpga_images/>`_.
+La FPGA controla el RFIC, realiza filtrado digital y enmarca paquetes para transferirlos a través de USB (entre otras cosas). El `codigo fuente de la imagen FPGA <https://github.com/Nuand/bladeRF/tree/master/hdl>`_ está escrita en VHDL y requiere el software de diseño gratuito Quartus Prime Lite para compilar imágenes personalizadas. Imágenes precompiladas disponibles `aqui <https://www.nuand.com/fpga_images/>`_.
 
-El `codigo fuente <https://github.com/Nuand/bladeRF/tree/master/fx3_firmware>`_ el firmware Cypress FX3 es de código abierto e incluye código para:
+El `codigo fuente del firmware Cypress FX3 <https://github.com/Nuand/bladeRF/tree/master/fx3_firmware>`_  es de código abierto e incluye código para:
 
 1. Cargue la imagen FPGA
 2. Transfiera muestras de IQ entre la FPGA y el host a través de USB 3.0

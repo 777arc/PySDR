@@ -27,7 +27,7 @@ Para aquellos interesados en la dirección de llegada (DOA) u otras aplicaciones
 Configuración del software
 ********************************
 
-Ubuntu (o Ubuntu con WSL)
+Ubuntu o WSL (Ubuntu)
 #############################
 
 En Ubuntu 20, 22 y otros sistemas basados en Debian, puede instalar el software RTL-SDR con el siguiente comando.
@@ -200,7 +200,7 @@ Configuración de PPM
 Para aquellos curiosos sobre la configuración de ppm, cada RTL-SDR tiene un pequeño desfase/error de frecuencia, debido al bajo costo de los chips sintonizadores y la falta de calibración. El desplazamiento de frecuencia debe ser relativamente lineal (no un cambio de frecuencia constante) en todo el espectro, por lo que podemos corregirlo ingresando un valor de PPM en partes por millón. Por ejemplo, si sintoniza 100 MHz y configura PPM en 25, la señal recibida aumentará en 100e6/1e6*25=2500 Hz. Las señales más estrechas tendrán un mayor impacto por error de frecuencia. Dicho esto, muchas señales modernas implican un paso de sincronización de frecuencia que corregirá cualquier compensación de frecuencia en el transmisor, el receptor o debido al desplazamiento Doppler.
 
 ********************************
-Lecturas Futuras
+Lecturas Futuras (RTL-SDR)
 ********************************
 
 #. `Página Acerca de de RTL-SDR.com <https://www.rtl-sdr.com/about-rtl-sdr/>`_

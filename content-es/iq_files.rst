@@ -93,7 +93,7 @@ or
 Análisis visual de un archivo RF
 ********************************
 
-Aunque aprendimos cómo crear nuestro propio diagrama de espectrograma en el capitulo  :ref:`freq-domain-chapter` , no hay nada mejor que utilizar un software ya creado. Cuando se trata de analizar grabaciones de RF sin tener que instalar nada, el sitio web de referencia es `IQEngine <https://iqengine.org>`_ que es un conjunto de herramientas para analizar, procesar y compartir grabaciones de RF.
+Aunque aprendimos cómo crear nuestro propio diagrama de espectrograma en el capitulo  :ref:`freq-domain-chapter` , no hay nada mejor que utilizar un software ya creado. Cuando se trata de analizar grabaciones de RF sin tener que instalar nada, el `sitio web IQEngine <https://iqengine.org>`_ que es un conjunto de herramientas para analizar, procesar y compartir grabaciones de RF.
 
 Para aquellos que quieran una aplicación de escritorio, también existe `inspectrum <https://github.com/miek/inspectrum>`_.  Inspectrum es una herramienta gráfica bastante simple pero poderosa para escanear visualmente un archivo RF, con un control preciso sobre el rango del mapa de colores y el tamaño FFT (cantidad de zoom). Puede mantener presionada la tecla Alt y usar la rueda de desplazamiento para desplazarse en el tiempo. Tiene cursores opcionales para medir el tiempo delta entre dos ráfagas de energía y la capacidad de exportar una porción del archivo RF a un archivo nuevo. Para la instalación en plataformas basadas en Debian como Ubuntu, utilice los siguientes comandos:
 

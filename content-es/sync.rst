@@ -6,9 +6,9 @@ Sincronización
 
 Este capítulo cubre la sincronización de señales inalámbricas tanto en tiempo como en frecuencia, para corregir los desplazamientos de frecuencia de la portadora y realizar la alineación de tiempos a nivel de símbolo y cuadro. Utilizaremos la técnica de recuperación de reloj de Mueller y Muller, y el Costas Loop, en Python.
 
-***************************
-Introducción
-***************************
+********************************
+Introducción a la sincronización
+********************************
 
 Hemos discutido cómo transmitir digitalmente por aire, utilizando un esquema de modulación digital como QPSK y aplicando configuración de pulso para limitar el ancho de banda de la señal. La codificación de canales se puede utilizar para tratar canales ruidosos, como cuando la SNR del receptor es baja. Filtrar tanto como sea posible antes de procesar digitalmente la señal siempre ayuda. En este capítulo investigaremos cómo se realiza la sincronización en el extremo receptor. La sincronización es un conjunto de procesamiento que ocurre *antes* de la demodulación y decodificación del canal. La cadena tx-channel-rx general se muestra a continuación, con los bloques analizados en este capítulo resaltados en amarillo. (Este diagrama no lo abarca todo; la mayoría de los sistemas también incluyen ecualización y multiplexación).
 

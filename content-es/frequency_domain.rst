@@ -420,6 +420,8 @@ Dimensionamiento de la FFT
 
 Lo último a tener en cuenta es el tamaño de FFT. El mejor tamaño de FFT es siempre del orden de 2 debido a la forma en que se implementa la FFT. Puedes usar un tamaño que no sea del orden de 2, pero será más lento. Los tamaños comunes están entre 128 y 4096, aunque ciertamente puedes elegir uno más grande. En la práctica, es posible que tengamos que procesar señales que tienen millones o miles de millones de muestras, por lo que necesitamos dividir la señal y realizar muchas FFT. Eso significa que obtendremos muchos resultados. Podemos promediarlos o trazarlos a lo largo del tiempo (especialmente cuando nuestra señal cambia con el tiempo). No es necesario pasar *cada* muestra de una señal a través de una FFT para obtener una buena representación en el dominio de frecuencia de esa señal. Por ejemplo, solo puede realizar FFT 1.024 de cada 100.000 muestras en una señal y probablemente aún se verá bien, siempre que la señal esté siempre encendida.
 
+.. _spectrogram-section:
+
 *************
 Espectrograma
 *************

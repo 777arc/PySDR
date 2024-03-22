@@ -72,5 +72,8 @@
         "xlabel",
         "ydata",
         "ylabel"
+    ],
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "master"
     ]
 }

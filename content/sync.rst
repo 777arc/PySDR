@@ -140,8 +140,8 @@ The following Python code implements the Mueller and Muller clock recovery techn
 .. code-block:: python
 
     mu = 0 # initial estimate of phase of sample
-    out = np.zeros(len(samples) + 10, dtype=np.complex)
-    out_rail = np.zeros(len(samples) + 10, dtype=np.complex) # stores values, each iteration we need the previous 2 values plus current value
+    out = np.zeros(len(samples) + 10, dtype=np.complex64)
+    out_rail = np.zeros(len(samples) + 10, dtype=np.complex64) # stores values, each iteration we need the previous 2 values plus current value
     i_in = 0 # input samples index
     i_out = 2 # output index (let first two outputs be 0)
     while i_out < len(samples) and i_in+16 < len(samples):
@@ -370,7 +370,7 @@ Below is the Python code that is our Costas Loop:
     # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
     alpha = 0.132
     beta = 0.00932
-    out = np.zeros(N, dtype=np.complex)
+    out = np.zeros(N, dtype=np.complex64)
     freq_log = []
     for i in range(N):
         out[i] = samples[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset

@@ -7,9 +7,11 @@ PlutoSDR in Python
 .. image:: ../_images/pluto.png
    :scale: 50 % 
    :align: center 
-   
+   :alt: The PlutoSDR by Analog Devices
+    
 Je zult in dit hoofdstuk leren om de Python API voor de `PlutoSDR <https://www.analog.com/en/design-center/evaluation-hardware-and-software/evaluation-boards-kits/adalm-pluto.html>`_ te gebruiken; een goedkope SDR van Analog Devices.  
 We zullen de stappen behandelen om de drivers/software voor de PlutoSDR te kunnen draaien, en behandelen hoe je kunt zenden en ontvangen met de PlutoSDR in Python.
+Als laatste zullen we `Maia SDR <https://maia-sdr.org/>`_ en `IQEngine <https://iqengine.org/>`_ introduceren om de Pluto als een krachtige spectrum analyzer te gebruiken.
 
 ****************************
 Software/Drivers Installatie
@@ -119,7 +121,7 @@ Tijd om te hacken! Open een terminal (host of VM):
 
  ssh root@192.168.2.1
 
-Het wachtwoord is analog.
+Het standaard wachtwoord is :code:`analog`.
 
 Je zou een welkomst 'scherm' moeten zien. Je hebt nu geSSHd naar de linux-omgeving van de Pluto zelf!
 Type de volgende commando's in:
@@ -369,6 +371,42 @@ Met een goede antenne of kabel zou je zoiets moeten zien:
 
 Een goede oefening is om :code:`sdr.tx_hardwaregain_chan0` en :code:`sdr.rx_hardwaregain_chan0` langzaam te veranderen om zeker van te zijn dat je ontvangen signaal sterker of zwakker wordt zoals verwacht. 
 
+
+**********************************
+Maia SDR and IQEngine
+**********************************
+
+Wil je de PLUTO als een real-time spectrum-analyzer kunnen gebruiken op je PC of mobiel? Het open-source `Maia SDR <https://maia-sdr.org/>`_ project biedt een aangepaste firmware voor de Pluto die een FFT uitvoert op de FPGA van de Pluto, en een webserver op de ARM CPU van de Pluto! De webinterface wordt gebruikt om de frequentie en andere SDR parameters in te stellen, en het spectrogram als waterval te bekijken. Daarnaast kun er opnames tot 400MB mee maken, en vervolgens naar je computer of mobiel downloaden om te bekijken met IQEngine.
+
+
+Download en installeer de `laatste versie <https://github.com/maia-sdr/plutosdr-fw/releases/>`_ van Maia Pluto. Dit is een .zip bestand met de naam :code:`plutosdr-fw-maia-sdr-vX.Y.Z.zip`. Pak het uit en kopieer het :code:`pluto.frm` bestand naar de mass storage van de Pluto (het lijkt op een USB flash drive). Dit is hetzelfde proces als het updaten van de firmware van de Pluto; na het ontkoppelen van de computer zal het een paar minuten knipperen en daarna herstarten.
+Als laatste openen we een SSH terminal met :code:`ssh root@192.168.2.1` met het standaard wachtwoord :code:`analog`. Voer de volgende drie commando's één voor één uit:
+
+
+.. code-block:: bash
+
+ fw_setenv ramboot_verbose 'adi_hwref;echo Copying Linux from DFU to RAM... && run dfu_ram;if run adi_loadvals; then echo Loaded AD936x refclk frequency and model into devicetree; fi; envversion;setenv bootargs console=ttyPS0,115200 maxcpus=${maxcpus} rootfstype=ramfs root=/dev/ram0 rw earlyprintk clk_ignore_unused uio_pdrv_genirq.of_id=uio_pdrv_genirq uboot="${uboot-version}" && bootm ${fit_load_address}#${fit_config}'
+ 
+ fw_setenv qspiboot_verbose 'adi_hwref;echo Copying Linux from QSPI flash to RAM... && run read_sf && if run adi_loadvals; then echo Loaded AD936x refclk frequency and model into devicetree; fi; envversion;setenv bootargs console=ttyPS0,115200 maxcpus=${maxcpus} rootfstype=ramfs root=/dev/ram0 rw earlyprintk clk_ignore_unused uio_pdrv_genirq.of_id=uio_pdrv_genirq uboot="${uboot-version}" && bootm ${fit_load_address}#${fit_config} || echo BOOT failed entering DFU mode ... && run dfu_sf'
+ 
+ fw_setenv qspiboot 'set stdout nulldev;adi_hwref;test -n $PlutoRevA || gpio input 14 && set stdout serial@e0001000 && sf probe && sf protect lock 0 100000 && run dfu_sf;  set stdout serial@e0001000;itest *f8000258 == 480003 && run clear_reset_cause && run dfu_sf; itest *f8000258 == 480007 && run clear_reset_cause && run ramboot_verbose; itest *f8000258 == 480006 && run clear_reset_cause && run qspiboot_verbose; itest *f8000258 == 480002 && run clear_reset_cause && exit; echo Booting silently && set stdout nulldev; run read_sf && run adi_loadvals; envversion;setenv bootargs console=ttyPS0,115200 maxcpus=${maxcpus} rootfstype=ramfs root=/dev/ram0 rw quiet loglevel=4 clk_ignore_unused uio_pdrv_genirq.of_id=uio_pdrv_genirq uboot="${uboot-version}" && bootm ${fit_load_address}#${fit_config} || set stdout serial@e0001000;echo BOOT failed entering DFU mode ... && sf protect lock 0 100000 && run dfu_sf'
+
+(Meer informatie hierover kun je vinden op de  `installatiepagina van Maia <https://maia-sdr.org/installation/#set-up-the-u-boot-environment>`_) 
+
+Na een laatste keer herstarten van de Pluto, zou Maia nu moeten draaien! Open http://192.168.2.1:8000 in een browser en je zou het onderstaande scherm moeten zien:
+
+.. image:: ../_images/Maia.png
+   :scale: 40 % 
+   :align: center
+   :alt: Screenshot of Maia SDR
+
+Om te testen hoe snel Maia kan draaien, probeer de :code:`Spectrum Rate` naar 100 Hz of meer  te verhogen. Naast het controleren van de belangrijkste SDR-knoppen zoals frequentie, sample-frequentie en versterking, kun je op de :code:`Record` knop onderaan klikken om de ruwe IQ-samples op te slaan in het geheugen van de Pluto. Je kunt dan IQEngine gebruiken om de opname te openen en te bekijken of te downloaden naar je apparaat. Klik hiervoior op de :code:`Recording` knop en daarna de :code:`View in IQEngine` link.
+
+.. image:: ../_images/IQEngine_from_Maia.png
+   :scale: 40 % 
+   :align: center
+   :alt: Screenshot of IQEngine opened from Maia SDR
+
 ************************
 Referentie API
 ************************
@@ -376,7 +414,7 @@ Referentie API
 Voor de volledige lijst van functies en instellingen die je kunt aanroepen kun je de `pyadi-iio Pluto Python code (AD936X) <https://github.com/analogdevicesinc/pyadi-iio/blob/master/adi/ad936x.py>`_ raadplegen.
 
 ************************
-Python Oefeningen
+Pluto Python Oefeningen
 ************************
 
 In plaats van de volledige code te geven, heb ik meerdere opdrachten gemaakt waar 99% van de code al is gegeven en de overige code simpel is om te maken. De opdrachten zijn niet bedoeld om moeilijk te zijn. Ze missen net genoeg code om je na te laten denken.

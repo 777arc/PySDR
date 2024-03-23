@@ -20,8 +20,7 @@ We bekijken enkel het positieve deel omdat een gedemoduleerd FM-signaal reëel i
 .. figure:: ../_images/fm_psd.svg
    :align: center 
    :target: ../_images/fm_psd.svg
-
-   PSD van gedemoduleerd FM-signaal
+   :alt: PSD van gedemoduleerd FM-signaal
 
 Door het signaal in het frequentiedomein te bekijken zien we de volgende signalen:
 
@@ -36,9 +35,10 @@ Dit is alles wat we uit de PSD kunnen halen, en let op dat dit *na* de FM demodu
 .. image:: ../_images/fm_before_demod.svg
    :align: center 
    :target: ../_images/fm_before_demod.svg
-   
+   :alt: Power spectral density (PSD) of an FM radio signal before any demodulation
+      
 Toch is het belangrijk te beseffen dat wanneer je een signaal frequentiemoduleert, een hogere frequentie in de data ook een hogere frequentie in het FM-signaal zal opleveren.
-Dus het signaal op 67 kHz zorgt ervoor dat de totale bandbreedte van het signaal toeneemt, de hoogste frequentiecomponent is ongeveer 75 kHz volgens figuur :numref:`PSD`.
+Dus het signaal op 67 kHz zorgt ervoor dat de totale bandbreedte van het signaal toeneemt, de hoogste frequentiecomponent is ongeveer 75 kHz volgens :ref:`de PSD <PSD>`.
 Wanneer we `de bandbreedte-regel van Carson <https://en.wikipedia.org/wiki/Carson_bandwidth_rule>`_ op FM toepassen, zegt dit dat een FM-zender ongeveer 250 kHz aan spectrum inneemt. Om deze reden samplen we meestal op 250 kHz (vergeet niet dat bij kwadratuur/IQ-sampling de ontvangen bandbreedte gelijk is aan de samplerate).
 
 Sommige lezers die gewend zijn om de FM-band met een SDR of spectrumanalyzer te bekijken herkennen het volgende diagram. Misschien denk je dat de blokkige signalen naast de FM-zenders RDS zijn.
@@ -46,6 +46,7 @@ Sommige lezers die gewend zijn om de FM-band met een SDR of spectrumanalyzer te 
 .. image:: ../_images/fm_band_psd.png
    :scale: 80 % 
    :align: center 
+   :alt: Spectrogram of the FM band
 
 Het blijkt dat deze blokkige signalen eigenlijk HD Radio zijn, een digitale versie van hetzelfde FM-radiosignaal (zelfde audio).
 Deze digitale versie geeft de ontvanger een hogere kwaliteit audio, omdat digitale signalen geen analoge ruis bevatten zoals het analoge signaal.
@@ -55,6 +56,8 @@ Weer terug naar de 5 signalen die we in onze PSD herkenden; Het volgende diagram
 .. image:: ../_images/fm_psd_labeled.svg
    :scale: 80 % 
    :align: center 
+   :target: ../_images/fm_psd_labeled.svg
+   :alt: Components within an FM radio signal, including mono and stereo audio, RDS, and DirectBand signals
 
 We doorlopen deze signalen in willekeurige volgorde:
 
@@ -84,7 +87,7 @@ RDS maakt gebruik van differentiële codering zodat we niet langer zorgen hoeven
 De BPSK-symbolen worden verstuurd op een snelheid van 1187.5 symbolen per seconde.
 Omdat BPSK slechts 1 bit per symbool gebruikt komt dit neer op een transmissiesnelheid van ongeveer 1.2 kbps.
 RDS gebruikt geen kanaalcodering (foutcorrectie) maar bevat wel een CRC-som om fouten te kunnen detecteren.
-De ervaren BPSK-er vraagt zich misschien af waarom het signaal twee zijbanden heeft in figuur :numref:`PSD`; meestal heeft BPSK maar 1 zijband.
+De ervaren BPSK-er vraagt zich misschien af waarom het signaal twee zijbanden heeft in :ref:`de PSD <PSD>`; meestal heeft BPSK maar 1 zijband.
 RDS blijkt het BPSK-signaal te dupliceren/spiegelen rondom 57 kHz voor extra redundantie. 
 Wanneer we de Pythoncode gaan bekijken gebruiken we een filter om slechts een van deze BPSK-signalen te demoduleren.
 
@@ -244,7 +247,7 @@ Banddoorlaatfilter
  taps = firwin(numtaps=501, cutoff=[0.05e3, 2e3], fs=sample_rate, pass_zero=False)
  x = np.convolve(x, taps, 'valid')
 
-We weten dat RDS twee identieke BPSK signalen bevat gezien de vorm van de PSD (figuur :numref:`PSD`).  We moeten er een kiezen, dus we kiezen er willekeurig voor om het positieve deel te behouden door middel van een banddoorlaatfilter. Weer gebruiken we :code:`firwin()`, maar nu met  :code:`pass_zero=False` waarmee we aangeven dat het om een banddoorlaatfilter gaat. Er zijn dus twee kantelfrequenties nodig. Omdat we 0 Hz niet als kantelfrequentie kunnen opgeven, kiezen we voor 50 Hz. Als laatste verhogen we ook het aantal coëfficiënten zodat we een scherp filter krijgen. We kunnen deze instelling verifiëren door het filter in het tijd- en frequentiedomein te bekijken, d.m.v. de coëfficiënten en de FFT ervan. Zie dat de doorlaatband in het frequentiedomein tot bijna 0 Hz gaat.
+We weten dat RDS twee identieke BPSK signalen bevat gezien de vorm van :ref:`de PSD<PSD>`.  We moeten er een kiezen, dus we kiezen er willekeurig voor om het positieve deel te behouden door middel van een banddoorlaatfilter. Weer gebruiken we :code:`firwin()`, maar nu met  :code:`pass_zero=False` waarmee we aangeven dat het om een banddoorlaatfilter gaat. Er zijn dus twee kantelfrequenties nodig. Omdat we 0 Hz niet als kantelfrequentie kunnen opgeven, kiezen we voor 50 Hz. Als laatste verhogen we ook het aantal coëfficiënten zodat we een scherp filter krijgen. We kunnen deze instelling verifiëren door het filter in het tijd- en frequentiedomein te bekijken, d.m.v. de coëfficiënten en de FFT ervan. Zie dat de doorlaatband in het frequentiedomein tot bijna 0 Hz gaat.
 
 .. image:: ../_images/bandpass_filter_taps.svg
    :align: center 
@@ -288,12 +291,13 @@ Eindelijk kunnen we de symbool/tijdsynchronisatie gaan toepassen. We gebruiken e
 .. image:: ../_images/constellation-animated.gif
    :scale: 80 % 
    :align: center 
+   :alt: Animation of BPSK rotating because fine frequency sync hasn't been performed yet
 
 Mocht je een eigen FM-signaal gebruiken, en je krijgt nu niet twee aparte clusters van complexe samples, dan kan het synchronisatie-algoritme van hierboven niet synchroniseren of je hebt in de eerdere stappen een fout gemaakt. Je hoeft de constellatie niet te animeren, maar probeer niet alle samples te weergeven want dan zie je alleen een cirkel. Als je 100 of 200 samples per keer laat zien dan heb je een beter gevoel of dat er twee clusters zijn of niet, zelfs als ze ronddraaien.
 
-********************************
-Fijne Frequentiesynchronisatie
-********************************
+*****************************************
+Fijne Frequentiesynchronisatie uitvoeren
+*****************************************
 
 .. code-block:: python
 
@@ -331,12 +335,14 @@ Laten we dezelfde animatie als eerder bekijken maar met de frequentiesynchronisa
 .. image:: ../_images/constellation-animated-postcostas.gif
    :scale: 80 % 
    :align: center 
+   :alt: Animation of the frequency sync process using a Costas Loop
 
 We kunnen ook nog de geschatte frequentieafwijking over de tijd weergeven om te zien hoe de Costas-loop werkt. We hadden dit immers opgeslagen in de code. Het lijkt op een afwijking van ongeveer 0.8 Hz, mogelijk veroorzaakt door een oscillatorafwijking bij de zender, maar waarschijnlijk bij de ontvanger. Wanneer je een eigen signaal gebruikt zul je :code:`alpha` en :code:`beta` moeten aanpassen totdat je een vergelijkbaar figuur krijgt. Het zou redelijk snel moeten afregelen met minimale oscillaties. Wat na steady-state overblijft is jitter, niet oscillaties.
 
 .. image:: images/freq_error.svg
    :scale: 10 % 
    :align: center 
+   :alt: The frequency sync process using a Costas Loop showing the estimated frequency offset over time
 
 ********************************
 BPSK demoduleren
@@ -1099,7 +1105,7 @@ De meeste RDS-code is overgenomen van het RDS Out-Of-Tree blok voor GNU Radio. D
 Om dit hoofdstuk op te zetten ben ik begonnen met gr-rds in GNU Radio. Met behulp van een werkende FM-opname ben ik langzaam elk blok gaan omzetten naar Python. Dit koste best veel tijd omdat er nuances bij de ingebouwde blokken zitten die makkelijk te missen zijn, en het omzetten van stream-achtige signaalbewerking naar een blok code in Python is zo simpel nog niet. GNU Radio is een geweldige tool voor dit soort prototyping en ik had dit nooit kunnen maken zonder GNU Radio.
 
 ********************************
-Extra leesmateriaal
+Extra leesmateriaal RDS
 ********************************
 
 #. https://en.wikipedia.org/wiki/Radio_Data_System

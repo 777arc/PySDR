@@ -6,7 +6,7 @@ door :ref:`Dr. Marc Lichtman<author-chapter>`
 
 .. toctree::
    :maxdepth: 2
-   :numbered: 1
+   :numbered: 2
    
    content-nl/intro
    content-nl/frequency_domain
@@ -23,4 +23,6 @@ door :ref:`Dr. Marc Lichtman<author-chapter>`
    content-nl/pulse_shaping
    content-nl/sync
    content-nl/rds
+   content-nl/doa
+   content-nl/phaser   
    content-nl/about_author

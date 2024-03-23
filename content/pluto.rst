@@ -9,7 +9,7 @@ PlutoSDR in Python
    :align: center
    :alt: The PlutoSDR by Analog Devices
    
-In this chapter we learn how to use the Python API for the `PlutoSDR <https://www.analog.com/en/design-center/evaluation-hardware-and-software/evaluation-boards-kits/adalm-pluto.html>`_, which is a low-cost SDR from Analog Devices.  We will cover the PlutoSDR install steps to get the drivers/software running, and then discuss transmitting and receiving with the PlutoSDR in Python.
+In this chapter we learn how to use the Python API for the `PlutoSDR <https://www.analog.com/en/design-center/evaluation-hardware-and-software/evaluation-boards-kits/adalm-pluto.html>`_, which is a low-cost SDR from Analog Devices.  We will cover the PlutoSDR install steps to get the drivers/software running, and then discuss transmitting and receiving with the PlutoSDR in Python.  Lastly, we show how to use `Maia SDR <https://maia-sdr.org/>`_ and `IQEngine <https://iqengine.org/>`_ to turn the PlutoSDR into a powerful spectrum analyzer!
 
 ************************
 Software/Drivers Install
@@ -334,6 +334,39 @@ You should see something that looks like this, assuming you have proper antennas
    :align: center 
 
 It is a good exercise to slowly adjust :code:`sdr.tx_hardwaregain_chan0` and :code:`sdr.rx_hardwaregain_chan0` to make sure the received signal is getting weaker/stronger as expected.
+
+**********************************
+Maia SDR and IQEngine
+**********************************
+
+Want to use your Pluto as a real-time spectrum analyzer on your PC or smartphone?  The open-source `Maia SDR <https://maia-sdr.org/>`_ project provides a modified firmware image for the Pluto that runs an FFT on the Pluto's FPGA, and a web server on the Pluto's ARM CPU!  This web interface is used to set the frequncy and other SDR parameters, and view the spectrogram in a waterfall-style display.  You can make recordings of the raw IQ samples up to 400MB in size, and download them to your computer/phone or view them in IQEngine.
+
+Install the latest Maia Pluto firmware by downloading the `latest release <https://github.com/maia-sdr/plutosdr-fw/releases/>`_, specifically the file named :code:`plutosdr-fw-maia-sdr-vX.Y.Z.zip`. Unzip and copy the :code:`pluto.frm` file onto your Pluto's mass storage device (it resembles a USB flash drive), then eject the pluto (don't unplug), this is the same process as upgrading the Pluto's firmware; it will blink for several minutes and then restart.  Lastly, SSH into the Pluto as we did in the "hack your Pluto" section, using :code:`ssh root@192.168.2.1` in a terminal, with default password :code:`analog`.  Once SSHed in, you must run the following three commands one at a time:
+
+.. code-block:: bash
+
+ fw_setenv ramboot_verbose 'adi_hwref;echo Copying Linux from DFU to RAM... && run dfu_ram;if run adi_loadvals; then echo Loaded AD936x refclk frequency and model into devicetree; fi; envversion;setenv bootargs console=ttyPS0,115200 maxcpus=${maxcpus} rootfstype=ramfs root=/dev/ram0 rw earlyprintk clk_ignore_unused uio_pdrv_genirq.of_id=uio_pdrv_genirq uboot="${uboot-version}" && bootm ${fit_load_address}#${fit_config}'
+ 
+ fw_setenv qspiboot_verbose 'adi_hwref;echo Copying Linux from QSPI flash to RAM... && run read_sf && if run adi_loadvals; then echo Loaded AD936x refclk frequency and model into devicetree; fi; envversion;setenv bootargs console=ttyPS0,115200 maxcpus=${maxcpus} rootfstype=ramfs root=/dev/ram0 rw earlyprintk clk_ignore_unused uio_pdrv_genirq.of_id=uio_pdrv_genirq uboot="${uboot-version}" && bootm ${fit_load_address}#${fit_config} || echo BOOT failed entering DFU mode ... && run dfu_sf'
+ 
+ fw_setenv qspiboot 'set stdout nulldev;adi_hwref;test -n $PlutoRevA || gpio input 14 && set stdout serial@e0001000 && sf probe && sf protect lock 0 100000 && run dfu_sf;  set stdout serial@e0001000;itest *f8000258 == 480003 && run clear_reset_cause && run dfu_sf; itest *f8000258 == 480007 && run clear_reset_cause && run ramboot_verbose; itest *f8000258 == 480006 && run clear_reset_cause && run qspiboot_verbose; itest *f8000258 == 480002 && run clear_reset_cause && exit; echo Booting silently && set stdout nulldev; run read_sf && run adi_loadvals; envversion;setenv bootargs console=ttyPS0,115200 maxcpus=${maxcpus} rootfstype=ramfs root=/dev/ram0 rw quiet loglevel=4 clk_ignore_unused uio_pdrv_genirq.of_id=uio_pdrv_genirq uboot="${uboot-version}" && bootm ${fit_load_address}#${fit_config} || set stdout serial@e0001000;echo BOOT failed entering DFU mode ... && sf protect lock 0 100000 && run dfu_sf'
+
+(For more information on why this is needed see `Maia's installation page <https://maia-sdr.org/installation/#set-up-the-u-boot-environment>`_) 
+
+Restart your Pluto one more time.  At this point, the Pluto should be running Maia!  Open http://192.168.2.1:8000 in a web browser and you should see the Maia real-time spectrum analyzer and SDR control panel, as shown in the screenshot below:
+
+.. image:: ../_images/Maia.png
+   :scale: 40 % 
+   :align: center
+   :alt: Screenshot of Maia SDR
+
+To test how fast Maia can run, try increasing the :code:`Spectrum Rate` to 100 Hz or more.  In addition to controlling the main SDR knobs such as frequency, sample rate, and gain, you can click the :code:`Record` button at the bottom and it will start recording the raw IQ samples to memory onboard the Pluto.  You can then open the recording in IQEngine to view it using the :code:`Recording` button then :code:`View in IQEngine` link, as shown in the screenshot below, or save the file to your device.
+
+.. image:: ../_images/IQEngine_from_Maia.png
+   :scale: 40 % 
+   :align: center
+   :alt: Screenshot of IQEngine opened from Maia SDR
+
 
 ************************
 Reference API

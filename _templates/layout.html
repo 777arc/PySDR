@@ -48,7 +48,7 @@
 <div style="float: right; padding-bottom: 0;">
   <!-- GitHub Logo //-->
   <a href="https://github.com/777arc/PySDR" target="_blank" style="text-decoration:none;">
-    <svg height="18px" width="18px">
+    <svg height="16px" width="18px">
         <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
     </svg>
   </a>
@@ -66,11 +66,12 @@
   &nbsp;|&nbsp;
 
   PySDR is now available in:&nbsp;&nbsp;
-  <img src="https://pysdr.org/_static/us.svg" alt="English Version" width="20"><a href="https://pysdr.org/index.html">English</a>&nbsp;&nbsp;
-  <img src="https://pysdr.org/_static/nl.svg" alt="Dutch Version" width="20"><a href="https://pysdr.org/nl/index-nl.html">Dutch</a>&nbsp;&nbsp;
-  <img src="https://pysdr.org/_static/fr.svg" alt="French Version" width="20"><a href="https://pysdr.org/fr/index-fr.html">French</a>&nbsp;&nbsp;
-  <img src="https://pysdr.org/_static/ukrain.svg" alt="Ukrainian Version" width="20"><a href="https://pysdr.org/ukraine/index-ukraine.html">Ukrainian</a>
-  <img src="https://pysdr.org/_static/cn.svg" alt="Chinese Version" width="20"><a href="https://pysdr.org/zh/index-zh.html">Chinese</a>
+  <a style="text-decoration:none" href="https://pysdr.org/index.html"><img src="https://pysdr.org/_static/us.svg" alt="English" width="20">English</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="https://pysdr.org/nl/index-nl.html"><img src="https://pysdr.org/_static/nl.svg" alt="Dutch" width="20">Dutch</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="https://pysdr.org/fr/index-fr.html"><img src="https://pysdr.org/_static/fr.svg" alt="French" width="20">French</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="https://pysdr.org/ukraine/index-ukraine.html"><img src="https://pysdr.org/_static/ukrain.svg" alt="Ukrainian" width="20">Ukrainian</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="https://pysdr.org/zh/index-zh.html"><img src="https://pysdr.org/_static/cn.svg" alt="Chinese" width="20">Chinese</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="https://pysdr.org/es/index-es.html"><img src="https://pysdr.org/_static/es.svg" alt="Spanish" width="20">Spanish</a>
 </div>
 {% endblock %}
 
@@ -81,6 +82,8 @@
     <ul>
       {%- if prev %}
         <li>
+          <a target="_blank" style="text-decoration:none;" href="https://github.com/777arc/PySDR/edit/master/{{ pagename }}.rst">✏️Suggest an Edit✏️</a>
+          &nbsp;&nbsp;&nbsp;&nbsp;
           &larr;
           <a href="{{ prev.link|e }}" title="Previous document">{{ prev.title }}</a>
         </li>
@@ -158,11 +161,10 @@
       {%- endif %}
     
       <br />
-      This work is licensed under a
+      PySDR is licensed under
       <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">
-        Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License
-        <br />
-        <img alt="Creative Commons License" width="90px" src="https://i.creativecommons.org/l/by-nc-sa/3.0/88x31.png" />
+        CC BY-NC-SA 3.0
+        <img alt="Creative Commons License" width="40px" src="https://i.creativecommons.org/l/by-nc-sa/3.0/88x31.png" />
       </a>
   </div>
 

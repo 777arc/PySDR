@@ -18,12 +18,14 @@ Als een versimpeld voorbeeld, laten we zeggen dat we 1'en en 0'en sturen met hog
 .. image:: ../_images/symbols.png
    :scale: 60 % 
    :align: center 
+   :alt: Pulse train of ones and zeros depicting the concept of a digital symbol that carries information
 
 In het bovenstaande voorbeeld stelt een symbool slechts een bit voor. Hoe kunnen we meerdere bits per symbool overbrengen? Laten we gaan kijken hoe signalen over ethernetkabels worden gestuurd, dit is vastgelegd in een IEEE standaard genaamd IEEE 802.3 1000BASE-T. In normale situaties gebruikt ethernet amplitudemodulatie met 4 niveaus (2 bits per symbool) en 8 ns symbolen.
 
 .. image:: ../_images/ethernet.svg
    :align: center 
    :target: ../_images/ethernet.svg
+   :alt: Plot of IEEE 802.3 1000BASE-T ethernet voltage signal showing 4-level amplitude shift keying (ASK)
 
 Neem een moment om deze vragen te beantwoorden:
 
@@ -51,12 +53,13 @@ Draadloze Symbolen
 *******************
 Vraag: Waarom kunnen we het ethernet signaal van hierboven niet direct versturen? Er zijn vele redenen, maar de belangrijkste zijn:
 
-1. Lage frequenties hebben *enorme* antennes nodig
+1. Lage frequenties hebben *enorme* antennes nodig en het signaal bevat frequenties tot het DC-component (0 Hz). DC kunnen we niet versturen.
 2. Blokgolven nemen voor het aantal bits-per-seconde een *overbodige* hoeveelheid ruimte van het spectrum in -- herinner van het  :ref:`freq-domain-chapter` hoofdstuk dat scherpe veranderingen in het tijddomein een grote hoeveelheid bandbreedte/spectrum gebruiken:
 
 .. image:: ../_images/square-wave.svg
    :align: center 
    :target: ../_images/square-wave.svg
+   :alt: Een blokgolf in het tijd- en frequentiedomein dat laat zien dat het een groot deel van het spectrum gebruikt.
 
 Wat we voor draadloze signalen doen is beginnen met een draaggolf, wat gewoon een sinusoïde is. FM-radio gebruikt bijvoorbeeld een draaggolf als 101.1 MHz of 100.3 MHz. We moduleren die draaggolf op een bepaalde manier (er zijn vele). In geval van FM-radio is dit analoge modulatie, niet digitaal, maar het concept is hetzelfde als bij digitale modulatie. 
 
@@ -77,6 +80,7 @@ Amplitude Shift Keying (ASK) (Nederlands: amplitudeverschuivingsmodulatie) is he
 .. image:: ../_images/ASK.svg
    :align: center
    :target: ../_images/ASK.svg
+   :alt: Voorbeeld van 2-ASK in het tijddomein.
 
 Let op hoe de gemiddelde waarde nul is; dit heeft altijd onze voorkeur.
 
@@ -85,6 +89,7 @@ We kunnen meer dan twee niveaus gebruiken om meer bits per symbool te versturen.
 .. image:: ../_images/ask2.svg
    :align: center
    :target: ../_images/ask2.svg
+   :alt: Voorbeeld van 4-ASK in het tijddomein.
 
 Vraag: Hoeveel symbolen kun je in het signaal hierboven onderscheiden? Hoeveel bits worden in totaal verzonden?
 
@@ -106,6 +111,7 @@ Dit moduleert ons signaal op de draaggolf (de sinusoïde is die draaggolf). Het 
 .. image:: ../_images/ask3.svg
    :align: center
    :target: ../_images/ask3.svg
+   :alt: Samples per symbol depiction using 2-ASK in the time domain, with 10 samples per symbol (sps)
 
 Het bovenste figuur laat de discrete samples zien als rode punten, dus ons digitale signaal. Het onderste figuur laat zien hoe het resulterende gemoduleerde signaal eruitziet, dit zou door de lucht verzonden kunnen worden. 
 In echte systemen is de frequentie van de draaggolf veel hoger dan de snelheid waarmee de symbolen afwisselen. In ons voorbeeld zijn er maar 3 perioden van de draaggolf per symbool, maar in de praktijk zouden er duizenden kunnen zijn, afhankelijk van hoe hoog in het spectrum het verzonden wordt.
@@ -124,12 +130,14 @@ Voorbeeld van BPSK (let op de faseveranderingen):
 .. image:: ../_images/bpsk.svg
    :align: center 
    :target: ../_images/bpsk.svg
+   :alt: Simple example of binary phase shift keying (BPSK) in the time domain, showing a modulated carrier
 
 Het is niet zo leuk om naar figuren te kijken als deze:
 
 .. image:: ../_images/bpsk2.svg
    :align: center 
    :target: ../_images/bpsk2.svg
+   :alt: Phase shift keying like BPSK in the time domain is difficult to read, so we tend to use a constellation plot or complex plane   
 
 In plaats daarvan laten we de fase meestal zien in het complexe vlak.
 
@@ -146,6 +154,7 @@ In de praktijk maakt het niet echt uit welke modulus je gebruikt; een hogere waa
 .. image:: ../_images/bpsk_iq.png
    :scale: 80 % 
    :align: center 
+   :alt: IQ plot or constellation plot of BPSK
 
 Het bovenstaande IQ-diagram laat zien wat, of eigenlijk de set van symbolen waaruit, we versturen.
 Het laat de draaggolf niet zien, dus je kunt dit zien als basisband-symbolen.
@@ -160,6 +169,7 @@ Hier zijn een paar voorbeelden van hoe het BPSK-signaal eruit zou kunnen zien bi
 .. image:: ../_images/bpsk3.png
    :scale: 60 % 
    :align: center 
+   :alt: A random phase rotation of BPSK occurs as the wireless signal travels through the air
 
 Terug naar PSK. Wat als we vier verschillende fasen zouden willen? Bijv., 0, 90, 180 en 270 graden. 
 Dat zou als volgt getoond kunnen worden in het IQ-diagram, dit vormt het Quadrature Phase Shift Keying (QPSK) schema:
@@ -167,6 +177,7 @@ Dat zou als volgt getoond kunnen worden in het IQ-diagram, dit vormt het Quadrat
 .. image:: ../_images/qpsk.png
    :scale: 60 % 
    :align: center 
+   :alt: Example of Quadrature Phase Shift Keying (QPSK) in the IQ plot or constellation plot
 
 We hebben voor PSK altijd N verschillende hoeken/fasen, voor het beste resultaat evenredig over de 360 graden verdeeld.
 Meestal laten we ook de eenheidscirkel zien om aan te geven dat alle punten dezelfde modulus hebben:
@@ -174,12 +185,14 @@ Meestal laten we ook de eenheidscirkel zien om aan te geven dat alle punten deze
 .. image:: ../_images/psk_set.png
    :scale: 60 % 
    :align: center 
+   :alt: Phase shift keying uses equally spaced constellation points on the IQ plot
 
 Vraag: Is er wat mis met het gebruik van het onderstaande PSK-schema? Is dit een PSK-modulatieschema?
 
 .. image:: ../_images/weird_psk.png
    :scale: 60 % 
    :align: center 
+   :alt: Example of non-uniformly spaced PSK constellation plot
 
 .. raw:: html
 
@@ -200,6 +213,7 @@ Even terug naar ASK. Net als PSK kun je ASK ook laten zien in het IQ-diagram. Hi
 .. image:: ../_images/ask_set.png
    :scale: 50 % 
    :align: center 
+   :alt: Bipolar and unipolar amplitude shift keying (ASK) constellation or IQ plots
 
 Misschien is het je al opgevallen, de bipolaire 2-ASK en BPSK zijn hetzelfde. Een fasedraaiing van 180 graden is hetzelfde als een sinusoïde vermenigvuldigen met -1. We noemen het waarschijnlijk BPSK omdat dit veel meer wordt gebruikt dan ASK.
 
@@ -211,12 +225,14 @@ En wat gebeurt er als we ASK en PSK combineren? Dit modulatieschema noemen we Qu
 .. image:: ../_images/64qam.png
    :scale: 90 % 
    :align: center 
-   
+   :alt: Example of Quadrature Amplitude Modulation (QAM) on the IQ or constellation plot
+
 En nog wat voorbeelden van QAM:
 
 .. image:: ../_images/qam.png
    :scale: 50 % 
    :align: center 
+   :alt: Example of 16QAM, 32QAM, 64QAM, and 256QAM on the IQ or constellation plot
 
 Technisch gezien, omdat de fase *en* amplitude gemoduleerd worden, kunnen we voor QAM de punten op het IQ-diagram plaatsen waar we willen. 
 Voor een gegeven QAM-schema zijn de "parameters" het best te beschrijven met een QAM-constellatie. 
@@ -225,6 +241,7 @@ Aan de andere kant zou je de I en Q waarden voor elk punt kunnen beschrijven, zo
 .. image:: ../_images/qpsk_list.png
    :scale: 80 % 
    :align: center 
+   :alt: Constellation or IQ plots can also be represented using a table of symbols
 
 Hierbij de opmerking dat de meeste modulatieschema's, behalve sommige ASK's en BPSK, vrij moeilijk in het tijddomein zijn te herkennen. 
 Om dit punt thuis te brengen is hier een voorbeeld van hoe QAM in het tijddomein eruitziet. 
@@ -234,6 +251,7 @@ Dat is lastig.
 .. image:: ../_images/qam_time_domain.png
    :scale: 50 % 
    :align: center 
+   :alt: Looking at QAM in the time domain is difficult which is why we use constellation or IQ plots
 
 Gezien de uitdaging om in het tijddomein modulatieschema’s te herkennen, gebruiken we liever IQ-diagrammen dan een tijddomein figuur. 
 Toch zouden we een tijddomein-signaal laten zien wanneer een bepaalde pakketopbouw of volgorde van symbolen van invloed is.
@@ -255,11 +273,11 @@ In het frequentiedomein zou 4-FSK er zo uit kunnen zien:
 
 .. image:: ../_images/fsk.svg
    :align: center 
-   :target: ../_images/fsk.svg
+   :alt: Example of Frequency Shift Keying (FSK), specifically 4FSK
 
 Een belangrijke vraag die je jezelf moet stellen is: Welke afstand moet ik tussen de frequenties aanhouden? 
 Deze afstand wordt vaak aangegeven als :math:`\Delta f` in Hz. 
-We willen vermijden dat signalen in het frequentiedomein overlappen, dus :math:`\Delta f` moet groot genoeg zijn.  
+Om er voor te zorgen dat de ontvanger symbolen aan frequenties kan koppelen, willen we vermijden dat signalen in het frequentiedomein overlappen, dus :math:`\Delta f` moet groot genoeg zijn.  
 De bandbreedte van elke draaggolf is een functie van de symboolsnelheid.
 Meer symbolen per seconde geeft kortere symbolen en dus een grotere bandbreedte (denk aan de inverse relatie tussen tijd en frequentie).
 Hoe sneller we symbolen gaan oversturen, hoe breder elke draaggolf wordt en dus hoe groter we :math:`\Delta f` moeten maken om te voorkomen dat de draaggolven elkaar overlappen.
@@ -267,6 +285,8 @@ Hoe sneller we symbolen gaan oversturen, hoe breder elke draaggolf wordt en dus 
 .. image:: ../_images/fsk2.svg
    :align: center
    :target: ../_images/fsk2.svg
+   :alt: Frequency Shift Keying (FSK) or 2FSK in the time domain
+
 
 Als bijzaak, FM-radio gebruikt frequentiemodulatie (FM). 
 Dit is een analoge versie van FSK.
@@ -276,45 +296,98 @@ Hieronder is een voorbeeld te zien van FM- en AM-modulatie, waarbij het "signaal
 .. image:: ../_images/Carrier_Mod_AM_FM.webp
    :align: center
    :target: ../_images/Carrier_Mod_AM_FM.webp
+   :alt: Animation of a carrier, amplitude modulation (AM), and frequency modulation (FM) in the time domain
 
 In dit boek maken we ons vooral druk over de digitale vormen van modulatie.
 
 **********************
 Differentiële Codering
 **********************
-.. 
-   todo - This chapter  has a bunch of terms that haven't come up yet in the book, this doesn't help readers understand the material. Also the bitsequence in the text didn't correspond with the image, another possible source of confusion.
-Je zult waarschijnlijk in de meeste draadloze (en bedraade) communicatieprotocollen tegen iets aanlopen wat differentiële codering wordt genoemd.
-Om het nut hiervan aan te tonen, gaan we naar de ontvangst van een BPSK-signaal kijken.
-Zoals eerder verteld, wanneer dit signaal door de lucht vliegt ervaart het een willekeurige vertraging tussen zender en ontvanger, dit veroorzaakt een willekeurige draaiing/rotatie in de constellatie.
-De ontvanger zal nu proberen te synchroniseren en de BPSK uit te lijnen met de I-as, maar het heeft geen idee of het 180 graden uit fase loopt of niet, de constellaties zien er exact hetzelfde uit.
 
-.. 
-   todo - this is confusing, talking about clusters the reader hasn't even encountered yet. Same with coherent receivers, this hasn't been mentioned yet before
-In plaats van absolute symbolen te versturen om absoluut aan te geven wat een 1 of 0 voorstelt, kan het kiezen om differentiële codering toe te passen en zich hier niet eens zorgen om te maken.
+Je zult waarschijnlijk in de meeste draadloze (en bedraade) op PSK of QAM gebaseerde communicatieprotocollen, een stap tegenkomen dat net voor (of na) de bitmodulatie plaatsvindt. Deze stap wordt differentiële codering genoemd.
+Om het nut hiervan aan te tonen, gaan we naar de ontvangst van een BPSK-signaal kijken.
+Zoals eerder is verteld, wanneer dit signaal door de lucht vliegt ervaart het een willekeurige vertraging tussen zender en ontvanger, dit veroorzaakt een willekeurige draaiing/rotatie in de constellatie.
+De ontvanger zal nu proberen te synchroniseren en de BPSK uit te lijnen met de (reeele) I-as, maar het heeft geen idee of het 180 graden uit fase loopt of niet, de constellatie is symmetrisch.
+Een oplossing is om door de informatie heen symbolen toe te voegen waarvan de waarde bij de ontvanger al bekend is. Dit worden piloot-symbolen genoemd. 
+De ontvanger kan voor PSK deze piloot-symbolen gebruiken om te bepalen welk cluster van het constellatiediagram een 1 of 0 is. Piloot-symbolen moeten met een bepaalde periodetijd worden verstuurd, dit is afhankelijk van hoe snel het draadloze kanaal verandert, wat uiteindelijk zal leiden tot een lagere datarate. 
+In plaats van piloot-symbolen kunnen we er ook voor kiezen om differentiële codering te gebruiken.
+
+De meest eenvoudige vorm van differentiële codering wordt gebruikt in combinatie met BPSK (wat een bit per symbool gebruikt).
+In plaats van een 1 en -1 te versturen voor een binaire 1 en 0, zorgt de differentiële codering ervoor dat een 0 wordt gestuurd wanneer de ingangsbit gelijk is aan de **gecodeerde** vorige bit, en een 1 wordt gestuurd als de bits verschillen. Er wordt nog steeds dezelfde hoeveelheid bits verstuurd (plus een extra om de reeks te starten), maar we hoeven ons niet meer druk te maken over een mogelijke 180 graden draaiing.
+Dit worden beschreven met de volgende vergelijkingm waarbij :math:`x` de ingangsbits zijn en :math:`y` de uitgangsbits die vervolgens met BPSK worden gemoduleerd:
+
+.. math::
+  y_i = y_{i-1} \oplus x_i
+
+Omdat de uitgang van de vorige uitgang afhankelijk is, zullen we moeten starten met een willekeurige 1 of 0, en zoals we zullen laten zien tijdens het decoderen, maakt het niet uit welke we kiezen (we moeten nog steeds deze startbit versturen!).
+
+Voor de visuele mensen: deze coderingsstap kan ook als diagram worden weergeven. Hierbij is het vertragingblok een vertraging van 1:
+
+.. image:: ../_images/differential_coding2.svg
+   :align: center
+   :target: ../_images/differential_coding2.svg
+   :alt: Differential coding block diagram
+
+Laten we als voorbeeld de 10 bits [1, 1, 0, 0, 1, 1, 1, 1, 1, 0] versturen met BPSK. We beginnen de uitgangsreeks met 1; het maakt niet uit of je 1 of 0 gebruikt. Het helpt om de bits op elkaar te stapelen, waarbij je de ingang verschuift om ruimte te maken voor de startbit van de uitgang:
+
+.. code-block::
+
+ Input:     1 1 0 0 1 1 1 1 1 0
+ Output:  1
+
+Nu bepaal je de uitgang door de ingangsbit te vergelijken met de vorige **uitgangs**bit en de XOR-operatie toe te passen die in de bovenstaande tabel wordt getoond. De volgende uitgangsbit is daarom een 0, omdat 1 en 1 overeenkomen:
+
+.. code-block::
+
+ Input:     1 1 0 0 1 1 1 1 1 0
+ Output:  1 0
+
+Blijf dit herhalen zodat je dit krijgt:
+
+.. code-block::
+
+ Input:     1 1 0 0 1 1 1 1 1 0
+ Output:  1 0 1 1 1 0 1 0 1 0 0
+
+Dus na de differentiele codering zouden we uiteindelijk [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0] versturen. De 1'en en 0'en worden nog steeds aan de positieve en negatieve symbolen gekoppeld.
+
+Het decoderen bij de ontvanger is eenvoudiger te begrijpen. De ontvanger vergelijkt de ontvangen bit met de vorige ontvangen bit:
+
+.. math::
+  x_i = y_i \oplus y_{i-1}
+
+Zou je nu [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0] ontvangen, dan begin je aan de linkerkant en kijk je of de eerste twee overeenkomen; in dit geval niet, dus de eerste bit is een 1. Herhaal dit en je krijgt de reeks waarmee we zijn begonnen, [1, 1, 0, 0, 1, 1, 1, 1, 1, 0]. Het is misschien niet duidelijk, maar de startbit die we hebben toegevoegd had een 1 of een 0 kunnen zijn en we zouden hetzelfde resultaat krijgen.
+
+Dit proces van (de)coderen wordt hieronder getoond:
 
 ..
    De differentiële codering stelt ons ook in staat om niet-coherente ontvangers te gebruiken, welke simpeler zijn dan coherente ontvangers.
 
-De meest eenvoudige vorm van differentiële codering, wat door D-BPSK wordt gebruikt, is om een 0 te versturen wanneer de huidige ingangsbit gelijk is aan de vorige uitgangsbit, en een 1 te versturen als de huidig ingangsbit anders is dan de vorige uitgangsbit.
-We sturen nog steeds dezelfde hoeveelheid bits (plus een extra om de reeks te starten) maar we hoeven ons niet meer druk te maken over een mogelijke 180 graden draaiing. 
+.. De meest eenvoudige vorm van differentiële codering, wat door D-BPSK wordt gebruikt, is om een 0 te versturen wanneer de huidige ingangsbit gelijk is aan de vorige uitgangsbit, en een 1 te versturen als de huidig ingangsbit anders is dan de vorige uitgangsbit.
+.. We sturen nog steeds dezelfde hoeveelheid bits (plus een extra om de reeks te starten) maar we hoeven ons niet meer druk te maken over een mogelijke 180 graden draaiing. 
 
-Laten we naar een voorbeeld kijken om aan te geven hoe dit werkt. 
-Stel we versturen [1, 1, 0, 0, 1, 1, 1] met BPSK.
-We beginnen de uitgangsreeks met een 1; dit maakt niets uit, 1 of 0.
-Na het toepassen van de differentiële codering versturen we uiteindelijk [1, 0, 1, 1, 1, 0, 1, 0].
-De 1'en en 0'en worden nog steeds aan de positieve (1+0j) en negatieve (-1+0j) symbolen gekoppeld.
-Dit is makkelijker voor te stellen wanneer we de in- en uitgangsreeksen op elkaar stapelen:
+.. Laten we naar een voorbeeld kijken om aan te geven hoe dit werkt. 
+.. Stel we versturen [1, 1, 0, 0, 1, 1, 1] met BPSK.
+.. We beginnen de uitgangsreeks met een 1; dit maakt niets uit, 1 of 0.
+.. Na het toepassen van de differentiële codering versturen we uiteindelijk [1, 0, 1, 1, 1, 0, 1, 0].
+.. De 1'en en 0'en worden nog steeds aan de positieve (1+0j) en negatieve (-1+0j) symbolen gekoppeld.
+.. Dit is makkelijker voor te stellen wanneer we de in- en uitgangsreeksen op elkaar stapelen:
 
 .. image:: ../_images/differential_coding.svg
    :align: center
    :target: ../_images/differential_coding.svg
+   :alt: Demonstration of differential coding using sequence of encoded and decoded bits
 
 Het grote nadeel van differentiële codering is dat een verkeerde bit tot twee bitfouten zal leiden.
-Een alternatief voor differentiële codering is om periodiek piloot-symbolen te sturen, dit zijn symbolen die de ontvanger al kent, hiermee zou de ontvanger kunnen herkennen of er een faseverschuiving van 180 graden heeft plaatsgevonden. 
-Het probleem met deze oplossing is dat een draadloos kanaal snel kan veranderen, helemaal als de zender/ontvanger in beweging zijn, dus dan moet je die piloot-symbolen vaak genoeg versturen om dit te kunnen verhelpen.
+Een alternatief voor differentiële codering is om de eerder besproken piloot-symbolen te sturen, wat ook gebruikt kan worden om multi-path problemen te verhelpen. 
+Maar een probleem met deze oplossing is dat een draadloos kanaal snel kan veranderen, helemaal als de zender/ontvanger in beweging zijn, dus dan moet je die piloot-symbolen vaak genoeg versturen om dit te kunnen verhelpen.
 Differentiële codering is veel eenvoudiger om te implementeren, dus als eenvoud belangrijker is dan hier en daar een verloren bit, dan zal dit de voorkeur hebben. 
 In het :ref:`rds-chapter`hoofdstuk, behandelen we RDS, dit gebruikt dus de (minder complexe) differentiële codering.
+
+Vergeet niet dat het bovenstaande voorbeeld specifiek over BPSK gaat. 
+Differentiële codering is een symbool-gebaseerde codering, dus om het toe te passen op QPSK, werk je met paren van bits tegelijk, en zo verder voor hogere QAM-schema's.
+Differentiële QPSK wordt vaak DQPSK genoemd.
+
 
 *******************
 Voorbeeld in Python
@@ -344,6 +417,7 @@ Voordat we het omzetten naar radialen zullen we eerst een duizend symbolen gener
 .. image:: ../_images/qpsk_python.svg
    :align: center 
    :target: ../_images/qpsk_python.svg
+   :alt: QPSK generated or simulated in Python
 
 Zie hoe alle symbolen overlappen? 
 Er is geen ruis dus de symbolen hebben exact dezelfde waarden.
@@ -361,6 +435,7 @@ We gaan wat ruis toevoegen:
 .. image:: ../_images/qpsk_python2.svg
    :align: center
    :target: ../_images/qpsk_python2.svg
+   :alt: QPSK with AWGN noise generated or simulated in Python
 
 De additieve witte Gaussische ruis (AWGN) veroorzaakt een spreiding rondom elk constellatiepunt.
 Ruis wordt behandeld in het :ref:`Gaussische ruis` hoofdstuk.
@@ -377,12 +452,14 @@ Je zou ook de faseruis kunnen simuleren, wat door variaties in de lokale oscilla
 .. image:: ../_images/phase_jitter.svg
    :align: center
    :target: ../_images/phase_jitter.svg
+   :alt: QPSK with phase jitter generated or simulated in Python
 
 Je zou zelfs AWGN kunnen combineren met de faseruis om het probleem volledig te ervaren:
 
 .. image:: ../_images/phase_jitter_awgn.svg
    :align: center
    :target: ../_images/phase_jitter_awgn.svg
+   :alt: QPSK with AWGN noise and phase jitter generated or simulated in Python
 
 We gaan op dit punt stoppen.
 Als we de tijddomein-versie van het QPSK-signaal zouden willen zien dan zouden we meerdere samples per symbool moeten genereren (in dit voorbeeld was het 1 sample per symbool).

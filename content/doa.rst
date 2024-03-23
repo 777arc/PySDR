@@ -285,7 +285,7 @@ or in Python:
  w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Conventional, aka delay-and-sum, beamformer
  r = w.conj().T @ r # example of applying the weights to the received signal (i.e., perform the beamforming)
 
-where :code:`Nr` is the number of elements in our uniform linear array with spacing of :code:`d` fractions of wavelength (most often ~0.5).  As you can see, the weights don't depend on anything other than the array geometry and the angle of interest.  If our array involved calibrating the phase, we would include those calibration values too.
+where :code:`Nr` is the number of elements in our uniform linear array with spacing of :code:`d` fractions of wavelength (most often ~0.5).  As you can see, the weights don't depend on anything other than the array geometry and the angle of interest.  If our array involved calibrating the phase, we would include those calibration values too.  You may have been able to notice by the equation for :code:`w` that the weights are complex valued and the magnitudes are all equal to one (unity).
 
 But how do we know the angle of interest :code:`theta`?  We must start by performing DOA, which involves scanning through (sampling) all directions of arrival from -π to +π (-180 to +180 degrees), e.g., in 1 degree increments.  At each direction we calculate the weights using a beamformer; we will start by using the conventional beamformer.  Applying the weights to our signal :code:`r` will give us a 1D array of samples, as if we received it with 1 directional antenna.  We can then calculate the power in the signal by taking the variance with :code:`np.var()`, and repeat for every angle in our scan.  We will plot the results and look at it with our human eyes/brain, but what most RF DSP does is find the angle of maximum power (with a peak-finding algorithm) and call it the DOA estimate.
 
@@ -396,6 +396,39 @@ First order of business: Giving the process of sweeping beams a name! Fortunatel
 
 Let the signal received by the array be represented by the steering vector :math:`\mathbf{s}`. This received signal is a function of the direction of arrival (DOA) of the signal, which we will denote as :math:`\theta`. Let the weight applied to the steering vector be represented by :math:`\mathbf{w}`. The output of the array is the dot product of the steering vector and the weight, which we will denote as :math:`\mathbf{w}^{H}  \mathbf{s} ` Now, the power of the received signal can be obtained by squaring the magnitude of the output of the array. This is represented as :math:`\left| \mathbf{w}^{H}  \mathbf{s} \right|^{2} = \mathbf{w}^{H}  \mathbf{s} \mathbf{s}^{H} \mathbf{w} = \mathbf{w} \mathbf{R_{ss}} \mathbf{w} `, where :math:`\mathbf{R}` is the spatial covariance matrix. The spatial covariance matrix measures the similarity between the samples received from the different elements of the array. If we now apply various weights to the steering vector, we can obtain the power of the received signal for different directions. This is the essence of Bartlett beamforming i.e the beam sweep that we described using the earlier geenrated python code.
 
+**********************
+Spatial Tapering
+**********************
+
+Spatial tapering is a technique used alongside the conventional beamformer, where the magnitude of the weights are adjusted to acheive certain features.  Although even if you aren't using the conventional beamformer, the concept of tapering is still important to understand.  Recall that when we calculated the conventional beamformer weights, it was a series of complex numbers which all had magnitudes of one (unity).  With spatial tapering we will multiply the weights by scalars to scale their magnitude.  Let's start by seeing what happens if we multiply the weights by random values between 0 and 1, i.e.:
+
+.. code-block:: python
+
+    tapering = np.random.uniform(0, 1, Nr) # random tapering
+    w *= tapering
+
+We will simulate a signal being received at boresight (0 degrees) at high SNR to see what happens.  Note that this process is equivalent and will have the same results as simulated the quiescent antenna pattern for the given weights, as we discuss at the end of this chapter.
+
+.. image:: ../_images/spatial_tapering_animation.gif
+   :scale: 80 %
+   :align: center
+   :alt: Spatial tapering using random values to adjust the magnitude of the weights
+
+Try to observe the width of the main lobe, and the position of nulls.
+
+It turns out that tapering can reduce the sidelobes, which is often desired, by reducing the magnitude of the weights at the **edges** of the array.  This time we will transition between using a rectangular window (no window) and a Hamming window, as our tapering function.
+
+.. code-block:: python
+
+    tapering = np.hamming(Nr) # Hamming window function
+    w *= tapering
+
+.. image:: ../_images/spatial_tapering_animation2.gif
+   :scale: 80 %
+   :align: center
+   :alt: Spatial tapering using a hamming window to adjust the magnitude of the weights
+
+The main lobe width is also affected by tapering, and it can be made wider or narrower depending on the tapering function used (less sidelobes usually leads to a wider mainlobe).
 
 **********************
 MVDR/Capon Beamformer

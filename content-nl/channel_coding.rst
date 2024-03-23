@@ -21,6 +21,7 @@ QPSK geeft 2 bits per symbool, terwijl 16QAM een dubbele datasnelheid heeft van 
 .. image:: ../_images/qpsk_vs_16qam.png
    :scale: 90 % 
    :align: center 
+   :alt: Comparing noisy QPSK and 16QAM to demonstrate why forward error correction, a.k.a. channel coding, is needed
 
 Een CRC-fout resulteert bij een protocol als TCP meestal in het opnieuw verzenden van een pakket.
 Als Alice een bericht naar Bob stuurt zouden we liever niet Bob nog een bericht naar Alice laten sturen om de informatie opnieuw aan te vragen.   
@@ -32,6 +33,7 @@ Nu we weten waarom het nodig is kunnen we zien waar het wordt toegepast in de co
 .. image:: images/tx_rx_chain.svg
    :align: center 
    :target: images/tx_rx_chain.svg
+   :alt: The wireless communications transmit receive chain showing both sides of a transceiver
 
 Er vinden meerdere stappen van codering plaats in de keten. Broncodering, de eerste stap, lijkt op kanaalcodering; broncodering heeft als doel de data zoveel mogelijk te comprimeren voordat het verzonden wordt, net als een bestandje zippen voordat je het e-mailt.
 In andere woorden, de uitgang van de broncodering zal **kleiner** zijn dan de data ingang, maar de uitgang van kanaalcodering zal langer zijn dan de ingang want er is redundante informatie toegevoegd.
@@ -87,12 +89,14 @@ Hieronder zie je hoe een telefoontoren de MCS aanpast op basis van de afstand to
 .. image:: ../_images/adaptive_mcs.svg
    :align: center 
    :target: ../_images/adaptive_mcs.svg
+   :alt: Modulation and coding scheme (MCS) visualized using a cellular base station where each ring represents the boundary of a MCS scheme to operate without error
 
 Wanneer de MCS wordt aangepast, als je dit uitzet tegenover de SNR, dan krijg je een stapvormige grafiek zoals het figuur hieronder. Protocollen zoals LTE hebben vaak een tabel wat aangeeft welke MCS gebruikt zou moeten worden bij welke SNR.
 
 .. image:: ../_images/adaptive_mcs2.svg
    :align: center 
    :target: ../_images/adaptive_mcs2.svg
+   :alt: Plot of throughput over SNR for various modulation and coding schemes (MCS), leading to a staircase or step shape
 
 ***************************
 Hamming Code
@@ -118,6 +122,7 @@ De tabel vertelt ons dan hoeveel pariteitsbits we nodig hebben voor elke databit
 .. image:: ../_images/hamming.svg
    :align: center 
    :target: ../_images/hamming.svg
+   :alt: Hamming code pattern showing how parity bit coverage works
 
 De hamming-code is een blokcode wat opereert op N databits per keer.
 Met 3 pariteitsbits kunnen we opereren op een blok van 4 databits per keer.
@@ -126,6 +131,7 @@ Dit schema zouden we aangeven als Hamming(7,4), waarbij het eerste getal aangeef
 .. image:: ../_images/hamming2.svg
    :align: center 
    :target: ../_images/hamming2.svg
+   :alt: Example of Hamming 7,4 which has three parity bits
 
 Hier volgen belangrijke eigenschappen van de Hamming-code:
 
@@ -156,6 +162,8 @@ Convolutionele codes werken anders, maar daar zullen we niet dieper op in gaan; 
 
 .. image:: ../_images/trellis.svg
    :align: center 
+   :scale: 80% 
+   :alt: A trellis diagram or graph is used within convolutional coding to show connection between nodes
 
 ***************************
 Soft vs Hard Decodering
@@ -195,6 +203,8 @@ Maar bij het plotten geven we voor het gemak de SNR meestal wel in dB:
 
 .. image:: ../_images/shannon_limit.svg
    :align: center 
+   :target: ../_images/shannon_limit.svg
+   :alt: Plot of the Shannon Limit in bits per second per Hz over SNR in dB
 
 Soms wordt de Shannon-limiet in "signaal/ruisenergie per bit" weergeven of :math:`E_n/N_0`; dit is gewoon een alternatief voor SNR.
 
@@ -218,6 +228,8 @@ Het bewijs achter de Shannon-limiet is best gestoord; dit heeft wiskunde wat hie
 .. image:: ../_images/shannon_limit_proof.png
    :scale: 70 % 
    :align: center
+   :alt: Example of the math involved in the Shannon Limit proof
+
 
 Kijk voor meer informatie `hier <https://en.wikipedia.org/wiki/Shannon%E2%80%93Hartley_theorem>`_.
 

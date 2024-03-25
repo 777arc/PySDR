@@ -390,12 +390,23 @@ Once we get lower than λ/4 there is no distinguishing between the two different
 **********************
 Bartlett Beamformer
 **********************
-Now that we've covered the basics, it would benefit our subsequent discussions if we take a quick detour into some notational and algebric details of what we just did. At the end of this disussion, you will have gained no new conceptual knowledge, but will gain the knowldge on how to mathematically represent sweeping beams across space in a condensed and elegant manner. Furthermore, you will realize quickly that this additonal step that we undertaking actually extends to other DOA techniques as well. 
+Now that we've covered the basics, it would benefit our subsequent discussions if we take a quick detour into some notational and algebric details of what we just did. At the end of this disussion, while you will have gained no new conceptual knowledge, you will gain the knowldge on how to mathematically represent sweeping beams across space in a condensed and elegant manner. Furthermore, you will realize quickly that this additonal step that we undertaking actually extends to other DOA techniques as well. Laslty, the following algebriac notations actually renders itself rather well to vectorization, thus making it very suitable for real-time processing. 
 
-First order of business: Giving the process of sweeping beams a name! Fortunately, for us, this is a solved problem and it goes by "Bartlett Beamforming"(some folks also call it Fourier beamforming, although some others call a different process Fourier beamforming, so we will henceforth stick to Bartlett beamforming to avoid any confusion). Lets do a quick recap of what we just did earlier in order to calculate our DOA, in the previous beam sweep method(henceforth called Bartlett beamforming), (1) We picked a bunch of directions to point at (2) We calculated the weights for the predetermined directions 3) Used the weights to point our beams (3) Combined the outputs of the array elements after multiplying them with their corresponding wieghts (4) Calculated and Plotted the observed power (5) Picked peaks that were significant and inferred that the signal was likely there. We are now going to write the series of steps we just reiterated mathematically
+First order of business: Giving the process of sweeping beams a name! Fortunately, for us, this is a solved problem and it goes by "Bartlett Beamforming". You may encounter some folks who call this technqiue Fourier beamforming. To add to the confusing, there are other folks who call a different process that prodcues orthogonal beams Fourier beamforming. In order to avoid any confusion, we will henceforth stick to Bartlett beamforming. To summarize, sweeping beams across space to get an estimate of DOA is called Bartlett Beamforming. 
+
+Now, lets do a quick recap of what we just did earlier in order to calculate our DOA, in Bartlett beamforming, (1) We picked a bunch of directions to point at (2) We calculated the weights for the predetermined directions 3) Used the weights to point our beams (3) Combined the outputs of the array elements after multiplying them with their corresponding wieghts (4) Calculated and Plotted the observed power (5) Picked peaks that were significant and inferred that the signal was likely there. We are now going to write the series of steps we just reiterated mathematically
+
 
 Let the signal received by the array be represented by the steering vector :math:`\mathbf{s}`. This received signal is a function of the direction of arrival (DOA) of the signal, which we will denote as :math:`\theta`. Let the weight applied to the steering vector be represented by :math:`\mathbf{w}`. The output of the array is the dot product of the steering vector and the weight, which we will denote as :math:`\mathbf{w}^{H}  \mathbf{s} ` Now, the power of the received signal can be obtained by squaring the magnitude of the output of the array. This is represented as :math:`\left| \mathbf{w}^{H}  \mathbf{s} \right|^{2} = \mathbf{w}^{H}  \mathbf{s} \mathbf{s}^{H} \mathbf{w} = \mathbf{w} \mathbf{R_{ss}} \mathbf{w} `, where :math:`\mathbf{R}` is the spatial covariance matrix. The spatial covariance matrix measures the similarity between the samples received from the different elements of the array. If we now apply various weights to the steering vector, we can obtain the power of the received signal for different directions. This is the essence of Bartlett beamforming i.e the beam sweep that we described using the earlier geenrated python code.
 
+.. math::
+   P = \left\| \mathbf{w} \mathbf{a}\right\|^2 
+   
+   = (\mathbf{w}^H\mathbf{a})(\mathbf{w}^H\mathbf{a})^* 
+   
+   = \mathbf{a}^H\mathbf{w}\mathbf{w}^H\mathbf{a}
+   
+   = \mathbf{a}^H\mathbf{R}\mathbf{a}
 **********************
 Spatial Tapering
 **********************
@@ -522,8 +533,12 @@ As a quick aside for the interested reader, there is actually an optimization th
 If we plug in the equation for the MVDR weights we get:
 
 .. math::
-
- P_{mvdr} = \frac{1}{N} \sum_{n=0}^{N-1} \left| \left( \frac{R^{-1} a}{a^H R^{-1} a} \right)^H r_n \right|^2
+   P_{mvdr} = w^H_{mvdr} R w_{mvdr}
+   = \frac{a^H R^{-1} a}{a^H R^{-1} a}* R *\frac{R^{-1} a}{a^H R^{-1} a}
+   = \frac{a^H R^{-1} a}{(a^H R^{-1} a)(a^H R^{-1} a)}
+   = \frac{1}{a^H R^{-1} a}
+ 
+ \frac{1}{N} \sum_{n=0}^{N-1} \left| \left( \frac{R^{-1} a}{a^H R^{-1} a} \right)^H r_n \right|^2
 
    = \frac{1}{N} \sum_{n=0}^{N-1} \left| \frac{a^H R^{-1}}{a^H R^{-1} a} r_n \right|^2
   
@@ -545,6 +560,20 @@ Meaning we don't have to apply the weights at all, this final equation above for
 To use this in the previous simulation, within the for loop, the only thing left to do is take the :code:`10*np.log10()` and you're done, there are no weights to apply; we skipped calculating the weights!
 
 There are many more beamformers out there, but next we are going to take a moment to discuss how the number of elements impacts our ability to perform beamforming and DOA.
+
+**********************
+LCMV Beamformer
+**********************
+Now that we have taken a look at the minmum-variance distortless response(MVDR) beamformer,we observe that it is a very powerful beamformer that is able to suppress interference and noise. However, it is not perfect. For instance if we had 2 or more separate sources of interferers or 2 or more SOIs for that matter (see figure). So there in lies the rub- you can't really use this technique for situations other than the limiting situation, where you know where the interfers DOA and the SOI location. 
+
+Now, thanksfully with just a small tweak, we can actually implement MVDR with multiple SOIs and interferers. This is called the Linearly Constrained Minimum Variance (LCMV) beamformer. The LCMV beamformer is a generalization of the MVDR beamformer, where we can specify the desired response for multiple directions. The optimum weight vector for the LCMV beamformer can be summarized in the following equation: 
+..math::
+   w = R^{-1}A[A^HR^{-1}A]^{-1}d
+   
+where A is a matrix that comprising of the steering vector's of the corresponding SoIs and Interferers, and d is the desired response vector. the vector d for a particular row takes the value of 0 when the correspnding steering vector is to be nulled and takes a value 1 when we would require a main beam in the corresponding. The desired response vector is a vector of the desired responses for each direction. For example, if we have two sources of interest and two sources of interferences, we can set d = [1, 1,0,0]. The LCMV beamformer is a powerful tool that can be used to suppress interference and noise from multiple directions while simultaneously enhancing the signal of interest from multiple directions.
+
+The catch here is that the total number of nulls and main beam you can put out simultaneously is limited by the size of the array. Furthermore, you need the exact steering vector for each of the SOIs and interferers(which isnt always readily available in a lot of real life applications). For estimates are used instead, and thus the performance of the LCMV/MVDR beamformer can degrade.
+
 
 *******************
 Number of Elements

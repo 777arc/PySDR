@@ -110,7 +110,7 @@ for frame_i in range(0, num_frames):
     #exit()
 
     filename = '/tmp/spatial_tapering_' + str(frame_i) + '.png'
-    fig.savefig(filename, bbox_inches='tight')
+    fig.savefig(filename, pad_inches=0)
     plt.close()
     filenames.append(filename)
 

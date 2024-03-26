@@ -29,19 +29,19 @@ In this chapter we primarily focus on DSP for fully digital arrays, as they are 
 
 We typically refer to the antennas that make up an array as elements, and sometimes the array is called a "sensor" instead.  These array elements are most often omnidirectional antennas, equally spaced in either a line or across two dimensions. 
 
-A beamformer is essentially a spatial filter; it filters out signals from all directions except the desired direction(s).  Instead of taps, we use weights (a.k.a. coefficients) applied to each element of an array.  We then manipulate the weights to form the beam(s) of the array, hence the name beamforming!  We can steer these beams (and nulls) extremely fast; must faster than mechanically gimballed antennas which can be thought of as an alternative to phased arrays.  A single array can electronically track multiple signals at once while nulling out interferers, as long as it has enough elements.  We'll typically discuss beamforming within the context of a communications link, where the receiver aims to receive one or more signals at as high SNR as possible. 
+A beamformer applied to an antenna array is essentially a spatial filter; it filters out signals from all directions except the desired direction(s).  Instead of taps, we use weights (a.k.a. coefficients) applied to each element of an array.  We then manipulate the weights to form the beam(s) of the array, hence the name beamforming!  We can steer these beams (and nulls) extremely fast; faster than mechanically gimballed antennas, which can be thought of as an alternative to phased arrays. If calibrated and weighted appropritaely,  a single array with 'N' elements can simultaneously track 'L' multiple signals while nulling out 'N-L' interferers.  We'll typically discuss beamforming within the context of a communications link, where the receiver aims to receive one or more signals at the greatest possible SNR.
 
-Beamforming approaches are typically broken down into conventional and adaptive.  With conventional beamforming you assume you already know the direction of arrival of the signal of interest, and the beamformer involves choosing weights to maximize gain in that direction.  This can be used on the receive or transmit side of a communication system.  Adaptive beamforming, on the other hand, involves constantly adjusting the weights based on the beamformer output, to optimize some criteria, often involving nulling out an interferer.  Due to the closed loop and adaptive nature, adaptive beamforming is typically just used on the receive side, so the "beamformer output" is simply your received signal, and adaptive beamforming involves adjusting the weights based on the statistics of that received data.
+Beamforming approaches can be broken down into three categories, namely: conventional, adaptive, and blind. Conventional beamforming is most useful when you already know the direction of arrival of the signal of interest, and the beamforming process involves choosing weights to maximize the array gain in that direction.  This can be used on both the receive or transmit side of a communication system.  Adaptive beamforming, on the other hand, typically involves adjusting the weights based on the beamformer's input, to optimize some criteria (e.g., nulling out an interferer, having multiple main beams, etc).  Due to the closed loop and adaptive nature, adaptive beamforming is typically just used on the receive side, so the "beamformer's input" is simply your received signal, and adaptive beamforming involves adjusting the weights based on the statistics of that received data.
 
-Direction-of-Arrival (DOA) within DSP/SDR refers to the process of using an array of antennas to estimate the directions of arrival of one or more signals received by that array (versus beamforming, which is focused on the process of receiving a signal while rejecting as much noise and interference).  Although DOA certainly falls under the beamforming topic umbrella, so the terms can get confusing.  Some techniques such as MVDR/Capon will apply to both DOA and beamforming, because the same technique used for beamforming is used to perform DOA by sweeping the angle of interest and performing the beamforming operation at each angle, then looking for peaks in the result (each peak is a signal, but we don't know whether it is the signal of interest, an interferer, or even a multipath bounce from the signal of interest). You can think of these DOA techniques as a wrapper around a specific beamformer.  There are DOA techniques such as MUSIC and ESPIRT which are strictly for the purpose of DOA.  Because most beamforming techniques assume you know the angle of arrival of the signal of interest, if the target is moving, or the array is moving, you will have to continuously perform DOA as an intermediate step, even if your primary goal is to receive and demodulate the signal of interest.
+Direction-of-Arrival (DOA) within DSP/SDR refers to the process of using an array of antennas to detect and estimate the directions of arrival of one or more signals received by that array (versus beamforming, which is focused on the process of receiving a signal while rejecting as much noise and interference).  Although DOA certainly falls under the beamforming topic umbrella, the two terms can get confusing.  Some techniques such as Conventional and MVDR beamforming can apply to both DOA and beamforming, because the same technique used for beamforming is used to perform DOA by sweeping the angle of interest and performing the beamforming operation at each angle, then looking for peaks in the result (each peak is a signal, but we don't know whether it is the signal of interest, an interferer, or even a multipath bounce from the signal of interest). You can think of these DOA techniques as a wrapper around a specific beamformer.  Other beamformers are unable to be simply wrapped into a DOA routine, such as due to extra inputs that won't be available within the context of DOA.  There are also DOA techniques such as MUSIC and ESPIRT which are strictly for the purpose of DOA and are not a beamformer.  Because most beamforming techniques assume you know the angle of arrival of the signal of interest, if the target is moving, or the array is moving, you will have to continuously perform DOA as an intermediate step, even if your primary goal is to receive and demodulate the signal of interest.
 
-Phased arrays and beamforming/DOA find use in all sorts of applications, although you will most often see them used in multiple forms of radar, mmWave communication within 5G, satellite communications, and jamming.  Any applications that require a high-gain antenna, or require a rapidly moving high-gain antenna, are good candidates for phased arrays.
+Phased arrays and beamforming/DOA find use in all sorts of applications, although you will most often see them used in multiple forms of radar, newer WiFi standards, mmWave communication within 5G, satellite communications, and jamming. Generally, any applications that require a high-gain antenna, or require a rapidly moving high-gain antenna, are good candidates for phased arrays.
 
 *******************
 SDR Requirements
 *******************
 
-As discussed, analog phased arrays involve an analog phase shifter (and usually adjustable gain) per channel, meaning an analog phased array is a dedicated piece of hardware that must go alongside an SDR.  On the other hand, any SDR that contains more than one channel can be used as a digital array with no extra hardware, as long as the channels are phase coherent and sampled using the same clock, which is typically the case for SDRs that have multiple recieve channels onboard.  There are many SDRs that contain **two** receive channels, such as the Ettus USRP B210 and Analog Devices Pluto (the 2nd channel is exposed using a uFL connector on the board itself).  Unfortunately, going beyond two channels involves entering the $10k+ segment of SDRs, at least as of 2023, such as the USRP N310.  The main problem is that low-cost SDRs are typically not able to be "chained" together to scale the number of channels.  The exception is the KerberosSDR (4 channels) and KrakenSDR (5 channels) which use multiple RTL-SDRs sharing an LO to form a low-cost digital array; the downside being the very limited sample rate (up to 2.56 MHz) and tuning range (up to 1766 MHz).  The KrakenSDR board and example antenna configuration is shown below.
+Analog phased arrays involve one phase shifter (and often one adjustable gain stage) per channel/element, implemented in analog RF circuitry.  This means an analog phased array is a dedicated piece of hardware that must go alongside an SDR, or be purpose-built for a specific application.  On the other hand, any SDR that contains more than one channel can be used as a digital array with no extra hardware, as long as the channels are phase coherent and sampled using the same clock, which is typically the case for SDRs that have multiple recieve channels onboard.  There are many SDRs that contain **two** receive channels, such as the Ettus USRP B210 and Analog Devices Pluto (the 2nd channel is exposed using a uFL connector on the board itself).  Unfortunately, going beyond two channels involves entering the $10k+ segment of SDRs, at least as of 2023, such as the Ettus USRP N310 or the Analog Devices QuadMXFE (16 channels).  The main challenge is that low-cost SDRs are typically not able to be "chained" together to scale the number of channels.  The exception is the KerberosSDR (4 channels) and KrakenSDR (5 channels) which use multiple RTL-SDRs sharing an LO to form a low-cost digital array; the downside being the very limited sample rate (up to 2.56 MHz) and tuning range (up to 1766 MHz).  The KrakenSDR board and example antenna configuration is shown below.
 
 .. image:: ../_images/krakensdr.jpg
    :align: center 
@@ -114,9 +114,9 @@ Here are some common operations in both MATLAB and Python, as a sort of cheat sh
      - :code:`[A A]`
      - :code:`np.concatenate((A,A))`
 
-*******************
-Array Factor Math
-*******************
+*********************
+Steering Vector Math
+*********************
 
 To get to the fun part we have to get through a little bit of math, but the following section has been written so that the math is extremely simple and has diagrams to go along with it, only the most basic trig and exponential properties are used.  It's important to understand the basic math behind what we'll do in Python to perform DOA.
 
@@ -188,7 +188,7 @@ This is for adjacent elements, for the :math:`k`'th element we just need to mult
 .. math::
  s[n] e^{-2j \pi d k \sin(\theta)}
 
-And we're done! This equation above is what you'll see in DOA papers and implementations everywhere! We typically call that exponential term the "array factor" (often denoted as :math:`a`) and represent it as an array, a 1D array for a 1D antenna array, etc.  In python :math:`a` is:
+And we're done! This equation above is what you'll see in DOA papers and implementations everywhere! We typically call that exponential term the "Steering Vector" (often denoted as :math:`a`) and represent it as an array, a 1D array for a 1D antenna array, etc.  In python :math:`a` is:
 
 .. code-block:: python
 
@@ -202,7 +202,7 @@ Note how element 0 results in a 1+0j (because :math:`e^{0}=1`); this makes sense
 Receiving a Signal
 *******************
 
-Let's use the array factor concept to simulate a signal arriving at an array.  For a transmit signal we'll just use a tone for now:
+Let's use the Steering Vector concept to simulate a signal arriving at an array.  For a transmit signal we'll just use a tone for now:
 
 .. code-block:: python
 
@@ -217,7 +217,7 @@ Let's use the array factor concept to simulate a signal arriving at an array.  F
  f_tone = 0.02e6
  tx = np.exp(2j * np.pi * f_tone * t)
 
-Now let's simulate an array consisting of three omnidirectional antennas in a line, with 1/2 wavelength between adjacent ones (a.k.a. "half-wavelength spacing").  We will simulate the transmitter's signal arriving at this array at a certain angle, theta.  Understanding the array factor :code:`a` below is why we went through all that math above.
+Now let's simulate an array consisting of three omnidirectional antennas in a line, with 1/2 wavelength between adjacent ones (a.k.a. "half-wavelength spacing").  We will simulate the transmitter's signal arriving at this array at a certain angle, theta.  Understanding the Steering Vector :code:`a` below is why we went through all that math above.
 
 .. code-block:: python
 
@@ -225,10 +225,10 @@ Now let's simulate an array consisting of three omnidirectional antennas in a li
  Nr = 3
  theta_degrees = 20 # direction of arrival (feel free to change this, it's arbitrary)
  theta = theta_degrees / 180 * np.pi # convert to radians
- a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # array factor
+ a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Steering Vector
  print(a) # note that it's 3 elements long, it's complex, and the first element is 1+0j
 
-To apply the array factor we have to do a matrix multiplication of :code:`a` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`x.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
+To apply the Steering Vector we have to do a matrix multiplication of :code:`a` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`x.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
 
 .. code-block:: python
 
@@ -238,7 +238,7 @@ To apply the array factor we have to do a matrix multiplication of :code:`a` and
  print(tx.shape) # 10000x1
  
  # matrix multiply
- r = a @ tx.T  # dont get too caught up by the transpose, the important thing is we're multiplying the array factor by the tx signal
+ r = a @ tx.T  # dont get too caught up by the transpose, the important thing is we're multiplying the Steering Vector by the tx signal
  print(r.shape) # 3x10000.  r is now going to be a 2D array, 1D is time and 1D is the spatial dimension
 
 At this point :code:`r` is a 2D array, size 3 x 10000 because we have three array elements and 10000 samples simulated.  We can pull out each individual signal and plot the first 200 samples, below we'll plot the real part only, but there's also an imaginary part, like any baseband signal.  One annoying part of matrix math in Python is needing to add the :code:`.squeeze()`, which removes all dimensions with length 1, to get it back to a normal 1D NumPy array that plotting and other operations expects.
@@ -256,7 +256,7 @@ At this point :code:`r` is a 2D array, size 3 x 10000 because we have three arra
 
 Note the phase shifts between elements like we expect to happen (unless the signal arrives at boresight in which case it will reach all elements at the same time and there wont be a shift, set theta to 0 to see).  Element 0 appears to arrive first, with the others slightly delayed.  Try adjusting the angle and see what happens.
 
-As one final step, let's add noise to this received signal, as every signal we will deal with has some amount of noise. We want to apply the noise after the array factor is applied, because each element experiences an independent noise signal (we can do this because AWGN with a phase shift applied is still AWGN):
+As one final step, let's add noise to this received signal, as every signal we will deal with has some amount of noise. We want to apply the noise after the Steering Vector is applied, because each element experiences an independent noise signal (we can do this because AWGN with a phase shift applied is still AWGN):
 
 .. code-block:: python
 
@@ -388,6 +388,33 @@ Once we get lower than λ/4 there is no distinguishing between the two different
 
 
 **********************
+Bartlett Beamformer
+**********************
+
+Now that we've covered the basics, we will take a quick detour into some notational and algebric details of what we just did, to gain knowledge on how to mathematically represent sweeping beams across space in a condensed and elegant manner.  The following algebriac notations renders itself well to vectorization, making it suitable for real-time processing.
+
+The process of sweeping beams across space to get an estimate of DOA actually has a technical name; it goes by "Bartlett Beamforming" (a.k.a. Fourier beamforming to some, but note that Fourier beamforming can also mean a different technique altogether).  Let's do a quick recap of what we did earlier in order to calculate our DOA, using what we now know is called Bartlett beamforming:
+
+#. We picked a bunch of directions to point at (e.g., -90 to +90 degrees at some interval)
+#. We calculated the beamforming weights at each direction, to point our beam in that direction
+#. The outputs of the array elements were multiplied with their corresponding wieght, and all results were summed
+#. We calculated the signal power at each direction, then plotted the results
+#. Peaks were found, each one inferring that a signal was likely received from that direction
+
+We are now going to write the series of steps we just reiterated mathematically.  Let the signal received by the array be represented by the steering vector :math:`\mathbf{s}`. This received signal is a function of the direction of arrival (DOA) of the signal, which we will denote as :math:`\theta`. Let the weight applied to the steering vector be represented by :math:`\mathbf{w}`. The output of the array is the dot product of the steering vector and the weight, which we will denote as :math:`\mathbf{w}^{H} \mathbf{s}`.  Now, the power of the received signal can be obtained by squaring the magnitude of the output of the array. This is represented as :math:`\left| \mathbf{w}^{H} \mathbf{s} \right|^{2} = \mathbf{w}^{H} \mathbf{s} \mathbf{s}^{H} \mathbf{w} = \mathbf{w} \mathbf{R_{ss}} \mathbf{w}`, where :math:`\mathbf{R}` is the spatial covariance matrix estimate. The spatial covariance matrix measures the similarity between the samples received from the different elements of the array. We repeat for each direction we want to scan, but note that the only thing that changes between direction is \mathbf{w}.  We are also free to pick the list of directions, it doesn't have to be a -90 to +90 degree sweep, and we can process them all in parallel if we wish, using the same value of :math:`\mathbf{R}` for all.  This is the essence of Bartlett beamforming, i.e the beam sweep that we described using the earlier generated python code.
+
+.. math::
+   P = \left\| \mathbf{w} \mathbf{a}\right\|^2 
+   
+   = (\mathbf{w}^H\mathbf{a})(\mathbf{w}^H\mathbf{a})^* 
+   
+   = \mathbf{a}^H\mathbf{w}\mathbf{w}^H\mathbf{a}
+   
+   = \mathbf{a}^H\mathbf{R}\mathbf{a}
+
+This mathematical representation extends to other DOA techniques as well.
+
+**********************
 Spatial Tapering
 **********************
 
@@ -433,7 +460,7 @@ The MVDR/Capon beamformer can be summarized in the following equation:
 
  w_{mvdr} = \frac{R^{-1} a}{a^H R^{-1} a}
 
-where :math:`R` is the covariance matrix estimate based on our recieved samples, calculated by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are.  The vector :math:`a` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.
+where :math:`R` is the spatial covariance matrix estimate based on our recieved samples, calculated by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are.  The vector :math:`a` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.
 
 If we already know the direction of the signal of interest, and that direction does not change, we only have to calculate the weights once and simply use them to receive our signal of interest.  Although even if the direction doesn't change, we benefit from recalculating these weights periodically, to account for changes in the interference/noise, which is why we refer to these non-conventional digital beamformers as "adaptive" beamforming; they use information in the signal we receive to calculate the best weights.  Just as a reminder, we can *perform* beamforming using MVDR by calculating these weights and applying them to the signal with :code:`w.conj().T @ r`, just like we did in the conventional method, the only difference is how the weights are calculated.
 
@@ -513,8 +540,12 @@ As a quick aside for the interested reader, there is actually an optimization th
 If we plug in the equation for the MVDR weights we get:
 
 .. math::
-
- P_{mvdr} = \frac{1}{N} \sum_{n=0}^{N-1} \left| \left( \frac{R^{-1} a}{a^H R^{-1} a} \right)^H r_n \right|^2
+   P_{mvdr} = w^H_{mvdr} R w_{mvdr}
+   = \frac{a^H R^{-1} a}{a^H R^{-1} a}* R *\frac{R^{-1} a}{a^H R^{-1} a}
+   = \frac{a^H R^{-1} a}{(a^H R^{-1} a)(a^H R^{-1} a)}
+   = \frac{1}{a^H R^{-1} a}
+ 
+ \frac{1}{N} \sum_{n=0}^{N-1} \left| \left( \frac{R^{-1} a}{a^H R^{-1} a} \right)^H r_n \right|^2
 
    = \frac{1}{N} \sum_{n=0}^{N-1} \left| \frac{a^H R^{-1}}{a^H R^{-1} a} r_n \right|^2
   
@@ -536,6 +567,18 @@ Meaning we don't have to apply the weights at all, this final equation above for
 To use this in the previous simulation, within the for loop, the only thing left to do is take the :code:`10*np.log10()` and you're done, there are no weights to apply; we skipped calculating the weights!
 
 There are many more beamformers out there, but next we are going to take a moment to discuss how the number of elements impacts our ability to perform beamforming and DOA.
+
+**********************
+LCMV Beamformer
+**********************
+
+Now that we have taken a look at the MVDR beamformer, we observe that it is a very powerful technique that is able to suppress interference and noise. However, it is not perfect. For instance, what if we had more than one SOI?  Thanksfully, with just a small tweak to MVDR, we can implement a scheme that handles multiple SOIs and interferers well. It is called the Linearly Constrained Minimum Variance (LCMV) beamformer, and it is a generalization of MVDR, where we specify the desired response for multiple directions. The optimum weight vector for the LCMV beamformer can be summarized in the following equation: 
+
+..math::
+
+   w = R^{-1}A[A^HR^{-1}A]^{-1}d
+
+where :math:`A` is a matrix comprising of the steering vectors of the corresponding SOIs and interferers, and :math:`d` is the desired response vector. the vector :math:`d` for a particular row takes the value of 0 when the corresponding steering vector is to be nulled, and takes a value of 1 when we want a beam pointed at it. The desired response vector is a vector of the desired responses for each direction. For example, if we have two sources of interest and two sources of interference, we can set :code:`d = [1,1,0,0]`. The LCMV beamformer is a powerful tool that can be used to suppress interference and noise from multiple directions while simultaneously enhancing the signal of interest from multiple directions.  The catch is that the total number of nulls and beams you can form simultaneously is limited by the size of the array (the number of elements). Furthermore, you need the exact steering vector for each of the SOIs and interferers, which isnt always readily available in practical applications. Because estimates are used instead, the performance of the LCMV beamformer can degrade.
 
 *******************
 Number of Elements
@@ -573,7 +616,7 @@ where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2
  theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # -180 to +180 degrees
  results = []
  for theta_i in theta_scan:
-     a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # array factor
+     a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Steering Vector
      a = a.reshape(-1,1)
      metric = 1 / (a.conj().T @ V @ V.conj().T @ a) # The main MUSIC equation
      metric = np.abs(metric.squeeze()) # take magnitude

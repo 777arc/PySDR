@@ -437,7 +437,7 @@ if False:
 
 
 # Radar style scenario using MVDR, with a training phase, and comparing it to normal DOA approach (NORMAL SEEMS TO WORK BETTER SO IM LEAVING RADAR STYLE OUT FOR NOW)
-if True:
+if False:
     # 1 jammer 1 SOI, generating two different received signals so we can isolate jammer for the training step
     # Jammer is complex baseband noise
     # Signal is complex baseband noise
@@ -644,4 +644,7 @@ if False:
     ax.set_theta_direction(-1) # increase clockwise
     ax.set_rlabel_position(30)  # Move grid labels away from other labels
     plt.show()
+
+
+
 

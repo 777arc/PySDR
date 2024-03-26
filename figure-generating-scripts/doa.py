@@ -646,58 +646,5 @@ if False:
     plt.show()
 
 
-    # LCMV/Frost
-if True:
-    # theta is the directions of interest in radians, g is the gain matrix of desired signals, and r is our received signal
-    def w_lcmv(theta, r):
-        a = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
-        a = a.reshape(-1,1) # make into a column vector (size 3x1)
-        f = np.ones(1)#.reshape(-1,1)
-        R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
-        Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
-        w = ((Rinv @ a)/(a.conj().T @ Rinv @ a))@f # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
-        return w
-
-    
-    if True: # use for doacompons2
-        # more complex scenario
-        Nr = 8 # 8 elements
-        theta1 = 20 / 180 * np.pi # convert to radians
-        theta2 = 25 / 180 * np.pi
-        theta3 = -40 / 180 * np.pi
-
-        theta_mat = np.random[]
-        a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-        a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-        a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
-        # we'll use 3 different frequencies.  1xN
-        tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
-        tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
-        tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
-        r = a1 @ tone1 + a2 @ tone2 + 0.1 * a3 @ tone3
-        n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
-        r = r + 0.05*n # 8xN
-
-    theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
-    results = []
-    for theta_i in theta_scan:
-        w = w_lcmv(theta_i, r) # 3x1
-        r_weighted = w.conj().T @ r # apply weights
-        power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
-        results.append(power_dB)
-        #results.append(10*np.log10(power_mvdr(theta_i, r))) # compare to using equation for MVDR power, should match, SHOW MATH OF WHY THIS HAPPENS!
-    results -= np.max(results) # normalize
-    print(theta_scan[np.argmax(results)] * 180/np.pi) # Angle at peak, in degrees
-
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    ax.plot(theta_scan, results) # MAKE SURE TO USE RADIAN FOR POLAR
-    ax.set_theta_zero_location('N') # make 0 degrees point up
-    ax.set_theta_direction(-1) # increase clockwise
-    ax.set_rlabel_position(30)  # Move grid labels away from other labels
-    plt.show()
-    fig.savefig('../_images/doa_capons.svg', bbox_inches='tight')
-    #fig.savefig('../_images/doa_capons2.svg', bbox_inches='tight')
-    exit()
-
 
 

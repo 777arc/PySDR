@@ -178,7 +178,7 @@ We're almost done, but luckily there's one more simplification we can make.  Rec
  = s[n] e^{-2j \pi d \sin(\theta) / \lambda}
 
 
-In DOA what we like to do is represent :math:`d`, the distance between adjacent elements, as a fraction of wavelength (instead of meters), the most common value chosen for :math:`d` during the array design process is to use one half the wavelength. Regardless of what :math:`d` is, from this point on we're going to represent :math:`d` as a fraction of wavelength instead of meters, making the equation and all our code simpler:
+In applied beamforming/DOA what we like to do is represent :math:`d`, the distance between adjacent elements, as a fraction of wavelength (instead of meters), the most common value chosen for :math:`d` during the array design process is to use one half the wavelength. Regardless of what :math:`d` is, from this point on we're going to represent :math:`d` as a fraction of wavelength instead of meters, making the equation and all our code simpler:
 
 .. math::
  s[n] e^{-2j \pi d \sin(\theta)}
@@ -342,11 +342,7 @@ Let's talk about why is there a second peak at 160 degrees; the DOA we simulated
    :align: center 
    :target: ../_images/doa_from_behind.svg
 
-***********************
-Broadside of the Array
-***********************
-
-To demonstrate this next concept, let's try sweeping the angle of arrival (AoA) from -90 to +90 degrees instead of keeping it constant at 20:
+Let's try sweeping the angle of arrival (AoA) from -90 to +90 degrees instead of keeping it constant at 20:
 
 .. image:: ../_images/doa_sweeping_angle_animation.gif
    :scale: 100 %
@@ -413,6 +409,16 @@ We are now going to write the series of steps we just reiterated mathematically.
    = \mathbf{a}^H\mathbf{R}\mathbf{a}
 
 This mathematical representation extends to other DOA techniques as well.
+
+
+For those who learn through visuals, the following animation shows the beam shape of the conventional beamformer, for an 8-element array being steered between -90 and +90 degrees.  Also shown are the eight weights plotted in the complex plane (real and imaginary axis).
+
+.. image:: ../_images/delay_and_sum.gif
+   :scale: 90 %
+   :align: center
+   :alt: Beam pattern of delay and sum while viewing each weight on the complex plane
+
+Note how all weights have unity magnitude (they stay on the unit circle), and how the higher numbered elements "spin" faster.  If you watch closely you'll notice at 0 degrees they all line up; they are all equal to 0 phase shift (1+0j).
 
 **********************
 Spatial Tapering

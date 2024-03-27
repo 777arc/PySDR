@@ -39,7 +39,7 @@ In Python, and numpy specifically, we use the :code:`tofile()` function to store
 
     num_symbols = 10000
 
-    x_symbols = np.random.randint(0, 2, num_symbols)*2-1 # -1 and 1's
+    x_symbols = (np.random.randint(0, 2, num_symbols)*2-1)*(1+1j) # -1 and 1's
     n = (np.random.randn(num_symbols) + 1j*np.random.randn(num_symbols))/np.sqrt(2) # AWGN with unity power
     r = x_symbols + n * np.sqrt(0.01) # noise power of 0.01
     print(r)

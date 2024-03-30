@@ -18,6 +18,7 @@
 - old TV used PAL/NTSC modulated with VSB (hence asymetric PSD), but FPV cameras in 5.8 GHz band use PAL/NTSC FM modulated
 - In vestigial sideband (VSB), the full upper sideband of bandwidth (4.0 MHz) is tx, but only 0.75 MHz of the lower sideband is tx, along with a carrier
 - They use VSB and not SSB because they have a DC component and SSB would filter that out
+- remember that hacktv can also produce fm modulated pal, as well as the different variants of pal
 '''
 
 import numpy as np
@@ -36,7 +37,7 @@ Python code adapted from Dani's GRCon '22 CTF solution https://destevez.net/2022
 A big thanks to Dani, Gonzalo, and Clayton for their help and resources
 '''
 
-if True:
+if False:
     format_type = 'ntsc'
     # ATSC recording from 2022 GNU Radio Conference CTF-
     # https://ctf-2022.gnuradio.org/files/5d51c1bb8774333af7e87ecf19f8b664/never_the_same_color.sigmf-meta
@@ -53,15 +54,18 @@ if True:
     color_subcarrier_freq = 3.579545e6 # higher than luma carrier, not relative to center freq
     relative_audio_subcarrier_freq = 3.5e6
 else:
-    pal_example = '/mnt/d/SDRSharp_20170122_171736Z_179100000Hz_IQ.wav' # used in this SIGIDWIKI entry https://www.sigidwiki.com/wiki/PAL_Broadcast#google_vignette
-    format_type = 'pal'
-    x = read(pal_example)
-    sample_rate = x[0]
-    print("Sample Rate:", sample_rate)
-    fc = 179.1e6 # taken from filename
     samples_to_process = 10000000
-    x = x[1][0:samples_to_process*2, 0] + 1j*x[1][0:samples_to_process*2, 1]
-    sample_offset = 200 + 512*55 # in samples. specific to recording
+    format_type = 'pal'
+    #pal_example = '/mnt/d/SDRSharp_20170122_171736Z_179100000Hz_IQ.wav' # used in this SIGIDWIKI entry https://www.sigidwiki.com/wiki/PAL_Broadcast#google_vignette
+    #x = read(pal_example)
+    #sample_rate = x[0]
+    #print("Sample Rate:", sample_rate)
+    #fc = 179.1e6 # taken from filename
+    #sample_offset = 200 + 512*55 # in samples. specific to recording
+    pal_example2 = '/mnt/d/pal_color_hacktv.fc32' # ./hacktv -o file:/mnt/d/pal_color_hacktv.fc32 -t float -m i /mnt/c/Users/marclichtman/Downloads/Free_Test_Data_1.21MB_MKV.mkv -s 16000000 --filter
+    sample_rate = 16e6
+    x = np.fromfile(pal_example2, dtype=np.complex64, count=samples_to_process)
+    sample_offset = 15 + 0*55 # in samples. specific to recording
     color_subcarrier_freq = 4.43361875e6 # higher than luma carrier, not relative to center freq
     relative_audio_subcarrier_freq = 3.5e6 # relative to luma carrier, leave positive even if its negative
 
@@ -69,6 +73,7 @@ else:
     # the tx inserts a snippet of the subcarrier just after the horizontal sync pulse, known as the color burst
     # in PAL, the phase of the R-Y component is inverted on alternate lines, hence "Phase Alternating Line"
     # i.e., the imaginary part (R-Y) will be negative every other line. it also lets the rx know whether its receiving an even or odd line at any given time
+    # the phase of the colour burst alternates between 135º and -135º relative to B-Y
 
 # Find luma subcarrier by looking for peak in PSD but only below 0 Hz, as there's also an audio and chroma subcarrier
 PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x)))**2)
@@ -84,7 +89,7 @@ if False:
 x = x * np.exp(-2j*np.pi*luma_subcarrier_freq*np.arange(len(x))/sample_rate)
 
 # Notch out audio signal
-x = np.convolve(x, signal.firwin(301, [relative_audio_subcarrier_freq - 50e3, relative_audio_subcarrier_freq + 50e3], fs=sample_rate), 'same')
+#x = np.convolve(x, signal.firwin(301, [relative_audio_subcarrier_freq - 50e3, relative_audio_subcarrier_freq + 50e3], fs=sample_rate), 'same')
 
 if False:
     PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x)))**2)
@@ -93,17 +98,23 @@ if False:
     plt.show()
     exit()
 
-'''
+
 # Extract chroma component
 x_chroma = x * np.exp(-2j*np.pi*color_subcarrier_freq*np.arange(len(x))/sample_rate)
 x_chroma = np.convolve(x_chroma, signal.firwin(301, 1e6, fs=sample_rate), 'same')
+if False:
+    offset = 1000000
+    x_chroma = np.abs(x_chroma)
+    plt.plot(x_chroma[offset:offset+3000])
+    plt.show()
+    exit()
 if False:
     PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x_chroma)))**2)
     f = np.linspace(-sample_rate/2, sample_rate/2, len(PSD))
     plt.plot(f, PSD)
     plt.show()
     exit()
-if True:
+if False:
     fft_size = 512
     num_rows = len(x_chroma) // fft_size
     spectrogram = np.zeros((num_rows, fft_size))
@@ -114,12 +125,74 @@ if True:
     plt.ylabel("Time [s]")
     plt.show()
     exit()
+
+# Using a manually tuned threshold, zero out all samples except the chroma burst
+threshold = 0.65
+delay_till_burst = 12 # samples between thresh and start of burst
+burst_len = 45 # samples FIXME CONVERT TO SECONDS AND CALC BASED ON SAMPLE RATE
+burst_indxs = np.where(np.diff((x > 0.65).astype(int)) == -1)[0] # need to use original signal for detection of each pixel start
+x_chroma_burst = np.zeros_like(x)
+for i in burst_indxs:
+    x_chroma_burst[i+delay_till_burst:i+delay_till_burst+burst_len] = x_chroma[i+delay_till_burst:i+delay_till_burst+burst_len]
+if False:
+    offset = 1000000
+    plt.plot(np.abs(x_chroma_burst[offset:offset+10000]), '.-')
+    plt.show()
+    exit()
+
+# Fine freq sync W/ PSD FIXME will need to run on small set of pixels for actual transmissions
+PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x_chroma_burst)))**2)
+f = np.linspace(-sample_rate/2, sample_rate/2, len(PSD))
+if False:
+    plt.plot(f, PSD)
+    plt.show()
+    exit()
+max_freq = f[np.argmax(PSD[np.abs(f - (-30)).argmin():np.abs(f - 30).argmin()]) + np.abs(f - (-30)).argmin()]
+print("max_freq", max_freq, "Hz")
+x_chroma_burst = x_chroma_burst * np.exp(-2j*np.pi*max_freq*np.arange(len(x))/sample_rate)
+if False:
+    plt.plot(x_chroma_burst[0:100000].real, x_chroma_burst[0:100000].imag, '.')
+    plt.show()
+    exit()
+
+burst_phases = [] # goes along with burst_indxs
+for i in burst_indxs:
+    burst = x_chroma_burst[i+delay_till_burst+13:i+delay_till_burst+burst_len-6] # hand-tuned to only include meat of burst
+    if np.max(np.abs(burst)) > 0.02:
+        if False:
+            plt.plot(burst.real, burst.imag, '.')
+            plt.axis([-0.1, 0.1, -0.1, 0.1])
+            plt.show()
+        if np.var(burst) > 1e-4:
+            print("Cluster wasnt tight")
+        else:
+            burst_phase = np.mean(np.angle(burst)) # grab average phase of all the good samples
+            burst_phases.append(burst_phase)
+    else:
+        print("Low amplitude burst")
+
+# The phase of the color burst alternates between 135º and -135º (225 deg) relative to B-Y
+''' i dont think this actually works, the higher one might wrap around 360deg
+# Figure out if we're starting on an even or odd line
+while burst_phases[0] >= 2*np.pi:
+    burst_phases[0] -= 2*np.pi
+while burst_phases[0] < 0:
+    burst_phases[0] += 2*np.pi
+while burst_phases[1] >= 2*np.pi:
+    burst_phases[1] -= 2*np.pi
+while burst_phases[1] < 0:
+    burst_phases[1] += 2*np.pi
+print(burst_phases[0] - burst_phases[1]) # should be either positive or negative roughly pi/2 (1.57)
+if (burst_phases[0] - burst_phases[1]) > 0:
+    print("Starting on even line")
+else:
+    print("Starting on odd line")
 '''
 
 x = np.abs(x) # Take magnitude
 if False:
     offset = 1000000
-    plt.plot(x[offset:offset+100000])
+    plt.plot(x[offset:offset+3000])
     plt.show()
     exit()
 
@@ -129,7 +202,7 @@ if format_type == 'ntsc':
     refresh_Hz = 29.97 # not exactly 30 Hz!! makes difference.  it's actually 30/1.001
 else: # PAL
     L = 512 # samples per line
-    lines_per_frame = 625
+    lines_per_frame = 625 # (576 visible lines)
     refresh_Hz = 25
 
 N = L * lines_per_frame # samples per frame
@@ -143,7 +216,6 @@ print("Resampling rate:", L/(sample_rate/line_Hz))
 x = x[sample_offset:]
 
 num_frames = int(len(x) / N)
-strips = np.zeros((len(range(0, x.size - N, N)), 2, L))
 plt.ion()
 plt.figure(figsize=(15, 9))
 for i in range(num_frames):
@@ -163,27 +235,5 @@ for i in range(num_frames):
         plt.pause(0.001)
         plt.clf()
 
-    im = Image.fromarray(np.round(255*w).astype('uint8'))
-    im.save(f'/tmp/{i:04d}.png')
-    strips[i] = w[40:42]
-    print(i)
-
-exit()
-
-if True:
-    plt.figure(figsize=(10, 5))
-    plt.imshow(strips[:200].reshape(400, -1).T, aspect='auto', cmap='gray', interpolation='none')
-    plt.show()
-
-if True:
-    plt.figure(figsize=(10, 5))
-    plt.imshow(strips[:200, 0].T, aspect='auto', cmap='gray', interpolation='none')
-    plt.figure(figsize=(10, 5))
-    plt.imshow(strips[:200, 1].T, aspect='auto', cmap='gray', interpolation='none')
-    plt.show()
-
-if True:
-    sample_cc = np.int32(np.arange(56, 458, 8))
-    plt.plot(strips[0, 0])
-    plt.plot(sample_cc, strips[0, 0, sample_cc], 'o')
-    plt.show()
+    #im = Image.fromarray(np.round(255*w).astype('uint8'))
+    #im.save(f'/tmp/{i:04d}.png')

@@ -75,6 +75,18 @@ else:
     # i.e., the imaginary part (R-Y) will be negative every other line. it also lets the rx know whether its receiving an even or odd line at any given time
     # the phase of the colour burst alternates between 135º and -135º relative to B-Y
 
+if format_type == 'ntsc':
+    L = 508 # samples per line
+    lines_per_frame = 525
+    refresh_Hz = 29.97 # not exactly 30 Hz!! makes difference.  it's actually 30/1.001
+else: # PAL
+    L = 512 # samples per line
+    lines_per_frame = 625 # (576 visible lines)
+    refresh_Hz = 25
+
+N = L * lines_per_frame # samples per frame
+line_Hz = refresh_Hz * lines_per_frame
+
 # Find luma subcarrier by looking for peak in PSD but only below 0 Hz, as there's also an audio and chroma subcarrier
 PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x)))**2)
 f = np.linspace(-sample_rate/2, sample_rate/2, len(PSD))
@@ -196,36 +208,56 @@ if False:
     plt.show()
     exit()
 
-if format_type == 'ntsc':
-    L = 508 # samples per line
-    lines_per_frame = 525
-    refresh_Hz = 29.97 # not exactly 30 Hz!! makes difference.  it's actually 30/1.001
-else: # PAL
-    L = 512 # samples per line
-    lines_per_frame = 625 # (576 visible lines)
-    refresh_Hz = 25
-
-N = L * lines_per_frame # samples per frame
-line_Hz = refresh_Hz * lines_per_frame
-
 # Resample to exactly L samples per line
-x = signal.resample(x, int(len(x)*L/(sample_rate/line_Hz)))
-print("Resampling rate:", L/(sample_rate/line_Hz))
+resampling_rate = L/(sample_rate/line_Hz)
+x = signal.resample(x, int(len(x)*resampling_rate))
+print(sample_rate, L*line_Hz)
+print("Resampling rate:", resampling_rate)
+sample_rate = L*line_Hz # update sample rate
+# Update burst indexes to match new sample rate
+resampled_burst_indxs = []
+for i in burst_indxs:
+    resampled_burst_indxs.append(int(i * resampling_rate))
+# At this point, the diff between resampled_burst_indxs should be exactly 512 (L) if all is well, would be a good time to meausre accuracy of sync
 
 # Manually perform frame sync, for now
-x = x[sample_offset:]
+#x = x[sample_offset:]
 
+# each burst is a line
+line_i = 0
+burst_offset = -20 # FIXME include this back when we calc burst offset, possibly by looking for rising instead of falling edge
+frame = np.zeros((lines_per_frame, L))
+plt.ion()
+plt.figure(figsize=(15, 9))
+for i in resampled_burst_indxs[1:]:
+    # deinterlace
+    if line_i <= lines_per_frame//2:
+        frame[line_i*2, :] = 1 - x[i+burst_offset:i+L+burst_offset]
+    else:
+        frame[(line_i - lines_per_frame//2 - 1)*2 + 1, :] = 1 - x[i+burst_offset:i+L+burst_offset]
+    line_i += 1
+    if line_i == lines_per_frame:
+        plt.imshow(frame, aspect=0.6, cmap='gray')
+        plt.show()
+        plt.draw()
+        plt.pause(0.2)
+        plt.clf()
+        line_i = 0
+
+''' Danis method
 num_frames = int(len(x) / N)
 plt.ion()
 plt.figure(figsize=(15, 9))
 for i in range(num_frames):
-    y = x[i*N:][:N]
-    z = 1-y[:y.size//L*L].reshape(-1, L)
+    y = x[i*N:(i+1)*N] # grab the samples corresponding to a whole frame
+    #y = y[:y.size//L*L] # ??? something to do with rounding?
+    y = y.reshape(-1, L) # makes 2D
+    y = 1 - y # invert black/white
     # deinterlace
-    w = np.empty_like(z)
-    a = w[::2].shape[0]
-    w[::2] = z[:a]
-    w[1::2] = z[a:]
+    w = np.empty_like(y)
+    a = w[::2].shape[0] # 313 (lines per frame / 2)
+    w[::2] = y[:a]
+    w[1::2] = y[a:]
     
     if True:
         plt.imshow(w, aspect=0.6, cmap='gray')
@@ -237,3 +269,4 @@ for i in range(num_frames):
 
     #im = Image.fromarray(np.round(255*w).astype('uint8'))
     #im.save(f'/tmp/{i:04d}.png')
+'''

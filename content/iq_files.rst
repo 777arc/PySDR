@@ -55,7 +55,7 @@ In Python, and numpy specifically, we use the :code:`tofile()` function to store
     print(type(r[0])) # Check data type.  Oops it's 128 not 64!
     r = r.astype(np.complex64) # Convert to 64
     print(type(r[0])) # Verify it's 64
-    r.tofile('bpsk_in_noise.iq') # Save to file
+    r.tofile('qpsk_in_noise.iq') # Save to file
 
 
 Now examine the details of the file produced and check how many bytes it is.  It should be num_symbols * 8 because we used np.complex64, which is 8 bytes per sample, 4 bytes per float (2 floats per sample).
@@ -67,7 +67,7 @@ Using a new Python script, we can read in this file using :code:`np.fromfile()`,
     import numpy as np
     import matplotlib.pyplot as plt
 
-    samples = np.fromfile('bpsk_in_noise.iq', np.complex64) # Read in file.  We have to tell it what format it is
+    samples = np.fromfile('qpsk_in_noise.iq', np.complex64) # Read in file.  We have to tell it what format it is
     print(samples)
 
     # Plot constellation to make sure it looks right
@@ -174,7 +174,7 @@ If you are capturing your RF recording from within Python, e.g., using the Pytho
  cd SigMF
  sudo pip install .
 
-The Python code to write the .sigmf-meta file for the example towards the beginning of this chapter, where we saved bpsk_in_noise.iq, is shown below:
+The Python code to write the .sigmf-meta file for the example towards the beginning of this chapter, where we saved qpsk_in_noise.iq, is shown below:
 
 .. code-block:: python
 
@@ -184,8 +184,8 @@ The Python code to write the .sigmf-meta file for the example towards the beginn
  
  # <code from example>
  
- # r.tofile('bpsk_in_noise.iq')
- r.tofile('bpsk_in_noise.sigmf-data') # replace line above with this one
+ # r.tofile('qpsk_in_noise.iq')
+ r.tofile('qpsk_in_noise.sigmf-data') # replace line above with this one
  
  # create the metadata
  meta = SigMFFile(
@@ -194,7 +194,7 @@ The Python code to write the .sigmf-meta file for the example towards the beginn
          SigMFFile.DATATYPE_KEY: 'cf32_le',
          SigMFFile.SAMPLE_RATE_KEY: 8000000,
          SigMFFile.AUTHOR_KEY: 'Your name and/or email',
-         SigMFFile.DESCRIPTION_KEY: 'Simulation of BPSK with noise',
+         SigMFFile.DESCRIPTION_KEY: 'Simulation of qpsk with noise',
          SigMFFile.VERSION_KEY: sigmf.__version__,
      }
  )
@@ -207,18 +207,18 @@ The Python code to write the .sigmf-meta file for the example towards the beginn
  
  # check for mistakes and write to disk
  meta.validate()
- meta.tofile('bpsk_in_noise.sigmf-meta') # extension is optional
+ meta.tofile('qpsk_in_noise.sigmf-meta') # extension is optional
 
 Simply replace :code:`8000000` and :code:`915000000` with the variables you used to store sample rate and center frequency respectively. 
 
-To read in a SigMF recording into Python, use the following code.  In this example the two SigMF files should be named :code:`bpsk_in_noise.sigmf-meta` and :code:`bpsk_in_noise.sigmf-data`.
+To read in a SigMF recording into Python, use the following code.  In this example the two SigMF files should be named :code:`qpsk_in_noise.sigmf-meta` and :code:`qpsk_in_noise.sigmf-data`.
 
 .. code-block:: python
 
  from sigmf import SigMFFile, sigmffile
  
  # Load a dataset
- filename = 'bpsk_in_noise'
+ filename = 'qpsk_in_noise'
  signal = sigmffile.fromfile(filename)
  samples = signal.read_samples().view(np.complex64).flatten()
  print(samples[0:10]) # lets look at the first 10 samples

@@ -30,7 +30,7 @@ In Python, the default complex type is np.complex128, which uses two 64-bit floa
 Python Examples
 *************************
 
-In Python, and numpy specifically, we use the :code:`tofile()` function to store a numpy array to a file.  Here is a short example of creating a simple BPSK signal plus noise and saving it to a file in the same directory we ran our script from:
+In Python, and numpy specifically, we use the :code:`tofile()` function to store a numpy array to a file.  Here is a short example of creating a simple QPSK signal plus noise and saving it to a file in the same directory we ran our script from:
 
 .. code-block:: python
 
@@ -39,7 +39,11 @@ In Python, and numpy specifically, we use the :code:`tofile()` function to store
 
     num_symbols = 10000
 
-    x_symbols = (np.random.randint(0, 2, num_symbols)*2-1)*(1+1j) # -1 and 1's
+	 # x_symbols array will contain complex numbers representing the QPSK symbols. Each symbol will be a complex number with a magnitude of 1 and a phase angle corresponding to one of the four QPSK constellation points (45, 135, 225, or 315 degrees)
+    x_int = np.random.randint(0, 4, num_symbols) # 0 to 3
+	 x_degrees = x_int*360/4.0 + 45 # 45, 135, 225, 315 degrees
+	 x_radians = x_degrees*np.pi/180.0 # sin() and cos() takes in radians
+	 x_symbols = np.cos(x_radians) + 1j*np.sin(x_radians) # this produces our QPSK complex symbols
     n = (np.random.randn(num_symbols) + 1j*np.random.randn(num_symbols))/np.sqrt(2) # AWGN with unity power
     r = x_symbols + n * np.sqrt(0.01) # noise power of 0.01
     print(r)

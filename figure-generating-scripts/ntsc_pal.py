@@ -19,6 +19,7 @@
 - In vestigial sideband (VSB), the full upper sideband of bandwidth (4.0 MHz) is tx, but only 0.75 MHz of the lower sideband is tx, along with a carrier
 - They use VSB and not SSB because they have a DC component and SSB would filter that out
 - remember that hacktv can also produce fm modulated pal, as well as the different variants of pal
+- http://martin.hinner.info/vga/pal.html
 '''
 
 import numpy as np
@@ -62,7 +63,8 @@ else:
     #print("Sample Rate:", sample_rate)
     #fc = 179.1e6 # taken from filename
     #sample_offset = 200 + 512*55 # in samples. specific to recording
-    pal_example2 = '/mnt/d/pal_color_hacktv.fc32' # ./hacktv -o file:/mnt/d/pal_color_hacktv.fc32 -t float -m i /mnt/c/Users/marclichtman/Downloads/Free_Test_Data_1.21MB_MKV.mkv -s 16000000 --filter
+    #pal_example2 = '/mnt/d/pal_color_hacktv.fc32' # ./hacktv -o file:/mnt/d/pal_color_hacktv.fc32 -t float -m i /mnt/c/Users/marclichtman/Downloads/Free_Test_Data_1.21MB_MKV.mkv -s 16000000 --filter
+    pal_example2 = '/mnt/d/pal_color_hacktv_colourbars.fc32' # same as above but used test:colourbars instead of mkv file
     sample_rate = 16e6
     x = np.fromfile(pal_example2, dtype=np.complex64, count=samples_to_process)
     sample_offset = 15 + 0*55 # in samples. specific to recording
@@ -162,6 +164,7 @@ if False:
 max_freq = f[np.argmax(PSD[np.abs(f - (-30)).argmin():np.abs(f - 30).argmin()]) + np.abs(f - (-30)).argmin()]
 print("max_freq", max_freq, "Hz")
 x_chroma_burst = x_chroma_burst * np.exp(-2j*np.pi*max_freq*np.arange(len(x))/sample_rate)
+x_chroma = x_chroma * np.exp(-2j*np.pi*max_freq*np.arange(len(x))/sample_rate) # we'll also need the full x_chroma at the end
 if False:
     plt.plot(x_chroma_burst[0:100000].real, x_chroma_burst[0:100000].imag, '.')
     plt.show()
@@ -182,8 +185,9 @@ for i in burst_indxs:
             burst_phases.append(burst_phase)
     else:
         print("Low amplitude burst")
+print(burst_phases[0], burst_phases[1])
 
-# The phase of the color burst alternates between 135º and -135º (225 deg) relative to B-Y
+# The phase of the color burst alternates between 135º (2.35619 rad) and -135º (225 deg or 3.927 rad) relative to B-Y
 ''' i dont think this actually works, the higher one might wrap around 360deg
 # Figure out if we're starting on an even or odd line
 while burst_phases[0] >= 2*np.pi:
@@ -201,16 +205,19 @@ else:
     print("Starting on odd line")
 '''
 
-x = np.abs(x) # Take magnitude
+# Extract luma component - filter and take magnitude
+x_luma = np.convolve(x, signal.firwin(301, 3e6, fs=sample_rate), 'same')
+x_luma = np.abs(x_luma) # Take magnitude
 if False:
     offset = 1000000
-    plt.plot(x[offset:offset+3000])
+    plt.plot(x_luma[offset:offset+3000])
     plt.show()
     exit()
 
-# Resample to exactly L samples per line
+# Resample luma and chroma to exactly L samples per line
 resampling_rate = L/(sample_rate/line_Hz)
-x = signal.resample(x, int(len(x)*resampling_rate))
+x_luma = signal.resample(x_luma, int(len(x_luma)*resampling_rate))
+x_chroma = signal.resample(x_chroma, int(len(x_chroma)*resampling_rate))
 print(sample_rate, L*line_Hz)
 print("Resampling rate:", resampling_rate)
 sample_rate = L*line_Hz # update sample rate
@@ -221,35 +228,67 @@ for i in burst_indxs:
 # At this point, the diff between resampled_burst_indxs should be exactly 512 (L) if all is well, would be a good time to meausre accuracy of sync
 
 # Manually perform frame sync, for now
-#x = x[sample_offset:]
+#x_luma = x_luma[sample_offset:]
 
 # each burst is a line
 line_i = 0
 burst_offset = -20 # FIXME include this back when we calc burst offset, possibly by looking for rising instead of falling edge
-frame = np.zeros((lines_per_frame, L))
+frame = np.zeros((lines_per_frame, L, 3))
 plt.ion()
 plt.figure(figsize=(15, 9))
+ii = 0 # CLEANUP
+# The phase of the color burst alternates between 135º (2.35619 rad) and -135º (225 deg or 3.927 rad) relative to B-Y
+# 4.57768 (262 deg) then 6.14818 (352 deg), so we need to subtract 2.22118 rad
+# (optional) the chrominance for the current line is averaged with a copy of the chrominance from the previous line with R-Y inverted again. This cancels out the phase error, at the expense of a slight change in saturation, which is much less noticeable
+phase_shift = -2.22118
 for i in resampled_burst_indxs[1:]:
-    # deinterlace
-    if line_i <= lines_per_frame//2:
-        frame[line_i*2, :] = 1 - x[i+burst_offset:i+L+burst_offset]
-    else:
-        frame[(line_i - lines_per_frame//2 - 1)*2 + 1, :] = 1 - x[i+burst_offset:i+L+burst_offset]
+    y = x_luma[i+burst_offset:i+L+burst_offset]
+    b_y = (x_chroma[i+burst_offset:i+L+burst_offset] * np.exp(1j*phase_shift)).real
+    r_y = (x_chroma[i+burst_offset:i+L+burst_offset] * np.exp(1j*phase_shift)).imag
+    if ii % 2 == 0: # every other line, r-y is negative
+        r_y *= -1
+    # hand-tweaked for now
+    y *= 2 # to make bottom go from black to white
+    b_y *= 6.5 # till the max in the frame is about 1.0 for the colourtest video
+    r_y *= 7.5
+
+    b = b_y + y
+    r = r_y + y
+    g = (y - 0.3*r - 0.11*b)/0.6 # Y = 0.3UR + 0.59UG + 0.11UB is the brightness information according to http://martin.hinner.info/vga/pal.html
+
+    # Figre out why this is needed
+    r = 1 - r
+    b = 1 - b
+    g = 1 - g
+    if line_i <= lines_per_frame//2: # even lines
+        #frame[line_i*2, :] = 1 - x_luma[i+burst_offset:i+L+burst_offset] # for B&W only
+        frame[line_i*2, :, 0] = r
+        frame[line_i*2, :, 1] = g
+        frame[line_i*2, :, 2] = b
+    else: # odd lines
+        #frame[(line_i - lines_per_frame//2 - 1)*2 + 1, :] = 1 - x_luma[i+burst_offset:i+L+burst_offset] # for B&W only
+        frame[(line_i - lines_per_frame//2 - 1)*2 + 1, :, 0] = r
+        frame[(line_i - lines_per_frame//2 - 1)*2 + 1, :, 1] = g
+        frame[(line_i - lines_per_frame//2 - 1)*2 + 1, :, 2] = b
     line_i += 1
+    ii += 1
     if line_i == lines_per_frame:
-        plt.imshow(frame, aspect=0.6, cmap='gray')
+        print("max red:", np.max(frame[:, :, 0]))
+        print("max green:", np.max(frame[:, :, 1]))
+        print("max blue:", np.max(frame[:, :, 2]))
+        plt.imshow(frame, aspect=0.6)
         plt.show()
         plt.draw()
-        plt.pause(0.2)
+        plt.pause(2)
         plt.clf()
         line_i = 0
 
-''' Danis method
-num_frames = int(len(x) / N)
+''' Danis method, equivalent for the luma part
+num_frames = int(len(x_luma) / N)
 plt.ion()
 plt.figure(figsize=(15, 9))
 for i in range(num_frames):
-    y = x[i*N:(i+1)*N] # grab the samples corresponding to a whole frame
+    y = x_luma[i*N:(i+1)*N] # grab the samples corresponding to a whole frame
     #y = y[:y.size//L*L] # ??? something to do with rounding?
     y = y.reshape(-1, L) # makes 2D
     y = 1 - y # invert black/white

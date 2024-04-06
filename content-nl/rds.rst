@@ -54,9 +54,8 @@ Deze digitale versie geeft de ontvanger een hogere kwaliteit audio, omdat digita
 Weer terug naar de 5 signalen die we in onze PSD herkenden; Het volgende diagram laat zien waar elk signaal voor wordt gebruikt:
 
 .. image:: ../_images/fm_psd_labeled.svg
-   :scale: 80 % 
+   :scale: 10 % 
    :align: center 
-   :target: ../_images/fm_psd_labeled.svg
    :alt: Components within an FM radio signal, including mono and stereo audio, RDS, and DirectBand signals
 
 We doorlopen deze signalen in willekeurige volgorde:

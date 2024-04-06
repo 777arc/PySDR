@@ -20,7 +20,7 @@ Als eerste, waarom willen we naar signalen kijken in het frequentiedomein? Nou, 
 .. image:: ../_images/time_and_freq_domain_example_signals.png
    :scale: 40 %
    :align: center   
-   :alt: Two signals in the time domain may look like noise, but in the frequency domain we see additional features
+   :alt: De twee signalen lijken op ruis in het tijddomein, maar in het frequentiedomein zijn andere eigenschappen te zien
 
 Zoals je ziet, in het tijddomein lijken beide figuren op ruis, maar in het frequentiedomein kunnen we verschillende eigenschappen van de signalen onderscheiden. Alles is van nature in het tijddomein; wanneer we signalen samplen, doen we dit in het tijddomein, want je kunt een signaal niet *direct* samplen in het frequentiedomein.
 
@@ -32,8 +32,7 @@ Het begrip dat elk signaal gerepresenteerd kan worden door een optelling van sin
 
 .. image:: ../_images/summing_sinusoids.svg
    :align: center
-   :target: ../_images/summing_sinusoids.svg
-    :alt: Simple example of how a signal can be made up of multiple sinusoids, demonstrating the Fourier Series
+   :alt: Een simpel voorbeeld van de Fourierserie dat laat zien hoe een signaal uit verschillende sinusoiden opgebouwd kan worden.
     
 Hier is nog een voorbeeld; de rode curve in de animatie benadert een zaagtandsignaal door het optellen van 10 sinussen. We kunnen zien dat dit geen perfecte reconstructie is van de zaagtand - er zou een oneindig aantal sinussen nodig zijn om de scherpe transities van de zaagtand te kunnen reproduceren.
 
@@ -59,7 +58,6 @@ Om te begrijpen hoe een signaal kan worden opgebroken in sinussen, of sinusoïde
 
 .. image:: images/amplitude_phase_period.svg
    :align: center
-   :target: images/amplitude_phase_period.svg
    :alt: Reference diagram of amplitude, phase, and frequency of a sine wave (a.k.a. sinusoid)
      
 Je hebt nu waarschijnlijk door dat een "signaal" in feite een functie is "van de tijd" (dus, de x-as). Een andere makkelijk onthoudbare eigenschap is **periode**, de inverse van **frequentie**. De **periode** van een sinusoïde is de hoeveelheid tijd, in seconden, dat de golf nodig heeft om 1 ronde af te maken. Dus, de eenheid van frequentie is 1/seconden, of Hz.
@@ -109,7 +107,6 @@ Laten we nu de de tijd- en frequentiedomein-figuren van een blokgolf bekijken:
 
 .. image:: ../_images/square-wave.svg
    :align: center 
-   :target: ../_images/square-wave.svg
    :alt: The time-frequency Fourier pair of a square wave, which is a sinc (sin(x)/x function) in the frequency domain
 
 Dit is ook minder intuïtief, maar we kunnen op de frequentie van de blokgolf wel een sterke piek in het frequentiedomein zien. Daarnaast heeft de blokgolf nog meer pieken op hogere frequenties.
@@ -207,7 +204,6 @@ Het is makkelijker om deze frequentieverschuiving te visualiseren:
 
 .. image:: ../_images/freq-shift.svg
    :align: center 
-   :target: ../_images/freq-shift.svg
    :alt: Depiction of a frequency shift of a signal in the frequency domain
 
 De frequentieverschuiving is een belangrijk onderdeel van digitale signaalbewerking omdat we veel redenen hebben om signalen in frequentie heen en weer te schuiven.
@@ -216,10 +212,9 @@ Hier is nog een manier om deze eigenschap te laten zien:
 
 .. image:: ../_images/freq-shift-diagram.svg
    :align: center
-   :target: ../_images/freq-shift-diagram.svg
    :alt: Visualization of a frequency shift by multiplying by a sine wave or sinusoid
      
-3. Vermenigvuldigen in de tijd
+1. Vermenigvuldigen in de tijd
 
 .. math::
    x(at) \leftrightarrow X\left(\frac{f}{a}\right)
@@ -229,7 +224,6 @@ Hieronder een voorbeeld van een signaal wat in de tijd wordt vermenigvuldigd, en
 
 .. image:: ../_images/time-scaling.svg
    :align: center
-   :target: ../_images/time-scaling.svg
    :alt: Depiction of the time scaling Fourier transform property in both time and frequency domain
 
 Effectief betekent vermenigvuldigen in de tijd dat je het signaal uitrekt of krimpt in de x-as richting. 
@@ -241,7 +235,7 @@ Als tijd-frequentie vermenigvuldiging recht evenredig zou zijn in plaats van omg
 Diegenen die met deze eigenschap bekend zijn, valt het misschien op dat er een factor mist; deze is weggelaten voor de eenvoud.
 Praktisch gezien heeft deze factor geen invloed.
 
-4. Convolutie in de tijd
+1. Convolutie in de tijd
 
 .. math::
    \int x(\tau) y(t-\tau) d\tau  \leftrightarrow X(f)Y(f)
@@ -258,14 +252,12 @@ Om uit te leggen hoe belangrijk deze eigenschap is, kijken we eerst naar deze si
 
 .. image:: ../_images/two-signals.svg
    :align: center
-   :target: ../_images/two-signals.svg
    
 Het concept van maskeren wordt bij programmeren veel toegepast, dus laten we dat hier ook doen. 
 Wat als we het onderstaande masker zouden kunnen maken, en dit kunnen vermenigvuldigen met het bovenstaande signaal om het signaal wat we niet willen te maskeren?
 
 .. image:: ../_images/masking.svg
    :align: center
-   :target: ../_images/masking.svg
 
 Meestal voeren we DSP-operaties uit in het tijddomein, dus laten we de convolutie-eigenschap gebruiken om te kijken hoe we dit in het tijddomein voor elkaar kunnen krijgen. 
 Laten we zeggen dat :math:`x(t)` ons ontvangen signaal is. 
@@ -303,7 +295,6 @@ De FFT is een functie met een in- en uitgang. Het zet een signaal om van tijd na
 
 .. image:: ../_images/fft-block-diagram.svg
    :align: center
-   :target: ../_images/fft-block-diagram.svg
    :alt: FFT is a function with one input (time domain) and one output (frequency domain) 
       
 In dit boek zullen we alleen 1-dimensionale FFT's gebruiken (2D wordt bijvoorbeeld toegepast voor beeldverwerking). Behandel voor ons doel de FFT als iets met een ingang: een vector van samples (samples), en een uitgang: de frequentiedomein-versie van die vector met samples. 
@@ -312,7 +303,6 @@ Als ik 1024 samples in de FFT stop, krijg ik er 1024 uit. Het verwarrende is dat
 
 .. image:: ../_images/fft-io.svg
    :align: center
-   :target: ../_images/fft-io.svg
    :alt: Reference diagram for the input (seconds) and output (bandwidth) format of the FFT function showing frequency bins and delta-t and delta-f
 
 Omdat de uitgang in het frequentiedomein zit, is het bereik van de frequentie-as gebaseerd op de sample-frequentie (sample rate). Dit zal volgend hoofdstuk behandeld worden. 
@@ -326,7 +316,6 @@ We kunnen de uitgang als volgt representeren:
 
 .. image:: ../_images/negative-frequencies.svg
    :align: center
-   :target: ../_images/negative-frequencies.svg
    :alt: Introducing negative frequencies
 
 Dit is altijd het geval; de uitgang van de FFT zal :math:`\text{-} f_s/2` tot :math:`f_s/2` laten zien, waar :math:`f_s` de sample-frequentie is.  
@@ -348,13 +337,11 @@ Misschien zijn er drie signalen aanwezig:
 
 .. image:: ../_images/negative-frequencies2.svg
    :align: center
-   :target: ../_images/negative-frequencies2.svg
    
 Wanner de SDR ons de samples teruggeeft ziet het er zo uit:
 
 .. image:: ../_images/negative-frequencies3.svg
    :align: center
-   :target: ../_images/negative-frequencies3.svg
    :alt: Negative frequencies are simply the frequencies below the center (a.k.a. carrier) frequency that the radio tuned to
 
 Vergeet niet dat we de SDR op 100 MHz hebben ingesteld. 
@@ -430,7 +417,6 @@ Momenteel hebben we de plot nog geen x-as gegeven, het is gewoon de index van de
 
 .. image:: ../_images/fft-python3.svg
    :align: center
-   :target: ../_images/fft-python3.svg
    :alt: Arrangement of the output of an FFT before doing an FFT shift
      
 Maar we willen 0 Hz (DC) in het midden hebben, en de negatieve frequenties daar links van (zo willen we dat gewoon zien). 
@@ -440,7 +426,6 @@ Het diagram hieronder laat zien wat deze FFT-shift doet:
 
 .. image:: ../_images/fft-python4.svg
    :align: center
-   :target: ../_images/fft-python4.svg
    :alt: Reference diagram of the FFT shift function, showing positive and negative frequencies and DC
 
 Voor ons gemak heeft Numpy een FFT-shift functie :code:`np.fft.fftshift()`.  Vervang de np.fft.fft() regel met:
@@ -487,7 +472,6 @@ We kunnen aan deze cyclische eigenschap voldoen met behulp van een "venster". Ne
 
 .. image:: images/windows.svg
    :align: center
-   :target: images/windows.svg
    :alt: Windowing function in time and frequency domain of rectangular, hamming, hanning, bartlet, blackman, and kaiser windows
 
 Een simpele benadering voor beginners is om gewoon het Hamming venster te gebruiken. Dit kun je in Python maken met :code:`np.hamming(N)` waarbij N het aantal elementen in de array en onze FFT-grootte is. In het bovenstaande voorbeeld zouden we het venster net voor de FFT toepassen . We voegen achter de tweede lijn code toe:
@@ -513,7 +497,6 @@ Het onderstaande diagram laat zien hoe een lijst van IQ samples kan worden opged
 
 .. image:: ../_images/spectrogram_diagram.svg
    :align: center
-   :target: ../_images/spectrogram_diagram.svg
    :alt: Spectrogram (a.k.a. waterfall) diagram showing how FFT slices are arrange/stacked to form a time-frequency plot
 
 Omdat elke *lijn* van een spectogram 2D data bevat, is het effectief een 3D plot, dus we moeten kleuren gebruiken om de FFT-magnituden te laten zien.
@@ -541,7 +524,6 @@ Zo ziet het eruit in het tijddomein (de eerste 200 samples):
 
 .. image:: ../_images/spectrogram_time.svg
    :align: center
-   :target: ../_images/spectrogram_time.svg
 
 In Python zou je het spectrogram als volgt kunnen maken:
 
@@ -567,7 +549,6 @@ Check https://www.IQEngine.org voor meer interessante spectrogrammen!
 
 .. image:: ../_images/spectrogram.svg
    :align: center
-   :target: ../_images/spectrogram.svg
    
 
 *********************
@@ -580,7 +561,6 @@ De standaard versie van dit algoritme werkt met macht-van-twee FFT's en is bedoe
 
 .. image:: ../_images/butterfly.svg
    :align: center
-   :target: ../_images/butterfly.svg
    :alt: Cooley-Tukey FFT algorithm butterfly radix-2
 
 of
@@ -597,7 +577,6 @@ Het algoritme is recursief en halveert zichzelf totdat er alleen maar vlinders o
 
 .. image:: ../_images/butterfly2.svg
    :align: center
-   :target: ../_images/butterfly2.svg
    :alt: Cooley-Tukey FFT algorithm size 8
 
 Elke kolom in dit figuur laat berekeningen zien die parallel uitgevoerd kunnen worden en er worden :math:`log_2(N)` stappen uitgevoerd. De complexiteit van de berekening is dan ook O(:math:`N\log N`) i.p.v. O(:math:`N^2`) voor de standaard DFT.
@@ -646,7 +625,6 @@ Als je het liever vanuit code bekijkt dan is hieronder een simpele Python implem
 
 .. image:: ../_images/fft_in_python.svg
    :align: center
-   :target: ../_images/fft_in_python.svg
    :alt: python implementation of fft example
 
 Als je interesse hebt in JavaScript en/of WebAssembly, check de `WebFFT <https://github.com/IQEngine/WebFFT>`_ bibliotheek. Deze bibliotheek bevat meerdere implementaties en er is een `benchmarking tool <https://webfft.com>`_ om de prestaties van elke implementatie te vergelijken.

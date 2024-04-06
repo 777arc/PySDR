@@ -461,7 +461,7 @@ Laten we nog een paar convoluties bekijken:
 |
 
 .. image:: ../_images/gaussian_gaussian_conv.gif
-   :scale: 150 % 
+   :scale: 90 % 
    :align: center 
 
 Het convolueren van een Gaussische puls met een Gaussische puls geeft een Gaussische puls, maar breder en een lagere amplitude.

@@ -32,7 +32,6 @@ Maar hoe bepalen we het vermogen wat aankomt bij de ontvanger?
 .. image:: images/tx_rx_system.svg
    :align: center 
    :scale: 140%
-   :target: images/tx_rx_system.svg
 
 We hebben vier systeemparameters nodig om het ontvangen vermogen te bepalen. Deze zijn hieronder opgesomd samen met de meest gebruikte (Engelstalige) afkortingen.
 We zullen ieder apart behandelen in dit hoofdstuk.
@@ -45,7 +44,6 @@ We zullen ieder apart behandelen in dit hoofdstuk.
 .. image:: images/tx_rx_system_params.svg
    :align: center 
    :scale: 140%
-   :target: images/tx_rx_system_params.svg
    :alt: Parameters within a link budget depicted
 
 Zendvermogen

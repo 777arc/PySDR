@@ -15,7 +15,6 @@ Elk realistisch draadloos-kanaal bevat meerdere "reflectors" waardoor RF-signale
 
 .. image:: images/multipath.svg
    :align: center 
-   :target: images/multipath.svg
    :alt: Simple depiction of multipath, showing the line-of-sight (LOS) path and a single multipath
 
 Destructieve interferentie vindt plaats wanneer de signalen ongelukkig samenkomen. Neem het voorbeeld van hierboven met slechts twee wegen. Afhankelijk van de frequentie en afstand is het mogelijk dat de twee signalen 180 graden uit fase lopen en bijna dezelfde amplitude hebben. Dit zou erin resulteren dat de twee signalen elkaar tenietdoen (zoals hieronder weergegeven). Misschien ben je deze constructieve en destructieve interferentie in de natuurkundelessen tegengekomen. Wanneer signalen destructief samenkomen noemen we dit in draadloze systemen "deep fade", omdat het signaal eventjes verdwijnt.
@@ -29,7 +28,6 @@ Signalen kunnen ook constructief optellen waardoor een extra sterk signaal wordt
 
 .. image:: images/multipath2.svg
    :align: center 
-   :target: images/multipath2.svg
    :alt: Multipath fading causes deep fades or nulls periodically where the SNR drops extremely low
 
 De snelste weg, dicht bij de y-as, zal altijd via de zichtlijn lopen (als er een is), want op geen manier kan een signaal via een andere weg sneller aankomen. Over het algemeen zal een later aangekomen signaal een kleinere amplitude hebben omdat dat signaal een langere weg heeft afgelegd.
@@ -127,7 +125,6 @@ Mocht je dit (vlakke vervagings)model willen gebruiken als onderdeel van een gro
 
 .. image:: images/rayleigh.svg
    :align: center 
-   :target: images/rayleigh.svg
    :alt: Simulation of Rayleigh Fading
 
 We zien een korte diepe vervaging en ook een deel waar het kanaal beter is dan als er geen vervaging was opgetreden.

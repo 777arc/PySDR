@@ -5,7 +5,7 @@ Filters
 #############
 
 Dit hoofdstuk gaan we digitale filters in Python behandelen.
-We zullen de type filters behandelen (FIR/IIR en laagdoorlaat/hoogdoorlaat/banddoorlaat/bandstop), hoe ze digitaal eruit zien, en hoe ze ontworpen worden.
+We zullen de typen filters behandelen (FIR/IIR en laagdoorlaat/hoogdoorlaat/banddoorlaat/bandstop), hoe ze digitaal eruitzien, en hoe ze ontworpen worden.
 Als laatste zullen we eindigen met een introductie over 'pulse shaping' (Nederlands: pulsvorming), wat in het :ref:`pulse-shaping-chapter` hoofdstuk zal worden uitgediept.
 
 *************************
@@ -106,8 +106,8 @@ Hier zijn een aantal voorbeeldcoëfficiënten van een enkel filter:
 Voorbeeldtoepassing
 ########################
 
-Om te leren hoe onze filters worden gebruikt gaan we kijken naar een voorbeeld waarin we onze SDR afstemmen op een frequentie van een bestaand signaal. Rondom dat signaal zijn andere signalen die we weg willen halen.
-Vergeet niet dat, terwijl we onze SDR afstemmen op een radiofrequentie, de samples die de SDR teruggeeft in de basisband zitten. Dit betekent dat het signaal dus gecentreerd zal zijn rond de 0 Hz.
+Om te leren hoe onze filters worden gebruikt gaan we kijken naar een voorbeeld waarin we onze SDR op een frequentie van een bestaand signaal afstemmen. Rondom dat signaal zijn andere signalen die we weg willen halen.
+Vergeet niet dat, terwijl we onze SDR op een radiofrequentie afstemmen, de samples die de SDR teruggeeft in de basisband zitten. Dit betekent dat het signaal dus gecentreerd zal zijn rond de 0 Hz.
 We moeten zelf onthouden op welke frequentie we de SDR hadden ingesteld.
 Dit zouden we dan kunnen ontvangen:
 

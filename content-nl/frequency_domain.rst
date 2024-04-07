@@ -159,7 +159,7 @@ Veel boeken gebruiken :math:`w` in plaats van :math:`2\pi f`.  :math:`w` is de h
 .. math::
    \omega = 2 \pi f
 
-Ook al voegt dit een :math:`2 \pi`` term toe aan de vergelijkingen, het is toch makkelijker om frequentie in Hz te blijven gebruiken.
+Ook al voegt dit een :math:`2 \pi` term toe aan de vergelijkingen, het is toch makkelijker om frequentie in Hz te blijven gebruiken.
 Uiteindelijk gebruik je ook Hz in je SDR-applicatie.
 
 De bovenstaande vergelijking voor de Fouriertransformatie, wat je alleen in wiskunde problemen tegenkomt, is in de continue vorm. 
@@ -168,7 +168,7 @@ De discrete versie lijkt veel meer op hoe het in de programmacode wordt geïmple
 .. math::
    X_k = \sum_{n=0}^{N-1} x_n e^{-\frac{j2\pi}{N}kn}
    
-Het grootste verschil hierbij is dat de integraal is vervangen door een sommatie. 
+Het grootste verschil hierbij, is dat de integraal is vervangen door een sommatie. 
 De index :math:`k` loopt van 0 tot N-1.  
 
 Het geeft niet als deze vergelijkingen voor jou niets betekenen. 
@@ -178,7 +178,7 @@ We hoeven ze eigenlijk niet eens direct te gebruiken om coole dingen te doen met
 Tijd-Frequentie Eigenschappen
 *****************************
 
-We hebben eerder gekeken naar hoe signalen eruitzien in het tijd- en frequentiedomein. 
+We hebben eerder gekeken naar hoe signalen in het tijd- en frequentiedomein eruitzien. 
 Nu zullen we vijf belangrijke "Fouriereigenschappen" gaan behandelen. 
 Deze eigenschappen verklaren dat als we ____ doen op het tijdsignaal, dat er ____ gebeurt op het signaal in het frequentiedomein. 
 Dit zal ons belangrijke inzichten verschaffen, over welke Digitale SignaalBewerkingen (DSP) we in de praktijk op onze signalen in het tijddomein zullen toepassen.
@@ -259,7 +259,7 @@ Wat als we het onderstaande masker zouden kunnen maken, en dit kunnen vermenigvu
 .. image:: ../_images/masking.svg
    :align: center
 
-Meestal voeren we DSP-operaties uit in het tijddomein, dus laten we de convolutie-eigenschap gebruiken om te kijken hoe we dit in het tijddomein voor elkaar kunnen krijgen. 
+Meestal voeren we DSP-operaties in het tijddomein uit, dus laten we de convolutie-eigenschap gebruiken om te kijken hoe we dit in het tijddomein voor elkaar kunnen krijgen. 
 Laten we zeggen dat :math:`x(t)` ons ontvangen signaal is. 
 Laat :math:`Y(f)` het masker zijn wat we in het frequentiedomein willen toepassen. 
 Dat zou betekenen dat :math:`y(t)` de tijddomein-versie is van ons masker, en wanneer we dit convolueren met :math:`x(t)` het signaal "wegfilteren" dat we niet willen.
@@ -371,7 +371,7 @@ We zullen voor de volgende paar hoofdstukken van dit boek ons echter alleen druk
 FFT in Python
 *************
 
-Nu we hebben gezien wat een FFT is en hoe de uitgang eruit ziet, zullen we naar wat pythoncode gaan kijken en NumPy's FFT-functie, :code:`np.fft.fft()`, toepassen. Het wordt aangeraden dat je een pythonconsole/IDE op je computer gebruikt, maar eventueel zou je ook de online pythonconsole kunnen gebruiken dat je onderaan de linker navigatiebalk kunt vinden.
+Nu we hebben gezien wat een FFT is en hoe de uitgang eruitziet, zullen we naar wat pythoncode gaan kijken en NumPy's FFT-functie, :code:`np.fft.fft()`, toepassen. Het wordt aangeraden dat je een pythonconsole/IDE op je computer gebruikt, maar eventueel zou je ook de online pythonconsole kunnen gebruiken dat je onderaan de linker navigatiebalk kunt vinden.
 
 Eerst moeten we een signaal maken in het tijddomein. Voel je vrij om zelf met de pythonconsole mee te doen. Om dingen eenvoudig te houden maken we een enkele sinus op 0.15 Hz. We nemen ook een sample-frequentie van 1 Hz, wat betekent dat we samples nemen op 0, 1, 2, 3 seconden, etc.
 

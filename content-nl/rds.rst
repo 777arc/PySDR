@@ -11,8 +11,8 @@ Introductie FM-Radio en RDS
 ********************************
 
 Om RDS te kunnen begrijpen zullen we eerst kijken naar hoe een FM-signaal is opgebouwd.
-Je bent waarschijnlijk al bekend met het audio gedeelte van een FM-signaal.
-Naast de audio worden, in een FM-signaal, nog meer informatiecomponenten frequentie gemoduleerd.
+Je bent waarschijnlijk al bekend met het audiogedeelte van een FM-signaal.
+Naast de audio worden, in een FM-signaal, nog meer informatiecomponenten frequentiegemoduleerd.
 In plaats van de signaalstructuur te Googelen kunnen we ook naar de PSD (spectrale vermogensdichtheid) kijken van een FM-signaal *na* demodulatie.
 We bekijken enkel het positieve deel omdat een gedemoduleerd FM-signaal reëel is, zelfs als de ingang complex was.
 
@@ -48,8 +48,9 @@ Sommige lezers die gewend zijn om de FM-band met een SDR of spectrumanalyzer te 
    :align: center 
    :alt: Spectrogram of the FM band
 
-Het blijkt dat deze blokkige signalen eigenlijk HD Radio zijn, een digitale versie van hetzelfde FM-radiosignaal (zelfde audio).
+Het blijkt dat deze blokkige signalen eigenlijk HD Radio zijn, een digitale versie van hetzelfde FM-radiosignaal (zelfde audio). 
 Deze digitale versie geeft de ontvanger een hogere kwaliteit audio, omdat digitale signalen geen analoge ruis bevatten zoals het analoge signaal.
+In Nederland is HD Radio niet beschikbaar, maar in de VS is het een populair alternatief voor FM-radio. Nederland maakt gebruik van DAB+ voor digitale radio op veel hogere frequenties.
 
 Weer terug naar de 5 signalen die we in onze PSD herkenden; Het volgende diagram laat zien waar elk signaal voor wordt gebruikt:
 
@@ -62,12 +63,12 @@ We doorlopen deze signalen in willekeurige volgorde:
 
 De mono en stereo audiosignalen bevatten gewoon de audio. Je kunt door middel van optellen of aftrekken de linker en rechter kanalen onderscheiden.
 
-De toon op 19 kHz wordt gebruikt om het stereo signaal te kunnen demoduleren. Door het verdubbelen van de toon kun je het gebruiken als frequentie- en fasereferentie, het audiosignaal is namelijk gecentreerd op 38 kHz. Dit verdubbelen kun je doen door de samples te kwadrateren.
+De toon op 19 kHz wordt gebruikt om het stereosignaal te kunnen demoduleren. Door het verdubbelen van de toon kun je het gebruiken als frequentie- en fasereferentie, het audiosignaal is namelijk gecentreerd op 38 kHz. Dit verdubbelen kun je doen door de samples te kwadrateren.
 
 DirectBand werd in Noord-Amerika gebruikt als een datanetwerk van Microsoft. Ook bekend als "MSN direct" onder de consumenten.
 Het verstuurde informatie naar apparaten zoals GPS ontvangers, horloges en weerstations. Je kon zelfs berichtjes ontvangen van Windows Live Messenger. De meest succesvolle toepassing was real-time verkeersinformatie voor Garmin GPS-ontvangers. Dit werd door miljoenen mensen gebruikt voordat smartphones breed beschikbaar waren. De service is in januari 2012 uitgeschakeld. Naar mijn weten is dit nooit in Nederland toegepast.
 
-Als laatste komen we bij RDS waar de rest van het hoofdstuk om draait. Zoals in de PSD is te zien, is het ongeveer 4 kHz breed en is het rechts van het stereosignaal te vinden. Het is een digitaal communicatieprotocol waarmee FM-stations op lage snelheid informatie kunnen oversturen zoals de naam van het station, programma informatie, tijd en overige dingen. De standaard is gepubliceerd als IEC 62106 en kun je `hier terugvinden <http://www.interactive-radio-system.com/docs/EN50067_RDS_Standard.pdf>`_.
+Als laatste komen we bij RDS waar de rest van het hoofdstuk om draait. Zoals in de PSD is te zien, is het ongeveer 4 kHz breed en is het rechts van het stereosignaal te vinden. Het is een digitaal communicatieprotocol waarmee FM-stations op lage snelheid informatie kunnen oversturen zoals de naam van het station, programmainformatie, tijd en overige dingen. De standaard is gepubliceerd als IEC 62106 en kun je `hier terugvinden <http://www.interactive-radio-system.com/docs/EN50067_RDS_Standard.pdf>`_.
 
 ********************************
 Het RDS-Signaal

@@ -24,22 +24,22 @@ Eerst zullen we het budget van het ontvangen signaal beschouwen, dan het ruisver
 Signaalvermogensbudget
 *************************
 
-Hieronder zie je het meest simpele diagram wat je zou kunnen opstellen voor een algemene draadloze keten.
+Hieronder zie je het meest simpele diagram wat je voor een algemene draadloze keten zou kunnen opstellen.
 In dit hoofdstuk zullen we een richting behandelen, namelijk vanaf de zender (Tx) naar ontvanger (Rx).
 We weten voor een gegeven systeem wat het zendvermogen is; dit is meestal een instelling bij de zender.
-Maar hoe bepalen we het vermogen wat aankomt bij de ontvanger?
+Maar hoe bepalen we het vermogen wat bij de ontvanger aankomt?
 
 .. image:: images/tx_rx_system.svg
    :align: center 
    :scale: 140%
 
 We hebben vier systeemparameters nodig om het ontvangen vermogen te bepalen. Deze zijn hieronder opgesomd samen met de meest gebruikte (Engelstalige) afkortingen.
-We zullen ieder apart behandelen in dit hoofdstuk.
+We zullen in dit hoofdstuk ieder apart behandelen.
 
 - **Pt** - Vermogen van zender (Power transmitter)
 - **Gt** - Antenneversterking zender (Gain transmitter)
 - **Gr** - Antenneversterking ontvanger (Gain receiver)
-- **Lt** - Afstand tussen zender en ontvanger dus hoeveelheid transmissieverlies (Path Loss)
+- **Lp** - Afstand tussen zender en ontvanger dus hoeveelheid transmissieverlies (Path Loss)
 
 .. image:: images/tx_rx_system_params.svg
    :align: center 
@@ -107,7 +107,7 @@ We willen bepalen hoeveel vermogen we kwijtraken voor een gegeven afstand.
    :scale: 80 % 
    :align: center 
 
-Free Space Path Loss (FSPL) of transmissieverlies in vrije ruimte geeft ons het verlies wanneer er geen obstakels tussen zender en ontvanger staan.
+Free Space Path Loss (FSPL), of transmissieverlies in vrije ruimte, geeft ons het verlies wanneer er geen obstakels tussen zender en ontvanger staan.
 In het algemeen :math:`\mathrm{FSPL} = ( 4\pi d / \lambda )^2`. 
 Google Friis transmissieformule voor meer informatie.
 (Leuk weetje: signalen ervaren 377 ohm aan impedantie wanneer ze door de vrije ruimte bewegen.)

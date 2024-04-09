@@ -101,7 +101,7 @@ The reason it's called the raised-cosine filter is because the frequency domain 
 The equation that defines the impulse response of the raised-cosine filter is:
 
 .. math::
- h(t) = \frac{1}{T} \mathrm{sinc}\left( \frac{t}{T} \right) \frac{\cos\left(\frac{\pi\beta t}{T}\right)}{1 - \left( \frac{2 \beta t}{T}   \right)^2}
+ "h(t) = \frac{1}{T} \mathrm{sinc}\left( \frac{t}{T} \right) \frac{\cos\left(\frac{\pi\beta t}{T}\right)}{1 - \left( \frac{2 \beta t}{T}   \right)^2}"
 
 More information about the :math:`\mathrm{sinc}()` function can be found `here <https://en.wikipedia.org/wiki/Sinc_function>`_.
 
@@ -194,7 +194,7 @@ We will create a raised-cosine filter using a :math:`\beta` of 0.35, and we will
     beta = 0.35
     Ts = sps # Assume sample rate is 1 Hz, so sample period is 1, so *symbol* period is 8
     t = np.arange(num_taps) - (num_taps-1)//2
-    h = np.sinc(t/Ts) * np.cos(np.pi*beta*t/Ts) / (1 - (2*beta*t/Ts)**2)
+    "h = np.sinc(t/Ts) * np.cos(np.pi*beta*t/Ts) / (1 - (2*beta*t/Ts)**2)"
     plt.figure(1)
     plt.plot(t, h, '.')
     plt.grid(True)

@@ -6,13 +6,13 @@ Ruis en dB
 
 In dit hoofdstuk behandelen we ruis, hoe het wordt gemodelleerd en hoe ermee wordt omgegaan in draadloze systemen.
 Concepten als AWGN, complexe ruis en SNR/SINR komen langs.
-Onderweg introduceren we ook decibellen (dB) omdat dit veel gebruikt wordt binnen draadloze communicatiesystemen en SDR.
+Onderweg introduceren we ook decibellen (dB) omdat dit veel wordt gebruikt binnen draadloze communicatiesystemen en SDR's.
 
 ************************
 Gaussische Ruis
 ************************
 
-De meeste mensen zijn bekend met het concept van ruis: ongewilde fluctuaties dat ons signaal kan overstemmen. Ruis ziet er ongeveer zo uit:
+De meeste mensen zijn met het concept van ruis bekend: ongewilde fluctuaties dat ons signaal kan overstemmen. Ruis ziet er ongeveer zo uit:
 
 .. image:: ../_images/noise.png
    :scale: 70 % 
@@ -34,10 +34,10 @@ Volgens de **centrale limietstelling** zal de sommatie van vele stochastische/wi
 De gaussische verdeling wordt de "normale" verdeling genoemd.
 
 De normale verdeling heeft twee parameters: gemiddelde/verwachtingswaarde en variantie.
-We hebben al behandeld waarom het gemiddelde als nul kan worden gezien, omdat een statische afwijking altijd eraf kan worden gehaald.
-De variantie verteld ons hoe "sterk" de ruis is.
+Waarom het gemiddelde als nul kan worden gezien hebben we al besproken, omdat een statische afwijking altijd eraf kan worden gehaald.
+De variantie vertelt ons hoe "sterk" de ruis is.
 Een hogere variantie zal leiden tot hogere nummers.
-Om deze reden wordt het vermogen ook gedefinieerd door de variantie.
+Om deze reden wordt het vermogen ook door de variantie gedefinieerd.
 
 De variantie staat gelijk aan de standaard deviatie in het kwadraat (:math:`\sigma^2`).
 
@@ -82,9 +82,9 @@ In Python:
 Misschien heb je de :code:`10 *` als een :code:`20 *` gezien in andere domeinen.
 Wanneer je met een of ander vermogen werkt, dan gebruik je 10, als je werkt met spanning of stroom dan gebruik je 20.
 Binnen de DSP-wereld werken we meestal met vermogens.
-Het is zelfs zo dat in heel dit boek we geen 20 in plaats van de 10 nodig hebben.
+Het is zelfs zo, dat we in heel dit boek geen 20 in plaats van 10 nodig hebben.
 
-We kunnen terugrekenen van dB naar lineair (normale getallen) met:
+We kunnen van dB naar lineair (normale getallen) terugrekenen met:
 
 .. math::
  
@@ -96,9 +96,9 @@ In Python:
 
  x = 10.0 ** (x_db / 10.0)
 
-Raak niet verstrikt in deze vergelijkingen, er is een concept waar het om draait.
+Raak niet in deze vergelijkingen verstrikt, er is een concept waar het om draait.
 In DSP werken we met enorm kleine getallen en enorm grote getallen samen (bijv. signaal- vergeleken met ruisvermogen).
-Wanneer we in dB werken hebben we een groter dynamisch bereik om getallen uit te drukken in tekst of een grafiek.
+Wanneer we in dB werken, hebben we een groter dynamisch bereik om getallen uit te drukken in tekst of een grafiek.
 Daarnaast geeft het een aantal andere voordelen zoals de mogelijkheid om ze bij elkaar op te tellen waar we normaal zouden vermenigvuldigen (zoals je zult zien in het :ref:`link-budgets-chapter` hoofdstuk).
 
 Een aantal veel voorkomende fouten die nieuwelingen maken:
@@ -138,7 +138,7 @@ Lineair   dB
 10000x   40 dB
 =======  ===== 
 
-En om afsluitend deze nummers een context te geven staan hieronder wat voorbeeld vermogens in dBm:
+En om afsluitend deze nummers een context te geven, staan hieronder wat voorbeeldvermogens in dBm:
 
 =========== ===
 80 dBm      Zendvermogen van een afgelegen FM-radio station
@@ -205,7 +205,7 @@ Maar waarom hadden we alleen "reële" ruis gegenereerd, en hoe werkt dat met com
 Complexe Ruis
 *************************
 
-"Complexe Gaussische" ruis zullen we ervaren met signalen in de basisband; het ruisvermogen wordt evenredig over de reële en imaginaire delen verdeeld. 
+"Complexe Gaussische" ruis zullen we met signalen in de basisband ervaren; het ruisvermogen wordt evenredig over de reële en imaginaire delen verdeeld. 
 Nog belangrijker is te beseffen dat de reële en imaginaire delen onafhankelijk van elkaar zijn; de waarde van het reële deel zegt niets over de waarde van het imaginaire deel.
 
 In Python kunnen we complexe gaussische ruis genereren met:
@@ -223,7 +223,7 @@ Het gemiddelde vermogen van een signaal met een gemiddelde van 0 (of ruis) kunne
 
 Waar np.var() de variantie berekent.
 Dit levert voor :code:`n` een signaalvermogen op van 2.
-Om complexe ruis te generen meet een vermogen van 1 (wat dingen eenvoudiger maakt) moeten we het ruissignaal normaliseren met:
+Om complexe ruis te generen met een vermogen van 1 (wat dingen eenvoudiger maakt) moeten we het ruissignaal normaliseren met:
 
 .. code-block:: python
 
@@ -244,7 +244,7 @@ Om de complexe ruis in het tijddomein te weergeven hebben we, zoals bij elk comp
    :align: center 
    :alt: Complex noise simulated in Python
 
-Zoals je ziet zijn de reële en imaginaire delen compleet onafhankelijk.
+Zoals je ziet, zijn de reële en imaginaire delen compleet onafhankelijk.
 
 Hoe ziet die gaussische ruis op een IQ-diagram eruit?
 Zoals je weet laat het IQ-diagram het reële deel (horizontaal) en het imaginaire deel (verticaal) zien.
@@ -308,11 +308,11 @@ Als we nu een SNR van 10 dB in de simulatie willen creëren, kunnen we simpelweg
    \mathrm{SNR_{dB}} = P_{signaal\_dB} - P_{ruis\_dB}
 
 Als iemand het over "SNR = 0 dB" heeft, betekent het dat het signaal- en ruisvermogen gelijk zijn.
-Een positieve SNR betekent dat het signaalvermogen groter is dan van de ruis, terwijl een negatieve SNR aangeeft dat het ruisvermogen groter is dan het signaalvermogen.
+Een positieve SNR betekent dat het signaalvermogen groter is dan van de ruis, terwijl een negatieve SNR indiceert dat het ruisvermogen groter is dan het signaalvermogen.
 Het is meestal erg lastig om signalen met een negatieve SNR nog te kunnen detecteren.
 
-Zoals eerder gezegd is het vermogen van een signaal gelijk aan de variantie van dat signaal. 
-We zouden dus SNR kunnen uitdrukken in de verhouding van varianties:
+Zoals eerder gezegd, is het vermogen van een signaal gelijk aan de variantie van dat signaal. 
+We zouden SNR dus kunnen uitdrukken als de verhouding van varianties:
 
 .. math::
    \mathrm{SNR} = \frac{P_{signaal}}{P_{ruis}} = \frac{\sigma^2_{signaal}}{\sigma^2_{ruis}}

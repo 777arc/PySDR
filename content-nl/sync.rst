@@ -18,7 +18,6 @@ Hieronder zie je de totale zender-kanaal-ontvanger keten waarbij de blokken die 
 
 .. image:: images/sync-diagram.svg
    :align: center  
-   :target: images/sync-diagram.svg
    :alt: The transmit receive chain, with the blocks discussed in this chapter highlighted in yellow, including time and frequency synchronization
 
 ***************************
@@ -90,7 +89,6 @@ De vertraging is te zien wanneer we de in en uitgang van het filter weergeven. A
 
 .. image:: images/fractional-delay-filter.svg
    :align: center
-   :target: images/fractional-delay-filter.svg
 
 
 Frequentieafwijking introduceren
@@ -111,7 +109,6 @@ Dit figuur laat het signaal voor en na de frequentieverschuiving zien.
  
 .. image:: images/sync-freq-offset.svg
    :align: center
-   :target: images/sync-freq-offset.svg
    :alt: Python simulation showing a signal before and after applying a frequency offset
 
 Tot nu toe konden we alleen het reële I-deel weergeven omdat we BPSK gebruiken. Maar nu we een frequentieverschuiving hebben geïntroduceerd om een draadloos kanaal te simuleren verspreidt de energie zich over het I en Q deel. Dus vanaf nu moeten we beide delen weergeven. Voel je vrij een andere frequentieverschuiving te kiezen. Bij een verschuiving van 1 kHz zul je ook een sinusoïde kunnen herkennen in de omlijning van het signaal; het varieert dan langzaam genoeg om een paar symbolen te overspannen.
@@ -208,7 +205,6 @@ Als we het *heel erg* vergroten dan zien we dat het hetzelfde signaal is, maar m
 
 .. image:: images/time-sync-interpolated-samples.svg
    :align: center
-   :target: images/time-sync-interpolated-samples.svg
    :alt: Example of interpolation a signal, using Python
 
 Hopelijk is de reden achter het interpoleren duidelijk aan het worden. De extra samples staan ons toe om ook een fractie van de sampletijd te kunnen zien. Na het interpoleren van de samples zullen we ook twee regels van het synchronisatieblok moeten aanpassen. De eerste twee regels van de while loop worden dan:
@@ -231,7 +227,6 @@ Omdat we een frequentieverschuiving hebben toegevoegd, door het vermenigvuldigen
 
 .. image:: images/time-sync-output2.svg
    :align: center
-   :target: images/time-sync-output2.svg
    :alt: A python simulated signal with a slight frequency offset
 
 Het is nu iets lastiger te zien maar de tijdsynchronisatie werkt nog steeds prima. Er is nu een sinusoïde zichtbaar omdat we een frequentieverschuiving hebben geïntroduceerd. In het volgende deel leren we hier mee om te gaan.
@@ -240,7 +235,6 @@ Het IQ-diagram (constellatie-diagram) van voor en na de synchronisatie is hieron
 
 .. image:: images/time-sync-constellation.svg
    :align: center
-   :target: images/time-sync-constellation.svg
    :alt: An IQ plot of a signal before and after time synchronization
       
 We kunnen nog meer leren wanneer we de constellatie over de tijd uitzetten. Aan het begin zijn de symbolen eventjes niet 0 of op de eenheidscirkel. Dat is de tijd die het synchronisatiealgoritme nodig heeft om de juiste tijdsvertraging te vinden. Het gebeurt in een korte tijd dus kijk goed! Het ronddraaien komt door de frequentieverschuiving. Frequentie is een constante verandering in de fase, dus een frequentieverschuiving resulteert in het ronddraaien van het BPSK-diagram, wat leid tot een cirkel in het statische diagram van hierboven.
@@ -322,7 +316,6 @@ Eerst bekijken we het signaal zonder te kwadrateren, met een normale FFT:
 
 .. image:: images/coarse-freq-sync-before.svg
    :align: center
-   :target: images/coarse-freq-sync-before.svg
    
 Er is helemaal geen draaggolf te herkennen, het wordt verborgen door ons signaal.
 
@@ -337,7 +330,6 @@ Door het figuur te vergroten kunnen we bepalen waar de piek zit:
 
 .. image:: images/coarse-freq-sync.svg
    :align: center
-   :target: images/coarse-freq-sync.svg
 
 Je zou het aantal symbolen kunnen vergroten (bijv. 1000 symbolen) zodat we genoeg samples hebben voor de FFT. Hoe meer samples de FFT gebruikt, hoe nauwkeuriger we de frequentieafwijking kunnen inschatten. Ter herinnering, de bovenstaande code moet *voor* de tijdsynchronisatie plaatsvinden. Deze kan immers niet goed omgaan met een grote frequentieafwijking.
 
@@ -449,14 +441,12 @@ Het signaal voor en na onze Costas-Loop ziet er dan zo uit:
 
 .. image:: images/costas-loop-output.svg
    :align: center
-   :target: images/costas-loop-output.svg
    :alt: Python simulation of a signal before and after using a Costas Loop
 
 De frequentie-inschatting uitgezet over de tijd (een -300 Hz offset werd voor dit voorbeeld gebruikt):
 
 .. image:: images/costas-loop-freq-tracking.svg
    :align: center
-   :target: images/costas-loop-freq-tracking.svg
 
 Het duurt bijna 70 samples voordat het algoritme de afwijking heeft gevonden. 
 Je kunt zien dat de grove frequentiesynchronisatie nog steeds 300 Hz ernaast zat. De jouwe kan een andere waarde hebben. Zoals ik al eerder zei, kun je de grove frequentiesynchronisatie uitschakelen en de initiële frequentieafwijking instellen op elke gewenste waarde en kijken of de Costas-Loop het kan corrigeren.
@@ -467,7 +457,6 @@ Hieronder zie je een animatie van de tijdsynchronisatie en frequentiecorrectie a
 
 .. image:: images/costas.gif
    :align: center 
-   :target: ../_images/costas_animation.gif
    :alt: Costas loop animation
 
 ***************************

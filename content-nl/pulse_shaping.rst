@@ -92,7 +92,6 @@ Het meest populaire pulsvormende filter lijkt het "raised-cosine" filter te zijn
 
 .. image:: images/raised_cosine.svg
    :align: center 
-   :target: images/raised_cosine.svg
    :alt: The raised cosine filter in the time domain with a variety of roll-off values
 
 Het bovenstaande figuur laat de impulsresponsie van het filter zien.
@@ -100,7 +99,6 @@ Met :math:`\beta` kun je de steilheid van het filter instellen in het tijddomein
 
 .. image:: images/raised_cosine_freq.svg
    :align: center 
-   :target: images/raised_cosine_freq.svg
    :alt: The raised cosine filter in the frequency domain with a variety of roll-off values
 
 Het wordt een raised-cosine filter genoemd omdat bij een :math:`\beta=1` het frequentiedomein een halve cosinus laat zien, raised (opgeduwd) tot boven de x-as.
@@ -142,7 +140,6 @@ Het is een getal tussen de 0 en 1 en wordt de "roll-off", of soms "excess bandwi
 
 .. image:: images/rrc_rolloff.svg
    :align: center 
-   :target: images/rrc_rolloff.svg
    :alt: A pulse train of impulses in the time domain simulated in Python
 
 Als resultaat heeft het filter dus meer coëfficiënten nodig naargelang :math:`\beta` lager wordt.

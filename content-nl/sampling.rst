@@ -185,7 +185,7 @@ Laten we nu vanuit het perspectief van een radio-ontvanger gaan kijken die een s
    :align: center
    :alt: Receiving IQ samples by directly multiplying the input signal by a sine wave and a 90 degree shifted version of that sine wave
 
-Er komt een reëel signaal onze antenne binnen, deze wordt omgezet in IQ-waarden. We kunnen de I en Q takken apart samplen met twee ADC's en daarna dit combineren en opslaan als complexe getallen. In andere woorden, op elke tijdstap samplen we de I en de Q waarde en combineren ze in de vorm :math:`I + jQ` (dus een complex getal per IQ-sample). Er zal altijd een samplefrequentie of samplesnelheid zijn, de snelheid waarmee gesampled wordt. Sommige zouden zeggen "Ik heb mijn SDR op een samplefrequentie van 2 MHz lopen”. Dit betekent dat de SDR twee miljoen samples per seconde ontvangt.
+Er komt een reëel signaal onze antenne binnen, deze wordt omgezet in IQ-waarden. We kunnen de I en Q takken apart samplen met twee ADC's en daarna dit combineren en opslaan als complexe getallen. In andere woorden, op elke tijdstap samplen we de I en de Q waarden en combineren ze in de vorm :math:`I + jQ` (dus een complex getal per IQ-sample). Er zal altijd een samplefrequentie of samplesnelheid zijn, de snelheid waarmee gesampled wordt. Sommige zouden zeggen "Ik heb mijn SDR op een samplefrequentie van 2 MHz lopen”. Dit betekent dat de SDR twee miljoen samples per seconde ontvangt.
 
 Als iemand jou een stapel IQ-samples geeft, zal dat op een 1D array/vector lijken van complexe getallen. Dit punt, complex of niet, is waar dit hele hoofdstuk naar toe heeft gebouwd, en we zijn er eindelijk.
 
@@ -212,7 +212,7 @@ Als een simpel voorbeeld kunnen we het IQ sample 1+0j en vervolgens 0+1j verstur
 
 Het is makkelijk om het onderscheid te verliezen tussen het signaal wat we willen versturen (met typisch een hoop frequentiecomponenenten), en de frequentie waarop het verstuurd wordt (de draaggolf). Hopelijk wordt dit duidelijk wanneer we basisband- en banddoorlaatsignalen behandelen.
 
-Nu even terug naar samplen. Wat als we in plaats van samples ontvangen door het antennesignaal te vermenigvuldigen met een cos() en sin() en I en Q op te nemen, we het antennesignaal direct in een ADC zouden stoppen zoals we het hoofdstuk zijn begonnen. Stel de draaggolf is 2.4 GHz, zoals van WiFi of Bluetooth. Zoals we geleerd hebben zou dat betekenen dat we op 4.8 GHz moeten samplen. Dat is extreem snel! En een ADC die zo snel kan samplen kost duizenden euro's. In plaats hiervan verschuiven we het signaal eerst naar "beneden" zodat het signaal dat we willen samplen, gecentreerd is rond DC of 0 Hz. Deze verschuiving vindt plaats voor het samplen. We gaan van:
+Nu even terug naar samplen. Wat als we, zoals we het hoofdstuk zijn begonnen, in plaats van samples te ontvangen door het antennesignaal te vermenigvuldigen met een cos() en sin(), en I en Q te samplen, we het antennesignaal direct in een ADC zouden stoppen? Stel de draaggolf is 2.4 GHz, zoals bij WiFi of Bluetooth. Zoals we hebben geleerd, zou dat betekenen dat we op 4.8 GHz moeten samplen. Dat is extreem snel! En een ADC die zo snel kan samplen kost duizenden euro's. In plaats hiervan verschuiven we eerst het signaal naar "beneden", zodat het signaal dat we willen samplen gecentreerd is rond DC of 0 Hz. Deze verschuiving vindt plaats voor het samplen. We gaan van:
 
 .. math::
   I \cos(2\pi ft)
@@ -231,7 +231,7 @@ Laten we kijken hoe dit in het frequentiedomein eruitziet:
 
    Verschuiven naar 0 Hz
 
-Wanneer we gecentreerd zouden zijn rond 0 Hz dan is de maximale frequentie niet langer 2.4 GHz maar afhankelijk van het signaal zelf, gezien we de draaggolf hebben verwijderd. De meeste signalen hebben tussen de 100 kHz en 40 MHz bandbreedte, dus door de verschuiving kunnen we samplen op een *veel* lagere snelheid. Zowel de B2X0 USRP's en PlutoSDR bevatten een RF IC die kan samplen op een frequentie tot 56 MHz, wat hoog genoeg is voor de meeste signalen die we tegen zullen komen.
+Wanneer we rond 0 Hz gecentreerd zouden zijn, dan is de maximale frequentie niet langer 2.4 GHz, maar afhankelijk van het signaal zelf omdat we de draaggolf hebben verwijderd. De meeste signalen hebben tussen de 100 kHz en 40 MHz bandbreedte, dus door de verschuiving kunnen we samplen op een *veel* lagere snelheid. Zowel de B2X0 USRP's en PlutoSDR bevatten een RF IC die kan samplen op een frequentie tot 56 MHz, wat hoog genoeg is voor de meeste signalen die we tegen zullen komen.
 
 Om te herhalen, dit proces van verschuiven doet onze SDR; als gebruiker van de SDR hoeven we niets anders te doen dan af te stemmen op de juiste frequentie. Het verschuiven naar beneden (en boven) wordt gedaan door een component genaamd mixer, meestal weergeven in diagrammen met een vermenigvuldigingssymbool in een cirkel. De mixer neemt een signaal aan de ingang en geeft een verschoven signaal aan de uitgang, en een derde signaal waar een oscillator op aan wordt gesloten. De frequentie van de oscillator bepaalt de frequentieverschuiving dat op het signaal wordt toegepast. De mixer is in essentie een vermenigvuldiging (herinner dat vermenigvuldigen met een sinusoïde een frequentieverschuiving veroorzaakt).
 
@@ -258,7 +258,7 @@ Het figuur uit de "ontvangende kant" sectie, laat zien hoe het signaal wordt ver
 ***********************************
 Basisband- en Banddoorlaatsignalen
 ***********************************
-We noemen de band waar het signaal rond de 0 Hz zit de "basisband". Andersom, "bandoorlaat" refereert naar wanneer een signaal nergens in de buurt van de 0 Hz zit, maar omhoog is geschoven met draadloze transmissie als doel. Iets als een *basisbandtransmissie* bestaat niet, want je kunt niet iets imaginairs versturen. Een signaal in de basisband kan perfect gecentreerd zijn rond 0 Hz net als de rechterkant van figuur :numref:`verschuiving`. Het signaal kan ook *in de buurt* van 0 Hz zitten, zoals de twee signalen hieronder. Die signalen worden nog steeds opgevat als basisband. Er is ook een banddoorlaatsignaal weergegeven, gecentreerd op een erg hoge frequentie :math:`f_c`.
+We noemen de band waar het signaal rond de 0 Hz zit de "basisband". Andersom, "bandoorlaat" refereert naar wanneer een signaal nergens in de buurt van de 0 Hz zit, maar omhoog is geschoven met draadloze transmissie als doel. Iets als een *basisbandtransmissie* bestaat niet, want je kunt niet iets imaginairs versturen. Een signaal kan in de basisband perfect gecentreerd zijn rond 0 Hz, net als de rechterkant van figuur :numref:`verschuiving`. Het signaal kan ook *in de buurt* van 0 Hz zitten, zoals de twee signalen hieronder. Die signalen worden nog steeds opgevat als basisband. Er is ook een banddoorlaatsignaal weergegeven, gecentreerd op een erg hoge frequentie :math:`f_c`.
 
 .. image:: ../_images/baseband_bandpass.png
    :scale: 50% 
@@ -303,8 +303,8 @@ Een snelle manier om met DC-offset om te gaan is om het signaal te oversamplen e
 
 Het blauwe vlak in figuur :numref:`afstellen` laat zien wat gesampled is door onze SDR, het groene vlak laat zien in welk deel van het spectrum we geïnteresseerd zijn. Onze LO is afgesteld op 95 MHz, omdat we de SDR zo hebben ingesteld. Gezien 95 MHz buiten het groene vlak valt, hebben we geen last van de DC-piek.
 
-Nu is er een probleem: Als we inderdaad die 5 MHz band rond de 100 MHz willen hebben, moeten zelf een frequentieverschuiving, filter, en hersamplen uitvoeren (iets wat we later leren).
-Gelukkig wordt dit proces van scheef afstellen, dus een LO-offset toepassen, gedaan binnen de SDR, zodat het automatisch de verschuiving naar/van de gewenste middenfrequentie voor je doet. Dit is een voordeel want dan hoeven we niet een hogere frequentie over onze USB of ethernetverbinding heen te sturen, want dit vormt vaak het knelpunt.
+Nu is er een probleem: Als we inderdaad die 5 MHz band rond de 100 MHz willen hebben, moeten we zelf verschuiven in frequentie, filteren en opnieuw samplen (iets wat we later leren).
+Gelukkig wordt dit proces van scheef afstellen, dus een LO-offset toepassen, binnen de SDR gedaan, zodat het automatisch de verschuiving naar/van de gewenste middenfrequentie voor je doet. Dit is een voordeel want dan hoeven we niet een hogere frequentie over onze USB of ethernetverbinding heen te sturen, want dit vormt vaak het knelpunt.
 
 Dit onderdeel over DC-offsets is een goed voorbeeld in hoe dit boek verschilt van andere boeken. Het gemiddelde DSP boek behandelt wel samplen, maar slaat de implementatie specifieke dingen zoals DC pieken over, terwijl deze veel voorkomen in de praktijk.
 

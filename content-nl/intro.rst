@@ -18,8 +18,8 @@ Als eerste een paar belangrijke termen:
 
 Dit boek dient als een praktische introductie op de gebieden van DSP, SDR en draadloze communicatie. Het is ontworpen voor iemand die:
 
-#. Coole dingen wil *doen* met SDR's
-#. Goed kan omgaan met Python
+#. Coole dingen met SDR's wil *doen* 
+#. Goed met Python kan omgaan
 #. Relatief onbekend is met digitale signaalbewerking, draadloze communicatie en SDR
 #. Liever (visueel) leert door animaties dan door vergelijkingen
 #. Vergelijkingen beter begrijpt *na* het leren van de concepten

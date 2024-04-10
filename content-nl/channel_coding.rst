@@ -32,7 +32,6 @@ Nu we weten waarom het nodig is kunnen we zien waar het wordt toegepast in de co
 
 .. image:: images/tx_rx_chain.svg
    :align: center 
-   :target: images/tx_rx_chain.svg
    :alt: The wireless communications transmit receive chain showing both sides of a transceiver
 
 Er vinden meerdere stappen van codering plaats in de keten. Broncodering, de eerste stap, lijkt op kanaalcodering; broncodering heeft als doel de data zoveel mogelijk te comprimeren voordat het verzonden wordt, net als een bestandje zippen voordat je het e-mailt.

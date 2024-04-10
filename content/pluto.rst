@@ -12,6 +12,22 @@ PlutoSDR in Python
 In this chapter we learn how to use the Python API for the `PlutoSDR <https://www.analog.com/en/design-center/evaluation-hardware-and-software/evaluation-boards-kits/adalm-pluto.html>`_, which is a low-cost SDR from Analog Devices.  We will cover the PlutoSDR install steps to get the drivers/software running, and then discuss transmitting and receiving with the PlutoSDR in Python.  Lastly, we show how to use `Maia SDR <https://maia-sdr.org/>`_ and `IQEngine <https://iqengine.org/>`_ to turn the PlutoSDR into a powerful spectrum analyzer!
 
 ************************
+Overview of the PlutoSDR
+************************
+
+The PlutoSDR (a.k.a. ADALM-PLUTO) is a low-cost SDR (just over $200) that is capable of transmitting and receiving signals from 70 MHz to 6 GHz.  It is a great SDR for those who have outgrown the $20 RTL-SDR.  The Pluto uses a USB 2.0 interface, which limits the sample rate to around 5 MHz if you want to receive 100% of samples over time.  That being said, it can sample up to 61 MHz and you can capture contiguous bursts up to around 10M samples long at a time, allowing the Pluto to capture an enormous amount of spectrum at once.  It is technically a 2x2 devices, but the second transmit and receive channels are only accessible through U.FL connectors inside the case, and they share the same oscillators so you can't receive on two different frequencies at once.  Below shows the block diagram of the Pluto, as well as the AD936x which is the RF integrated circuit (RFIC) inside the Pluto.
+
+.. image:: ../_images/adi-adalm-pluto-diagram-large.jpg
+   :scale: 60 % 
+   :align: center
+   :alt: Block diagram of the PlutoSDR
+
+.. image:: ../_images/ad9361.svg
+   :align: center 
+   :target: ../_images/ad9361.svg
+   :alt: Block diagram of the AD9361/AD9363 RFIC inside of the PlutoSDR
+
+************************
 Software/Drivers Install
 ************************
 
@@ -110,7 +126,7 @@ Note that this procedure is also used to flash a different firmware image onto t
 "Hack" PlutoSDR to Increase RF Range
 ####################################
 
-The PlutoSDR's ship with a limited center frequency range and sampling rate, but the underlying chip is capable of much higher frequencies.  Follow these steps to unlock the full frequency range of the chip.  Please bear in mind that this process is provided by Analog Devices, thus it is as low risk as you can get.  The PlutoSDR's frequency limitation has to do with Analog Devices "binning" the AD9364 based on strict performance requirements at the higher frequencies. .... As SDR enthusiasts and experimenters, we're not too concerned about said performance requirements.
+The PlutoSDR's ship with a limited center frequency range and sampling rate, but the underlying chip is capable of much higher frequencies.  Follow these steps to unlock the full frequency range of the chip.  Please bear in mind that this process is provided by Analog Devices, thus it is as low risk as you can get.  The PlutoSDR's frequency limitation has to do with Analog Devices "binning" the AD936x chips based on strict performance requirements at the higher frequencies. As SDR enthusiasts and experimenters, we're not too concerned about said performance requirements.
 
 Time to hack! Open a terminal (either host or VM, doesn't matter):
 

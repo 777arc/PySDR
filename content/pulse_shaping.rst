@@ -101,9 +101,9 @@ The reason it's called the raised-cosine filter is because the frequency domain 
 The equation that defines the impulse response of the raised-cosine filter is:
 
 .. math::
- h(t) = \frac{1}{T} \mathrm{sinc}\left( \frac{t}{T} \right) \frac{\cos\left(\frac{\pi\beta t}{T}\right)}{1 - \left( \frac{2 \beta t}{T}   \right)^2}
+ h(t) = \mathrm{sinc}\left( \frac{t}{T} \right) \frac{\cos\left(\frac{\pi\beta t}{T}\right)}{1 - \left( \frac{2 \beta t}{T}   \right)^2}
 
-More information about the :math:`\mathrm{sinc}()` function can be found `here <https://en.wikipedia.org/wiki/Sinc_function>`_.
+More information about the :math:`\mathrm{sinc}()` function can be found `here <https://en.wikipedia.org/wiki/Sinc_function>`_.  You may find equations elsewhere that include a :math:`\frac{1}{T}` scaling factor added on; this causes the filter to have unity gain so that the signal out has the same power as the signal in (a common practice when designing filters in general).  However, we're going to be applying it to a pulse train of symbols (e.g., 1's and -1's) and we don't want the amplitude of those symbols to change after pulse shaping, so we leave out the scaling factor.  This will be more clear once we dive into the Python example and plot the output.  
 
 Remember: we split this filter between the Tx and Rx equally.  Enter the Root Raised Cosine (RRC) Filter!
 

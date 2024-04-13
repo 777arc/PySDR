@@ -280,16 +280,17 @@ else:
 correction_phases = [] # in radians
 for i in range(len(burst_phases)):
     current_phase = burst_phases[i] # should be 225 deg (3.927 rad) for even, +135 deg (2.35619 rad) for odd
-    # Get between 0 and 360
-    while current_phase >= 2*np.pi:
-        current_phase -= 2*np.pi
-    while current_phase < 0:
-        current_phase += 2*np.pi
+    corrected_phase = current_phase 
     if i % 2 == 0:
-        correction_phases.append(current_phase - 225/180*np.pi)
+        corrected_phase = current_phase - 225/180*np.pi
     else:
-        correction_phases.append(current_phase - 135/180*np.pi)
-#correction_phases = np.convolve(correction_phases, np.ones(101)/101, 'same') # BANDAID FIX FOR SOMETHING ELSE WRONG, try commenting this out and enable plot below to see 
+        corrected_phase = current_phase - 135/180*np.pi
+    # Get between 0 and 360
+    while corrected_phase >= 2*np.pi:
+        corrected_phase -= 2*np.pi
+    while corrected_phase < 0:
+        corrected_phase += 2*np.pi
+    correction_phases.append(corrected_phase)
 if False:
     plt.plot(correction_phases)
     plt.show()
@@ -322,17 +323,11 @@ for ii in range(len(burst_indxs)):
         if ii % 2 == 1: # every other line, r-y is negative
             Q *= -1
     # hand-tweaked for now
-    I *= 3.5 # till the max in the frame is about 1.0 for the colourtest video
-    Q *= 5
+    I *= 4.5 # till the max in the frame is about 1.0 for the colourtest video (needed to bump blue to 1.1 for some reason to make it look good)
+    Q *= 5.5
 
-    ''' from Gonzalo
-    r = y + 1.14 * Q
-    g = y - 0.396 * I - 0.581 * Q
-    b = y + 2.029 * I
-    '''
     b = y + 2.029 * I
     r = y + 1.14 * Q
-    #g = (y - 0.3*r - 0.11*b)/0.6 # Y = 0.3UR + 0.59UG + 0.11UB is the brightness information according to http://martin.hinner.info/vga/pal.html
     g = y - 0.396 * I - 0.581 * Q
 
     # Figure out why this is needed

@@ -300,9 +300,9 @@ if False:
 line_i = 0
 start_burst_offset = 32 
 end_burst_offset = 6
-frame = np.zeros((lines_per_frame + 20, L, 3)) # FIXME rremove the 20 of buffer at some point
+frame = np.zeros((lines_per_frame//2, L, 3)) # only showing even lines
 plt.ion()
-plt.figure(figsize=(15, 9))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 7))
 # (optional) for better image and multipath mitigation, the chrominance for the current line is averaged with a copy of the chrominance from the previous line with R-Y inverted again. This cancels out the phase error, at the expense of a slight change in saturation, which is much less noticeable
 for ii in range(len(burst_indxs)):
     reference_level = x_luma[burst_indxs[ii] + 20] # manually tweaked to be in the middle of the luma reference burst
@@ -311,17 +311,21 @@ for ii in range(len(burst_indxs)):
     x_chroma_slice = x_chroma[burst_indxs[ii]+start_burst_offset:burst_indxs[ii]+L+end_burst_offset] # manually tweaked till chroma burst was gone
     # Freq shift using the offsets we found earlier
     x_chroma_slice *= np.exp(-2j*np.pi*chroma_freq_offsets[ii]*np.arange(len(x_chroma_slice))/sample_rate)
-    if False:
-        plt.plot(x_chroma_slice.real, x_chroma_slice.imag, '.-')
-        plt.show()
-    I = (x_chroma_slice * np.exp(1j*correction_phases[ii])).real
-    Q = (x_chroma_slice * np.exp(1j*correction_phases[ii])).imag
-    if line_i <= lines_per_frame//2: # even lines
-        if ii % 2 == 0: # every other line, r-y is negative
-            Q *= -1
-    else: # odd lines
-        if ii % 2 == 1: # every other line, r-y is negative
-            Q *= -1
+    # Correct phase
+    x_chroma_slice *= np.exp(1j*correction_phases[ii])
+    I = x_chroma_slice.real
+    Q = x_chroma_slice.imag
+
+    # IQ plot of one line
+    if line_i == 20:
+        ax1.plot(I, Q, '.')
+        ax1.axhline(y=0, color='k')
+        ax1.axvline(x=0, color='k')
+        ax1.axis([-0.1, 0.1, -0.1, 0.1])
+
+    if ii % 2 == 0: # every other line, r-y is negative
+        Q *= -1
+
     # hand-tweaked for now
     I *= 4.5 # till the max in the frame is about 1.0 for the colourtest video (needed to bump blue to 1.1 for some reason to make it look good)
     Q *= 5.5
@@ -334,27 +338,25 @@ for ii in range(len(burst_indxs)):
     r = 1 - r
     b = 1 - b
     g = 1 - g
-    if line_i <= lines_per_frame//2: # even lines
-        #frame[line_i*2, 0:len(y)] = 1 - x_luma[burst_indxs[ii]+burst_offset:i+L+burst_offset] # for B&W only
+    
+    # Code only works for even lines (at least for PAL at the moment)
+    if line_i < lines_per_frame//2: # even lines
         frame[line_i, 0:len(y), 0] = r
         frame[line_i, 0:len(y), 1] = g
         frame[line_i, 0:len(y), 2] = b
     else: # odd lines
         pass
-        #frame[(line_i - lines_per_frame//2 - 1)*2 + 1, 0:len(y)] = 1 - x_luma[burst_indxs[ii]+burst_offset:i+L+burst_offset] # for B&W only
-        #frame[(line_i - lines_per_frame//2)*2 + 19, 0:len(y), 0] = r # FIXME why the +19 and not just +1
-        #frame[(line_i - lines_per_frame//2)*2 + 19, 0:len(y), 1] = g
-        #frame[(line_i - lines_per_frame//2)*2 + 19, 0:len(y), 2] = b
+
     line_i += 1
     ii += 1
     if line_i == lines_per_frame - 18: # this one was manually adjusted until there was no shifting between frames
         print("max red:", np.max(frame[:, :, 0]))
         print("max green:", np.max(frame[:, :, 1]))
         print("max blue:", np.max(frame[:, :, 2]))
-        plt.imshow(frame, aspect=0.6)
+        ax2.imshow(frame, aspect=0.6)
         plt.show()
         plt.draw()
-        plt.pause(1)
-        plt.clf()
+        plt.pause(0.5)
+        ax1.cla()
+        ax2.cla()
         line_i = 0
-

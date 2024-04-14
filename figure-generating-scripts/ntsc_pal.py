@@ -226,11 +226,15 @@ burst_phases = [] # goes along with burst_indxs
 new_burst_indxs = []
 new_chroma_freq_offsets = []
 for i in range(len(burst_indxs)):
-    burst = x_chroma_burst[burst_indxs[i]+delay_till_burst+13:burst_indxs[i]+delay_till_burst+burst_len-6] # hand-tuned to only include meat of burst
+    burst = x_chroma_burst[burst_indxs[i]+12:burst_indxs[i]+burst_len] # hand-tuned to only include meat of burst
+    # Freq shift
+    burst *= np.exp(-2j*np.pi*chroma_freq_offsets[i]*np.arange(len(burst))/sample_rate)
     if np.max(np.abs(burst)) > 0.02:
         if False:
             plt.plot(burst.real, burst.imag, '.')
             plt.axis([-0.1, 0.1, -0.1, 0.1])
+            plt.axhline(y=0, color='k')
+            plt.axvline(x=0, color='k')
             plt.show()
         if np.var(burst) > 1e-4:
             print("Cluster wasnt tight") # FIXME i cant just not include these or it will throw off frame timing
@@ -243,9 +247,13 @@ for i in range(len(burst_indxs)):
         print("Low amplitude burst")
 burst_indxs = new_burst_indxs
 chroma_freq_offsets = new_chroma_freq_offsets
-# Make sure the starts of bursts make sense sequentially
+# Make sure the starts of bursts make sense sequentially, shouldnt change that much instantaneously
 if False:
     plt.plot(burst_indxs, np.ones(len(burst_indxs)), '.')
+    plt.show()
+    exit()
+if False:
+    plt.plot(chroma_freq_offsets)
     plt.show()
     exit()
 
@@ -308,6 +316,7 @@ for ii in range(len(burst_indxs)):
     reference_level = x_luma[burst_indxs[ii] + 20] # manually tweaked to be in the middle of the luma reference burst
     y = x_luma[burst_indxs[ii]+start_burst_offset:burst_indxs[ii]+L+end_burst_offset]
     y /= reference_level
+    #y /= 0.54
     x_chroma_slice = x_chroma[burst_indxs[ii]+start_burst_offset:burst_indxs[ii]+L+end_burst_offset] # manually tweaked till chroma burst was gone
     # Freq shift using the offsets we found earlier
     x_chroma_slice *= np.exp(-2j*np.pi*chroma_freq_offsets[ii]*np.arange(len(x_chroma_slice))/sample_rate)
@@ -316,34 +325,34 @@ for ii in range(len(burst_indxs)):
     I = x_chroma_slice.real
     Q = x_chroma_slice.imag
 
+    if ii % 2 == 0: # every other line, r-y is negative
+        Q *= -1
+
+
     # IQ plot of one line
     if line_i == 20:
         ax1.plot(I, Q, '.')
         ax1.axhline(y=0, color='k')
         ax1.axvline(x=0, color='k')
         ax1.axis([-0.1, 0.1, -0.1, 0.1])
-
-    if ii % 2 == 0: # every other line, r-y is negative
-        Q *= -1
+        ax1.text(0.1, 0, "Blue - Y")
+        ax1.text(0, 0.1, "Red - Y")
+        ax1.text(0.1, 0.1, "Green")
 
     # hand-tweaked for now
     I *= 4.5 # till the max in the frame is about 1.0 for the colourtest video (needed to bump blue to 1.1 for some reason to make it look good)
     Q *= 5.5
 
+    # From Gonzalo
     b = y + 2.029 * I
     r = y + 1.14 * Q
     g = y - 0.396 * I - 0.581 * Q
 
-    # Figure out why this is needed
-    r = 1 - r
-    b = 1 - b
-    g = 1 - g
-    
     # Code only works for even lines (at least for PAL at the moment)
     if line_i < lines_per_frame//2: # even lines
-        frame[line_i, 0:len(y), 0] = r
-        frame[line_i, 0:len(y), 1] = g
-        frame[line_i, 0:len(y), 2] = b
+        frame[line_i, 0:len(y), 0] = 1 - r # Figure out why this is needed
+        frame[line_i, 0:len(y), 1] = 1 - g
+        frame[line_i, 0:len(y), 2] = 1 - b
     else: # odd lines
         pass
 

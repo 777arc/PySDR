@@ -543,20 +543,20 @@ As a quick aside for the interested reader, there is actually an optimization th
 
  P_{mvdr} = \frac{1}{N} \sum_{n=0}^{N-1} \left| w^H_{mvdr} r_n \right|^2
 
-If we plug in the equation for the MVDR weights we get:
+If we switch from using a summation to the expectation operator, and plug in the equation for the MVDR weights, we get:
 
 .. math::
-   P_{mvdr} = w^H_{mvdr} R w_{mvdr}
-   = \frac{a^H R^{-1} a}{a^H R^{-1} a}* R *\frac{R^{-1} a}{a^H R^{-1} a}
-   = \frac{a^H R^{-1} a}{(a^H R^{-1} a)(a^H R^{-1} a)}
-   = \frac{1}{a^H R^{-1} a}
- 
- \frac{1}{N} \sum_{n=0}^{N-1} \left| \left( \frac{R^{-1} a}{a^H R^{-1} a} \right)^H r_n \right|^2
 
-   = \frac{1}{N} \sum_{n=0}^{N-1} \left| \frac{a^H R^{-1}}{a^H R^{-1} a} r_n \right|^2
-  
-  ... \mathrm{math}
-   
+   P_{mvdr} = E \left( \left| w^H_{mvdr} r_n \right| ^2 \right)
+
+   = w^H_{mvdr} E \left( r r^H \right) w_{mvdr}
+
+   = w^H_{mvdr} R w_{mvdr}
+
+   = \frac{a^H R^{-1} a}{a^H R^{-1} a} \cdot R \cdot \frac{R^{-1} a}{a^H R^{-1} a}
+
+   = \frac{a^H R^{-1} a}{(a^H R^{-1} a)(a^H R^{-1} a)}
+
    = \frac{1}{a^H R^{-1} a}
 
 Meaning we don't have to apply the weights at all, this final equation above for power can be used directly in our DOA scan, saving us some computations:

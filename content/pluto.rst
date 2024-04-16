@@ -463,6 +463,24 @@ Hints:
 
 As a stretch goal, make the spectrogram update live.
 
+******
+Pluto+
+******
 
+The Pluto+ (a.k.a. Pluto Plus) is an unofficial and upgraded version of the original PlutoSDR, primarily available from Aliexpress.  It includes a Gigabit Ethernet port, both RX and both TX channels exposed via SMA, a MicroSD slot, 0.5PPM VCTCXO, and an external clock input via U.FL port on the PCB.  
 
+.. image:: ../_images/pluto_plus.png
+   :scale: 70 % 
+   :align: center
+   :alt: The Pluto Plus
 
+The Ethernet port is an enormous upgrade because it greatly increases the sample rate you can achieve when receiving or transmitting at 100% duty cycle.  The Pluto and Pluto+ use 16-bit for I and Q by default, even though it only has a 12-bit ADC, so that's 4 bytes per IQ sample.  Gigabit Ethernet running at 90% efficiency equates to 900 Mb/s or 112.5 MB/s, so at 4 bytes per IQ sample that corresponds to a maximum sample rate of roughly 28 MHz if you want to receive all samples for an extended period of time (e.g., more than one second).  As a comparison, USB 3.0 can achieve around 56 MHz, and USB 2.0 is around 5 MHz.  There is also a limit to what Python can ingest based on your computer's power, as well as the specific DSP application you wish to run on the samples (or disk write speed if you are simply recording them to a file).  Sample rates closer to 10 MHz are more realistic for Python based SDR applications with the Pluto+ over Ethernet.
+
+.. image:: ../_images/pluto_plus_pcb.jpg
+   :scale: 30 % 
+   :align: center
+   :alt: The Pluto Plus PCB photo
+
+To set the IP address for the Ethernet port, plug the Pluto+ in over USB and open the mass storage device, editing config.txt to fill out :code:`[USB_ETHERNET]`.  Cycle power to the Pluto+.  You should now be able to SSH into the Pluto+ over Ethernet using the IP you entered.  If it worked, you can switch the micro USB cable to the 5V port so that it's only powering the Pluto+ and forcing all communications to be over Ethernet.  Remember that even with the regular PlutoSDR (and Pluto+) you can sample up to 61 MHz worth of bandwidth and get contiguous chunks of up to ~10M samples at a time, as long as you wait in between chunks, allowing for powerful spectrum sensing applications.
+
+The Python code for the Pluto+ will be the same as the PlutoSDR, except you need to swap :code:`192.168.2.1` for the Ethernet IP you set.  Try receiving samples in a loop, counting how many you receive, to see how high you can push the sample rate while still receiving roughly the sample rate's worth of samples in Python per second.  As a hint, increasing rx_buffer_size to be very large will help increase the throughput.

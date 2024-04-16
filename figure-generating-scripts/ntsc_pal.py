@@ -101,6 +101,12 @@ if False:
 
 # Center on luma subcarrier
 x = x * np.exp(-2j*np.pi*luma_subcarrier_freq*np.arange(len(x))/sample_rate)
+if False: # nice shot of a single line
+    offset = 100000
+    length = 2000
+    plt.plot(np.abs(x[offset:offset+length]))
+    plt.show()
+    exit()
 
 # Notch out audio signal
 #x = np.convolve(x, signal.firwin(301, [relative_audio_subcarrier_freq - 50e3, relative_audio_subcarrier_freq + 50e3], fs=sample_rate), 'same')
@@ -112,6 +118,20 @@ if False:
     plt.show()
     exit()
 
+# Find start of frame TODO: currently assumes recording starts during the transition period
+gap_between_lines = 1024 # samples
+threshold = 0.65 # can be same as other threshold
+burst_indxs = np.where(np.diff((np.abs(x) > threshold).astype(int)) == 1)[0] # indx of rising edges
+start_of_frame = burst_indxs[np.where(np.diff(burst_indxs) == gap_between_lines)[0][0] + 1]
+print("Start of frame:", start_of_frame)
+x = x[start_of_frame:] # cut off end of prev frame
+if False:
+    print(np.diff(burst_indxs)[0:30])
+    plt.plot(np.abs(x[0:10000]))
+    for i in burst_indxs[0:15]:
+        plt.plot([i, i], [0, 1], 'r:')
+    plt.show()
+    exit()
 
 # Extract chroma component
 x_chroma = x * np.exp(-2j*np.pi*color_subcarrier_freq*np.arange(len(x))/sample_rate)
@@ -140,70 +160,18 @@ if False:
     plt.show()
     exit()
 
-# Using a manually tuned threshold, zero out all samples except the chroma burst
+# Using a manually tuned threshold, find the start of each burst, using the combined luma+chroma (last time it needs to be used)
 threshold = 0.65
-delay_till_burst = 12 # samples between thresh and start of burst
-burst_len = 45 # samples FIXME CONVERT TO SECONDS AND CALC BASED ON SAMPLE RATE
-burst_indxs = np.where(np.diff((x > 0.65).astype(int)) == -1)[0] # need to use original signal for detection of each pixel start
-x_chroma_burst = np.zeros_like(x)
-for i in burst_indxs:
-    x_chroma_burst[i+delay_till_burst:i+delay_till_burst+burst_len] = x_chroma[i+delay_till_burst:i+delay_till_burst+burst_len]
-if False:
-    offset = 1000000
-    plt.plot(np.abs(x_chroma_burst[offset:offset+10000]), '.-')
+burst_indxs = np.where(np.diff((np.abs(x) > threshold).astype(int)) == -1)[0] # need to use abs() of original signal that includes luma and chroma for detection of each pixel start
+if False: # look at a single line and the threshold
+    offset = 100000
+    length = 2000
+    plt.plot(np.abs(x[offset:offset+length]))
+    plt.plot([0, length], [threshold, threshold])
     plt.show()
     exit()
+print("Bursts found:", len(burst_indxs))
 
-# Fine freq sync W/ PSD FIXME will need to run on small set of pixels for actual transmissions
-PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x_chroma_burst)))**2)
-f = np.linspace(-sample_rate/2, sample_rate/2, len(PSD))
-if False:
-    plt.plot(f, PSD)
-    plt.show()
-    exit()
-max_freq = f[np.argmax(PSD[np.abs(f - (-30)).argmin():np.abs(f - 30).argmin()]) + np.abs(f - (-30)).argmin()]
-print("max_freq", max_freq, "Hz")
-x_chroma_burst = x_chroma_burst * np.exp(-2j*np.pi*max_freq*np.arange(len(x))/sample_rate)
-x_chroma = x_chroma * np.exp(-2j*np.pi*max_freq*np.arange(len(x))/sample_rate) # we'll also need the full x_chroma at the end
-if False:
-    plt.plot(x_chroma_burst[0:100000].real, x_chroma_burst[0:100000].imag, '.')
-    plt.show()
-    exit()
-
-burst_phases = [] # goes along with burst_indxs
-for i in burst_indxs:
-    burst = x_chroma_burst[i+delay_till_burst+13:i+delay_till_burst+burst_len-6] # hand-tuned to only include meat of burst
-    if np.max(np.abs(burst)) > 0.02:
-        if False:
-            plt.plot(burst.real, burst.imag, '.')
-            plt.axis([-0.1, 0.1, -0.1, 0.1])
-            plt.show()
-        if np.var(burst) > 1e-4:
-            print("Cluster wasnt tight")
-        else:
-            burst_phase = np.mean(np.angle(burst)) # grab average phase of all the good samples
-            burst_phases.append(burst_phase)
-    else:
-        print("Low amplitude burst")
-print(burst_phases[0], burst_phases[1])
-
-# The phase of the color burst alternates between 135º (2.35619 rad) and -135º (225 deg or 3.927 rad) relative to B-Y
-''' i dont think this actually works, the higher one might wrap around 360deg
-# Figure out if we're starting on an even or odd line
-while burst_phases[0] >= 2*np.pi:
-    burst_phases[0] -= 2*np.pi
-while burst_phases[0] < 0:
-    burst_phases[0] += 2*np.pi
-while burst_phases[1] >= 2*np.pi:
-    burst_phases[1] -= 2*np.pi
-while burst_phases[1] < 0:
-    burst_phases[1] += 2*np.pi
-print(burst_phases[0] - burst_phases[1]) # should be either positive or negative roughly pi/2 (1.57)
-if (burst_phases[0] - burst_phases[1]) > 0:
-    print("Starting on even line")
-else:
-    print("Starting on odd line")
-'''
 
 # Extract luma component - filter and take magnitude
 x_luma = np.convolve(x, signal.firwin(301, 3e6, fs=sample_rate), 'same')
@@ -213,6 +181,7 @@ if False:
     plt.plot(x_luma[offset:offset+3000])
     plt.show()
     exit()
+
 
 # Resample luma and chroma to exactly L samples per line
 resampling_rate = L/(sample_rate/line_Hz)
@@ -226,86 +195,177 @@ resampled_burst_indxs = []
 for i in burst_indxs:
     resampled_burst_indxs.append(int(i * resampling_rate))
 # At this point, the diff between resampled_burst_indxs should be exactly 512 (L) if all is well, would be a good time to meausre accuracy of sync
+burst_indxs = resampled_burst_indxs
 
-# Manually perform frame sync, for now
-#x_luma = x_luma[sample_offset:]
+
+# Extract just the chroma bursts, and store freq offsets of each burst
+delay_till_burst = 6 # samples between thresh and start of burst FIXME CONVERT TO SECONDS AND CALC BASED ON SAMPLE RATE
+burst_len = 22 # samples FIXME CONVERT TO SECONDS AND CALC BASED ON SAMPLE RATE
+x_chroma_burst = np.zeros_like(x)
+chroma_freq_offsets = [] # corresponds to burst_indxs
+for i in burst_indxs:
+    burst_slice = x_chroma[i+delay_till_burst:i+delay_till_burst+burst_len]
+    x_chroma_burst[i+delay_till_burst:i+delay_till_burst+burst_len] = burst_slice
+    PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(burst_slice, 1024)))**2) # FFT of chroma burst with padding
+    f = np.linspace(-sample_rate/2, sample_rate/2, 1024)
+    burst_max_freq = f[np.argmax(PSD)]
+    chroma_freq_offsets.append(burst_max_freq) 
+    if False:
+        print("Burst max freq:", burst_max_freq, "Hz")
+        plt.plot(f, PSD)
+        plt.show()
+        exit()
+if False: # look at chroma burst
+    offset = 1000000
+    plt.plot(np.abs(x_chroma_burst[offset:offset+10000]), '.-')
+    plt.show()
+    exit()
+
+# Find color burst phase shift
+burst_phases = [] # goes along with burst_indxs
+new_burst_indxs = []
+new_chroma_freq_offsets = []
+for i in range(len(burst_indxs)):
+    burst = x_chroma_burst[burst_indxs[i]+12:burst_indxs[i]+burst_len] # hand-tuned to only include meat of burst
+    # Freq shift
+    burst *= np.exp(-2j*np.pi*chroma_freq_offsets[i]*np.arange(len(burst))/sample_rate)
+    if np.max(np.abs(burst)) > 0.02:
+        if False:
+            plt.plot(burst.real, burst.imag, '.')
+            plt.axis([-0.1, 0.1, -0.1, 0.1])
+            plt.axhline(y=0, color='k')
+            plt.axvline(x=0, color='k')
+            plt.show()
+        if np.var(burst) > 1e-4:
+            print("Cluster wasnt tight") # FIXME i cant just not include these or it will throw off frame timing
+        else:
+            burst_phase = np.mean(np.angle(burst)) # grab average phase of all the good samples
+            burst_phases.append(burst_phase)
+            new_burst_indxs.append(burst_indxs[i])
+            new_chroma_freq_offsets.append(chroma_freq_offsets[i])
+    else:
+        print("Low amplitude burst")
+burst_indxs = new_burst_indxs
+chroma_freq_offsets = new_chroma_freq_offsets
+# Make sure the starts of bursts make sense sequentially, shouldnt change that much instantaneously
+if False:
+    plt.plot(burst_indxs, np.ones(len(burst_indxs)), '.')
+    plt.show()
+    exit()
+if False:
+    plt.plot(chroma_freq_offsets)
+    plt.show()
+    exit()
+
+# Figure out if we're starting on an even or odd line, The phase of the color burst alternates between 135º (2.35619 rad) and -135º (225 deg or 3.927 rad) relative to B-Y
+while burst_phases[0] >= 2*np.pi:
+    burst_phases[0] -= 2*np.pi
+while burst_phases[0] < 0:
+    burst_phases[0] += 2*np.pi
+while burst_phases[1] >= 2*np.pi:
+    burst_phases[1] -= 2*np.pi
+while burst_phases[1] < 0:
+    burst_phases[1] += 2*np.pi
+#print(burst_phases[0], burst_phases[1], "radians")
+#print(burst_phases[0]*180/np.pi, burst_phases[1]*180/np.pi, "degrees")
+#print("diff:", burst_phases[0] - burst_phases[1]) # should be either positive or negative roughly pi/2 (1.57)
+if (burst_phases[0] - burst_phases[1]) > 0:
+    if (burst_phases[0] - burst_phases[1]) < np.pi: # this means the two are on different sides of the 0 deg axis and we need to reverse
+        print("Starting on even line")
+    else:
+        print("Starting on odd line~")
+        burst_indxs = burst_indxs[1:] # remove first one so we always start on even
+        burst_phases = burst_phases[1:]
+else:
+    if (burst_phases[1] - burst_phases[0]) < np.pi:
+        print("Starting on odd line")
+        burst_indxs = burst_indxs[1:] # remove first one so we always start on even
+        burst_phases = burst_phases[1:]
+    else:
+        print("Starting on even line~")
+
+# Calc phase correction that needs to be applied to chroma.  we can assume we start on an even line
+correction_phases = [] # in radians
+for i in range(len(burst_phases)):
+    current_phase = burst_phases[i] # should be 225 deg (3.927 rad) for even, +135 deg (2.35619 rad) for odd
+    corrected_phase = current_phase 
+    if i % 2 == 0:
+        corrected_phase = current_phase - 225/180*np.pi
+    else:
+        corrected_phase = current_phase - 135/180*np.pi
+    # Get between 0 and 360
+    while corrected_phase >= 2*np.pi:
+        corrected_phase -= 2*np.pi
+    while corrected_phase < 0:
+        corrected_phase += 2*np.pi
+    correction_phases.append(corrected_phase)
+if False:
+    plt.plot(correction_phases)
+    plt.show()
+    exit()
 
 # each burst is a line
 line_i = 0
-burst_offset = -20 # FIXME include this back when we calc burst offset, possibly by looking for rising instead of falling edge
-frame = np.zeros((lines_per_frame, L, 3))
+start_burst_offset = 32 
+end_burst_offset = 6
+frame = np.zeros((lines_per_frame//2, L, 3)) # only showing even lines
 plt.ion()
-plt.figure(figsize=(15, 9))
-ii = 0 # CLEANUP
-# The phase of the color burst alternates between 135º (2.35619 rad) and -135º (225 deg or 3.927 rad) relative to B-Y
-# 4.57768 (262 deg) then 6.14818 (352 deg), so we need to subtract 2.22118 rad
-# (optional) the chrominance for the current line is averaged with a copy of the chrominance from the previous line with R-Y inverted again. This cancels out the phase error, at the expense of a slight change in saturation, which is much less noticeable
-phase_shift = -2.22118
-for i in resampled_burst_indxs[1:]:
-    y = x_luma[i+burst_offset:i+L+burst_offset]
-    b_y = (x_chroma[i+burst_offset:i+L+burst_offset] * np.exp(1j*phase_shift)).real
-    r_y = (x_chroma[i+burst_offset:i+L+burst_offset] * np.exp(1j*phase_shift)).imag
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 7))
+# (optional) for better image and multipath mitigation, the chrominance for the current line is averaged with a copy of the chrominance from the previous line with R-Y inverted again. This cancels out the phase error, at the expense of a slight change in saturation, which is much less noticeable
+for ii in range(len(burst_indxs)):
+    reference_level = x_luma[burst_indxs[ii] + 20] # manually tweaked to be in the middle of the luma reference burst
+    y = x_luma[burst_indxs[ii]+start_burst_offset:burst_indxs[ii]+L+end_burst_offset]
+    y /= reference_level
+    #y /= 0.54
+    x_chroma_slice = x_chroma[burst_indxs[ii]+start_burst_offset:burst_indxs[ii]+L+end_burst_offset] # manually tweaked till chroma burst was gone
+    # Freq shift using the offsets we found earlier
+    x_chroma_slice *= np.exp(-2j*np.pi*chroma_freq_offsets[ii]*np.arange(len(x_chroma_slice))/sample_rate)
+    # Correct phase
+    x_chroma_slice *= np.exp(1j*correction_phases[ii])
+    I = x_chroma_slice.real
+    Q = x_chroma_slice.imag
+
     if ii % 2 == 0: # every other line, r-y is negative
-        r_y *= -1
+        Q *= -1
+
+
+    # IQ plot of one line
+    if line_i == 20:
+        ax1.plot(I, Q, '.')
+        ax1.axhline(y=0, color='k')
+        ax1.axvline(x=0, color='k')
+        ax1.axis([-0.1, 0.1, -0.1, 0.1])
+        ax1.text(0.1, 0, "Blue - Y")
+        ax1.text(0, 0.1, "Red - Y")
+        ax1.text(0.1, 0.1, "Green")
+
     # hand-tweaked for now
-    y *= 2 # to make bottom go from black to white
-    b_y *= 6.5 # till the max in the frame is about 1.0 for the colourtest video
-    r_y *= 7.5
+    I *= 4.5 # till the max in the frame is about 1.0 for the colourtest video (needed to bump blue to 1.1 for some reason to make it look good)
+    Q *= 5.5
 
-    b = b_y + y
-    r = r_y + y
-    g = (y - 0.3*r - 0.11*b)/0.6 # Y = 0.3UR + 0.59UG + 0.11UB is the brightness information according to http://martin.hinner.info/vga/pal.html
+    # From Gonzalo
+    b = y + 2.029 * I
+    r = y + 1.14 * Q
+    g = y - 0.396 * I - 0.581 * Q
 
-    # Figre out why this is needed
-    r = 1 - r
-    b = 1 - b
-    g = 1 - g
-    if line_i <= lines_per_frame//2: # even lines
-        #frame[line_i*2, :] = 1 - x_luma[i+burst_offset:i+L+burst_offset] # for B&W only
-        frame[line_i*2, :, 0] = r
-        frame[line_i*2, :, 1] = g
-        frame[line_i*2, :, 2] = b
+    # Code only works for even lines (at least for PAL at the moment)
+    if line_i < lines_per_frame//2: # even lines
+        frame[line_i, 0:len(y), 0] = 1 - r # Figure out why this is needed
+        frame[line_i, 0:len(y), 1] = 1 - g
+        frame[line_i, 0:len(y), 2] = 1 - b
     else: # odd lines
-        #frame[(line_i - lines_per_frame//2 - 1)*2 + 1, :] = 1 - x_luma[i+burst_offset:i+L+burst_offset] # for B&W only
-        frame[(line_i - lines_per_frame//2 - 1)*2 + 1, :, 0] = r
-        frame[(line_i - lines_per_frame//2 - 1)*2 + 1, :, 1] = g
-        frame[(line_i - lines_per_frame//2 - 1)*2 + 1, :, 2] = b
+        pass
+
     line_i += 1
     ii += 1
-    if line_i == lines_per_frame:
+    if line_i == lines_per_frame - 18: # this one was manually adjusted until there was no shifting between frames
         print("max red:", np.max(frame[:, :, 0]))
         print("max green:", np.max(frame[:, :, 1]))
         print("max blue:", np.max(frame[:, :, 2]))
-        plt.imshow(frame, aspect=0.6)
+        ax2.imshow(frame, aspect=0.6)
         plt.show()
         plt.draw()
-        plt.pause(2)
-        plt.clf()
+        plt.pause(0.5)
+        ax1.cla()
+        ax2.cla()
         line_i = 0
-
-''' Danis method, equivalent for the luma part
-num_frames = int(len(x_luma) / N)
-plt.ion()
-plt.figure(figsize=(15, 9))
-for i in range(num_frames):
-    y = x_luma[i*N:(i+1)*N] # grab the samples corresponding to a whole frame
-    #y = y[:y.size//L*L] # ??? something to do with rounding?
-    y = y.reshape(-1, L) # makes 2D
-    y = 1 - y # invert black/white
-    # deinterlace
-    w = np.empty_like(y)
-    a = w[::2].shape[0] # 313 (lines per frame / 2)
-    w[::2] = y[:a]
-    w[1::2] = y[a:]
-    
-    if True:
-        plt.imshow(w, aspect=0.6, cmap='gray')
-        plt.show()
-        ## Trick for updating in realtime
-        plt.draw()
-        plt.pause(0.001)
-        plt.clf()
-
-    #im = Image.fromarray(np.round(255*w).astype('uint8'))
-    #im.save(f'/tmp/{i:04d}.png')
-'''

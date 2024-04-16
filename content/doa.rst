@@ -543,13 +543,17 @@ As a quick aside for the interested reader, there is actually an optimization th
 
  P_{mvdr} = \frac{1}{N} \sum_{n=0}^{N-1} \left| w^H_{mvdr} r_n \right|^2
 
-If we plug in the equation for the MVDR weights we get:
+If we switch from using a summation to the expectation operator, and plug in the equation for the MVDR weights, we get:
 
 .. math::
 
-   P_{mvdr} = w^H_{mvdr} R w_{mvdr}
+   P_{mvdr} = E \left( \left| w^H_{mvdr} r_n \right| ^2 \right)
 
-   = \frac{a^H R^{-1} a}{a^H R^{-1} a}* R *\frac{R^{-1} a}{a^H R^{-1} a}
+   = w^H_{mvdr} E \left( r r^H \right) w_{mvdr}
+
+   = w^H_{mvdr} R w_{mvdr}
+
+   = \frac{a^H R^{-1} a}{a^H R^{-1} a} \cdot R \cdot \frac{R^{-1} a}{a^H R^{-1} a}
 
    = \frac{a^H R^{-1} a}{(a^H R^{-1} a)(a^H R^{-1} a)}
 

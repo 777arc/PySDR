@@ -2,9 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
 
-# This script generates the following plots into /tmp
-# <list plots here>
-
 # this part came from pulse shaping exersize
 num_symbols = 100
 sps = 8
@@ -27,7 +24,7 @@ if False:
 fig, ax = plt.subplots(1, figsize=(8, 2))  # 7 is nearly full width
 plt.plot(pulse_train, '.-')
 plt.grid(True)
-fig.savefig('/tmp/time-sync-original-data.svg', bbox_inches='tight')
+#fig.savefig('/tmp/time-sync-original-data.svg', bbox_inches='tight')
 
 original_data = pulse_train  # save for plotting later
 
@@ -51,7 +48,7 @@ plt.plot(samples[0:symbols_to_plot * sps + (num_taps - 1) // 2], '.-')
 for i in range(symbols_to_plot):
     plt.plot([i * sps + num_taps // 2 + 1, i * sps + num_taps // 2 + 1], [min(samples), max(samples)], 'g')
 plt.grid(True)
-fig.savefig('/tmp/time-sync-pulse-shaped.svg', bbox_inches='tight')
+#fig.savefig('/tmp/time-sync-pulse-shaped.svg', bbox_inches='tight')
 
 if True:
     # Create and apply fractional delay filter
@@ -74,7 +71,7 @@ if True:
 
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))  # x axis tick labels were showing up as fractions for some reason
     plt.grid(True)
-    fig.savefig('/tmp/fractional-delay-filter.svg', bbox_inches='tight')
+    #fig.savefig('/tmp/fractional-delay-filter.svg', bbox_inches='tight')
 
 if True:
     # apply a freq offset
@@ -95,7 +92,7 @@ if True:
     ax2.plot(np.imag(samples), '.-')
     ax2.set_title('After Freq Offset')
     ax2.legend(['I', 'Q'], loc=1)
-    fig.savefig('/tmp/sync-freq-offset.svg', bbox_inches='tight')
+    #fig.savefig('/tmp/sync-freq-offset.svg', bbox_inches='tight')
 
 if False:
     # COARSE FREQ SYNC PART
@@ -105,7 +102,7 @@ if False:
     psd = np.fft.fftshift(np.abs(np.fft.fft(samples)))
     f = np.linspace(-fs / 2.0, fs / 2.0, len(psd))
     axes_1.plot(f, psd)
-    fig.savefig('/tmp/coarse-freq-sync-before.svg', bbox_inches='tight')
+    #fig.savefig('/tmp/coarse-freq-sync-before.svg', bbox_inches='tight')
 
     samples_sq = samples ** 2
     psd = np.fft.fftshift(np.abs(np.fft.fft(samples_sq)))
@@ -122,7 +119,7 @@ if False:
     axes_2.plot(f, psd, '.-')
     axes_2.axis([-5000, 50000, 0, 900])  # zoom in so we can visually see max
     axes_2.annotate(str(round(max_freq, 2)) + ' Hz', (max_freq, 1.05 * np.max(psd)))
-    fig.savefig('/tmp/coarse-freq-sync.svg', bbox_inches='tight')
+    #fig.savefig('/tmp/coarse-freq-sync.svg', bbox_inches='tight')
 
     # Shift by negative of estimated frequency
     samples = samples * np.exp(-1j * 2 * np.pi * max_freq * t / 2.0)  # remember we have to divide max_freq by 2.0 because we had squared
@@ -147,7 +144,7 @@ ax1.plot(samples[100:105], '.-')
 ax1.set_title('Before Interpolation')
 ax2.plot(samples_interpolated[100 * 16:105 * 16], '.-')
 ax2.set_title('After Interpolation')
-fig.savefig('/tmp/time-sync-interpolated-samples.svg', bbox_inches='tight')
+#fig.savefig('/tmp/time-sync-interpolated-samples.svg', bbox_inches='tight')
 
 ''' REAL VERSION
 mu = 0 # initial estimate of phase of sample
@@ -206,13 +203,13 @@ if False:  # when we disabled both imperfections and turned OFF interpolator
     ax1.plot(original_data, '.-')
     ax2.plot(np.real(samples[6 * 8:-7 * 8]), '.-')
     ax3.plot(np.real(out[6:-7]), '.-')
-    fig.savefig('/tmp/time-sync-output.svg', bbox_inches='tight')
+    #fig.savefig('/tmp/time-sync-output.svg', bbox_inches='tight')
 else:
     fig, (ax1, ax2) = plt.subplots(2, figsize=(8, 3.5))  # 7 is nearly full width
     ax1.plot(original_data, '.-')
     ax2.plot(np.real(out[6:-7]), '.-')
     ax2.plot(np.imag(out[6:-7]), '.-')
-    fig.savefig('/tmp/time-sync-output2.svg', bbox_inches='tight')
+    #fig.savefig('/tmp/time-sync-output2.svg', bbox_inches='tight')
 
 if False:
     # Plot constellation of before and after time sync
@@ -225,7 +222,7 @@ if False:
     ax2.axis([-2, 2, -2, 2])
     ax2.set_title('After Time Sync')
     ax2.grid()
-    fig.savefig('/tmp/time-sync-constellation.svg', bbox_inches='tight')
+    #fig.savefig('/tmp/time-sync-constellation.svg', bbox_inches='tight')
 
 if False:  # Animated version of the above REMEMBER TO INCREASE NUMBER OF SAMPLES FOR THIS PLOT, I USED 300
     from matplotlib.animation import FuncAnimation
@@ -320,7 +317,7 @@ ax1.set_title('Before Costas Loop')
 ax2.plot(np.real(out), '.-')
 ax2.plot(np.imag(out), '.-')
 ax2.set_title('After Costas Loop')
-fig.savefig('/tmp/costas-loop-output.svg', bbox_inches='tight')
+#fig.savefig('/tmp/costas-loop-output.svg', bbox_inches='tight')
 
 # Show freq offset being honed in on
 fig, ax = plt.subplots(figsize=(7, 3))  # 7 is nearly full width
@@ -330,6 +327,6 @@ fig, ax = plt.subplots(figsize=(7, 3))  # 7 is nearly full width
 ax.plot(freq_log, '.-')
 ax.set_xlabel('Sample')
 ax.set_ylabel('Freq Offset')
-fig.savefig('/tmp/costas-loop-freq-tracking.svg', bbox_inches='tight')
+#fig.savefig('/tmp/costas-loop-freq-tracking.svg', bbox_inches='tight')
 
 plt.show()

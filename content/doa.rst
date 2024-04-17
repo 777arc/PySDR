@@ -115,7 +115,7 @@ Here are some common operations in both MATLAB and Python, as a sort of cheat sh
      - :code:`np.concatenate((A,A))`
 
 *********************
-Steering Vector Math
+Steering Vector
 *********************
 
 To get to the fun part we have to get through a little bit of math, but the following section has been written so that the math is extremely simple and has diagrams to go along with it, only the most basic trig and exponential properties are used.  It's important to understand the basic math behind what we'll do in Python to perform DOA.
@@ -141,10 +141,10 @@ If you recall SOH CAH TOA, in this case we are interested in the "adjacent" side
 
 We must solve for adjacent, as that is what will tell us how far the signal must travel between hitting the first and second element, so it becomes adjacent :math:`= d \cos(90 - \theta)`.  Now there is a trig identity that lets us convert this to adjacent :math:`= d \sin(\theta)`.  This is just a distance though, we need to convert this to a time, using the speed of light: time elapsed :math:`= d \sin(\theta) / c` [seconds].  This equation applies between any adjacent elements of our array, although we can multiply the whole thing by an integer to calculate between non-adjacent elements since they are uniformly spaced (we'll do this later).  
 
-Now to connect this trig and speed of light math to the signal processing world.  Let's denote our transmit signal at baseband :math:`s(t)` and it's being transmitting at some carrier, :math:`f_c` , so the transmit signal is :math:`s(t) e^{2j \pi f_c t}`.  Lets say this signal hits the first element at time :math:`t = 0`, which means it hits the next element after :math:`d \sin(\theta) / c` [seconds] like we calculated above.  This means the 2nd element receives:
+Now to connect this trig and speed of light math to the signal processing world.  Let's denote our transmit signal at baseband :math:`x(t)` and it's being transmitting at some carrier, :math:`f_c` , so the transmit signal is :math:`x(t) e^{2j \pi f_c t}`.  Lets say this signal hits the first element at time :math:`t = 0`, which means it hits the next element after :math:`d \sin(\theta) / c` [seconds] like we calculated above.  This means the 2nd element receives:
 
 .. math::
- s(t - \Delta t) e^{2j \pi f_c (t - \Delta t)}
+ x(t - \Delta t) e^{2j \pi f_c (t - \Delta t)}
 
 .. math::
  \mathrm{where} \quad \Delta t = d \sin(\theta) / c
@@ -154,47 +154,47 @@ recall that when you have a time shift, it is subtracted from the time argument.
 When the receiver or SDR does the downconversion process to receive the signal, its essentially multiplying it by the carrier but in the reverse direction, so after doing downconversion the receiver sees:
 
 .. math::
- s(t - \Delta t) e^{2j \pi f_c (t - \Delta t)} e^{-2j \pi f_c t}
+ x(t - \Delta t) e^{2j \pi f_c (t - \Delta t)} e^{-2j \pi f_c t}
 
 .. math::
- = s(t - \Delta t) e^{-2j \pi f_c \Delta t}
+ = x(t - \Delta t) e^{-2j \pi f_c \Delta t}
 
-Now we can do a little trick to simplify this even further; consider how when we sample a signal it can be modeled by substituting :math:`t` for :math:`nT` where :math:`T` is sample period and :math:`n` is just 0, 1, 2, 3...  Substituting this in we get :math:`s(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. Well, :math:`nT` is so much greater than :math:`\Delta t` that we can get rid of the first :math:`\Delta t` term and we are left with :math:`s(nT) e^{-2j \pi f_c \Delta t}`.  If the sample rate ever gets fast enough to approach the speed of light over a tiny distance, we can revisit this, but remember that our sample rate only needs to be a bit larger than the signal of interest's bandwidth.
+Now we can do a little trick to simplify this even further; consider how when we sample a signal it can be modeled by substituting :math:`t` for :math:`nT` where :math:`T` is sample period and :math:`n` is just 0, 1, 2, 3...  Substituting this in we get :math:`x(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. Well, :math:`nT` is so much greater than :math:`\Delta t` that we can get rid of the first :math:`\Delta t` term and we are left with :math:`x(nT) e^{-2j \pi f_c \Delta t}`.  If the sample rate ever gets fast enough to approach the speed of light over a tiny distance, we can revisit this, but remember that our sample rate only needs to be a bit larger than the signal of interest's bandwidth.
 
 Let's keep going with this math but we'll start representing things in discrete terms so that it will better resemble our Python code.  The last equation can be represented as the following, let's plug back in :math:`\Delta t`:
 
 .. math::
- s[n] e^{-2j \pi f_c \Delta t}
+ x[n] e^{-2j \pi f_c \Delta t}
 
 .. math::
- = s[n] e^{-2j \pi f_c d \sin(\theta) / c}
+ = x[n] e^{-2j \pi f_c d \sin(\theta) / c}
 
 We're almost done, but luckily there's one more simplification we can make.  Recall the relationship between center frequency and wavelength: :math:`\lambda = \frac{c}{f_c}` or the form we'll use: :math:`f_c = \frac{c}{\lambda}`.  Plugging this in we get:
 
 .. math::
- s[n] e^{-2j \pi \frac{c}{\lambda} d \sin(\theta) / c}
+ x[n] e^{-2j \pi \frac{c}{\lambda} d \sin(\theta) / c}
 
 .. math::
- = s[n] e^{-2j \pi d \sin(\theta) / \lambda}
+ = x[n] e^{-2j \pi d \sin(\theta) / \lambda}
 
 
 In applied beamforming/DOA what we like to do is represent :math:`d`, the distance between adjacent elements, as a fraction of wavelength (instead of meters), the most common value chosen for :math:`d` during the array design process is to use one half the wavelength. Regardless of what :math:`d` is, from this point on we're going to represent :math:`d` as a fraction of wavelength instead of meters, making the equation and all our code simpler:
 
 .. math::
- s[n] e^{-2j \pi d \sin(\theta)}
+ x[n] e^{-2j \pi d \sin(\theta)}
 
 This is for adjacent elements, for the :math:`k`'th element we just need to multiply :math:`d` times :math:`k`:
 
 .. math::
- s[n] e^{-2j \pi d k \sin(\theta)}
+ x[n] e^{-2j \pi d k \sin(\theta)}
 
-And we're done! This equation above is what you'll see in DOA papers and implementations everywhere! We typically call that exponential term the "Steering Vector" (often denoted as :math:`a`) and represent it as an array, a 1D array for a 1D antenna array, etc.  In python :math:`a` is:
+And we're done! This equation above is what you'll see in DOA papers and implementations everywhere! We typically call that exponential term the "Steering Vector" (often denoted as :math:`s` and in code :code:`s`) and represent it as an array, a 1D array for a 1D antenna array, etc.  In python :math:`s` is:
 
 .. code-block:: python
 
- a = [np.exp(-2j*np.pi*d*0*np.sin(theta)), np.exp(-2j*np.pi*d*1*np.sin(theta)), np.exp(-2j*np.pi*d*2*np.sin(theta)), ...] # note the increasing k
+ s = [np.exp(-2j*np.pi*d*0*np.sin(theta)), np.exp(-2j*np.pi*d*1*np.sin(theta)), np.exp(-2j*np.pi*d*2*np.sin(theta)), ...] # note the increasing k
  # or
- a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # where Nr is the number of receive antenna elements
+ s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # where Nr is the number of receive antenna elements
 
 Note how element 0 results in a 1+0j (because :math:`e^{0}=1`); this makes sense because everything above was relative to that first element, so it's receiving the signal as-is without any relative phase shifts.  This is purely how the math works out, in reality any element could be thought of as the reference, but as you'll see in our math/code later on, what matters is the difference in phase/amplitude received between elements.  It's all relative.
 
@@ -217,7 +217,7 @@ Let's use the Steering Vector concept to simulate a signal arriving at an array.
  f_tone = 0.02e6
  tx = np.exp(2j * np.pi * f_tone * t)
 
-Now let's simulate an array consisting of three omnidirectional antennas in a line, with 1/2 wavelength between adjacent ones (a.k.a. "half-wavelength spacing").  We will simulate the transmitter's signal arriving at this array at a certain angle, theta.  Understanding the Steering Vector :code:`a` below is why we went through all that math above.
+Now let's simulate an array consisting of three omnidirectional antennas in a line, with 1/2 wavelength between adjacent ones (a.k.a. "half-wavelength spacing").  We will simulate the transmitter's signal arriving at this array at a certain angle, theta.  Understanding the Steering Vector :code:`s` below is why we went through all that math above.
 
 .. code-block:: python
 
@@ -225,20 +225,20 @@ Now let's simulate an array consisting of three omnidirectional antennas in a li
  Nr = 3
  theta_degrees = 20 # direction of arrival (feel free to change this, it's arbitrary)
  theta = theta_degrees / 180 * np.pi # convert to radians
- a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Steering Vector
- print(a) # note that it's 3 elements long, it's complex, and the first element is 1+0j
+ s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Steering Vector
+ print(s) # note that it's 3 elements long, it's complex, and the first element is 1+0j
 
-To apply the Steering Vector we have to do a matrix multiplication of :code:`a` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`x.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
+To apply the Steering Vector we have to do a matrix multiplication of :code:`s` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`ourarray.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
 
 .. code-block:: python
 
- a = a.reshape(-1,1)
- print(a.shape) # 3x1
+ s = s.reshape(-1,1)
+ print(s.shape) # 3x1
  tx = tx.reshape(-1,1)
  print(tx.shape) # 10000x1
  
  # matrix multiply
- r = a @ tx.T  # dont get too caught up by the transpose, the important thing is we're multiplying the Steering Vector by the tx signal
+ r = s @ tx.T  # dont get too caught up by the transpose, the important thing is we're multiplying the Steering Vector by the tx signal
  print(r.shape) # 3x10000.  r is now going to be a 2D array, 1D is time and 1D is the spatial dimension
 
 At this point :code:`r` is a 2D array, size 3 x 10000 because we have three array elements and 10000 samples simulated.  We can pull out each individual signal and plot the first 200 samples, below we'll plot the real part only, but there's also an imaginary part, like any baseband signal.  One annoying part of matrix math in Python is needing to add the :code:`.squeeze()`, which removes all dimensions with length 1, to get it back to a normal 1D NumPy array that plotting and other operations expects.
@@ -273,7 +273,7 @@ Conventional DOA
 
 We will now process these samples :code:`r`, pretending we don't know the angle of arrival, and perform DOA, which involves estimating the angle of arrival(s) with DSP and some Python code!  As discussed earlier in this chapter, the act of beamforming and performing DOA are very similar and are often built off the same techniques.  Throughout the rest of this chapter we will investigate different "beamformers", and for each one we will start with the beamformer math/code that calculates the weights, :math:`w`.  These weights can be "applied" to the incoming signal :code:`r` through the simple equation :math:`w^H r`, or in Python :code:`w.conj().T @ r`.  In the example above, :code:`r` is a :code:`3x10000` matrix, but after we apply the weights we are left with :code:`1x10000`, as if our receiver only had one antenna, and we can use normal RF DSP to process the signal.  After developing the beamformer, we will apply that beamformer to the DOA problem.
 
-We'll start with the "conventional" beamforming approach, a.k.a. delay-and-sum beamforming.  Our weights vector :code:`w` needs to be a 1D array for a uniform linear array, in our example of three elements, :code:`w` is a :code:`3x1` array of complex weights.  With conventional beamforming we leave the magnitude of the weights at 1, and adjust the phases so that the signal constructively adds up in the direction of our desired signal, which we will refer to as :math:`\theta`.  It turns out that this is the exact same math we did above!
+We'll start with the "conventional" beamforming approach, a.k.a. delay-and-sum beamforming.  Our weights vector :code:`w` needs to be a 1D array for a uniform linear array, in our example of three elements, :code:`w` is a :code:`3x1` array of complex weights.  With conventional beamforming we leave the magnitude of the weights at 1, and adjust the phases so that the signal constructively adds up in the direction of our desired signal, which we will refer to as :math:`\theta`.  It turns out that this is the exact same math we did above, i.e., our weights are our steering vector!
 
 .. math::
  w_{conventional} = e^{-2j \pi d k \sin(\theta)}
@@ -351,6 +351,8 @@ Let's try sweeping the angle of arrival (AoA) from -90 to +90 degrees instead of
 
 As we approach the broadside of the array (a.k.a. endfire), which is when the signal arrives at or near the axis of the array, performance drops.  We see two main degradations: 1) the main lobe gets wider and 2) we get ambiguity and don't know whether the signal is coming from the left or the right.  This ambiguity adds to the 180 degree ambiguity discussed earlier, where we get an extra lobe at 180 - theta, causing certain AoA to lead to three lobes of roughly equal size.  This broadside ambiguity makes sense though, the phase shifts that occur between elements are identical whether the signal arrives from the left or right side w.r.t. the array axis.  Just like with the 180 degree ambiguity, the solution is to use a 2D array or two 1D arrays at different angles.  In general, beamforming works best when the angle is closer to the boresight.
 
+From this point on, we will only be displaying -90 to +90 degrees in our polar plots, as the pattern will always be mirrored over the axis of the array, at least for 1D linear arrays (which is all we cover in this chapter).
+
 *******************
 When d is not λ/2
 *******************
@@ -410,7 +412,6 @@ We are now going to write the series of steps we just reiterated mathematically.
 
 This mathematical representation extends to other DOA techniques as well.
 
-
 For those who learn through visuals, the following animation shows the beam shape of the conventional beamformer, for an 8-element array being steered between -90 and +90 degrees.  Also shown are the eight weights plotted in the complex plane (real and imaginary axis).
 
 .. image:: ../_images/delay_and_sum.gif
@@ -466,7 +467,7 @@ The MVDR/Capon beamformer can be summarized in the following equation:
 
  w_{mvdr} = \frac{R^{-1} a}{a^H R^{-1} a}
 
-where :math:`R` is the spatial covariance matrix estimate based on our recieved samples, calculated by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are.  The vector :math:`a` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.
+where :math:`R` is the spatial covariance matrix estimate based on our recieved samples, calculated by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are.  The vector :math:`s` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.
 
 If we already know the direction of the signal of interest, and that direction does not change, we only have to calculate the weights once and simply use them to receive our signal of interest.  Although even if the direction doesn't change, we benefit from recalculating these weights periodically, to account for changes in the interference/noise, which is why we refer to these non-conventional digital beamformers as "adaptive" beamforming; they use information in the signal we receive to calculate the best weights.  Just as a reminder, we can *perform* beamforming using MVDR by calculating these weights and applying them to the signal with :code:`w.conj().T @ r`, just like we did in the conventional method, the only difference is how the weights are calculated.
 
@@ -478,11 +479,11 @@ In Python we can implement the MVDR/Capon beamformer as follows, which will be d
 
  # theta is the direction of interest, in radians, and r is our received signal
  def w_mvdr(theta, r):
-    a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector in the desired direction theta
-    a = a.reshape(-1,1) # make into a column vector (size 3x1)
+    s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector in the desired direction theta
+    s = a.reshape(-1,1) # make into a column vector (size 3x1)
     R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
     Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better/faster than a true inverse
-    w = (Rinv @ a)/(a.conj().T @ Rinv @ a) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
+    w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
     return w
 
 Using this MVDR beamformer in the context of DOA, we get the following Python example:
@@ -512,14 +513,14 @@ It appears to work fine, but to really compare this to other techniques we'll ha
  theta1 = 20 / 180 * np.pi # convert to radians
  theta2 = 25 / 180 * np.pi
  theta3 = -40 / 180 * np.pi
- a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
- a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
- a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+ s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+ s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+ s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
  # we'll use 3 different frequencies.  1xN
  tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
  tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
  tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
- r = a1 @ tone1 + a2 @ tone2 + 0.1 * a3 @ tone3
+ r = s1 @ tone1 + s2 @ tone2 + 0.1 * s3 @ tone3
  n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
  r = r + 0.05*n # 8xN
 
@@ -553,22 +554,22 @@ If we switch from using a summation to the expectation operator, and plug in the
 
    = w^H_{mvdr} R w_{mvdr}
 
-   = \frac{a^H R^{-1} a}{a^H R^{-1} a} \cdot R \cdot \frac{R^{-1} a}{a^H R^{-1} a}
+   = \frac{s^H R^{-1} s}{s^H R^{-1} s} \cdot R \cdot \frac{R^{-1} s}{s^H R^{-1} s}
 
-   = \frac{a^H R^{-1} a}{(a^H R^{-1} a)(a^H R^{-1} a)}
+   = \frac{s^H R^{-1} s}{(s^H R^{-1} s)(s^H R^{-1} s)}
 
-   = \frac{1}{a^H R^{-1} a}
+   = \frac{1}{s^H R^{-1} s}
 
 Meaning we don't have to apply the weights at all, this final equation above for power can be used directly in our DOA scan, saving us some computations:
 
 .. code-block:: python
 
     def power_mvdr(theta, r):
-        a = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
-        a = a.reshape(-1,1) # make into a column vector (size 3x1)
+        s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
+        s = s.reshape(-1,1) # make into a column vector (size 3x1)
         R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
-        return 1/(a.conj().T @ Rinv @ a).squeeze()
+        return 1/(s.conj().T @ Rinv @ s).squeeze()
 
 To use this in the previous simulation, within the for loop, the only thing left to do is take the :code:`10*np.log10()` and you're done, there are no weights to apply; we skipped calculating the weights!
 
@@ -582,9 +583,9 @@ Now that we have taken a look at the MVDR beamformer, we observe that it is a ve
 
 ..math::
 
-   w = R^{-1}A[A^HR^{-1}A]^{-1}d
+   w = R^{-1} C [C^H R^{-1} C]^{-1} d
 
-where :math:`A` is a matrix comprising of the steering vectors of the corresponding SOIs and interferers, and :math:`d` is the desired response vector. the vector :math:`d` for a particular row takes the value of 0 when the corresponding steering vector is to be nulled, and takes a value of 1 when we want a beam pointed at it. The desired response vector is a vector of the desired responses for each direction. For example, if we have two sources of interest and two sources of interference, we can set :code:`d = [1,1,0,0]`. The LCMV beamformer is a powerful tool that can be used to suppress interference and noise from multiple directions while simultaneously enhancing the signal of interest from multiple directions.  The catch is that the total number of nulls and beams you can form simultaneously is limited by the size of the array (the number of elements). Furthermore, you need the exact steering vector for each of the SOIs and interferers, which isnt always readily available in practical applications. Because estimates are used instead, the performance of the LCMV beamformer can degrade.
+where :math:`C` is a matrix comprising of the steering vectors of the corresponding SOIs and interferers, and :math:`d` is the desired response vector. the vector :math:`d` for a particular row takes the value of 0 when the corresponding steering vector is to be nulled, and takes a value of 1 when we want a beam pointed at it. The desired response vector is a vector of the desired responses for each direction. For example, if we have two sources of interest and two sources of interference, we can set :code:`d = [1,1,0,0]`. The LCMV beamformer is a powerful tool that can be used to suppress interference and noise from multiple directions while simultaneously enhancing the signal of interest from multiple directions.  The catch is that the total number of nulls and beams you can form simultaneously is limited by the size of the array (the number of elements). Furthermore, you need the exact steering vector for each of the SOIs and interferers, which isnt always readily available in practical applications. Because estimates are used instead, the performance of the LCMV beamformer can degrade.
 
 *******************
 Number of Elements
@@ -601,9 +602,9 @@ We will now change gears and talk about a different kind of beamformer. All of t
 The core MUSIC equation is the following:
 
 .. math::
- \hat{\theta} = \mathrm{argmax}\left(\frac{1}{a^H V_n V^H_n a}\right)
+ \hat{\theta} = \mathrm{argmax}\left(\frac{1}{s^H V_n V^H_n s}\right)
 
-where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2D matrix).  It is found by first calculating the eigenvectors of :math:`R`, which is done simply by :code:`w, v = np.linalg.eig(R)` in Python, and then splitting up the vectors (:code:`w`) based on how many signals we think the array is receiving.  There is a trick for estimating the number of signals that we'll talk about later, but it must be between 1 and :code:`Nr - 1`.  I.e., if you are designing an array, when you are choosing the number of elements you must have one more than the number of anticipated signals.  One thing to note about the equation above is :math:`V_n` does not depend on the array factor :math:`a`, so we can precalculate it before we start looping through theta.  The full MUSIC code is as follows:
+where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2D matrix).  It is found by first calculating the eigenvectors of :math:`R`, which is done simply by :code:`w, v = np.linalg.eig(R)` in Python, and then splitting up the vectors (:code:`w`) based on how many signals we think the array is receiving.  There is a trick for estimating the number of signals that we'll talk about later, but it must be between 1 and :code:`Nr - 1`.  I.e., if you are designing an array, when you are choosing the number of elements you must have one more than the number of anticipated signals.  One thing to note about the equation above is :math:`V_n` does not depend on the steering vector :math:`s`, so we can precalculate it before we start looping through theta.  The full MUSIC code is as follows:
 
 .. code-block:: python
 
@@ -622,9 +623,9 @@ where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2
  theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # -180 to +180 degrees
  results = []
  for theta_i in theta_scan:
-     a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Steering Vector
-     a = a.reshape(-1,1)
-     metric = 1 / (a.conj().T @ V @ V.conj().T @ a) # The main MUSIC equation
+     s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Steering Vector
+     s = s.reshape(-1,1)
+     metric = 1 / (s.conj().T @ V @ V.conj().T @ s) # The main MUSIC equation
      metric = np.abs(metric.squeeze()) # take magnitude
      metric = 10*np.log10(metric) # convert to dB
      results.append(metric) 

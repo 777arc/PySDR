@@ -17,17 +17,17 @@ d = 0.5
 Nr = 3
 theta_degrees = 20 # direction of arrival
 theta = theta_degrees / 180 * np.pi # convert to radians
-a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta))
-#print(a)
+s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector
+#print(s)
 
-# we have to do a matrix multiplication of a and tx, which currently are both 1D, so we have to make them 2D with reshape
-a = a.reshape(-1,1)
-#print(a.shape) # 3x1
+# we have to do a matrix multiplication of s and tx, which currently are both 1D, so we have to make them 2D with reshape
+s = s.reshape(-1,1)
+#print(s.shape) # 3x1
 tx = tx.reshape(-1,1)
 #print(tx.shape) # 10000x1
 
 # so how do we use this? simple:
-r = a @ tx.T # matrix multiply. dont get too caught up by the transpose a, the important thing is we're multiplying the array factor by the tx signal
+r = s @ tx.T # matrix multiply. dont get too caught up by the transpose s, the important thing is we're multiplying the steering vector by the tx signal
 #print(r.shape) # 3x10000.  r is now going to be a 2D array, 1d is time and 1d is spatial
 
 # Plot the real part of the first 200 samples of all three elements
@@ -50,7 +50,7 @@ if False:
 # there are also problems where you have multiple receives signals from different directions and one is the SOI while another might be a jammer or interferer you have to null out
 
 # One thing we didnt both doing- lets add noise to this recieved signal.
-# AWGN with a phase shift applied is still AWGN so we can add it after or before the array factor is applied, doesnt really matter, we'll do it after
+# AWGN with a phase shift applied is still AWGN so we can add it after or before the steering vector is applied, doesnt really matter, we'll do it after
 # we need to make sure each element gets an independent noise signal added
 
 n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
@@ -129,11 +129,11 @@ if False:
         print(t_i)
 
         theta = theta_txs[t_i] / 180 * np.pi
-        a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta))
-        a = a.reshape(-1,1) # 3x1
+        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta))
+        s = s.reshape(-1,1) # 3x1
         tone = np.exp(2j*np.pi*0.02e6*t)
         tone = tone.reshape(-1,1) # 10000x1
-        r = a @ tone.T
+        r = s @ tone.T
 
         for theta_i in range(len(theta_scan)):
             w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_scan[theta_i]))
@@ -173,24 +173,20 @@ if False:
         print(d_i)
 
         # Have to recalc r
-        a = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta))
-        a = a.reshape(-1,1)
-        r = a @ tx.T
+        s = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta))
+        s = s.reshape(-1,1)
+        r = s @ tx.T
 
         # DISABLE FOR THE FIRST TWO ANIMATIONS
         if True:
             theta1 = 20 / 180 * np.pi
             theta2 = -40 / 180 * np.pi
-            a1 = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta1))
-            a1 = a1.reshape(-1,1)
-            a2 = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta2))
-            a2 = a2.reshape(-1,1)
-            freq1 = np.exp(2j*np.pi*0.02e6*t)
-            freq1 = freq1.reshape(-1,1)
-            freq2 = np.exp(2j*np.pi*-0.02e6*t)
-            freq2 = freq2.reshape(-1,1)
+            s1 = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta1)).reshape(-1,1)
+            s2 = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+            freq1 = np.exp(2j*np.pi*0.02e6*t).reshape(-1,1)
+            freq2 = np.exp(2j*np.pi*-0.02e6*t).reshape(-1,1)
             # two tones at diff frequencies and angles of arrival (not sure it actually had to be 2 diff freqs...)
-            r = a1 @ freq1.T + a2 @ freq2.T
+            r = s1 @ freq1.T + s2 @ freq2.T
 
         for theta_i in range(len(theta_scan)):
             w = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta_scan[theta_i]))
@@ -226,38 +222,42 @@ if False:
 
 # MVDR/Capons beamformer
 if False:
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.set_ylim([-10, 0])
+
     # theta is the direction of interest, in radians, and r is our received signal
     def w_mvdr(theta, r):
-        a = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
-        a = a.reshape(-1,1) # make into a column vector (size 3x1)
+        s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
+        s = s.reshape(-1,1) # make into a column vector (size 3x1)
         R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
-        w = (Rinv @ a)/(a.conj().T @ Rinv @ a) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
+        w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
         return w
 
     def power_mvdr(theta, r):
-        a = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
-        a = a.reshape(-1,1) # make into a column vector (size 3x1)
+        s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
+        s = s.reshape(-1,1) # make into a column vector (size 3x1)
         R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
-        return 1/(a.conj().T @ Rinv @ a).squeeze()
+        return 1/(s.conj().T @ Rinv @ s).squeeze()
     
-    if False: # use for doacompons2
+    if True: # use for doacompons2
         # more complex scenario
         Nr = 8 # 8 elements
         theta1 = 20 / 180 * np.pi # convert to radians
         theta2 = 25 / 180 * np.pi
         theta3 = -40 / 180 * np.pi
-        a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-        a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-        a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+        s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+        s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+        s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
         # we'll use 3 different frequencies.  1xN
         tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
         tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
         tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
-        r = a1 @ tone1 + a2 @ tone2 + 0.1 * a3 @ tone3
+        r = s1 @ tone1 + s2 @ tone2 + 0.1 * s3 @ tone3
         n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
         r = r + 0.05*n # 8xN
+        ax.set_ylim([-30, 0])
 
     theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
     results = []
@@ -270,14 +270,18 @@ if False:
     results -= np.max(results) # normalize
     print(theta_scan[np.argmax(results)] * 180/np.pi) # Angle at peak, in degrees
 
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    
     ax.plot(theta_scan, results) # MAKE SURE TO USE RADIAN FOR POLAR
     ax.set_theta_zero_location('N') # make 0 degrees point up
     ax.set_theta_direction(-1) # increase clockwise
     ax.set_rlabel_position(30)  # Move grid labels away from other labels
-    plt.show()
+    
+    ax.set_thetamin(-90)
+    ax.set_thetamax(90) 
+
     fig.savefig('../_images/doa_capons.svg', bbox_inches='tight')
     #fig.savefig('../_images/doa_capons2.svg', bbox_inches='tight')
+    plt.show()
     exit()
 
 
@@ -288,14 +292,14 @@ if False:
     theta1 = 20 / 180 * np.pi # convert to radians
     theta2 = 25 / 180 * np.pi
     theta3 = -40 / 180 * np.pi
-    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-    a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
     # we'll use 3 different frequencies.  1xN
     tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
     tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
     tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
-    r = a1 @ tone1 + a2 @ tone2 + 0.1 * a3 @ tone3
+    r = s1 @ tone1 + s2 @ tone2 + 0.1 * s3 @ tone3
     n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
     r = r + 0.05*n # 8xN
 
@@ -312,6 +316,8 @@ if False:
     ax.set_theta_zero_location('N') # make 0 degrees point up
     ax.set_theta_direction(-1) # increase clockwise
     ax.set_rlabel_position(30)  # Move grid labels away from other labels
+    ax.set_thetamin(-90)
+    ax.set_thetamax(90) 
     plt.show()
     fig.savefig('../_images/doa_complex_scenario.svg', bbox_inches='tight')
     exit()
@@ -319,20 +325,20 @@ if False:
 
 
 # MUSIC with complex scenario
-if False:
+if True:
     # more complex scenario
     Nr = 8 # 8 elements
     theta1 = 20 / 180 * np.pi # convert to radians
     theta2 = 25 / 180 * np.pi
     theta3 = -40 / 180 * np.pi
-    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-    a3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
     # we'll use 3 different frequencies.  1xN
     tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
     tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
     tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
-    r = a1 @ tone1 + a2 @ tone2 + 0.1 * a3 @ tone3
+    r = s1 @ tone1 + s2 @ tone2 + 0.1 * s3 @ tone3
     n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
     r = r + 0.05*n # 8xN
 
@@ -359,9 +365,8 @@ if False:
     theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 100 different thetas between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:
-        a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i))
-        a = a.reshape(-1,1)
-        metric = 1 / (a.conj().T @ V @ V.conj().T @ a) # The main MUSIC equation
+        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1)
+        metric = 1 / (s.conj().T @ V @ V.conj().T @ s) # The main MUSIC equation
         metric = np.abs(metric.squeeze()) # take magnitude
         metric = 10*np.log10(metric) # convert to dB
         results.append(metric)
@@ -372,6 +377,8 @@ if False:
     ax.set_theta_zero_location('N') # make 0 degrees point up
     ax.set_theta_direction(-1) # increase clockwise
     ax.set_rlabel_position(30)  # Move grid labels away from other labels
+    ax.set_thetamin(-90)
+    ax.set_thetamax(90)
     plt.show()
     fig.savefig('../_images/doa_music.svg', bbox_inches='tight')
     exit()
@@ -388,15 +395,11 @@ if False:
     for theta2s_i in range(len(theta2s)):
         theta1 = 18 / 180 * np.pi # convert to radians
         theta2 = theta2s[theta2s_i]
-        a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1))
-        a1 = a1.reshape(-1,1)
-        a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2))
-        a2 = a2.reshape(-1,1)
-        tone1 = np.exp(2j*np.pi*0.01e6*t)
-        tone1 = tone1.reshape(-1,1)
-        tone2 = np.exp(2j*np.pi*0.02e6*t)
-        tone2 = tone2.reshape(-1,1)
-        r = a1 @ tone1.T + a2 @ tone2.T
+        s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1)
+        s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+        tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(-1,1)
+        tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(-1,1)
+        r = s1 @ tone1.T + s2 @ tone2.T
         n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
         r = r + 0.01*n
         R = r @ r.conj().T # Calc covariance matrix, it's Nr x Nr
@@ -407,9 +410,8 @@ if False:
         for i in range(Nr - num_expected_signals):
             V[:, i] = v[:, i]
         for theta_i in range(len(theta_scan)):
-            a = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_scan[theta_i]))
-            a = a.reshape(-1,1)
-            metric = 1 / (a.conj().T @ V @ V.conj().T @ a) # The main MUSIC equation
+            s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_scan[theta_i])).reshape(-1,1)
+            metric = 1 / (s.conj().T @ V @ V.conj().T @ s) # The main MUSIC equation
             metric = np.abs(metric.squeeze()) # take magnitude
             metric = 10*np.log10(metric) # convert to dB
             results[theta2s_i, theta_i] = metric
@@ -445,19 +447,19 @@ if False:
     Nr = 32 # number of elements
     theta_jammer = 20 / 180 * np.pi
     theta_soi =    30 / 180 * np.pi
-    a_jammer = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_jammer)).reshape(-1,1) # Nr x 1
-    a_soi =    np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
+    s_jammer = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_jammer)).reshape(-1,1) # Nr x 1
+    s_soi =    np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
 
     # Generate the signal with just jammer, before SOI turns on
     jamming_signal = np.random.randn(1,  N) + 1j*np.random.randn(1,  N)
     system_noise =   np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
-    r_jammer = np.sqrt(1000) * a_jammer @ jamming_signal + system_noise
+    s_jammer = np.sqrt(1000) * s_jammer @ jamming_signal + system_noise
 
     # Generate the signal after SOI turns on
     jamming_signal = np.random.randn(1,  N) + 1j*np.random.randn(1,  N)
     soi_signal =     np.random.randn(1,  N) + 1j*np.random.randn(1,  N)
     system_noise =   np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
-    r_both =   np.sqrt(1000) * a_jammer @ jamming_signal + np.sqrt(10) * a_soi @ soi_signal + system_noise
+    r_both =   np.sqrt(1000) * s_jammer @ jamming_signal + np.sqrt(10) * s_soi @ soi_signal + system_noise
 
     # "Training" step, with just jammer present
     Rinv_jammer = np.linalg.pinv(r_jammer @ r_jammer.conj().T) # Nr x Nr, inverse covariance matrix estimate using the received samples
@@ -573,12 +575,12 @@ if False:
     Nr = 2
     theta1 = 20 / 180 * np.pi # Jammer
     theta2 = 30 / 180 * np.pi # SOI
-    a1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-    a2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
     tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
     tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
-    r_jammer = a1 @ tone1 + 0.05*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
-    r_both = a1 @ tone1 + a2 @ tone2 + 0.05*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
+    r_jammer = s1 @ tone1 + 0.05*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
+    r_both = s1 @ tone1 + s2 @ tone2 + 0.05*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
 
     def w_wiener(r):
         Rx_0 = r[0,:]

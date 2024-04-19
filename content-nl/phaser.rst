@@ -40,7 +40,7 @@ The Phaser is a single board containing the phased array and a bunch of other co
    :align: center
    :alt: The components of the Phaser (CN0566) including ADF4159, LTC5548, ADAR1000
 
-For now let's ignore the transmit side of the Phaser, as in this chapter we will only be using the HB100 device as a test transmitter.  The ADF4159 is a frequency synthesizer that produces a tone up to 13 GHz in frequency, what we call the local oscillator or LO.  This LO is fed into a mixer, the LTC5548, which is able to do upconversion or downconversion, although we'll be using it for downconversion.  For downconversion it takes in the LO as well as a signal anywhere from 2 - 14 GHz, and multiplies the two together which performs a frequency shift.  The resulting downconverted signal can be anywhere from DC to 6 GHz, although we are going to target around 2 GHz.  The ADAR1000 is a 4-channel analog beamformer, so the Phaser utilizes two of them.  An analog beamformer has independently adjustable phase shifters and gain for each channel, allowing each channel to be time-delayed and attenuated before being summed together in the analog domain (resulting in a single channel).  On the Phaser, each ADAR1000 outputs a signal which gets downconverted and then received by the Pluto.  Using the Raspberry Pi we can control the phase and gain of all eight channels in realtime, to perform beamforming.  We also have the option to do two-channel digital beamforming/array processing, discussed in the next chapter.
+For now let's ignore the transmit side of the Phaser, as in this chapter we will only be using the HB100 device as a test transmitter.  The ADF4159 is a frequency synthesizer that produces a tone up to 13 GHz in frequency, what we call the local oscillator or LO.  This LO is fed into a mixer, the LTC5548, which is able to do upconversion or downconversion, although we'll be using it for downconversion.  For downconversion it takes in the LO as well as a signal anywhere from 2 - 14 GHz, and multiplies the two together which performs a frequency shift.  The resulting downconverted signal can be anywhere from DC to 6 GHz, although we are going to target around 2 GHz.  The ADAR1000 is a 4-channel analog beamformer, so the Phaser utilizes two of them.  An analog beamformer has independently adjustable phase shifters and gain for each channel, allowing each channel to be time-delayed and attenuated before being summed together in the analog domain (resulting in a single channel).  On the Phaser, each ADAR1000 outputs a signal which gets downconverted and then received by the Pluto.  Using the Raspberry Pi we can control the phase and gain of all eight channels in real-time, to perform beamforming.  We also have the option to do two-channel digital beamforming/array processing, discussed in the next chapter.
 
 For those interested, a slightly more detailed block diagram is provided below.
 
@@ -321,14 +321,14 @@ If you want a polar plot you can instead using the following:
 
 By taking the max we can estimate the direction of arrival of the signal!
 
-Realtime and with Spatial Tapering
+Real-time and with Spatial Tapering
 ##################################
 
-Now let's take a moment to talk about spatial tapering.  So far we have left the gain adjustments of each channel to equal values, so that all eight channels get summed equally.  Just like we applied a window before taking an FFT, we can apply a window in the spatial domain by applying weights to these eight channels.  We'll use the exact same windowing functions like Hanning, Hamming, etc.  Let's also tweak the code to run in realtime so that it's a little more fun:
+Now let's take a moment to talk about spatial tapering.  So far we have left the gain adjustments of each channel to equal values, so that all eight channels get summed equally.  Just like we applied a window before taking an FFT, we can apply a window in the spatial domain by applying weights to these eight channels.  We'll use the exact same windowing functions like Hanning, Hamming, etc.  Let's also tweak the code to run in real-time so that it's a little more fun:
 
 .. code-block:: python
 
- plt.ion() # needed for realtime view
+ plt.ion() # needed for real-time view
  print("Starting, use control-c to stop")
  try:
      while True:
@@ -361,7 +361,7 @@ Now let's take a moment to talk about spatial tapering.  So far we have left the
  
          powers -= np.max(powers) # normalize so max is at 0 dB
  
-         # Realtime view
+         # Real-time view
          plt.plot(angle_of_arrivals, powers, '.-')
          plt.xlabel("Angle of Arrival")
          plt.ylabel("Magnitude [dB]")
@@ -372,7 +372,7 @@ Now let's take a moment to talk about spatial tapering.  So far we have left the
  except KeyboardInterrupt:
      sys.exit() # quit python
 
-You should see a realtime version of the previous exercise.  Try switching which :code:`gain_list` is used, to play around with the different windows.  Here is an example of the Rectangular window (i.e., no windowing function):
+You should see a real-time version of the previous exercise.  Try switching which :code:`gain_list` is used, to play around with the different windows.  Here is an example of the Rectangular window (i.e., no windowing function):
 
 .. image:: ../_images/phaser_animation_rect.gif
    :scale: 100 % 
@@ -410,7 +410,7 @@ We then take both the sum and difference (a.k.a. delta) of these two beams digit
    delta_beam = data[0] - data[1]
    error = np.mean(np.real(delta_beam / sum_beam))
 
-The sign of the error tells us which direction the signal is actually coming from, and the magnitude tells us how far off we are from the signal.  We can then use this information to update the angle of arrival estimate and weights.  By repeating this process in realtime we can track the signal.
+The sign of the error tells us which direction the signal is actually coming from, and the magnitude tells us how far off we are from the signal.  We can then use this information to update the angle of arrival estimate and weights.  By repeating this process in real-time we can track the signal.
 
 Now jumping into the full Python example, we will start by copying the code we used earlier to perform a 180 degree sweep.  The only code we will add is to pull out the phase at which the received power was maximum:
 

@@ -328,7 +328,7 @@ Ahora tomemos un momento para hablar sobre la reducción espacial. Hasta ahora h
 
 .. code-block:: python
 
- plt.ion() # needed for realtime view
+ plt.ion() # needed for real-time view
  print("Starting, use control-c to stop")
  try:
      while True:
@@ -361,7 +361,7 @@ Ahora tomemos un momento para hablar sobre la reducción espacial. Hasta ahora h
  
          powers -= np.max(powers) # normalize so max is at 0 dB
  
-         # Realtime view
+         # Real-time view
          plt.plot(angle_of_arrivals, powers, '.-')
          plt.xlabel("Angle of Arrival")
          plt.ylabel("Magnitude [dB]")

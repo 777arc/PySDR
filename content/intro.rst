@@ -11,10 +11,12 @@ Purpose and Target Audience
 First and foremost, a couple important terms:
 
 **Software-Defined Radio (SDR):**
-    A radio that uses software to perform signal-processing tasks that were traditionally performed by hardware
-  
+    As a *concept* it refers to using software to perform signal processing tasks that were traditionally performed by hardware, specific to radio/RF applications.  This software can be run on a general-purpose computer (CPU), FPGA, or even GPU, and it can be used for real-time applications or offline processing of recorded signals.  Analogous terms include "software radio" and "RF digital signal processing".
+
+    As a *thing* (e.g., "an SDR") it typically refers to a device that you can plug an antenna into and receive RF signals, with the digitized RF samples being sent to a computer for processing or recording (e.g., over USB, Ethernet, PCI).  Many SDRs also have transmit capabilities, allowing the computer to send samples to the SDR which then transmits the signal at a specified RF frequency.  Some embedded-style SDRs include an onboard computer.
+
 **Digital Signal Processing (DSP):**
-    The digital processing of signals, in our case RF signals
+    The digital processing of signals; in our case, RF signals.
 
 This textbook acts as a hands-on introduction to the areas of DSP, SDR, and wireless communications.  It is designed for someone who is:
 

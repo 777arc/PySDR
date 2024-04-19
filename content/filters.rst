@@ -311,84 +311,6 @@ Because our filter is not symmetrical around 0 Hz, it has to use complex taps. T
 
 If this subsection added to the confusion, don't worry, 99% of the time you'll be dealing with simple low pass filters with real taps anyway. 
 
-*************************
-Filter Implementation
-*************************
-
-We aren't going to dive too deeply into the implementation of filters. Rather, I focus on filter design (you can find ready-to-use implementations in any programming language anyway).  For now, here is one take-away:  to filter a signal with an FIR filter, you simply convolve the impulse response (the array of taps) with the input signal.  (Don't worry, a later section explains convolution.) In the discrete world we use a discrete convolution (example below).  The triangles labeled as b's are the taps.  In the flowchart, the squares labeled :math:`z^{-1}` above the triangles signify to delay by one time step.
-
-.. image:: ../_images/discrete_convolution.png
-   :scale: 80 % 
-   :align: center
-   :alt: Implementation of a finite impulse response (FIR) filter with delays and taps and summations
-
-You might be able to see why we call them filter "taps" now, based on the way the filter itself is implemented. 
-
-FIR vs IIR
-##############
-
-There are two main classes of digital filters: FIR and IIR
-
-1. Finite impulse response (FIR)
-2. Infinite impulse response (IIR)
-
-We won't get too deep into the theory, but for now just remember: FIR filters are easier to design and can do anything you want if you use enough taps.  IIR filters are more complicated with the potential to be unstable, but they are more efficient (use less CPU and memory for the given filter). If someone just gives you a list of taps, it's assumed they are taps for an FIR filter.  If they start mentioning "poles", they are talking about IIR filters.  We will stick with FIR filters in this textbook.
-
-Below is an example frequency response, comparing an FIR and IIR filter that do almost exactly the same filtering; they have a similar transition-width, which as we learned will determine how many taps are required.  The FIR filter has 50 taps and the IIR filter has 12 poles, which is like having 12 taps in terms of computations required.
-
-.. image:: ../_images/FIR_IIR.png
-   :scale: 70 % 
-   :align: center
-   :alt: Comparing finite impulse response (FIR) and infinite impulse response (IIR) filters by observing frequency response
-
-The lesson is that the FIR filter requires vastly more computational resources than the IIR to perform roughly the same filtering operation.
-
-Here are some real-world examples of FIR and IIR filters that you may have used before.
-
-If you perform a "moving average" across a list of numbers, that's just an FIR filter with taps of 1's:
-- h = [1 1 1 1 1 1 1 1 1 1] for a moving average filter with a window size of 10.  It also happens to be a low-pass type filter; why is that?  What's the difference between using 1's and using taps that decay to zero?
-
-.. raw:: html
-
-   <details>
-   <summary>Answers</summary>
-
-A moving average filter is a low-pass filter because it smooths out "high frequency" changes, which is usually why people will use one.  The reason to use taps that decay to zero on both ends is to avoid a sudden change in the output, like if the signal being filtered was zero for a while and then suddenly jumped up.
-
-.. raw:: html
-
-   </details>
-
-Now for an IIR example.  Have any of you ever done this: 
-
-    x = x*0.99 + new_value*0.01
-
-where the 0.99 and 0.01 represent the speed the value updates (or rate of decay, same thing).  It's a convenient way to slowly update some variable without having to remember the last several values.  This is actually a form of low-pass IIR Filter.  Hopefully you can see why IIR filters have less stability than FIR.  Values never fully go away!
-
-*************************
-Filter Design Tools
-*************************
-
-In practice, most people will use a filter designer tool or a function in code that designs the filter.  There are plenty of different tools, but for students I recommend this easy-to-use web app by Peter Isza that will show you impulse and frequency response: http://t-filter.engineerjs.com.  Using the default values, at the time of writing this at least, it's set up to design a low-pass filter with a passband from 0 to 400 Hz and stopband from 500 Hz and up.  The sample rate is 2 kHz, so the max frequency we can "see" is 1 kHz.
-
-.. image:: ../_images/filter_designer1.png
-   :scale: 70 % 
-   :align: center 
-
-Click the "Design Filter" button to create the taps and plot the frequency response.
-
-.. image:: ../_images/filter_designer2.png
-   :scale: 70 % 
-   :align: center 
-
-Click "Impulse Response" text above the graph to see the impulse response, which is a plot of the taps since this is an FIR filter.
-
-.. image:: ../_images/filter_designer3.png
-   :scale: 70 % 
-   :align: center 
-
-This app even includes the C++ source code to implement and use this filter.  The web app does not include any way to design IIR filters, which are in general much more difficult to design.
-
 .. _convolution-section:
 
 ***********
@@ -397,7 +319,7 @@ Convolution
 
 We will take a brief detour to introduce the convolution operator. Feel free to skip this section if you are already familiar with it.
 
-Adding two signals together is one way of combining two signals into one. In the :ref:`freq-domain-chapter` chapter we explored how the linearity property applies when adding two signals together.  Convolution is another way to combine two signals into one, but it is very different than simply adding them.  The convolution of two signals is like sliding one across the other and integrating.  It is *very* similar to a cross-correlation, if you are familiar with that operation.  In fact it is equivalent to a cross-correlation in many cases.  We typically use the ::code::`*` symbol to refer to a convolution, especially in math equations.
+Adding two signals together is one way of combining two signals into one. In the :ref:`freq-domain-chapter` chapter we explored how the linearity property applies when adding two signals together.  Convolution is another way to combine two signals into one, but it is very different than simply adding them.  The convolution of two signals is like sliding one across the other and integrating.  It is *very* similar to a cross-correlation, if you are familiar with that operation.  In fact it is equivalent to a cross-correlation in many cases.  We typically use the :code:`*` symbol to refer to a convolution, especially in math equations.
 
 I believe the convolution operation is best learned through examples.  In this first example, we convolve two square pulses together:
 
@@ -467,11 +389,206 @@ Now that we are starting to understand convolution, I will present the mathemati
  
 In this above expression, :math:`g(t)` is the signal or input that is flipped and slides across :math:`f(t)`, but :math:`g(t)` and :math:`f(t)` can be swapped and it's still the same expression.  Typically, the shorter array will be used as :math:`g(t)`.  Convolution is equal to a cross-correlation, defined as :math:`\int f(\tau) g(t+\tau)`, when :math:`g(t)` is symmetrical, i.e., it doesn't change when flipped about the origin.
 
+
 *************************
-Filter Design in Python
+Filter Implementation
 *************************
 
-Now we will consider one way to design an FIR filter ourselves in Python.  While there are many approaches to designing filters, we will use the method of starting in the frequency domain and working backwards to find the impulse response. Ultimately that is how our filter is represented (by its taps).
+We aren't going to dive too deeply into the implementation of filters. Rather, I focus on filter design (you can find ready-to-use implementations in any programming language anyway).  For now, here is one take-away:  to filter a signal with an FIR filter, you simply convolve the impulse response (the array of taps) with the input signal.  (Don't worry, a later section explains convolution.) In the discrete world we use a discrete convolution (example below).  The triangles labeled as b's are the taps.  In the flowchart, the squares labeled :math:`z^{-1}` above the triangles signify to delay by one time step.
+
+.. image:: ../_images/discrete_convolution.png
+   :scale: 80 % 
+   :align: center
+   :alt: Implementation of a finite impulse response (FIR) filter with delays and taps and summations
+
+You might be able to see why we call them filter "taps" now, based on the way the filter itself is implemented. 
+
+FIR vs IIR
+##############
+
+There are two main classes of digital filters: FIR and IIR
+
+1. Finite impulse response (FIR)
+2. Infinite impulse response (IIR)
+
+We won't get too deep into the theory, but for now just remember: FIR filters are easier to design and can do anything you want if you use enough taps.  IIR filters are more complicated with the potential to be unstable, but they are more efficient (use less CPU and memory for the given filter). If someone just gives you a list of taps, it's assumed they are taps for an FIR filter.  If they start mentioning "poles", they are talking about IIR filters.  We will stick with FIR filters in this textbook.
+
+Below is an example frequency response, comparing an FIR and IIR filter that do almost exactly the same filtering; they have a similar transition-width, which as we learned will determine how many taps are required.  The FIR filter has 50 taps and the IIR filter has 12 poles, which is like having 12 taps in terms of computations required.
+
+.. image:: ../_images/FIR_IIR.png
+   :scale: 70 % 
+   :align: center
+   :alt: Comparing finite impulse response (FIR) and infinite impulse response (IIR) filters by observing frequency response
+
+The lesson is that the FIR filter requires vastly more computational resources than the IIR to perform roughly the same filtering operation.
+
+Here are some real-world examples of FIR and IIR filters that you may have used before.
+
+If you perform a "moving average" across a list of numbers, that's just an FIR filter with taps of 1's:
+- h = [1 1 1 1 1 1 1 1 1 1] for a moving average filter with a window size of 10.  It also happens to be a low-pass type filter; why is that?  What's the difference between using 1's and using taps that decay to zero?
+
+.. raw:: html
+
+   <details>
+   <summary>Answers</summary>
+
+A moving average filter is a low-pass filter because it smooths out "high frequency" changes, which is usually why people will use one.  The reason to use taps that decay to zero on both ends is to avoid a sudden change in the output, like if the signal being filtered was zero for a while and then suddenly jumped up.
+
+.. raw:: html
+
+   </details>
+
+Now for an IIR example.  Have any of you ever done this: 
+
+    x = x*0.99 + new_value*0.01
+
+where the 0.99 and 0.01 represent the speed the value updates (or rate of decay, same thing).  It's a convenient way to slowly update some variable without having to remember the last several values.  This is actually a form of low-pass IIR Filter.  Hopefully you can see why IIR filters have less stability than FIR.  Values never fully go away!
+
+*************************
+FIR Filter Design
+*************************
+
+In practice, most people will use a filter designer tool or a function in code (e.g., Python/SciPy) that designs the filter.  We will start by showing off what can be done within Python, then move on to 3rd party tools.  Our focus will be on FIR filters, as they are by far the most commonly used in DSP.
+
+Within Python
+#################
+
+As part of designing the filter, which involves generating the filter taps for our desired response, we must identify the type of filter (low-pass, high-pass, band-pass, or band-stop), the cutoff frequency/frequencies, the number of taps, and optionally the transition width.
+
+There are two main functions in SciPy we use to design FIR filters, both using what is referred to as the window method.  First, there is :code:`scipy.signal.firwin()` which is the most straightforward; it will provide the taps for a linear phase FIR filter.  The function needs to be provided the number of taps and cutoff frequency (for low-pass/high-pass) and two cutoff frequencies for band-pass/band-stop.  Optionally, you can provide the transition width.  If you provide the sample rate via :code:`fs` then the units of your cutoff frequency and transition width is in Hz, but if you don't provide it then they will be in units of normalized Hz (0 to 1 Hz).  The :code:`pass_zero` parameter is :code:`True` by default, but if you want a high-pass or band-pass filter then you must set it to :code:`False`; it indicates whether 0 Hz should be included in the passband.  It is recommended to use an odd number of taps, and 101 taps is a good starting point.  For example, let's generate a band-pass filter from 100 kHz to 200 kHz with a sample rate of 1 MHz:
+
+.. code-block:: python
+
+   from scipy.signal import firwin
+   sample_rate = 1e6
+   h = firwin(101, [100e3, 200e3], pass_zero=False, fs=sample_rate)
+   print(h)
+
+The second function is :code:`scipy.signal.firwin2()`, which is more flexible and can be used to design filters with custom frequency responses, as you provide it a list of frequencies and the desired gain at each frequency.   It also requires the number of taps, and supports the same :code:`fs` parameter as mentioned above.  For example, let's generate a filter with a low-pass region up to 100 kHz, and a separate band-pass region from 200 kHz to 300 kHz, but at half the gain as the low-pass region, and we'll use a transition width of 10 kHz:
+
+.. code-block:: python
+
+   from scipy.signal import firwin2
+   sample_rate = 1e6
+   freqs = [0, 100e3, 110e3, 190e3, 200e3, 300e3, 310e3, 500e3]
+   gains = [1, 1,     0,     0,     0.5,   0.5,   0,     0]
+   h2 = firwin2(101, freqs, gains, fs=sample_rate)
+   print(h2)
+
+To actually use the FIR filter on a signal, there are several options, and they all involve performing a convolution operation between the samples we want to filter, and the filter taps we generated above:
+
+- :code:`np.convolve`
+- :code:`scipy.signal.convolve`
+- :code:`scipy.signal.fftconvolve`
+- :code:`scipy.signal.lfilter`
+
+The convolve-based functions above all have a :code:`mode` parameter that takes the options: :code:`'full'`, :code:`'valid'`, or :code:`'same'`.  The difference is the size of the output, because when performing a convolution, as we saw earlier in this chapter, there are transients created at the very beginning and end.  The :code:`'valid'` option will include no transients, but the output will be slightly smaller in size than the signal fed into the function.  The :code:`'same'` option will give an output the same size as the input signal, which is useful when keeping track of time or other time-domain signal features.  Lastly, the :code:`'full'` option will include all the transients; it outputs the entire convolution result.
+
+We will now use all four functions on the firwin2 taps we created above, and using a test signal that is made with white Gaussian noise. Note that :code:`lfilter` has an extra argument (the 2nd one) which will always be 1 for an FIR filter.
+
+.. code-block:: python
+
+    import numpy as np
+    from scipy.signal import firwin2, convolve, fftconvolve, lfilter
+
+    # Create a test signal, we'll use Gaussian noise
+    sample_rate = 1e6 # Hz
+    N = 1000 # samples to simulate
+    x = np.random.randn(N) + 1j * np.random.randn(N)
+
+    # Create an FIR filter, same one as 2nd example above
+    freqs = [0, 100e3, 110e3, 190e3, 200e3, 300e3, 310e3, 500e3]
+    gains = [1, 1,     0,     0,     0.5,   0.5,   0,     0]
+    h2 = firwin2(101, freqs, gains, fs=sample_rate)
+
+    # Apply filter using the four different methods
+    x_numpy = np.convolve(h2, x)
+    x_scipy = convolve(h2, x) # scipys convolve
+    x_fft_convolve = fftconvolve(h2, x)
+    x_lfilter = lfilter(h2, 1, x) # 2nd arg is always 1 for FIR filters
+
+    # Prove they are all giving the same output
+    print(x_numpy[0:2])
+    print(x_scipy[0:2])
+    print(x_fft_convolve[0:2])
+    print(x_lfilter[0:2])
+
+The above code shows basic usage of these four methods, but you may be wondering which one is best.  The plots below show all four methods using a range of tap sizes, on an input signal of 1k samples and 100k samples respectively.  It was run on an Intel Core i9-10900K.
+
+.. image:: ../_images/convolve_comparison_1000.svg
+   :align: center 
+   :target: ../_images/convolve_comparison_1000.svg
+
+.. image:: ../_images/convolve_comparison_100000.svg
+   :align: center 
+   :target: ../_images/convolve_comparison_100000.svg
+
+As you can see, :code:`scipy.signal.convolve` actually switches its method to FFT-based automatically at a certian input size.  Either way, :code:`fftconvolve` is the clear winner for these size taps and inputs, which represent fairly typical sizes in RF applications.  A lot of the code within PySDR actually uses :code:`np.convolve:` simply because it's one less import and the performance difference is negligible for low datarate or non-real-time applications.
+
+Lastly, we will show the output in the frequency domain, so we can finally check whether the firwin2 method gave us a filter that matched our design parameters.  Starting from the code above that gave us :code:`h2`:
+
+.. code-block:: python
+
+    # Simulate signal comprising of Gaussian noise
+    N = 100000 # signal length
+    x = np.random.randn(N) + 1j * np.random.randn(N) # complex signal
+
+    # Save PSD of the input signal
+    PSD_input = 10*np.log10(np.fft.fftshift(np.abs(np.fft.fft(x))**2)/len(x))
+
+    # Apply filter
+    x = fftconvolve(x, h2, 'same')
+
+    # Look at PSD of the output signal
+    PSD_output = 10*np.log10(np.fft.fftshift(np.abs(np.fft.fft(x))**2)/len(x))
+    f = np.linspace(-sample_rate/2/1e6, sample_rate/2/1e6, len(PSD_output))
+    plt.plot(f, PSD_input, alpha=0.8)
+    plt.plot(f, PSD_output, alpha=0.8)
+    plt.xlabel('Frequency [MHz]')
+    plt.ylabel('PSD [dB]')
+    plt.axis([sample_rate/-2/1e6, sample_rate/2/1e6, -40, 20])
+    plt.legend(['Input', 'Output'], loc=1)
+    plt.grid()
+    plt.savefig('../_images/fftconvolve.svg', bbox_inches='tight')
+    plt.show()
+
+We can see that the bandpass portion is 3 dB lower than the lowpass portion:
+
+.. image:: ../_images/fftconvolve.svg
+   :align: center 
+   :target: ../_images/fftconvolve.svg
+
+As an aside, there is one more obscure option for applying the filter to a signal, called :code:`scipy.signal.filtfilt`, that performs "zero-phase filtering", which helps preserve features in a filtered time waveform exactly where they occur in the unfiltered signal.  It does this by applying the filter taps twice, first in the forward direction and then in reverse.  So the frequency response is going to be a squared version of what you would normally get.  For more information see https://www.mathworks.com/help/signal/ref/filtfilt.html or https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html.
+
+3rd Party Tools
+#######################
+
+You can also use tools outside of Python to design a custom FIR filter.  For students I recommend this easy-to-use web app by Peter Isza that will show you impulse and frequency response: http://t-filter.engineerjs.com.  Using the default values, at the time of writing this at least, it's set up to design a low-pass filter with a passband from 0 to 400 Hz and stopband from 500 Hz and up.  The sample rate is 2 kHz, so the max frequency we can "see" is 1 kHz.
+
+.. image:: ../_images/filter_designer1.png
+   :scale: 70 % 
+   :align: center 
+
+Click the "Design Filter" button to create the taps and plot the frequency response.
+
+.. image:: ../_images/filter_designer2.png
+   :scale: 70 % 
+   :align: center 
+
+Click "Impulse Response" text above the graph to see the impulse response, which is a plot of the taps since this is an FIR filter.
+
+.. image:: ../_images/filter_designer3.png
+   :scale: 70 % 
+   :align: center 
+
+This app even includes the C++ source code to implement and use this filter.  The web app does not include any way to design IIR filters, which are in general much more difficult to design.
+
+
+****************************
+Arbitrary Frequency Response
+****************************
+
+Now we will consider one way to design an FIR filter ourselves in Python, starting with the desired frequency domain response, and working backwards to find the impulse response. Ultimately that is how our filter is represented (by its taps).
 
 You start by creating a vector of your desired frequency response.  Let's design an arbitrarily shaped low-pass filter shown below:
 
@@ -569,7 +686,6 @@ See how the frequency response not very straight... it doesn't match our origina
    :align: center 
 
 Both options worked.  Which one would you choose?  The second method resulted in more taps, but the first method resulted in a frequency response that wasn't very sharp and had a falling edge wasn't very steep.  There are numerous ways to design a filter, each with their own trade-offs along the way. Many consider filter design an art.
-
 
 *************************
 Intro to Pulse Shaping

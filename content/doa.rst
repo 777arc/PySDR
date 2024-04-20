@@ -709,11 +709,27 @@ encapsulates the array geometry, and its only other parameter is the direction y
 
 It turns out that this pattern is going to almost exactly match the pattern you get when performing DOA with the conventional beamformer (delay-and-sum), when there is a single tone present at `theta_degrees` and little-to-no noise.  The plot may look different because of how low the y-axis gets in dB, or due to the size of the FFT used to create this quiescent response pattern.  Try tweaking :code:`theta_degrees` or the number of elements :code:`Nr` to see how the response changes.
 
+
+
 *******************
-2D DOA
+Circular Arrays
 *******************
 
-Coming soon!
+We will briefly talk about the Uniform Circular Array (UCA), which is a popular array geometry for DOA because it gets around the 180 degree ambiguity issue ULAs have.  The KrakenSDR, for example, is a 5-element array, and it is common to place those five elements in a circle with equal spacing between elements.  In theory, only three elements is needed to form a UCA, just like how we can make a ULA with only two elements.
+
+All of the code we have studied so far applies to UCAs, we just have to replace the steering vector equation with one specific to the UCA:
+
+.. code-block:: python
+
+   radius = 0.05 # normalized by wavelength!
+   d = np.sqrt(2 * radius**2 * (1 - np.cos(2*np.pi/Nr)))
+   sf = 1.0 / (np.sqrt(2.0) * np.sqrt(1.0 - np.cos(2*np.pi/Nr))) # scaling factor based on geometry, eg for a hexagon it is 1.0
+   x = d * sf * np.cos(2 * np.pi / Nr * np.arange(Nr))
+   y = -1 * d * sf * np.sin(2 * np.pi / Nr * np.arange(Nr))
+   s = np.exp(1j * 2 * np.pi * (x * np.cos(theta) + y * np.sin(theta)))
+   s = s.reshape(-1, 1) # Nrx1
+
+Lastly, you will want to scan from 0 to 360 degrees, instead of just -90 to +90 degrees like with a ULA.
 
 *******************
 Steering Nulls

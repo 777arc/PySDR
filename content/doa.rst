@@ -480,7 +480,7 @@ In Python we can implement the MVDR/Capon beamformer as follows, which will be d
  # theta is the direction of interest, in radians, and r is our received signal
  def w_mvdr(theta, r):
     s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector in the desired direction theta
-    s = a.reshape(-1,1) # make into a column vector (size 3x1)
+    s = s.reshape(-1,1) # make into a column vector (size 3x1)
     R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
     Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better/faster than a true inverse
     w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector

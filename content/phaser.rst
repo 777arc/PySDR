@@ -12,12 +12,6 @@ In this chapter we use the `Analog Devices Phaser <https://wiki.analog.com/resou
    :alt: The Phaser (CN0566) by Analog Devices
 
 ************************
-Intro to Phased Arrays
-************************
-
-Coming soon!
-
-************************
 Hardware Overview
 ************************
 

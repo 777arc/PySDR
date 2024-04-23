@@ -322,7 +322,7 @@ If you want a polar plot you can instead using the following:
 By taking the max we can estimate the direction of arrival of the signal!
 
 Real-time and with Spatial Tapering
-##################################
+######################################
 
 Now let's take a moment to talk about spatial tapering.  So far we have left the gain adjustments of each channel to equal values, so that all eight channels get summed equally.  Just like we applied a window before taking an FFT, we can apply a window in the spatial domain by applying weights to these eight channels.  We'll use the exact same windowing functions like Hanning, Hamming, etc.  Let's also tweak the code to run in real-time so that it's a little more fun:
 

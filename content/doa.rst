@@ -548,9 +548,9 @@ The MVDR/Capon beamformer can be summarized in the following equation:
 
 .. math::
 
- w_{mvdr} = \frac{R^{-1} a}{a^H R^{-1} a}
+ w_{mvdr} = \frac{R^{-1} s}{s^H R^{-1} s}
 
-where :math:`R` is the spatial covariance matrix estimate based on our received samples, calculated by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`, and the result will be a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far).  This covariance matrix tells us how similar the samples received from the three elements are.  The vector :math:`s` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.
+The vector :math:`s` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.  :math:`R` is the spatial covariance matrix estimate based on our received samples, found using :code:`R = np.cov(r)` or calculated manually by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`,  The spatial covariance matrix is a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far) that tells us how similar the samples received from the three elements are.
 
 If we already know the direction of the signal of interest, and that direction does not change, we only have to calculate the weights once and simply use them to receive our signal of interest.  Although even if the direction doesn't change, we benefit from recalculating these weights periodically, to account for changes in the interference/noise, which is why we refer to these non-conventional digital beamformers as "adaptive" beamforming; they use information in the signal we receive to calculate the best weights.  Just as a reminder, we can *perform* beamforming using MVDR by calculating these weights and applying them to the signal with :code:`w.conj().T @ r`, just like we did in the conventional method, the only difference is how the weights are calculated.
 
@@ -564,7 +564,8 @@ In Python we can implement the MVDR/Capon beamformer as follows, which will be d
  def w_mvdr(theta, r):
     s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector in the desired direction theta
     s = s.reshape(-1,1) # make into a column vector (size 3x1)
-    R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+    R = np.cov(r) # gives a Nr x Nr covariance matrix of the samples
+    #R = (r @ r.conj().T)/r.shape[1] # or calc the covariance matrix manually
     Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better/faster than a true inverse
     w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
     return w
@@ -650,7 +651,7 @@ Meaning we don't have to apply the weights at all, this final equation above for
     def power_mvdr(theta, r):
         s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
-        R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+        R = np.cov(r) # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
         return 1/(s.conj().T @ Rinv @ s).squeeze()
 
@@ -688,7 +689,7 @@ where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2
  num_expected_signals = 3 # Try changing this!
  
  # part that doesn't change with theta_i
- R = r @ r.conj().T # Calc covariance matrix, it's Nr x Nr
+ R = np.cov(r) # Calc covariance matrix. gives a Nr x Nr covariance matrix
  w, v = np.linalg.eig(R) # eigenvalue decomposition, v[:,i] is the eigenvector corresponding to the eigenvalue w[i]
  eig_val_order = np.argsort(np.abs(w)) # find order of magnitude of eigenvalues
  v = v[:, eig_val_order] # sort eigenvectors using this order

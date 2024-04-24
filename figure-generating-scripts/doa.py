@@ -221,7 +221,7 @@ if False:
 
 
 # MVDR/Capons beamformer
-if False:
+if True:
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
     ax.set_ylim([-10, 0])
 
@@ -229,7 +229,7 @@ if False:
     def w_mvdr(theta, r):
         s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
-        R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+        R = (r @ r.conj().T)/r.shape[1] # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
         w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
         return w
@@ -237,7 +237,8 @@ if False:
     def power_mvdr(theta, r):
         s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
-        R = r @ r.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+        #R = (r @ r.conj().T)/r.shape[1] # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+        R = np.cov(r)
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
         return 1/(s.conj().T @ Rinv @ s).squeeze()
     
@@ -262,11 +263,11 @@ if False:
     theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:
-        w = w_mvdr(theta_i, r) # 3x1
-        r_weighted = w.conj().T @ r # apply weights
-        power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
-        results.append(power_dB)
-        #results.append(10*np.log10(power_mvdr(theta_i, r))) # compare to using equation for MVDR power, should match, SHOW MATH OF WHY THIS HAPPENS!
+        #w = w_mvdr(theta_i, r) # 3x1
+        #r_weighted = w.conj().T @ r # apply weights
+        #power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
+        #results.append(power_dB)
+        results.append(10*np.log10(power_mvdr(theta_i, r))) # compare to using equation for MVDR power, should match, SHOW MATH OF WHY THIS HAPPENS!
     results -= np.max(results) # normalize
     print(theta_scan[np.argmax(results)] * 180/np.pi) # Angle at peak, in degrees
 
@@ -279,7 +280,7 @@ if False:
     ax.set_thetamin(-90)
     ax.set_thetamax(90) 
 
-    fig.savefig('../_images/doa_capons.svg', bbox_inches='tight')
+    #fig.savefig('../_images/doa_capons.svg', bbox_inches='tight')
     #fig.savefig('../_images/doa_capons2.svg', bbox_inches='tight')
     plt.show()
     exit()
@@ -325,7 +326,7 @@ if False:
 
 
 # MUSIC with complex scenario
-if True:
+if False:
     # more complex scenario
     Nr = 8 # 8 elements
     theta1 = 20 / 180 * np.pi # convert to radians

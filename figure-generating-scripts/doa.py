@@ -221,7 +221,7 @@ if False:
 
 
 # MVDR/Capons beamformer
-if True:
+if False:
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
     ax.set_ylim([-10, 0])
 
@@ -651,4 +651,68 @@ if False:
 
 
 
+# LCMV Beam Pattern w/ new scenario
+if True:
+    # Simulate received signal
+    Nr = 8 # 8 elements
+    theta1 = -60 / 180 * np.pi # convert to radians
+    theta2 = -30 / 180 * np.pi
+    theta3 = 0 / 180 * np.pi
+    theta4 = 30 / 180 * np.pi
+    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    s4 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta4)).reshape(-1,1)
+    # we'll use 3 different frequencies.  1xN
+    tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
+    tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
+    tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
+    tone4 = np.exp(2j*np.pi*0.04e6*t).reshape(1,-1)
+    r = s1 @ tone1 + s2 @ tone2 + s3 @ tone3 + s4 @ tone4
+    n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
+    r = r + 0.5*n # 8xN
 
+    # Let's point at the SOI at 15 deg, and another potential SOI that we didnt actually simulate at 60 deg
+    soi1_theta = 15 / 180 * np.pi # convert to radians
+    soi2_theta = 60 / 180 * np.pi
+
+    # LCMV weights
+    R_inv = np.linalg.pinv(np.cov(r)) # 8x8
+    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
+    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
+    C = np.concatenate((s1, s2), axis=1) # 8x2
+    f = np.ones(2).reshape(-1,1) # 2x1
+
+    # LCMV equation
+    #    8x8   8x2                    2x8        8x8   8x2  2x1
+    w = R_inv @ C @ np.linalg.pinv(C.conj().T @ R_inv @ C) @ f # output is 8x1
+
+    # Plot beam pattern
+    w = w.squeeze() # reduce to a 1D array
+    N_fft = 1024
+    w = np.conj(w) # or else our answer will be negative/inverted
+    w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+    w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Map the FFT bins to angles in radians
+    
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_bins, w_fft_dB) # MAKE SURE TO USE RADIAN FOR POLAR
+    # Add dots where interferers and SOIs are
+    ax.plot([theta1], [0], 'or')
+    ax.plot([theta2], [0], 'or')
+    ax.plot([theta3], [0], 'or')
+    ax.plot([theta4], [0], 'or')
+    ax.plot([soi1_theta], [0], 'og')
+    ax.plot([soi2_theta], [0], 'og')
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_thetagrids(np.arange(-90, 105, 15)) # it's in degrees
+    ax.set_rlabel_position(55)  # Move grid labels away from other labels
+    ax.set_thetamin(-90) # only show top half
+    ax.set_thetamax(90)
+    ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
+    plt.show()
+
+    fig.savefig('../_images/lcmv_beam_pattern.svg', bbox_inches='tight')
+    exit()

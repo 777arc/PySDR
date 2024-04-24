@@ -660,6 +660,42 @@ To use this in the previous simulation, within the for loop, the only thing left
 There are many more beamformers out there, but next we are going to take a moment to discuss how the number of elements impacts our ability to perform beamforming and DOA.
 
 **********************
+Covariance Matrix
+**********************
+
+Let's take a brief moment to discuss the spatial covariance matrix, which is a key concept in *adaptive* beamforming.  A covariance matrix is a mathematical representation of the similarity between pairs of elements in a random vector (in our case, it's the elements in our array, so we call it the *spatial* covariance matrix).  A covariance matrix is always square, and the values along the diagonal correspond to the covariance of each element with itself.  We calculate the spatial covariance matrix *estimate*; it is only an estimate because we have a limited number of samples. 
+
+In general, the covariance matrix is defined as:
+
+:math:`\mathrm{cov}(X) = E \left[ (X - E[X])(X - E[X])^H \right]`
+
+for wireless signals at baseband, :math:`E[X]` is typically zero or very close to zero, so this simplifies to:
+
+:math:`\mathrm{cov}(X) = E[X X^H]`
+
+Given a limited number of IQ samples, :math:`r`, we can estimate this covariance, which we will denote as :math:`\hat{R}`:
+
+:math:`\hat{R} = r r^H / N`
+
+where :math:`N` is the number of samples (not the number of elements).  In Python this looks like:
+
+:code:`R = (r @ r.conj().T)/r.shape[1]`
+
+Alternatively, we can use the built-in NumPy function:
+
+:code:`R = np.cov(r)`
+    
+As an example, we will look at the spatial covariance matrix for the scenario where we only had one transmitter and three elements:
+
+.. code-block:: python
+
+   [[ 1.494+0.j    0.486+0.881j -0.543+0.839j]
+    [ 0.486-0.881j 1.517 +0.j    0.483+0.886j]
+    [-0.543-0.839j 0.483-0.886j  1.499+0.j   ]]
+
+Note how the diagonal elements are real and roughly the same, this is because they are really only telling us the received signal power at each element, which will be roughly the same between elements since they are all set to the same gain.  The off-diagonal elements are really where the important values are, although looking at the raw values doesn't tell us much other than there is a significant amount of correlation between elements.
+
+**********************
 LCMV Beamformer
 **********************
 

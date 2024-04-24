@@ -239,10 +239,11 @@ if True:
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
         #R = (r @ r.conj().T)/r.shape[1] # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         R = np.cov(r)
+        print(R)
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
         return 1/(s.conj().T @ Rinv @ s).squeeze()
     
-    if True: # use for doacompons2
+    if False: # use for doacompons2
         # more complex scenario
         Nr = 8 # 8 elements
         theta1 = 20 / 180 * np.pi # convert to radians

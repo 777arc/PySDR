@@ -705,7 +705,7 @@ As part of adaptive beamforming you will see a pattern where we take the inverse
 LCMV Beamformer
 **********************
 
-While MVDR is powerful, what if we have more than one SOI?  Thankfully, with just a small tweak to MVDR, we can implement a scheme that handles multiple SOIs, called the Linearly Constrained Minimum Variance (LCMV) beamformer.  It is a generalization of MVDR, where we specify the desired response for multiple directions. The optimum weight vector for the LCMV beamformer can be summarized in the following equation: 
+While MVDR is powerful, what if we have more than one SOI?  Thankfully, with just a small tweak to MVDR, we can implement a scheme that handles multiple SOIs, called the Linearly Constrained Minimum Variance (LCMV) beamformer.  It is a generalization of MVDR, where we specify the desired response for multiple directions, kind of like a spatial version of SciPy's :code:`firwin2()` for those familiar with it.  The optimum weight vector for the LCMV beamformer can be summarized in the following equation: 
 
 .. math::
 

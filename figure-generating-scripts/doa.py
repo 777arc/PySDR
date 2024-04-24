@@ -229,7 +229,7 @@ if True:
     def w_mvdr(theta, r):
         s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
-        R = (r @ r.conj().T)/r.shape[1] # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+        R = np.cov(r) # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
         w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
         return w

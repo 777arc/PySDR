@@ -673,9 +673,13 @@ for wireless signals at baseband, :math:`E[X]` is typically zero or very close t
 
 :math:`\mathrm{cov}(X) = E[X X^H]`
 
-Given a limited number of IQ samples, :math:`r`, we can estimate this covariance, which we will denote as :math:`\hat{R}`:
+Given a limited number of IQ samples, :math:`\bm{r}`, we can estimate this covariance, which we will denote as :math:`\hat{R}`:
 
-:math:`\hat{R} = r r^H / N`
+.. math::
+
+ \hat{R} = \frac{\bm{r} \bm{r}^H}{N}
+
+         = \frac{1}{N} \sum^N_{n=1} r_n r_n^H
 
 where :math:`N` is the number of samples (not the number of elements).  In Python this looks like:
 

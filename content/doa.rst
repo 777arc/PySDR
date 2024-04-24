@@ -699,6 +699,8 @@ As an example, we will look at the spatial covariance matrix for the scenario wh
 
 Note how the diagonal elements are real and roughly the same, this is because they are really only telling us the received signal power at each element, which will be roughly the same between elements since they are all set to the same gain.  The off-diagonal elements are really where the important values are, although looking at the raw values doesn't tell us much other than there is a significant amount of correlation between elements.
 
+As part of adaptive beamforming you will see a pattern where we take the inverse of the spatial correlation matrix. This inverse tells us how two elements are related to each other after removing the influence of other elements. It is referred to as the "precision matrix" in statistics and "whitening matrix" in radar.
+
 **********************
 LCMV Beamformer
 **********************

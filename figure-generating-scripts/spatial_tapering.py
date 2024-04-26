@@ -10,8 +10,8 @@ N = 10000 # samples to simulate
 sample_rate = 1e6
 d = 0.5
 
-num_frames = 10 # for first animnation
-#num_frames = 30 # for second animation
+#num_frames = 10 # for first animnation
+num_frames = 30 # for second animation
 filenames = []
 for frame_i in range(0, num_frames):
     # Simulate received signal signal, high SNR
@@ -24,9 +24,9 @@ for frame_i in range(0, num_frames):
 
     # Decide on the weights
     w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(0)) # steering vector at boresight
-    tapering = np.random.uniform(0, 1, Nr) # random tapering
-    #tapering = np.hamming(Nr) * frame_i / (num_frames - 1) + np.ones(Nr) * (num_frames - frame_i - 1)/(num_frames - 1) # switch between rect and hamming window slowly
-    w *= tapering
+    #tapering = np.random.uniform(0, 1, Nr) # random tapering
+    tapering = np.hamming(Nr) * frame_i / (num_frames - 1) + np.ones(Nr) * (num_frames - frame_i - 1)/(num_frames - 1) # switch between rect and hamming window slowly
+    w *= tapering / Nr # normalize to keep the same gain
 
     '''
     # Conventional DOA
@@ -44,7 +44,7 @@ for frame_i in range(0, num_frames):
     w = np.conj(w) # or else our answer will be negative/inverted
     w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
-    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    #w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
     theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Map the FFT bins to angles in radians
 
     # Plot
@@ -121,10 +121,10 @@ images = []
 for filename in filenames:
     images.append(imageio.imread(filename))
 
-if False: # only use for 2nd animation
+if True: # only use for 2nd animation
     for filename in reversed(filenames):
         images.append(imageio.imread(filename))
 
 # requires specific version if imageio! see top.  new version doesnt have fps arg, and it doesnt repeat for some reason
-imageio.mimsave('../_images/spatial_tapering_animation.gif', images, fps=2)
-#imageio.mimsave('../_images/spatial_tapering_animation2.gif', images, fps=10)
+#imageio.mimsave('../_images/spatial_tapering_animation.gif', images, fps=2)
+imageio.mimsave('../_images/spatial_tapering_animation2.gif', images, fps=10)

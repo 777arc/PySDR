@@ -514,19 +514,21 @@ We will simulate a signal being received at boresight (0 degrees) at high SNR to
 
 Try to observe the width of the main lobe, and the position of nulls.
 
-It turns out that tapering can reduce the sidelobes, which is often desired, by reducing the magnitude of the weights at the **edges** of the array.  This time we will transition between using a rectangular window (no window) and a Hamming window, as our tapering function.
+It turns out that tapering can reduce the sidelobes, which is often desired, by reducing the magnitude of the weights at the **edges** of the array.  For example, a Hamming window function can be used as the tapering values as follows:
 
 .. code-block:: python
 
     tapering = np.hamming(Nr) # Hamming window function
     w *= tapering
 
+Just for fun we will transition between using a rectangular window (no window) and a Hamming window, as our tapering function:
+
 .. image:: ../_images/spatial_tapering_animation2.gif
    :scale: 80 %
    :align: center
    :alt: Spatial tapering using a hamming window to adjust the magnitude of the weights
 
-The main lobe width is also affected by tapering, and it can be made wider or narrower depending on the tapering function used (less sidelobes usually leads to a wider mainlobe).
+We notice a couple changes here.  First, the main lobe width can be made wider or narrower depending on the tapering function used (less sidelobes usually leads to a wider mainlobe).  A rectangular taper (i.e., no taper) will lead to the most narrow main lobe but highest sidelobes.  The second thing we notice is that the gain of the main lobe decreases when we apply a taper, and this is because we're ultimately receiving less signal energy by not using the entire gain of all elements, which can be a major downside in very low SNR situations.
 
 *********************
 Adaptive Beamforming

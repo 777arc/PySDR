@@ -552,6 +552,64 @@ The MVDR/Capon beamformer can be summarized in the following equation:
 
 The vector :math:`s` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.  :math:`R` is the spatial covariance matrix estimate based on our received samples, found using :code:`R = np.cov(r)` or calculated manually by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`,  The spatial covariance matrix is a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far) that tells us how similar the samples received from the three elements are.
 
+
+
+
+.. raw:: html
+
+   <details>
+   <summary>For those interested in the MVDR derivation, expand this</summary>
+
+
+**Beamforming Output** - The output of the beamformer using a weight vector :math:`\mathbf{w}` is given by:
+
+.. math::
+
+ y(t) = \mathbf{w}^H \mathbf{x}(t)
+
+
+**Optimization Problem** - The goal is to determine the beamforming weights that minimize the output power subject to a distortion-less response towards a desired direction :math:`\theta_0`. Formally, the problem can be expressed as:
+
+.. math::
+
+ \min_{\mathbf{w}} \, \mathbf{w}^H \mathbf{R} \mathbf{w} \quad \text{subject to} \quad \mathbf{w}^H \mathbf{s} = 1
+
+where:
+
+* :math:`\mathbf{R} = E[\mathbf{X}\mathbf{X}^H]` is the covariance matrix of the received signals
+* :math:`\mathbf{s}` is the steering vector towards the desired signal direction :math:`\theta_0`
+
+**Lagrangian Method** - Introduce a Lagrange multiplier :math:`\lambda` and form the Lagrangian:
+
+.. math::
+
+ L(\mathbf{w}, \lambda) = \mathbf{w}^H \mathbf{R} \mathbf{w} - \lambda (\mathbf{w}^H \mathbf{s} - 1)
+
+**Solving the Optimization** - Differentiating the Lagrangian with respect to the :math:`\mathbf{w^H}` and setting the derivative to zero, we obtain:
+
+.. math::
+
+ \frac{\partial L}{\partial \mathbf{w}^*} = 2\mathbf{R}\mathbf{w} - \lambda \mathbf{s} = 0
+
+ \mathbf{w} = \lambda \mathbf{s} \mathbf{{R^{-1}}}
+
+
+To solve for :math:`\lambda`, apply the constraint :math:`\mathbf{w}^H \mathbf{s} = 1`:
+
+.. math::
+
+ \implies (\lambda \mathbf{s^{H}}\mathbf{{R^{-1}}})s = 1
+
+ \implies \lambda = \frac{1}{\mathbf{s}^{H}\mathbf{R}^{-1}\mathbf{s}}
+ 
+ \mathbf{R}\mathbf{w} = \lambda \mathbf{s}
+ 
+ \mathbf{w_{mvdr}} = \frac{\mathbf{R}^{-1} \mathbf{s}}{\mathbf{s}^H \mathbf{R}^{-1} \mathbf{s}}
+
+.. raw:: html
+
+   </details>
+
 If we already know the direction of the signal of interest, and that direction does not change, we only have to calculate the weights once and simply use them to receive our signal of interest.  Although even if the direction doesn't change, we benefit from recalculating these weights periodically, to account for changes in the interference/noise, which is why we refer to these non-conventional digital beamformers as "adaptive" beamforming; they use information in the signal we receive to calculate the best weights.  Just as a reminder, we can *perform* beamforming using MVDR by calculating these weights and applying them to the signal with :code:`w.conj().T @ r`, just like we did in the conventional method, the only difference is how the weights are calculated.
 
 To perform DOA using the MVDR beamformer, we simply repeat the MVDR calculation while scanning through all angles of interest.  I.e., we act like our signal is coming from angle :math:`\theta`, even if it isn't.  At each angle we calculate the MVDR weights, then apply them to the received signal, then calculate the power in the signal.  The angle that gives us the highest power is our DOA estimate, or even better we can plot power as a function of angle to see the beam pattern, as we did above with the conventional beamformer, that way we don't need to assume how many signals are present.

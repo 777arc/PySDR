@@ -530,6 +530,12 @@ Just for fun we will transition between using a rectangular window (no window) a
 
 We notice a couple changes here.  First, the main lobe width can be made wider or narrower depending on the tapering function used (less sidelobes usually leads to a wider mainlobe).  A rectangular taper (i.e., no taper) will lead to the most narrow main lobe but highest sidelobes.  The second thing we notice is that the gain of the main lobe decreases when we apply a taper, and this is because we're ultimately receiving less signal energy by not using the entire gain of all elements, which can be a major downside in very low SNR situations.
 
+If you are curious why there are so many sidelobes when we use a rectangular window (no tapering), it is the same reason why a rectangular window in the time domain leads to spectral leakage in the frequency domain.  The Fourier transform of a rectangular window is a sinc function, :math:`sin(x)/x`, which has sidelobes that extend to infinity.  With arrays we are performing sampling in the spatial domain, and the beam pattern is the Fourier transform of that spatial sampling process combined with the weights, which is why we were able to plot the beam patter using an FFT earlier in this chapter.  Recall from the Windowing Section in the Frequency Domain chapter, we compared the frequency response of each window type:
+
+.. image:: ../_images/windows.svg
+   :align: center 
+   :target: ../_images/windows.svg
+
 *********************
 Adaptive Beamforming
 *********************
@@ -553,9 +559,6 @@ The MVDR/Capon beamformer can be summarized in the following equation:
  w_{mvdr} = \frac{R^{-1} s}{s^H R^{-1} s}
 
 The vector :math:`s` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.  :math:`R` is the spatial covariance matrix estimate based on our received samples, found using :code:`R = np.cov(r)` or calculated manually by multiplying :code:`r` with the complex conjugate transpose of itself, i.e., :math:`R = r r^H`,  The spatial covariance matrix is a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far) that tells us how similar the samples received from the three elements are.
-
-
-
 
 .. raw:: html
 

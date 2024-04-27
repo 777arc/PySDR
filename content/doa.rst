@@ -21,6 +21,13 @@ Beamforming is a signal processing operation used with antenna arrays to create 
 
 Beamforming approaches can be broken down into three categories, namely: conventional, adaptive, and blind. Conventional beamforming is most useful when you already know the direction of arrival of the signal of interest, and the beamforming process involves choosing weights to maximize the array gain in that direction.  This can be used on both the receive or transmit side of a communication system.  Adaptive beamforming, on the other hand, typically involves adjusting the weights based on the beamformer's input, to optimize some criteria (e.g., nulling out an interferer, having multiple main beams, etc.).  Due to the closed loop and adaptive nature, adaptive beamforming is typically just used on the receive side, so the "beamformer's input" is simply your received signal, and adaptive beamforming involves adjusting the weights based on the statistics of that received data.
 
+The following taxonomy attempts to categorize the many areas of beamforming while providing example techniques:
+
+.. image:: ../_images/beamforming_taxonomy.svg
+   :align: center 
+   :target: ../_images/beamforming_taxonomy.svg
+   :alt: A beamforming taxonomy, categorizing beamforming into conventional, adaptive, and blind, as well as showing how direction of arrival (DOA) estimation fits in
+
 ******************************
 Direction-of-Arrival Overview
 ******************************

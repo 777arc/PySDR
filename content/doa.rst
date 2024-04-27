@@ -1,10 +1,10 @@
 .. _doa-chapter:
 
-####################################
-DOA & Beamforming
-####################################
+#################
+Beamforming & DOA
+#################
 
-In this chapter we cover the concepts of beamforming, direction-of-arrival (DOA), and phased arrays in general.  Techniques such as Capon and MUSIC are discussed, using Python simulation examples. We cover beamforming vs. DOA and go through the two different types of phased arrays (Passive electronically scanned array or PESA and Active electronically scanned array or AESA).
+In this chapter we cover the concepts of beamforming, direction-of-arrival (DOA), and phased arrays in general.  We compare the different types and geometries of arrays, and how element spacing plays a vital role.  Techniques such as MVDR/Capon and MUSIC are introduced and demonstrated using Python simulation examples.
 
 *********************
 Beamforming Overview

@@ -289,7 +289,8 @@ Remember that we tuned the SDR to 100 MHz.  So the signal that was at about 97.5
 ****************************
 Order in Time Doesn't Matter
 ****************************
-One last property before we jump into FFTs.  The FFT function sort of "mixes around" the input signal to form the output, which has a different scale and units. We are no longer in the time domain after all.  A good way to internalize this difference between domains is realizing that changing the order things happen in the time domain doesn't change the frequency components in the signal.  I.e., the FFT of the following two signals will both have the same two spikes because the signal is just two sine waves at different frequencies.  Changing the order the sine waves occur doesn't change the fact that they are two sine waves at different frequencies.
+
+Recall that an FFT is performed on many samples at once, i.e., you can't observe the frequency domain of a single instance in time (one sample); it needs a span of time to operate on (many samples).  The FFT function essentially "mixes around" the input signal to form the output, which has a different scale and units. We are no longer in the time domain after all.  A good way to internalize this difference between domains is realizing that changing the order things happen in the time domain doesn't change the frequency components in the signal.  I.e., doing **a single** FFT of the following two signals will both have the same two spikes because the signal is just two sine waves at different frequencies.  Changing the order the sine waves occur doesn't change the fact that they are two sine waves at different frequencies.  This assumes both sine waves occur within the same time span fed into the FFT; if you shorten the FFT size and perform multiple FFTs (as we will do in the Spectrogram Section) then you can distinguish between the two sine waves.
 
 .. image:: ../_images/fft_signal_order.png
    :scale: 50 % 

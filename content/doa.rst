@@ -161,15 +161,15 @@ If you recall SOH CAH TOA, in this case we are interested in the "adjacent" side
 .. math::
   \cos(90 - \theta) = \frac{\mathrm{adjacent}}{\mathrm{hypotenuse}}
 
-We must solve for adjacent, as that is what will tell us how far the signal must travel between hitting the first and second element, so it becomes adjacent :math:`= d \cos(90 - \theta)`.  Now there is a trig identity that lets us convert this to adjacent :math:`= d \sin(\theta)`.  This is just a distance though, we need to convert this to a time, using the speed of light: time elapsed :math:`= d \sin(\theta) / c` [seconds].  This equation applies between any adjacent elements of our array, although we can multiply the whole thing by an integer to calculate between non-adjacent elements since they are uniformly spaced (we'll do this later).  
+We must solve for adjacent, as that is what will tell us how far the signal must travel between hitting the first and second element, so it becomes adjacent :math:`= d \cos(90 - \theta)`.  Now there is a trig identity that lets us convert this to adjacent :math:`= d \sin(\theta)`.  This is just a distance though, we need to convert this to a time, using the speed of light: time elapsed :math:`= d \sin(\theta) / c` seconds.  This equation applies between any adjacent elements of our array, although we can multiply the whole thing by an integer to calculate between non-adjacent elements since they are uniformly spaced (we'll do this later).  
 
-Now to connect this trig and speed of light math to the signal processing world.  Let's denote our transmit signal at baseband :math:`x(t)` and it's being transmitting at some carrier, :math:`f_c` , so the transmit signal is :math:`x(t) e^{2j \pi f_c t}`.  Lets say this signal hits the first element at time :math:`t = 0`, which means it hits the next element after :math:`d \sin(\theta) / c` [seconds] like we calculated above.  This means the 2nd element receives:
+Now to connect this trig and speed of light math to the signal processing world.  Let's denote our transmit signal at baseband :math:`x(t)` and it's being transmitting at some carrier, :math:`f_c` , so the transmit signal is :math:`x(t) e^{2j \pi f_c t}`.  We'll use :math:`d_m` to refer to antenna spacing in meters.  Lets say this signal hits the first element at time :math:`t = 0`, which means it hits the next element after :math:`d_m \sin(\theta) / c` seconds, like we calculated above.  This means the 2nd element receives:
 
 .. math::
  x(t - \Delta t) e^{2j \pi f_c (t - \Delta t)}
 
 .. math::
- \mathrm{where} \quad \Delta t = d \sin(\theta) / c
+ \mathrm{where} \quad \Delta t = d_m \sin(\theta) / c
 
 recall that when you have a time shift, it is subtracted from the time argument.
 
@@ -189,28 +189,24 @@ Let's keep going with this math but we'll start representing things in discrete 
  x[n] e^{-2j \pi f_c \Delta t}
 
 .. math::
- = x[n] e^{-2j \pi f_c d \sin(\theta) / c}
+ = x[n] e^{-2j \pi f_c d_m \sin(\theta) / c}
 
-We're almost done, but luckily there's one more simplification we can make.  Recall the relationship between center frequency and wavelength: :math:`\lambda = \frac{c}{f_c}` or the form we'll use: :math:`f_c = \frac{c}{\lambda}`.  Plugging this in we get:
-
-.. math::
- x[n] e^{-2j \pi \frac{c}{\lambda} d \sin(\theta) / c}
+We're almost done, but luckily there's one more simplification we can make.  Recall the relationship between center frequency and wavelength: :math:`\lambda = \frac{c}{f_c}`, or inversely, :math:`f_c = \frac{c}{\lambda}`.  Plugging this in we get:
 
 .. math::
- = x[n] e^{-2j \pi d \sin(\theta) / \lambda}
+ x[n] e^{-2j \pi d_m \sin(\theta) / \lambda}
 
-
-In applied beamforming/DOA what we like to do is represent :math:`d`, the distance between adjacent elements, as a fraction of wavelength (instead of meters), the most common value chosen for :math:`d` during the array design process is to use one half the wavelength. Regardless of what :math:`d` is, from this point on we're going to represent :math:`d` as a fraction of wavelength instead of meters, making the equation and all our code simpler:
+In applied beamforming and DOA we like to represent :math:`d`, the distance between adjacent elements, as a fraction of wavelength (instead of meters).  The most common value chosen for :math:`d` during the array design process is to use half the wavelength. Regardless of what :math:`d` is, from this point on we're going to represent :math:`d` as a fraction of wavelength instead of meters, making the equations and all our code simpler.  I.e., :math:`d` (without the subscript :math:`m`) represents normalized distance, and is equal to :math:`d = d_m / \lambda`.  This means we can simplify the equation above to:
 
 .. math::
  x[n] e^{-2j \pi d \sin(\theta)}
 
-This is for adjacent elements, for the :math:`k`'th element we just need to multiply :math:`d` times :math:`k`:
+The above equation is specific to adjacent elements, for the :math:`k`'th element we just need to multiply :math:`d` times :math:`k`:
 
 .. math::
  x[n] e^{-2j \pi d k \sin(\theta)}
 
-And we're done! This equation above is what you'll see in DOA papers and implementations everywhere! We typically call that exponential term the "steering vector" (often denoted as :math:`s` and in code :code:`s`) and represent it as an array, a 1D array for a 1D antenna array, etc.  In python :math:`s` is:
+And we're done! This equation above is what you'll see in DOA papers and ULA implementations everywhere! We typically call that exponential term the "steering vector" (often denoted as :math:`s` and in code :code:`s`) and represent it as an array, a 1D array for a 1D antenna array, etc.  In python :code:`s` is:
 
 .. code-block:: python
 

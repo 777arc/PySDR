@@ -668,20 +668,20 @@ if True:
     tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
     tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
     tone4 = np.exp(2j*np.pi*0.04e6*t).reshape(1,-1)
-    r = s1 @ tone1 + s2 @ tone2 + s3 @ tone3 + s4 @ tone4
     n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
-    r = r + 0.5*n # 8xN
+    X = s1 @ tone1 + s2 @ tone2 + s3 @ tone3 + s4 @ tone4 + 0.5*n # 8xN
 
     # Let's point at the SOI at 15 deg, and another potential SOI that we didnt actually simulate at 60 deg
     soi1_theta = 15 / 180 * np.pi # convert to radians
     soi2_theta = 60 / 180 * np.pi
+    soi3_theta = 75 / 180 * np.pi
 
     # LCMV weights
-    R_inv = np.linalg.pinv(np.cov(r)) # 8x8
+    R_inv = np.linalg.pinv(np.cov(X)) # 8x8
     s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
     s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
     C = np.concatenate((s1, s2), axis=1) # 8x2
-    f = np.ones(2).reshape(-1,1) # 2x1
+    f = np.asarray([1, 1]).reshape(-1,1) # 2x1
 
     # LCMV equation
     #    8x8   8x2                    2x8        8x8   8x2  2x1
@@ -714,5 +714,5 @@ if True:
     ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
     plt.show()
 
-    fig.savefig('../_images/lcmv_beam_pattern.svg', bbox_inches='tight')
+    #fig.savefig('../_images/lcmv_beam_pattern.svg', bbox_inches='tight')
     exit()

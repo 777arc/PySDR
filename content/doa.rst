@@ -878,6 +878,88 @@ As you can see, we have beams pointed at the two directions of interest, and nul
    </details>
 
 *******************
+Null Steering
+*******************
+
+Now that we've seen LCMV, it is worth investigating a simpler technique that can be used in both analog and digital arrays, called null steering.  Think of it like an extension to the conventional beamformer, but in addition to pointing a beam at the direction of interest, we can also place nulls at specific angles.  This technique does not involve changing the weights based on the received signal (e.g., we never calculate :code:`R`), and thus is not considered adaptive.  In the simulation below, we don't even need to simulate a signal, we can simply craft the weights of our beamformer using null steering to place nulls at predefined angles, then visualize the beam pattern.  
+
+The weights for null steering are calculated by starting with the conventional beamformer pointed at the direction of interest, and then we use the sidelobe-canceler equation to update the weights to include the nulls, one null at a time.  The sidelobe-canceler equation is:
+
+.. math::
+
+ w_{\text{new}} = w_{\text{orig}} - \frac{w_{\text{null}}^H w_{\text{orig}}}{w_{\text{null}}^H w_{\text{null}}} w_{\text{null}}
+
+where :math:`w_{\text{null}}` is the steering vector in the direction of the null we want to add to :math:`w_{\text{orig}}`.  The weights are updated by subtracting the scaled null steering vector from the current weights.  The scaling factor is calculated by projecting the current weights onto the null steering vector, and dividing by the projection of the null steering vector onto itself.  This is then repeated for each null direction (:math:`w_{\text{orig}}` starts as the conventional beamforming weights but then gets updated after each null is added).  The full process looks like:
+
+.. math::
+
+ \text{1:} \qquad w_{\text{orig}} = e^{-2j \pi d k \sin(\theta_{SOI})} \qquad
+
+ \text{2:} \qquad w_{\text{null}} = e^{-2j \pi d k \sin(\theta_{null})} \qquad
+
+ \text{3:} \qquad w_{\text{new}} = w_{\text{orig}} - \frac{w_{\text{null}}^H w_{\text{orig}}}{w_{\text{null}}^H w_{\text{null}}} w_{\text{null}}
+
+ \text{4:} \qquad w_{\text{orig}} = w_{\text{new}} \qquad \qquad \qquad
+
+ \text{5:} \qquad \text{GOTO 2 to add next null}
+
+Let's simulate an 8-element array, and place four nulls:
+
+.. code-block:: python
+
+    d = 0.5
+    Nr = 8
+
+    theta_soi = 30 / 180 * np.pi # convert to radians
+    nulls_deg = [-60, -30, 0, 60] # degrees
+    nulls_rad = np.asarray(nulls_deg) / 180 * np.pi
+
+    # Start out with conventional beamformer pointed at theta_soi
+    w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
+
+    # Loop through nulls
+    for null_rad in nulls_rad:
+        # weights equal to steering vector in target null direction
+        w_null = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(null_rad)).reshape(-1,1)
+
+        # scaling_factor (complex scalar) for w at nulled direction
+        scaling_factor = w_null.conj().T @ w / (w_null.conj().T @ w_null)
+        print("scaling_factor:", scaling_factor, scaling_factor.shape)
+
+        # Update weights to include the null
+        w = w - w_null @ scaling_factor # sidelobe-canceler equation
+
+    # Plot beam pattern
+    N_fft = 1024
+    w = np.conj(w) # or else our answer will be negative/inverted
+    w_padded = np.concatenate((w.squeeze(), np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+    w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Map the FFT bins to angles in radians
+    
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_bins, w_fft_dB)
+    # Add dots where nulls and SOI are
+    for null_rad in nulls_rad:
+        ax.plot([null_rad], [0], 'or')
+    ax.plot([theta_soi], [0], 'og')
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_thetagrids(np.arange(-90, 105, 15)) # it's in degrees
+    ax.set_rlabel_position(55) # Move grid labels away from other labels
+    ax.set_thetamin(-90) # only show top half
+    ax.set_thetamax(90)
+    ax.set_ylim([-40, 1]) # because there's no noise, only go down -40 dB
+    plt.show()
+
+We get the following beam pattern.  You may notice nulls in positions that you did not request; that is intended and a result of the limited number of elements.  You may also find that with too few elements, you either don't have nulls/beam exactly where you intend, or it may not be able to fit the criteria at all due to a lack of degrees of freedom (number of elements minus 1).
+
+.. image:: ../_images/null_steering.svg
+   :align: center 
+   :target: ../_images/null_steering.svg
+   :alt: Example of null steering beamforming
+
+*******************
 MUSIC
 *******************
 

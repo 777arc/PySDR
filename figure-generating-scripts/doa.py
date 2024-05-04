@@ -652,7 +652,7 @@ if False:
 
 
 # LCMV Beam Pattern w/ new scenario
-if True:
+if False:
     # Simulate received signal
     Nr = 8 # 8 elements
     theta1 = -60 / 180 * np.pi # convert to radians
@@ -715,4 +715,147 @@ if True:
     plt.show()
 
     #fig.savefig('../_images/lcmv_beam_pattern.svg', bbox_inches='tight')
+    exit()
+
+# LCMV, 2 elements, 2 beams, doesnt work
+if False:
+    d = 0.5
+    Nr = 3
+    n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
+    X = n # just use the noise as the signal so that there are no nulls
+
+    # Beams in these 2 directions
+    soi1_theta = 0 / 180 * np.pi # convert to radians
+    soi2_theta = 45 / 180 * np.pi
+
+    # LCMV weights
+    R_inv = np.linalg.pinv(np.cov(X)) # 8x8
+    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
+    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
+    C = np.concatenate((s1, s2), axis=1) # 8x2
+    f = np.asarray([1, 1]).reshape(-1,1) # 2x1
+
+    w = R_inv @ C @ np.linalg.pinv(C.conj().T @ R_inv @ C) @ f # LCMV equation
+
+    # Plot beam pattern
+    w = w.squeeze() # reduce to a 1D array
+    N_fft = 1024
+    w = np.conj(w) # or else our answer will be negative/inverted
+    w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+    w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Map the FFT bins to angles in radians
+    
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_bins, w_fft_dB) # MAKE SURE TO USE RADIAN FOR POLAR
+    # Add dots where interferers and SOIs are
+    ax.plot([soi1_theta], [0], 'og')
+    ax.plot([soi2_theta], [0], 'og')
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_thetagrids(np.arange(-90, 105, 15)) # it's in degrees
+    ax.set_rlabel_position(55)  # Move grid labels away from other labels
+    ax.set_thetamin(-90) # only show top half
+    ax.set_thetamax(90)
+    ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
+    plt.show()
+
+    exit()
+
+# MVDR, 2 elements, 2 nulls, doesnt work
+if False:
+    d = 0.5
+    Nr = 3
+
+    theta1 = 30 / 180 * np.pi # convert to radians
+    theta2 = -45 / 180 * np.pi
+    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
+    tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
+    n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
+    X = s1 @ tone1 + s2 @ tone2 + 0.05*n # 8xN
+
+    def w_mvdr(theta, r):
+        s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
+        s = s.reshape(-1,1) # make into a column vector (size 3x1)
+        R = np.cov(r) # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+        Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
+        w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation! numerator is 3x3 * 3x1, denominator is 1x3 * 3x3 * 3x1, resulting in a 3x1 weights vector
+        return w
+
+    theta = 0 # boresight
+    w = w_mvdr(theta, X)
+
+    # Plot beam pattern
+    w = w.squeeze() # reduce to a 1D array
+    N_fft = 1024
+    w = np.conj(w) # or else our answer will be negative/inverted
+    w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+    w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Map the FFT bins to angles in radians
+    
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_bins, w_fft_dB) # MAKE SURE TO USE RADIAN FOR POLAR
+    # Add dots where interferers and SOIs are
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_thetagrids(np.arange(-90, 105, 15)) # it's in degrees
+    ax.set_rlabel_position(55)  # Move grid labels away from other labels
+    ax.set_thetamin(-90) # only show top half
+    ax.set_thetamax(90)
+    ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
+    plt.show()
+
+    exit()
+
+# Null steering (not adaptive)
+if True:
+    d = 0.5
+    Nr = 8
+
+    theta_soi = 30 / 180 * np.pi # convert to radians
+    nulls_deg = [-60, -30, 0, 60] # degrees
+    nulls_rad = np.asarray(nulls_deg) / 180 * np.pi
+
+    # Start out with conventional beamformer pointed at theta_soi
+    w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
+
+    # Loop through nulls
+    for null_rad in nulls_rad:
+        # weights equal to steering vector in target null direction
+        w_null = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(null_rad)).reshape(-1,1)
+
+        # scaling_factor (complex scalar) for w at nulled direction
+        scaling_factor = w_null.conj().T @ w / (w_null.conj().T @ w_null)
+        print("scaling_factor:", scaling_factor, scaling_factor.shape)
+
+        # Update weights to include the null
+        w = w - w_null @ scaling_factor # sidelobe-canceler equation
+
+    # Plot beam pattern
+    N_fft = 1024
+    w = np.conj(w) # or else our answer will be negative/inverted
+    w_padded = np.concatenate((w.squeeze(), np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+    w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Map the FFT bins to angles in radians
+    
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_bins, w_fft_dB)
+    # Add dots where nulls and SOI are
+    for null_rad in nulls_rad:
+        ax.plot([null_rad], [0], 'or')
+    ax.plot([theta_soi], [0], 'og')
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_thetagrids(np.arange(-90, 105, 15)) # it's in degrees
+    ax.set_rlabel_position(55) # Move grid labels away from other labels
+    ax.set_thetamin(-90) # only show top half
+    ax.set_thetamax(90)
+    ax.set_ylim([-40, 1]) # because there's no noise, only go down -40 dB
+    plt.show()
+    fig.savefig('../_images/null_steering.svg', bbox_inches='tight')
+
     exit()

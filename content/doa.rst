@@ -1061,3 +1061,144 @@ All Python code, including code used to generate the figures/animations, can be 
 .. |br| raw:: html
 
       <br>
+
+*******************
+Training Data
+*******************
+
+Within the context of array processing, there is a concept of "training", where you establish the covariance matrix :code:`R` before the potential SOI is present.  This is especially used in radar, where most of the time, there is no SOI present, and the entire detection process is about testing a series of angles to check if there is a SOI present.  When we calculate :code:`R` before the SOI is present, it lets us calculate weights using methods like MVDR with only the interferers and noise environment encapsulated in the covariance matrix.  That way there is no chance that MVDR decides to put a null at or near the direction of the SOI.  We then use the weights and apply them to the received signal to test whether the SOI is now present at that angle.
+
+To demonstrate the value of using training data, we will perform MVDR on a recording taken from an actual 16-element array (using the QUAD-MxFE platform from Analog Devices).  We will start by performing MVDR as usual, with the entire received signal being used to calculate :code:`R` and the weights.  We will then use a separate recording which was taken before the SOI was turned on, to calculate :code:`R` and the weights.
+
+These recordings were taken at an RF frequency of 3.3 GHz, with an array using a 0.045 meter spacing, so d is 0.495.  A 30 MHz sample rate was used. We will refer to the three signals as A, B, and C.  Signal C will be the designated SOI, while A and B will be interferers.  Therefore, we need a recording with just A and B in order to create the training data, without A and B moving between taking the training data and the recording that includes C.  Below are links to the two recordings you will need:
+
+https://github.com/777arc/777arc.github.io/raw/master/3p3G_A_B.npy
+
+https://github.com/777arc/777arc.github.io/raw/master/3p3G_A_B_C.npy
+
+Let's start by performing normal MVDR with the A_B_C recording.  We can load in the recording, which is a :code:`np.save()` format containing a 2D array, with the first dimension being the number of elements in the array, and the second dimension being the number of samples:
+
+.. code-block:: python
+
+   import matplotlib.pyplot as plt
+   import numpy as np
+
+   # Array params
+   center_freq = 3.3e9
+   sample_rate = 30e6
+   d = 0.045 * center_freq / 3e8
+   print("d:", d)
+
+   # Includes all three signals, we'll call C our SOI
+   filename = '3p3G_A_B_C.npy'
+   X = np.load(filename)
+   Nr = X.shape[0]
+
+Next we will perform basic DOA with MVDR, to identify the angles of arrival of the three signals:
+
+.. code-block:: python
+
+   # Perform DOA to find angle of arrival of C
+   theta_scan = np.linspace(-1*np.pi/2, np.pi/2, 10000) # between -90 and +90 degrees
+   results = []
+   R = X @ X.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+   Rinv = np.linalg.pinv(R) # pseudo-inverse tends to work better than a true inverse
+   for theta_i in theta_scan:
+      a = np.exp(-2j * np.pi * d * np.arange(X.shape[0]) * np.sin(theta_i)) # steering vector in the desired direction theta_i
+      a = a.reshape(-1,1) # make into a column vector
+      power = 1/(a.conj().T @ Rinv @ a).squeeze() # MVDR power equation
+      power_dB = 10*np.log10(np.abs(power)) # power in signal, in dB so its easier to see small and large lobes at the same time
+      results.append(power_dB)
+   results -= np.max(results) # normalize to 0 dB at peak
+
+This is one of those situations where it's easier to just use a rectangular plot instead of polar.  We have labeled the signals A, B, and C. 
+
+.. image:: ../_images/DOA_without_training.svg
+   :align: center 
+   :target: ../_images/DOA_without_training.svg
+   :alt: DOA without training data
+
+Next, if we want to call C our SOI, and use MVDR to create weights that will null out A and B and preserve C, we need to know the exact angle of arrival of C.  We will do this using an argmax on the DOA results we just created above, but only after zeroing out the angles corresponding to A and B (we do this by setting the upper 60% of our DOA results to very very low value).  
+
+.. code-block:: python
+
+   # Pull out angle of C, after zeroing out the angles that include the interferers
+   results_temp = np.array(results)
+   results_temp[int(len(results)*0.4):] = -9999*np.ones(int(len(results)*0.6))
+   max_angle = theta_scan[np.argmax(results_temp)] # radians
+   print("max_angle:", max_angle)
+
+It turns out that C is arriving at -0.3407 radians, so that is what we need to use when calculating our MVDR weights.  You have done this many times, it's just the MVDR equation:
+
+.. code-block:: python
+
+   # Calc MVDR weights
+   s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(max_angle)) # steering vector in the desired direction theta
+   s = s.reshape(-1,1) # make into a column vector
+   w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
+
+Lastly, let's plot the beam pattern of the MVDR weights we just calculated, as well as the DOA results we had earlier, and a dashed green line at :code:`max_angle`:
+
+.. raw:: html
+
+   <details>
+   <summary>Expand this for the plotting code (it's nothing new)</summary>
+
+.. code-block:: python
+
+   # Calc beam pattern
+   w = np.conj(w.squeeze()) # or else our answer will be negative/inverted
+   N_fft = 2048
+   w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+   w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+   w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+   theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Map the FFT bins to angles in radians
+
+   # Plot beam pattern and DOA results
+   plt.plot(theta_bins * 180 / np.pi, w_fft_dB) # MAKE SURE TO USE RADIAN FOR POLAR
+   plt.plot(theta_scan * 180 / np.pi, results, 'r')
+   plt.vlines(ymax=np.max(results), ymin=np.min(results) , x=max_angle*180/np.pi, color='g', linestyle='--')
+   plt.xlabel("Angle [deg]")
+   plt.ylabel("Magnitude [dB]")
+   plt.title("Beam Pattern and DOA Results, Without Training")
+   plt.grid()
+   plt.show()
+
+.. raw:: html
+
+   </details>
+
+.. image:: ../_images/DOA_without_training_pattern.svg
+   :align: center 
+   :target: ../_images/DOA_without_training_pattern.svg
+   :alt: DOA without training data DOA and MVDR beam pattern
+
+We were successful at creating nulls at A and B.  At the position of C (green dashed line), we don't have a null, but we also don't have what seems to be a "main lobe"; it's sort of a reduced lobe.  This is partially because there was little-to-no energy coming from the directions other than A, B, and C, so even though you see some lobes (e.g. around -70, 25, and 40 degrees), they don't really matter because no signal is coming from that direction.  Another reason the lobe at C isn't as strong is because the main lobe is sort of fighting with the nulls that would have been created by MVDR if we were not pointed exactly in that direction.   That being said, it would be nice to have a strong main lobe at our :code:`max_angle` position, and to do that we will need to use **training data**.
+
+We will now load the recording of just A and B, in order to create the training data.  In a radar situation, this is equivalent of calculating :code:`R` before you transmit any radar pulse (ideally, extremely shortly before).
+
+.. code-block:: python
+
+   # Load "training data" which is just A and B, then calc Rinv
+   filename = '3p3G_A_B.npy'
+   X_A_B = np.load(filename)
+   R_training = X_A_B @ X_A_B.conj().T # Calc covariance matrix
+   Rinv_training = np.linalg.pinv(R_training)
+
+This time, the big difference is that we will use :code:`Rinv_training` when calculating the MVDR weights.  We will reuse :code:`max_angle` that we already found.  That way, we are pointing in the direction of C but not incorporating C into the received signal used when calculating :code:`R` and :code:`R_inv`.
+
+.. code-block:: python
+
+   # Calc MVDR weights using training Rinv
+   s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(max_angle)) # steering vector in the desired direction theta
+   s = s.reshape(-1,1) # make into a column vector (size 3x1)
+   w = (Rinv_training @ s)/(s.conj().T @ Rinv_training @ s) # MVDR/Capon equation
+
+Using the same method of plotting, we get:
+
+.. image:: ../_images/DOA_with_training.svg
+   :align: center 
+   :target: ../_images/DOA_with_training.svg
+   :alt: DOA with training data DOA and MVDR beam pattern
+
+Note that we still get nulls from A and B (B's null is less, but B is also a weaker signal), but this time there is a massive main lobe directed towards our angle of interest, C.  This is the power of training data, and why it is so important in radar applications.

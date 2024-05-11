@@ -534,7 +534,11 @@ if False:
 
 # Create quiescent antenna pattern using FFT of weights, changing number of elements is really the only thing that will change the pattern
 if False:
+    #Nr = 3  # first plot
+    Nr = 16 # 2nd plot
+    d = 0.5
     N_fft = 512
+    theta_degrees = 20 # there is no SOI, we arent processing samples, this is just the direction we want to point at
     theta = theta_degrees / 180 * np.pi # doesnt need to match SOI, we arent processing samples, this is just the direction we want to point at
     w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector
     w = np.conj(w) # or else our answer will be negative/inverted
@@ -548,19 +552,42 @@ if False:
     # find max so we can add it to plot
     theta_max = theta_bins[np.argmax(w_fft_dB)]
     
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    ax.plot(theta_bins, w_fft_dB) # MAKE SURE TO USE RADIAN FOR POLAR
-    ax.plot([theta_max], [np.max(w_fft_dB)],'ro')
-    ax.text(theta_max - 0.1, np.max(w_fft_dB) - 4, np.round(theta_max * 180 / np.pi))
-    ax.set_theta_zero_location('N') # make 0 degrees point up
-    ax.set_theta_direction(-1) # increase clockwise
-    ax.set_rlabel_position(55)  # Move grid labels away from other labels
-    ax.set_thetamin(-90) # only show top half
-    ax.set_thetamax(90)
-    ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
-    plt.show()
+    if False: # first plot
+        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+        ax.plot(theta_bins, w_fft_dB) # MAKE SURE TO USE RADIAN FOR POLAR
+        ax.plot([theta_max], [np.max(w_fft_dB)],'ro')
+        ax.text(theta_max - 0.1, np.max(w_fft_dB) - 4, np.round(theta_max * 180 / np.pi))
+        ax.set_theta_zero_location('N') # make 0 degrees point up
+        ax.set_theta_direction(-1) # increase clockwise
+        ax.set_rlabel_position(55)  # Move grid labels away from other labels
+        ax.set_thetamin(-90) # only show top half
+        ax.set_thetamax(90)
+        ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
+        plt.show()
 
-    fig.savefig('../_images/doa_quiescent.svg', bbox_inches='tight')
+        #fig.savefig('../_images/doa_quiescent.svg', bbox_inches='tight')
+    else: # for rect plot showing beamwidth
+        plt.plot(theta_bins * 180 / np.pi, w_fft_dB, '--')
+        
+        # Show HPBW
+        plt.plot([-90, 90], [-3, -3], ':', color='green')
+        plt.text(-98, -3.5, '-3', color='green', fontsize=12)
+        plt.plot([16.8, 23.6], [-3, -3], '-', color='green', linewidth=3)
+        plt.plot([16.8]*2,   [-4, -2], '-', color='green', linewidth=3)
+        plt.plot([23.6]*2,     [-4, -2], '-', color='green', linewidth=3)
+
+        # Show FNBW
+        plt.plot([12.6, 28], [-28, -28], '-', color='red', linewidth=3)
+        plt.plot([12.6]*2,   [-29, -27], '-', color='red', linewidth=3)
+        plt.plot([28]*2,     [-29, -27], '-', color='red', linewidth=3)
+        
+        plt.axis([-90, 90, -30, 1])
+        plt.xlabel('Theta [Degrees]')
+        plt.ylabel('Beam Pattern [dB]')
+        plt.grid()
+        plt.savefig('../_images/doa_quiescent_beamwidth.svg', bbox_inches='tight')
+        plt.show()
+
     exit()
 
 
@@ -811,7 +838,7 @@ if False:
     exit()
 
 # Null steering (not adaptive)
-if True:
+if False:
     d = 0.5
     Nr = 8
 

@@ -333,7 +333,7 @@ But how do we know the angle of interest :code:`theta`?  We must start by perfor
 
 We found our signal!  You're probably starting to realize where the term electrically steered array comes in. Try increasing the amount of noise to push it to its limit, you might need to simulate more samples being received for low SNRs.  Also try changing the direction of arrival. 
 
-If you prefer viewing angle on a polar plot, use the following code:
+If you prefer viewing the DOA results on a polar plot, use the following code:
 
 .. code-block:: python
 
@@ -388,6 +388,8 @@ encapsulates the ULA geometry, and its only other parameter is the direction you
 
 .. code-block:: python
 
+    Nr = 3
+    d = 0.5
     N_fft = 512
     theta_degrees = 20 # there is no SOI, we arent processing samples, this is just the direction we want to point at
     theta = theta_degrees / 180 * np.pi
@@ -429,6 +431,30 @@ Just for fun, the following animation shows the beam pattern of the conventional
    :alt: Beam pattern of delay and sum while viewing each weight on the complex plane
 
 Note how all weights have unity magnitude (they stay on the unit circle), and how the higher numbered elements "spin" faster.  If you watch closely you'll notice at 0 degrees they all line up; they are all equal to 0 phase shift (1+0j).
+
+********************
+Array Beamwidth
+********************
+
+For those curious, there are equations that approximate the main lobe beamwidth given the number of elements, although they only work well when the number of elements is high (e.g., 8 or higher).  The half power beamwidth (HPBW) is defined as the width 3 dB down from the main lobe peak, and is roughly :math:`\frac{0.9 \lambda}{N_rd\cos(\theta)}` [1], which for half-wavelength spacing simplifies to:
+
+.. math::
+
+ \text{HPBW} \approx \frac{1.8}{N_r\cos(\theta)} \text{ [radians]} \qquad \text{when } d = \lambda/2
+
+First null beamwidth (FNBW), the width of the main lobe from null-to-null, is roughly :math:`\frac{2\lambda}{N_rd}` [1], which for half-wavelength spacing simplifies to:
+
+.. math::
+
+ \text{FNBW} \approx \frac{4}{N_r} \text{ [radians]} \qquad \text{when } d = \lambda/2
+
+Let's use the previous code but increase :code:`Nr` to 16 elements.  Using the equations above, the HPBW when pointed at 20 degrees (0.35 radians) should be roughly 0.12 radians or **6.8 degrees**.  The FNBW should be roughly 0.25 radians or **14.3 degrees**.  Let's simulate things to see how close we are.  For viewing beamwidths we tend to use rectangular plots instead of polar.  Below shows the results with HPBW annotated in green and FNBW in red:
+
+.. image:: ../_images/doa_quiescent_beamwidth.svg
+   :align: center
+   :target: ../_images/doa_quiescent_beamwidth.svg
+
+It may be hard to see in the plot, but zooming way in, we find that the HPBW is about 6.8 degrees and the FNBW is about 15.4 degrees, so pretty close to our calculations, especially HPBW!
 
 *******************
 When d is not λ/2
@@ -1049,19 +1075,6 @@ All of the code we have studied so far applies to UCAs, we just have to replace 
 
 Lastly, you will want to scan from 0 to 360 degrees, instead of just -90 to +90 degrees like with a ULA.
 
-*************************
-Conclusion and References
-*************************
-
-All Python code, including code used to generate the figures/animations, can be found `on the textbook's GitHub page <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/doa.py>`_.
-
-* DOA implementation in GNU Radio - https://github.com/EttusResearch/gr-doa
-* DOA implementation used by KrakenSDR - https://github.com/krakenrf/krakensdr_doa/blob/main/_signal_processing/krakenSDR_signal_processor.py
-
-.. |br| raw:: html
-
-      <br>
-
 *******************
 Training Data
 *******************
@@ -1202,3 +1215,19 @@ Using the same method of plotting, we get:
    :alt: DOA with training data DOA and MVDR beam pattern
 
 Note that we still get nulls from A and B (B's null is less, but B is also a weaker signal), but this time there is a massive main lobe directed towards our angle of interest, C.  This is the power of training data, and why it is so important in radar applications.
+
+*************************
+Conclusion and References
+*************************
+
+All Python code, including code used to generate the figures/animations, can be found `on the textbook's GitHub page <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/doa.py>`_.
+
+* DOA implementation in GNU Radio - https://github.com/EttusResearch/gr-doa
+* DOA implementation used by KrakenSDR - https://github.com/krakenrf/krakensdr_doa/blob/main/_signal_processing/krakenSDR_signal_processor.py
+
+[1] Mailloux, Robert J. Phased Array Antenna Handbook. Second edition, Artech House, 2005
+
+.. |br| raw:: html
+
+      <br>
+

@@ -586,7 +586,7 @@ The MVDR/Capon beamformer can be summarized in the following equation:
 
  w_{mvdr} = \frac{R^{-1} s}{s^H R^{-1} s}
 
-The vector :math:`s` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.  :math:`R` is the spatial covariance matrix estimate based on our received samples, found using :code:`R = np.cov(X)` or calculated manually by multiplying :code:`X` with the complex conjugate transpose of itself, i.e., :math:`R = X X^H`,  The spatial covariance matrix is a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far) that tells us how similar the samples received from the three elements are.
+The vector :math:`s` is the steering vector corresponding to the desired direction and was discussed at the beginning of this chapter.  :math:`R` is the spatial covariance matrix estimate based on our received samples, found using :code:`R = np.cov(X)` or calculated manually by multiplying :code:`X` with the complex conjugate transpose of itself, i.e., :math:`R = X X^H`,  The spatial covariance matrix is a :code:`Nr` x :code:`Nr` size matrix (3x3 in the examples we have seen so far) that tells us how similar the samples received from the three elements are.  While this equation may seem confusing at first, it helps to know that the denominator is mainly there for scaling, and the numerator is the important part to focus on, which is just the inverted covariance matrix multiplied by the steering vector.  That being said, we still need to include the denominator, it acts as a normalizing constant so that as :math:`R` changes over time, the weights don't change in magnitude.
 
 .. raw:: html
 

@@ -366,9 +366,9 @@ Let's try sweeping the angle of arrival (AoA) from -90 to +90 degrees instead of
 .. image:: ../_images/doa_sweeping_angle_animation.gif
    :scale: 100 %
    :align: center
-   :alt: Animation of direction of arrival (DOA) showing the broadside of the array
+   :alt: Animation of direction of arrival (DOA) showing the endfire of the array
 
-As we approach the broadside of the array (a.k.a. endfire), which is when the signal arrives at or near the axis of the array, performance drops.  We see two main degradations: 1) the main lobe gets wider and 2) we get ambiguity and don't know whether the signal is coming from the left or the right.  This ambiguity adds to the 180-degree ambiguity discussed earlier, where we get an extra lobe at 180 - theta, causing certain AoA to lead to three lobes of roughly equal size.  This broadside ambiguity makes sense though, the phase shifts that occur between elements are identical whether the signal arrives from the left or right side w.r.t. the array axis.  Just like with the 180-degree ambiguity, the solution is to use a 2D array or two 1D arrays at different angles.  In general, beamforming works best when the angle is closer to the boresight.
+As we approach the endfire of the array, which is when the signal arrives at or near the axis of the array, performance drops.  We see two main degradations: 1) the main lobe gets wider and 2) we get ambiguity and don't know whether the signal is coming from the left or the right.  This ambiguity adds to the 180-degree ambiguity discussed earlier, where we get an extra lobe at 180 - theta, causing certain AoA to lead to three lobes of roughly equal size.  This endfire ambiguity makes sense though, the phase shifts that occur between elements are identical whether the signal arrives from the left or right side w.r.t. the array axis.  Just like with the 180-degree ambiguity, the solution is to use a 2D array or two 1D arrays at different angles.  In general, beamforming works best when the angle is closer to the boresight.
 
 From this point on, we will only be displaying -90 to +90 degrees in our polar plots, as the pattern will always be mirrored over the axis of the array, at least for 1D linear arrays (which is all we cover in this chapter).
 

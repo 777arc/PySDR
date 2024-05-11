@@ -122,7 +122,7 @@ if False:
 # sweeping angle of arrival
 if False:
     theta_txs = np.concatenate((np.repeat(-90, 10), np.arange(-90, 90, 2), np.repeat(90, 10)))
-    
+    #theta_txs = [-90]
     theta_scan = np.linspace(-1*np.pi, np.pi, 300)
     results = np.zeros((len(theta_txs), len(theta_scan)))
     for t_i in range(len(theta_txs)):
@@ -140,24 +140,30 @@ if False:
             r_weighted = np.conj(w) @ r # apply our weights corresponding to the direction theta_i
             results[t_i, theta_i]  = np.mean(np.abs(r_weighted)**2) # energy detector
 
-    fig, ax = plt.subplots(1, 1, figsize=(10, 5), subplot_kw={'projection': 'polar'})
-    fig.set_tight_layout(True)
+    fig, ax = plt.subplots(1, 1, figsize=(8, 5), subplot_kw={'projection': 'polar'})
+    fig.subplots_adjust(left=0.025, bottom=0.07, right=0.99, top=0.93, wspace=None, hspace=None) # manually tweaked
     line, = ax.plot(theta_scan, results[0,:])
     ax.set_theta_zero_location('N') # make 0 degrees point up
     ax.set_theta_direction(-1) # increase clockwise
     ax.set_rlabel_position(22.5)  # Move grid labels away from other labels
-    text = ax.text(0.4, 12, 'fillmein', fontsize=16)
-    text2 = ax.text(np.pi/-2, 19, 'broadside →', fontsize=16)
-    text3 = ax.text(np.pi/2, 12, '← broadside', fontsize=16)
+    text = ax.text(0.6, 12, 'fillmein', fontsize=16)
+    ax.text(np.pi/-2, 17, 'endfire →', fontsize=16)
+    ax.text(np.pi/2, 12, '← endfire', fontsize=16)
+    arrow = ax.arrow(0, 0, 0, 0, head_width=0.1, head_length=1, fc='red', ec='red', lw=2) # doesnt matter what initial coords are
+    # Test plot
+    if False:
+        plt.show()
+        exit()
     def update(i):
         i = int(i)
         print(i)
         results_i = results[i,:] / np.max(results[i,:]) * 9 # had to add this in for the last animation because it got too large
         line.set_ydata(results_i)
-        d_str = str(np.round(theta_txs[i],2))
+        d_str = str(np.round(theta_txs[i], 2))
         text.set_text('AoA = ' + d_str + '°')
+        arrow.set_xy([[theta_txs[i] / 180 * np.pi, 5], [theta_txs[i] / 180 * np.pi, 0]]) # list of verticies. cant get it to stay an arrow...
         return line, ax
-    anim = FuncAnimation(fig, update, frames=np.arange(0, len(theta_txs)), interval=100)
+    anim = FuncAnimation(fig, update, frames=np.arange(0, len(theta_txs)), interval=100) # run it through compression https://ezgif.com/optimize after its generated to reduce file size
     anim.save('../_images/doa_sweeping_angle_animation.gif', dpi=80, writer='imagemagick')
     exit()
 

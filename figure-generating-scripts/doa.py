@@ -701,7 +701,6 @@ if False:
     # Let's point at the SOI at 15 deg, and another potential SOI that we didnt actually simulate at 60 deg
     soi1_theta = 15 / 180 * np.pi # convert to radians
     soi2_theta = 60 / 180 * np.pi
-    soi3_theta = 75 / 180 * np.pi
 
     # LCMV weights
     R_inv = np.linalg.pinv(np.cov(X)) # 8x8
@@ -743,6 +742,52 @@ if False:
 
     #fig.savefig('../_images/lcmv_beam_pattern.svg', bbox_inches='tight')
     exit()
+
+
+# LCMV with a spread of a SOI and a spread of a null
+if True:
+    Nr = 18
+    X = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N) # Simulate received signal of just noise
+
+    # Let's point at the SOI from 15 to 30 degrees using 4 different thetas
+    soi_thetas = np.linspace(15, 30, 4) / 180 * np.pi # convert to radians
+
+    # Let's make a null from 45 to 60 degrees using 4 different thetas
+    null_thetas = np.linspace(45, 60, 4) / 180 * np.pi # convert to radians
+
+    # LCMV weights
+    R_inv = np.linalg.pinv(np.cov(X))
+    s = []
+    for soi_theta in soi_thetas:
+        s.append(np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi_theta)).reshape(-1,1))
+    for null_theta in null_thetas:
+        s.append(np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(null_theta)).reshape(-1,1))
+    C = np.concatenate(s, axis=1)
+    f = np.asarray([1]*len(soi_thetas) + [0]*len(null_thetas)).reshape(-1,1)
+    w = R_inv @ C @ np.linalg.pinv(C.conj().T @ R_inv @ C) @ f # LCMV equation
+
+    # Plot beam pattern
+    w = w.squeeze() # reduce to a 1D array
+    N_fft = 1024
+    w = np.conj(w) # or else our answer will be negative/inverted
+    w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+    w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Map the FFT bins to angles in radians
+    
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_bins, w_fft_dB)
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_thetagrids(np.arange(-90, 105, 15)) # it's in degrees
+    ax.set_rlabel_position(55)  # Move grid labels away from other labels
+    ax.set_thetamin(-90) # only show top half
+    ax.set_thetamax(90)
+    ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
+    fig.savefig('../_images/lcmv_beam_pattern_spread.svg', bbox_inches='tight')
+    plt.show()
+    exit()
+
 
 # LCMV, 2 elements, 2 beams, doesnt work
 if False:

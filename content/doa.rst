@@ -903,6 +903,39 @@ As you can see, we have beams pointed at the two directions of interest, and nul
 
    </details>
 
+There is a special use-case of LCMV that you may have already thought of; let's say instead of pointing the main beam at exactly 20 degrees, for example, you want a beam wider than what the conventional beamformer would normally provide.  You can do this by setting the desired response vector :code:`f` to be a vector of 1's over a range of angles (e.g., several values from 10 to 30 degrees), and zeros elsewhere.  This is a powerful tool that can be used to create a beam pattern that is wider than the main lobe of the conventional beamformer, which is always a plus in real-world scenarios where the exact angle of arrival is not known.  The same approach can be used to create a null at a specific direction, spread out over a relatively wide range of angles.  Just remember that doing this will use several degrees of freedom!  As an example of this approach, let's simulate an 18-element array and point the angle of interest from 15 to 30 degrees using 4 different thetas, and a null from 45 to 60 degrees using 4 different thetas.  We won't simulate any actual interferers.  
+
+.. code-block:: python
+
+    Nr = 18
+    X = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N) # Simulate received signal of just noise
+
+    # Let's point at the SOI from 15 to 30 degrees using 4 different thetas
+    soi_thetas = np.linspace(15, 30, 4) / 180 * np.pi # convert to radians
+
+    # Let's make a null from 45 to 60 degrees using 4 different thetas
+    null_thetas = np.linspace(45, 60, 4) / 180 * np.pi # convert to radians
+
+    # LCMV weights
+    R_inv = np.linalg.pinv(np.cov(X))
+    s = []
+    for soi_theta in soi_thetas:
+        s.append(np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi_theta)).reshape(-1,1))
+    for null_theta in null_thetas:
+        s.append(np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(null_theta)).reshape(-1,1))
+    C = np.concatenate(s, axis=1)
+    f = np.asarray([1]*len(soi_thetas) + [0]*len(null_thetas)).reshape(-1,1)
+    w = R_inv @ C @ np.linalg.pinv(C.conj().T @ R_inv @ C) @ f # LCMV equation
+
+    # Plot beam pattern as before...
+
+.. image:: ../_images/lcmv_beam_pattern_spread.svg
+   :align: center 
+   :target: ../_images/lcmv_beam_pattern_spread.svg
+   :alt: Example beam pattern when using the LCMV beamformer with a spread beam and a spread null
+
+The beam and null is spread out over the range we requested!  Try changing the number of thetas for the main beam and/or the null, as well as the number of elements, to see if the resulting weights are able to satisfy the desired response. 
+
 *******************
 Null Steering
 *******************

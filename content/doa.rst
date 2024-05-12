@@ -496,9 +496,23 @@ Let's examine when the spacing is greater than λ/2, i.e., too much spacing, by 
    :align: center
    :alt: Animation of direction of arrival (DOA) showing what happens when distance d is much more than half-wavelength
 
-As you can see, in addition to the 180-degree ambiguity we discussed earlier, we now have additional ambiguity, and it gets worse as d gets higher (extra/incorrect lobes form).  These extra lobes are known as grating lobes, and they are a result of "spatial aliasing".  As we learned in the :ref:`sampling-chapter` chapter, when we don't sample fast enough we get aliasing.  The same thing happens in the spatial domain; if our elements are not spaced close enough together w.r.t. the carrier frequency of the signal being observed, we get garbage results in our analysis.  You can think of spacing out antennas as sampling space!  In this example we can see that the grating lobes don't get too problematic until d > λ, but they will occur as soon as you go above λ/2 spacing.
+As you can see, in addition to the 180-degree ambiguity we discussed earlier, we now have additional ambiguity, and it gets worse as d gets higher (extra/incorrect lobes form).  These extra lobes are known as grating lobes, and they are a result of "spatial aliasing".  As we learned in the :ref:`sampling-chapter` chapter, when we don't sample fast enough we get aliasing.  The same thing happens in the spatial domain; if our elements are not spaced close enough together w.r.t. the carrier frequency of the signal being observed, we get garbage results in our analysis.  You can think of spacing out antennas as sampling space!  In this example we can see that the grating lobes don't get too problematic until d > λ, but they will occur as soon as you go above λ/2 spacing.  This is because Nyquist says we need to sample at least twice as fast as the signal we are observing, i.e., two samples per cycle.  We measure our spatial sampling rate in samples per meter, and because the equivalent of radian frequency in space is 2π/λ radians per meter, and knowing there are 2π radians (360 degrees) in one cycle, we must sample space at least:
 
-Now what happens when d is less than λ/2, such as when we need to fit the array in a small space?  Let's repeat the same simulation:
+.. math::
+
+ \text{spatial sampling rate} \geq 2 \text{ [samples/cycle]} \cdot \frac{2\pi/\lambda \text{ [radians/meter]}}{2\pi \text{ [radians/cycle]}}
+
+  \text{spatial sampling rate} \geq 2/\lambda \text{ [samples/meter]}
+
+or in terms of distance between elements, :math:`d`, which is essentially meters per spatial sample:
+
+.. math::
+
+ d \leq \lambda/2
+
+As long as :math:`d \leq \lambda/2` we won't have any grating lobes!
+
+Now what happens when d is less than λ/2, such as when we need to fit the array in a small space?  We know we won't have grating lobes, but something else does happen... Let's repeat the same simulation but start at 0.5λ and lower :math:`d`:
 
 .. image:: ../_images/doa_d_is_small_animation.gif
    :scale: 100 %

@@ -201,12 +201,38 @@ In applied beamforming and DOA we like to represent :math:`d`, the distance betw
 .. math::
  x[n] e^{-2j \pi d \sin(\theta)}
 
-The above equation is specific to adjacent elements, for the :math:`k`'th element we just need to multiply :math:`d` times :math:`k`:
+The above equation is specific to adjacent elements, for the signal received by the :math:`k`'th element we just need to multiply :math:`d` times :math:`k`:
 
 .. math::
  x[n] e^{-2j \pi d k \sin(\theta)}
 
-And we're done! This equation above is what you'll see in DOA papers and ULA implementations everywhere! We typically call that exponential term the "steering vector" (often denoted as :math:`s` and in code :code:`s`) and represent it as an array, a 1D array for a 1D antenna array, etc.  In python :code:`s` is:
+We can represent this in matrix form by simply arranging the above equation for all :code:`Nr` elements in the array, from :math:`k = 0, 1, ... , N-1`:
+
+.. math::
+
+   x
+   \begin{bmatrix}
+           e^{-2j \pi d (0) \sin(\theta)} \\
+           e^{-2j \pi d (1) \sin(\theta)} \\
+           e^{-2j \pi d (2) \sin(\theta)} \\
+           \vdots \\
+           e^{-2j \pi d (N_r - 1) \sin(\theta)} \\
+    \end{bmatrix}
+
+where :math:`x` is the 1D row vector containing the transmit signal, and the column vector written out is what we call the "steering vector" (often denoted as :math:`s` and in code :code:`s`) and represent it as an array, a 1D array for a 1D antenna array, etc.  Because :math:`e^{0} = 1`, the first element of the steering vector is always 1, and the rest are phase shifts relative to the first element:
+
+.. math::
+
+   s =
+   \begin{bmatrix}
+           1 \\
+           e^{-2j \pi d (1) \sin(\theta)} \\
+           e^{-2j \pi d (2) \sin(\theta)} \\
+           \vdots \\
+           e^{-2j \pi d (N_r - 1) \sin(\theta)} \\
+    \end{bmatrix}
+
+And we're done! This vector above is what you'll see in DOA papers and ULA implementations everywhere!  You may also see it with the :math:`2\pi\sin(\theta)` expressed as a symbol like :math:`\psi`, in which case the steering vector would be just :math:`e^{-jd\psi}`, which is the more general form (we won't be using that form, however).  In python :code:`s` is:
 
 .. code-block:: python
 
@@ -215,6 +241,8 @@ And we're done! This equation above is what you'll see in DOA papers and ULA imp
  s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # where Nr is the number of receive antenna elements
 
 Note how element 0 results in a 1+0j (because :math:`e^{0}=1`); this makes sense because everything above was relative to that first element, so it's receiving the signal as-is without any relative phase shifts.  This is purely how the math works out, in reality any element could be thought of as the reference, but as you'll see in our math/code later on, what matters is the difference in phase/amplitude received between elements.  It's all relative.
+
+Remember that our :code:`d` is in units of wavelengths not meters!
 
 *******************
 Receiving a Signal
@@ -250,13 +278,12 @@ To apply the steering vector we have to do a matrix multiplication of :code:`s` 
 
 .. code-block:: python
 
- s = s.reshape(-1,1)
+ s = s.reshape(-1,1) # make s a column vector
  print(s.shape) # 3x1
- tx = tx.reshape(-1,1)
- print(tx.shape) # 10000x1
+ tx = tx.reshape(1,-1) # make tx a row vector
+ print(tx.shape) # 1x10000
  
- # Simulate the received signal X through a matrix multiply
- X = s @ tx.T  # dont get too caught up by the transpose, the important thing is we're multiplying the steering vector by the tx signal
+ X = s @ tx # Simulate the received signal X through a matrix multiply
  print(X.shape) # 3x10000.  X is now going to be a 2D array, 1D is time and 1D is the spatial dimension
 
 At this point :code:`X` is a 2D array, size 3 x 10000 because we have three array elements and 10000 samples simulated.  We use uppercase :code:`X` to represent the fact that it's multiple received signals combined (stacked) together.  We can pull out each individual signal and plot the first 200 samples; below we'll plot the real part only, but there's also an imaginary part, like any baseband signal.  One annoying part of matrix math in Python is needing to add the :code:`.squeeze()`, which removes all dimensions with length 1, to get it back to a normal 1D NumPy array that plotting and other operations expects.

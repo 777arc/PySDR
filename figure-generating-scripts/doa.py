@@ -23,11 +23,11 @@ s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector
 # we have to do a matrix multiplication of s and tx, which currently are both 1D, so we have to make them 2D with reshape
 s = s.reshape(-1,1)
 #print(s.shape) # 3x1
-tx = tx.reshape(-1,1)
-#print(tx.shape) # 10000x1
+tx = tx.reshape(1,-1) # make a row vector
+print(tx.shape) # 1x10000
 
 # so how do we use this? simple:
-r = s @ tx.T # matrix multiply. dont get too caught up by the transpose s, the important thing is we're multiplying the steering vector by the tx signal
+r = s @ tx # matrix multiply
 #print(r.shape) # 3x10000.  r is now going to be a 2D array, 1d is time and 1d is spatial
 
 # Plot the real part of the first 200 samples of all three elements
@@ -86,7 +86,7 @@ if False:
 
 
 # conventional beamforming
-if False:
+if True:
     theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:

@@ -278,5 +278,95 @@ The Python code used to read in the logo file (located `here <https://github.com
      images.append(imageio.imread(filename))
  imageio.mimsave('/tmp/sigmf_logo.gif', images, fps=20)
 
+**************************************
+SigMF Collection for Array Recordings
+**************************************
 
+If you have a phased array, MIMO digital array, TDOA sensors, or any other situation where you are recording multiple channels of synchronized RF data, then you are probably wondering how you store the raw IQ of several streams to file with SigMF.  The SigMF **Collection** system was designed exactly for these applications; a Collection is simply a group of SigMF Recordings (each being one meta and one data file), grouped together using a top-level :code:`.sigmf-collection` JSON file.  This JSON file is fairly straightforward; it needs to have the version of SigMF, an optional description, and then a list of "streams" which is really just the basename of each SigMF Recording in the collection.  Here is an example of a :code:`.sigmf-collection` file:
 
+.. code-block:: json
+
+    {
+        "collection": {
+            "core:version": "1.2.0",
+            "core:description": "a 4-element phased array recording",
+            "core:streams": [
+                {
+                    "name": "channel-0"
+                },
+                {
+                    "name": "channel-1"
+                },
+                {
+                    "name": "channel-2"
+                },
+                {
+                    "name": "channel-3"
+                }
+            ]
+        }
+    }
+
+The names of the Recordings don't have to be :code:`channel-0`, :code:`channel-1`, ..., they can be whatever you want as long as they are unique and each one corresponds to one data and one meta file.  In the above example, this .sigmf-collection file, which we might name :code:`4_element_recording.sigmf-collection` for example, needs to be in the same directory as the meta and data files, e.g. in the same directory we would have:
+
+* :code:`4_element_recording.sigmf-collection`
+* :code:`channel-0.sigmf-meta`
+* :code:`channel-0.sigmf-data`
+* :code:`channel-1.sigmf-meta`
+* :code:`channel-1.sigmf-data`
+* :code:`channel-2.sigmf-meta`
+* :code:`channel-2.sigmf-data`
+* :code:`channel-3.sigmf-meta`
+* :code:`channel-3.sigmf-data`
+
+You may be thinking this will lead to a huge number of files, for example a 16-element array would lead to 33 files!  It is for this reason that SigMF introduced the **Archive** system, which is really just SigMF's term for tarball-ing a set of files.  A SigMF Archive file uses the extension :code:`.sigmf`, not :code:`.tar`!  Many people think that .tar files are compressed, but they are not; they are simply a way to group files together (it's essentially a file concatenate, no compression involved).  You may have seen a :code:`.tar.gz` file before; this is a tarball that has been compressed with gzip.  For our SigMF Archives we won't bother compressing them, as the data files are already binary and won't compress much, especially if automatic gain control was used.  If you want to create a SigMF Archive in Python, you can tarball all files in a directory together like so:
+
+.. code-block:: python
+
+    import tarfile
+    import os
+
+    target_dir = '/mnt/c/Users/marclichtman/Downloads/exampletar/' # SigMF files are here
+    with tarfile.open(os.path.join(target_dir, '4_element_recording.sigmf'), 'x') as tar: # x means create, but fail if it already exists
+        for file in os.listdir(target_dir):
+            tar.add(os.path.join(target_dir, file), arcname=file) # arcname makes it not include the full path within the tar
+
+And that's it!  Try (temporarily) renaming .sigmf to .tar and viewing the files in your file browser.  To open any of the files in-place (without manually extracting the tar), within Python, you can use:
+
+.. code-block:: python
+
+    import tarfile
+    import json
+
+    collection_file = '/mnt/c/Users/marclichtman/Downloads/exampletar/4_element_recording.sigmf'
+    tar_obj = tarfile.open(collection_file)
+    print(tar_obj.getnames()) # list of strings of all filenames in the tar
+    channel_0_meta = tar_obj.extractfile('channel-0.sigmf-meta').read() # read one of the meta files, as an example
+    channel_0_dict = json.loads(channel_0_meta) # convert to Python dictionary
+    print(channel_0_dict)
+
+For reading in IQ samples within the tar, instead of :code:`np.fromfile()`, we'll use :code:`np.frombuffer()`:
+
+.. code-block:: python
+
+    import tarfile
+    import numpy as np
+
+    collection_file = '/mnt/c/Users/marclichtman/Downloads/exampletar/4_element_recording.sigmf'
+    tar_obj = tarfile.open(collection_file)
+    channel_0_data_f = tar_obj.extractfile('channel-0.sigmf-data').read() # type bytes
+    samples = np.frombuffer(channel_0_data_f, dtype=np.int16)
+    samples = samples[::2] + 1j*samples[1::2] # convert to IQIQIQ...
+    samples /= 32768 # convert to -1 to +1
+    print(samples[0:10])
+
+If you want to jump to a different part of the file, you can use :code:`tar_obj.extractfile('channel-0.sigmf-data').seek(offset)`.  Then to read a specific number of bytes you use :code:`.read(num_bytes)`.  Make sure the number of bytes is a multiple of your datatype!
+
+To sum it up, the following steps should be performed when creating a new SigMF Collection Archive:
+
+1. Create the .sigmf-meta and .sigmf-data file for each channel
+2. Create the .sigmf-collection file
+3. Tarball all files together into a .sigmf file
+4. (Optionally) Share the .sigmf file with others!
+
+Then to read in the recording, just remember you don't have to extract the tarball, you can read the files in-place.

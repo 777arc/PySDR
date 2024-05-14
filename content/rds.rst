@@ -645,7 +645,7 @@ You did it!  Below is all of the code above, concatenated, it should work with t
  import matplotlib.pyplot as plt
 
  # Read in signal
- x = np.fromfile('/home/marc/Downloads/fm_rds_250k_from_sdrplay.iq', dtype=np.complex64)
+ x = np.fromfile('/your/path/fm_rds_250k_1Msamples.iq', dtype=np.complex64)
  sample_rate = 250e3
  center_freq = 99.5e6
 

@@ -406,6 +406,8 @@ We then take both the sum and difference (a.k.a. delta) of these two beams digit
 
 The sign of the error tells us which direction the signal is actually coming from, and the magnitude tells us how far off we are from the signal.  We can then use this information to update the angle of arrival estimate and weights.  By repeating this process in real-time we can track the signal.
 
+It may be easier to understand why this works by recalling that a 180 degree phase shift is equivalent to multiplying by -1, so the delta beam is essentially the first beam summed with a 180 degree shifted version of the second beam.   If the signal is primarily in the second beam, then it will have a 180 degree phase shift compared to the signal received by the sum beam.  Also, recall that when you divide two complex numbers, you take the ratio of their magnitudes and the difference of their phases.  So if the signal is primarily in the second beam, the error will be negative, and the magnitude of the error will be proportional to how much the signal is in the second beam compared to the first beam.
+
 Now jumping into the full Python example, we will start by copying the code we used earlier to perform a 180 degree sweep.  The only code we will add is to pull out the phase at which the received power was maximum:
 
 .. code-block:: python

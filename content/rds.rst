@@ -244,7 +244,7 @@ Fine Frequency Synchronization
  freq = 0
  # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
  alpha = 8.0 
- beta = 0.002
+ beta = 0.02
  out = np.zeros(N, dtype=np.complex64)
  freq_log = []
  for i in range(N):
@@ -701,7 +701,7 @@ You did it!  Below is all of the code above, concatenated, it should work with t
  freq = 0
  # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
  alpha = 8.0 
- beta = 0.002
+ beta = 0.02
  out = np.zeros(N, dtype=np.complex64)
  freq_log = []
  for i in range(N):

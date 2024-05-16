@@ -94,6 +94,31 @@ or
  samples = samples[::2] + 1j*samples[1::2] # convert to IQIQIQ...
 
 *****************************
+Coming from MATLAB
+*****************************
+
+If you are trying to switch from MATLAB to Python, you may wonder how to get your MATLAB variables and .mat files saved as binary IQ files.  We first need to pick a format type.  For example, if our samples are integers between -127 and +127, then we can use 8-bit ints.  In this case, we can use the following MATLAB code to save the samples to a binary IQ file:
+
+.. code-block:: MATLAB
+
+ % let's say our IQ samples are contained in the variable samples
+ disp(samples(1:20))
+ filename = 'samples.iq'
+ fwrite(fopen(filename,'w'), reshape([real(samples);imag(samples)],[],1), 'int8')
+
+You can see all of the allowable format types for fwrite() in the `MATLAB documentation <https://www.mathworks.com/help/matlab/ref/fwrite.html#buakf91-1-precision>`_.  That being said, it is best to stick to :code:`'int8'`, :code:`'int16'`, or :code:`'float32'`.
+
+On the Python side, you can load in this file using:
+
+.. code-block:: python
+
+ samples = np.fromfile('samples.iq', np.int8)
+ samples = samples[::2] + 1j*samples[1::2]
+ print(samples[0:20]) # make sure first 20 samples match MATLABs
+
+For :code:`'float32'` saved from MATLAB you can use :code:`np.complex64` on the Python side, which is interleaved float32's, and then you can skip the :code:`samples[::2] + 1j*samples[1::2]` part because numpy will automatically interpret the interleaved floats as complex numbers.
+
+*****************************
 Visually Analyzing an RF File
 *****************************
 

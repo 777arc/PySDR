@@ -259,6 +259,11 @@ html_static_path = ['_static']
 # These paths are either relative to html_static_path or fully qualified paths (eg. https://...)
 html_css_files = ['custom.css',]
 
+html_js_files = [
+    'js/beamforming_slider_app.js',
+    'js/FFT.js'
+]
+
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the documentation.

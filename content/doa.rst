@@ -605,6 +605,23 @@ If you are curious why there are so many sidelobes when we use a rectangular win
    :align: center 
    :target: ../_images/windows.svg
 
+******************************
+Manually Changing Weights
+******************************
+
+The conventional beamformer provides us an equation to calculate the weights in order to point at a specific direction, but for a moment let's act like we don't have any method of calculating weights, and instead we will play around with the weights (both magnitude and phase) manually to see what happens.  Below is a little app written in JavaScript to simulate the beam pattern of an 8-element array, with sliders to control gain and phase of each element.  You can try adding tapering, or simulating less than 8 elements by zeroing out the magnitude of one or more. 
+
+.. raw:: html
+
+    <div id="rectPlot"><!-- Plotly chart will be drawn inside this DIV --></div>
+    <br />
+    Element &nbsp;&nbsp;&nbsp; Magnitude (Gain) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Phase
+    <div id="sliders"></div>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script>
+    beamforming_slider_app()
+    </script>
+
 *********************
 Adaptive Beamforming
 *********************

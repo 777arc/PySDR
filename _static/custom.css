@@ -116,3 +116,8 @@ div.document {
 .purple {
     color: purple;
 }
+
+.slider-span {
+    display: inline-block;
+    width: 80px;
+  }

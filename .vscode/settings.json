@@ -75,5 +75,6 @@
     ],
     "githubPullRequests.ignoredPullRequestBranches": [
         "master"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "basic"
 }

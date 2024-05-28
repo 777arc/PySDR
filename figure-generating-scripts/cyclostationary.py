@@ -26,11 +26,15 @@ def generate_bspk(sps, f_offset):
     # Filter our signal, in order to apply the pulse shaping
     bpsk = np.convolve(bpsk, h, 'same')
     bpsk = bpsk[0:N] # clip off the extra samples
-    # Freq shift up the BPSK
-    return bpsk * np.exp(2j*np.pi*f_offset*np.arange(len(bpsk))/fs)
 
+    # Create a complex array
+    exp_term = np.exp(2j*np.pi*f_offset*np.arange(len(bpsk))/fs)
+
+    # Freq shift up the BPSK
+    return bpsk * exp_term
 
 noise = np.random.randn(N) + 1j*np.random.randn(N)
+
 samples = generate_bspk(10, 0.2*fs) + generate_bspk(8, 0.07*fs) + 0.0001*noise
 
 #######
@@ -251,16 +255,9 @@ for ii in range(len(alphas)): # Loop over cyclic frequencies
         S_slice += np.fft.fft(neg_slice) * np.conj(np.fft.fft(pos_slice))
     S[:, ii] = S_slice
 
-
 S = np.abs(S)
-S = S.T
-# For this one, the extent seesm to be fs, not fs/2
 
-############
-# Plotting #
-############
-plt.imshow(S, aspect='auto', extent=(0.0, fs, float(np.max(alphas)), float(np.min(alphas))))
-plt.xlabel('Frequency [Normalized Hz]')
-plt.ylabel('Cyclic Frequency [Hz]')
-plt.title('SCF')
+plt.imshow(S, aspect='auto', extent=(float(np.min(alphas)), float(np.max(alphas)), fs, 0.0))
+plt.xlabel('Cyclic Frequency [Hz]')
+plt.ylabel('Frequency [Normalized Hz]')
 plt.show()

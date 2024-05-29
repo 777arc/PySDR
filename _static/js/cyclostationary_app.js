@@ -1,13 +1,135 @@
 function cyclostationary_app() {
   const fs = 1; // sample rate in Hz
   const N = Math.pow(2, 16); // number of samples to simulate, needs to be power of 2
+  const Nw = 64; // window length
+  const Noverlap = Math.floor((2 / 3) * Nw); // block overlap
 
+  const alphas = [];
+  for (let alpha = 0.05; alpha < 0.5; alpha += 0.025) {
+    alphas.push(alpha);
+  }
+
+  var startTime = performance.now();
+  // two BPSK signals of diff cyclic freq and RF freq
   const samples = generate_bspk(N, fs, 10, 0.2 * fs);
+  /*
+  const samples2 = generate_bspk(N, fs, 8, 0.07 * fs);
+  for (let i = 0; i < N; i++) {
+    samples[2 * i] += samples2[2 * i];
+    samples[2 * i + 1] += samples2[2 * i + 1];
+  }
+  */
+  console.log(`Calls to generate_bspk() took ${performance.now() - startTime} ms`); // 42ms
+
+  startTime = performance.now();
+  const SCF_mag = calc_SCF(samples, alphas, Nw, Noverlap);
+  console.log(`Call to calc_SCF() took ${performance.now() - startTime} ms`); // 1500ms
+
+  // Create an image out of SCF_mag
+  let img = new Array(alphas.length * Nw).fill(0);
+  for (let i = 0; i < alphas.length; i++) {
+    for (let j = 0; j < Nw; j++) {
+      img[i * Nw + j] = SCF_mag[i][j];
+    }
+  }
+
+  // Print smallest value of SCF_mag
+  console.log("Min SCF_mag: " + Math.min(...img));
+
+  // Print largest value of SCF_mag
+  console.log("Max SCF_mag: " + Math.max(...img));
+
+  // Normalize/scale
+  img = img.map((val) => val / Math.max(...img)); // Normalize img so max is 1
+  img = img.map((val) => Math.max(val, 0)); // Truncate to 0
+  img = img.map((val) => val * 255);
+
+  // Display the image using html
+  let canvas = document.createElement("canvas");
+  canvas.width = Nw;
+  canvas.height = alphas.length;
+  canvas.style.width = "800px";
+  let ctx = canvas.getContext("2d");
+  let imgData = ctx.createImageData(Nw, alphas.length);
+  for (let i = 0; i < img.length; i++) {
+    imgData.data[i * 4] = 0; // R
+    imgData.data[i * 4 + 1] = img[i]; // G
+    imgData.data[i * 4 + 2] = 0; // B
+    imgData.data[i * 4 + 3] = 255; // alpha
+  }
+  ctx.putImageData(imgData, 0, 0);
+  document.getElementById("scf_img").appendChild(canvas);
 
   // Plot PSD
   PSD = calc_PSD(samples);
   const f_vals = Array.from({ length: N }, (v, k) => k - N / 2).map((val) => (val * fs) / N);
   Plotly.newPlot("rectPlot", [{ x: f_vals, y: PSD }]);
+}
+
+function calc_SCF(samples, alphas, Nw, Noverlap) {
+  N = samples.length;
+
+  // SCF
+  const num_windows = Math.floor((N - Noverlap) / (Nw - Noverlap)); // Number of windows
+  const window = new Array(Nw);
+  for (let i = 0; i < Nw; i++) {
+    window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (Nw - 1)));
+  }
+
+  // outter array is for each alpha, inner array is for each window
+  let SCF = Array.from({ length: alphas.length }, () => new Array(Nw * 2).fill(0));
+
+  // Prep
+  let neg = new Array(N * 2);
+  let pos = new Array(N * 2);
+
+  let fft_obj_pos = new FFT(Nw);
+  let fft_obj_neg = new FFT(Nw);
+  let neg_out = fft_obj_neg.createComplexArray();
+  let pos_out = fft_obj_pos.createComplexArray();
+
+  // loop through cyclic freq (alphas)
+  for (let alpha_idx = 0; alpha_idx < alphas.length; alpha_idx++) {
+    const alpha_times_pi = alphas[alpha_idx] * Math.PI;
+
+    for (let i = 0; i < N; i++) {
+      neg[2 * i] = samples[i] * Math.cos(-1 * alpha_times_pi * i);
+      neg[2 * i + 1] = samples[i] * Math.sin(-1 * alpha_times_pi * i);
+      pos[2 * i] = samples[i] * Math.cos(alpha_times_pi * i);
+      pos[2 * i + 1] = samples[i] * Math.sin(alpha_times_pi * i);
+    }
+
+    // Cross Cyclic Power Spectrum
+    for (let i = 0; i < num_windows; i++) {
+      let pos_slice = pos.slice(2 * i * (Nw - Noverlap), 2 * i * (Nw - Noverlap) + 2 * Nw); // 2* because of how we store complex
+      let neg_slice = neg.slice(2 * i * (Nw - Noverlap), 2 * i * (Nw - Noverlap) + 2 * Nw);
+
+      // Apply window
+      //pos_slice = pos_slice.map((val, idx) => val * window[idx]);
+      //neg_slice = neg_slice.map((val, idx) => val * window[idx]);
+
+      // Take FFTs
+      fft_obj_neg.transform(neg_out, neg_slice);
+      fft_obj_pos.transform(pos_out, pos_slice);
+
+      // Multiply neg_fft with complex conjugate of pos_fft
+      for (let j = 0; j < Nw; j++) {
+        SCF[alpha_idx][2 * j] += neg_out[2 * j] * pos_out[2 * j] + neg_out[2 * j + 1] * pos_out[2 * j + 1];
+        SCF[alpha_idx][2 * j + 1] += neg_out[2 * j] * pos_out[2 * j + 1] - neg_out[2 * j + 1] * pos_out[2 * j];
+      }
+    }
+  }
+
+  // Take magnitude of SCF
+  startTime = performance.now();
+  let SCF_mag = Array.from({ length: alphas.length }, () => new Array(Nw).fill(0));
+  for (let i = 0; i < alphas.length; i++) {
+    for (let j = 0; j < Nw; j++) {
+      SCF_mag[i][j] = Math.sqrt(SCF[i][2 * j] * SCF[i][2 * j] + SCF[i][2 * j + 1] * SCF[i][2 * j + 1]);
+    }
+  }
+  console.log(`calc magnitude took ${performance.now() - startTime} ms`); // 0.8ms
+  return SCF_mag;
 }
 
 function calc_PSD(samples) {
@@ -66,13 +188,19 @@ function gaussianRandom(mean = 0, stdev = 1) {
 }
 
 function generate_bspk(N, fs, sps, f_offset) {
+  startTime = performance.now();
   const bits = Array.from({ length: Math.ceil(N / sps) }, () => Math.floor(Math.random() * 2)); // Our data to be transmitted, 1's and 0's
-  let bpsk = [];
-  for (const bit of bits) {
-    const pulse = new Array(sps).fill(0);
-    pulse[0] = bit * 2 - 1; // set the first value to either a 1 or -1
-    bpsk = bpsk.concat(pulse); // add the 8 samples to the signal
+  console.log(`making bits took ${performance.now() - startTime} ms`); // 0.5ms
+
+  startTime = performance.now();
+  //let bpsk = [];
+  let bpsk = new Array(N).fill(0);
+  for (let i = 0; i < bits.length; i++) {
+    bpsk[i * sps] = bits[i] * 2 - 1; // BPSK
   }
+  console.log(`making bpsk took ${performance.now() - startTime} ms`); // 0.5ms
+
+  startTime = performance.now();
   const num_taps = 101; // for our RRC filter
   let h;
   if (true) {
@@ -86,23 +214,31 @@ function generate_bspk(N, fs, sps, f_offset) {
     // rect pulses
     h = new Array(sps).fill(1);
   }
+  console.log(`making h took ${performance.now() - startTime} ms`); // 0.2ms
 
   // Convolve bpsk and h
+  startTime = performance.now();
   bpsk = convolve(bpsk, h);
+  console.log(`convolve took ${performance.now() - startTime} ms`); // 9ms
+
   bpsk = bpsk.slice(0, N); // clip off the extra samples
 
   // Freq shift, also is the start of it being complex, which is done with an interleaved 1d array that is twice the length
+  startTime = performance.now();
   const bpsk_complex = new Array(N * 2).fill(0);
   for (let i = 0; i < N; i++) {
     bpsk_complex[2 * i] = bpsk[i] * Math.cos((2 * Math.PI * f_offset * i) / fs);
     bpsk_complex[2 * i + 1] = bpsk[i] * Math.sin((2 * Math.PI * f_offset * i) / fs);
   }
+  console.log(`freq shift took ${performance.now() - startTime} ms`); // 2ms
 
   // Add noise
+  startTime = performance.now();
   for (let i = 0; i < N; i++) {
     bpsk_complex[2 * i] += gaussianRandom() * 0.1;
     bpsk_complex[2 * i + 1] += gaussianRandom() * 0.1;
   }
+  console.log(`adding noise took ${performance.now() - startTime} ms`); // 6ms
 
   return bpsk_complex;
 }

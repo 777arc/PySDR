@@ -4,7 +4,20 @@
 <br />
 
 
-<form id="mainform">
+<form id="mainform" name="mainform">
+    <label>Samples to Simulate </label>
+    <select id="N">
+        <option value="1024">1024</option>
+        <option value="2048">2048</option>
+        <option value="4096">4096</option>
+        <option value="8192">8192</option>
+        <option value="16384" selected="selected">16384</option>
+        <option value="32768">32768</option>
+        <option value="65536">65536</option>
+        <option value="131072">131072</option>
+        <option value="262144">262144</option>
+      </select>
+    <br />
     <label>Frequency [normalized Hz] </label>
     <input type="number" id="freq" value="0.2" min="0" max="1" step="0.005">
     <br />
@@ -23,12 +36,12 @@
     <input type="number" id="alpha_stop" value="0.5" min="0" max="100" step="0.001">
     <br />
     <label>Alpha Step </label>
-    <input type="number" id="alpha_step" value="0.002" min="0.001" max="0.5" step="0.001">
+    <input type="number" id="alpha_step" value="0.001" min="0.001" max="0.5" step="0.001">
     <br />
     <label>Noise Level </label>
-    <input type="number" id="noise" value="0.1" min="0" max="10" step="0.0001">
+    <input type="number" id="noise" value="0.01" min="0" max="10" step="0.0001">
     <br />
-    <input type="submit" value="Submit">
+    <button type="submit" id="submit_button">Submit</button>
 </form>
 <br>
 <canvas id="scf_canvas" style="width: 400px; height: 400px;"></canvas>

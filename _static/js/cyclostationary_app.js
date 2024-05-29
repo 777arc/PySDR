@@ -1,24 +1,144 @@
 function cyclostationary_app() {
+  // Params
   const fs = 1; // sample rate in Hz
   const N = Math.pow(2, 16); // number of samples to simulate, needs to be power of 2
-  const Nw = 64; // window length
+  const Nw = 256; // window length
   const Noverlap = Math.floor((2 / 3) * Nw); // block overlap
-
   const alphas = [];
-  for (let alpha = 0.05; alpha < 0.5; alpha += 0.025) {
+  for (let alpha = 0.05; alpha < 0.5; alpha += 0.005) {
     alphas.push(alpha);
   }
 
-  var startTime = performance.now();
-  // two BPSK signals of diff cyclic freq and RF freq
-  const samples = generate_bspk(N, fs, 10, 0.2 * fs);
-  /*
-  const samples2 = generate_bspk(N, fs, 8, 0.07 * fs);
-  for (let i = 0; i < N; i++) {
-    samples[2 * i] += samples2[2 * i];
-    samples[2 * i + 1] += samples2[2 * i + 1];
+  parent = document.getElementById("sliders");
+
+  // freq
+  var span = document.createElement("span");
+  span.className = "slider-span";
+  span.append("Frequency [normalized Hz]");
+  parent.appendChild(span);
+
+  var input_element = document.createElement("input");
+  input_element.type = "range";
+  input_element.className = "slider";
+  input_element.value = "0.2";
+  input_element.min = "0";
+  input_element.max = "0.5";
+  input_element.step = "0.005";
+  input_element.id = "freq";
+  parent.appendChild(input_element);
+
+  var span = document.createElement("span");
+  span.className = "slider-span";
+  span.id = "freq_label";
+  span.textContent = "0.2";
+  parent.appendChild(span);
+
+  var br = document.createElement("br");
+  parent.appendChild(br);
+
+  // sps
+  var span = document.createElement("span");
+  span.className = "slider-span";
+  span.append("Samples per Symbol [int]");
+  parent.appendChild(span);
+
+  var input_element = document.createElement("input");
+  input_element.type = "range";
+  input_element.className = "slider";
+  input_element.value = "10";
+  input_element.min = "2";
+  input_element.max = "30";
+  input_element.step = "1";
+  input_element.id = "sps";
+  parent.appendChild(input_element);
+
+  var span = document.createElement("span");
+  span.className = "slider-span";
+  span.id = "sps_label";
+  span.textContent = 10;
+  parent.appendChild(span);
+
+  // Display the image using html
+  let canvas = document.createElement("canvas");
+  canvas.height = Nw;
+  canvas.width = alphas.length;
+  canvas.style.width = "800px";
+  let ctx = canvas.getContext("2d");
+  let imgData = ctx.createImageData(Nw, alphas.length); // width, height
+  document.getElementById("scf_img").appendChild(canvas);
+
+  // Make slider change label
+  document.getElementById("freq").addEventListener("input", function () {
+    document.getElementById("freq_label").textContent = Math.round(this.value * 100) / 100;
+    img = update_img(
+      fs,
+      N,
+      Nw,
+      Noverlap,
+      alphas,
+      parseInt(document.getElementById("sps").value),
+      parseFloat(document.getElementById("freq").value) * fs
+    );
+    for (let i = 0; i < img.length; i++) {
+      imgData.data[i * 4] = 0; // R
+      imgData.data[i * 4 + 1] = img[i]; // G
+      imgData.data[i * 4 + 2] = 0; // B
+      imgData.data[i * 4 + 3] = 255; // alpha
+      ctx.putImageData(imgData, 0, 0); // data, dx, dy
+    }
+  });
+
+  // Make slider change label
+  document.getElementById("sps").addEventListener("input", function () {
+    document.getElementById("sps_label").textContent = Math.round(this.value);
+    img = update_img(
+      fs,
+      N,
+      Nw,
+      Noverlap,
+      alphas,
+      parseInt(document.getElementById("sps").value),
+      parseFloat(document.getElementById("freq").value) * fs
+    );
+    for (let i = 0; i < img.length; i++) {
+      imgData.data[i * 4] = 0; // R
+      imgData.data[i * 4 + 1] = img[i]; // G
+      imgData.data[i * 4 + 2] = 0; // B
+      imgData.data[i * 4 + 3] = 255; // alpha
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    //Plotly.redraw("rectPlot");
+  });
+
+  // Run it once
+  img = update_img(fs, N, Nw, Noverlap, alphas, 10, 0.2 * fs);
+  for (let i = 0; i < img.length; i++) {
+    imgData.data[i * 4] = 0; // R
+    imgData.data[i * 4 + 1] = img[i]; // G
+    imgData.data[i * 4 + 2] = 0; // B
+    imgData.data[i * 4 + 3] = 255; // alpha
   }
+  ctx.putImageData(imgData, 0, 0);
+
+  /*
+  // Plot PSD
+  PSD = calc_PSD(samples);
+  const f_vals = Array.from({ length: N }, (v, k) => k - N / 2).map((val) => (val * fs) / N);
+  Plotly.newPlot("rectPlot", [{ x: f_vals, y: PSD }]);
   */
+}
+
+function update_img(fs, N, Nw, Noverlap, alphas, sps, f_offset) {
+  var startTime = performance.now();
+  const samples = generate_bspk(N, fs, sps, f_offset);
+  /*
+    const samples2 = generate_bspk(N, fs, 8, 0.07 * fs);
+    for (let i = 0; i < N; i++) {
+      samples[2 * i] += samples2[2 * i];
+      samples[2 * i + 1] += samples2[2 * i + 1];
+    }
+    */
   console.log(`Calls to generate_bspk() took ${performance.now() - startTime} ms`); // 42ms
 
   startTime = performance.now();
@@ -44,30 +164,11 @@ function cyclostationary_app() {
   img = img.map((val) => Math.max(val, 0)); // Truncate to 0
   img = img.map((val) => val * 255);
 
-  // Display the image using html
-  let canvas = document.createElement("canvas");
-  canvas.width = Nw;
-  canvas.height = alphas.length;
-  canvas.style.width = "800px";
-  let ctx = canvas.getContext("2d");
-  let imgData = ctx.createImageData(Nw, alphas.length);
-  for (let i = 0; i < img.length; i++) {
-    imgData.data[i * 4] = 0; // R
-    imgData.data[i * 4 + 1] = img[i]; // G
-    imgData.data[i * 4 + 2] = 0; // B
-    imgData.data[i * 4 + 3] = 255; // alpha
-  }
-  ctx.putImageData(imgData, 0, 0);
-  document.getElementById("scf_img").appendChild(canvas);
-
-  // Plot PSD
-  PSD = calc_PSD(samples);
-  const f_vals = Array.from({ length: N }, (v, k) => k - N / 2).map((val) => (val * fs) / N);
-  Plotly.newPlot("rectPlot", [{ x: f_vals, y: PSD }]);
+  return img;
 }
 
 function calc_SCF(samples, alphas, Nw, Noverlap) {
-  N = samples.length;
+  N = samples.length / 2;
 
   // SCF
   const num_windows = Math.floor((N - Noverlap) / (Nw - Noverlap)); // Number of windows
@@ -93,14 +194,19 @@ function calc_SCF(samples, alphas, Nw, Noverlap) {
     const alpha_times_pi = alphas[alpha_idx] * Math.PI;
 
     for (let i = 0; i < N; i++) {
-      neg[2 * i] = samples[i] * Math.cos(-1 * alpha_times_pi * i);
-      neg[2 * i + 1] = samples[i] * Math.sin(-1 * alpha_times_pi * i);
-      pos[2 * i] = samples[i] * Math.cos(alpha_times_pi * i);
-      pos[2 * i + 1] = samples[i] * Math.sin(alpha_times_pi * i);
+      // remember (a + ib)(c + id) = (ac - bd) + i(ad + bc).
+      neg[2 * i] = samples[2 * i] * Math.cos(-1 * alpha_times_pi * i) - samples[2 * i + 1] * Math.sin(-1 * alpha_times_pi * i);
+      neg[2 * i + 1] = samples[2 * i] * Math.sin(-1 * alpha_times_pi * i) + samples[2 * i + 1] * Math.cos(-1 * alpha_times_pi * i);
+      pos[2 * i] = samples[2 * i] * Math.cos(alpha_times_pi * i) - samples[2 * i + 1] * Math.sin(alpha_times_pi * i);
+      pos[2 * i + 1] = samples[2 * i] * Math.sin(alpha_times_pi * i) + samples[2 * i + 1] * Math.cos(alpha_times_pi * i);
     }
 
     // Cross Cyclic Power Spectrum
     for (let i = 0; i < num_windows; i++) {
+      if (alpha_idx === 0 && i === 1) {
+        console.log(SCF[alpha_idx].slice(0, 20));
+      }
+
       let pos_slice = pos.slice(2 * i * (Nw - Noverlap), 2 * i * (Nw - Noverlap) + 2 * Nw); // 2* because of how we store complex
       let neg_slice = neg.slice(2 * i * (Nw - Noverlap), 2 * i * (Nw - Noverlap) + 2 * Nw);
 
@@ -115,14 +221,14 @@ function calc_SCF(samples, alphas, Nw, Noverlap) {
       // Multiply neg_fft with complex conjugate of pos_fft
       for (let j = 0; j < Nw; j++) {
         SCF[alpha_idx][2 * j] += neg_out[2 * j] * pos_out[2 * j] + neg_out[2 * j + 1] * pos_out[2 * j + 1];
-        SCF[alpha_idx][2 * j + 1] += neg_out[2 * j] * pos_out[2 * j + 1] - neg_out[2 * j + 1] * pos_out[2 * j];
+        SCF[alpha_idx][2 * j + 1] += neg_out[2 * j + 1] * pos_out[2 * j] - neg_out[2 * j] * pos_out[2 * j + 1]; // includes the conj
       }
     }
   }
 
   // Take magnitude of SCF
   startTime = performance.now();
-  let SCF_mag = Array.from({ length: alphas.length }, () => new Array(Nw).fill(0));
+  let SCF_mag = Array.from({ length: alphas.length }, () => new Array(Nw));
   for (let i = 0; i < alphas.length; i++) {
     for (let j = 0; j < Nw; j++) {
       SCF_mag[i][j] = Math.sqrt(SCF[i][2 * j] * SCF[i][2 * j] + SCF[i][2 * j + 1] * SCF[i][2 * j + 1]);
@@ -190,6 +296,7 @@ function gaussianRandom(mean = 0, stdev = 1) {
 function generate_bspk(N, fs, sps, f_offset) {
   startTime = performance.now();
   const bits = Array.from({ length: Math.ceil(N / sps) }, () => Math.floor(Math.random() * 2)); // Our data to be transmitted, 1's and 0's
+  //const bits = new Array(Math.ceil(N / sps)).fill(1);
   console.log(`making bits took ${performance.now() - startTime} ms`); // 0.5ms
 
   startTime = performance.now();
@@ -202,6 +309,7 @@ function generate_bspk(N, fs, sps, f_offset) {
 
   startTime = performance.now();
   const num_taps = 101; // for our RRC filter
+
   let h;
   if (true) {
     // RC pulse shaping
@@ -214,6 +322,7 @@ function generate_bspk(N, fs, sps, f_offset) {
     // rect pulses
     h = new Array(sps).fill(1);
   }
+
   console.log(`making h took ${performance.now() - startTime} ms`); // 0.2ms
 
   // Convolve bpsk and h
@@ -233,12 +342,14 @@ function generate_bspk(N, fs, sps, f_offset) {
   console.log(`freq shift took ${performance.now() - startTime} ms`); // 2ms
 
   // Add noise
+  /*
   startTime = performance.now();
   for (let i = 0; i < N; i++) {
     bpsk_complex[2 * i] += gaussianRandom() * 0.1;
     bpsk_complex[2 * i + 1] += gaussianRandom() * 0.1;
   }
   console.log(`adding noise took ${performance.now() - startTime} ms`); // 6ms
+*/
 
   return bpsk_complex;
 }

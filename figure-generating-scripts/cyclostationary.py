@@ -7,10 +7,11 @@ import time
 # Simulate BPSK #
 #################
 fs = 1 # sample rate in Hz
-N = 100000  # number of samples to simulate
+N = int(2**16)  # number of samples to simulate
 
 def generate_bspk(sps, f_offset):
     bits = np.random.randint(0, 2, int(np.ceil(N/sps))) # Our data to be transmitted, 1's and 0's
+    #bits = np.ones(int(np.ceil(N/sps)))
     bpsk = np.array([])
     for bit in bits:
         pulse = np.zeros(sps)
@@ -18,7 +19,7 @@ def generate_bspk(sps, f_offset):
         bpsk = np.concatenate((bpsk, pulse))  # add the 8 samples to the signal
     num_taps = 101  # for our RRC filter
     if True:  # RC pulse shaping
-        beta = 0.24999
+        beta = 0.249
         t = np.arange(num_taps) - (num_taps-1)//2
         h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2)
     else:  # rect pulses
@@ -27,15 +28,13 @@ def generate_bspk(sps, f_offset):
     bpsk = np.convolve(bpsk, h, 'same')
     bpsk = bpsk[0:N] # clip off the extra samples
 
-    # Create a complex array
-    exp_term = np.exp(2j*np.pi*f_offset*np.arange(len(bpsk))/fs)
-
     # Freq shift up the BPSK
-    return bpsk * exp_term
+    return bpsk * np.exp(2j*np.pi*f_offset*np.arange(len(bpsk))/fs)
 
 noise = np.random.randn(N) + 1j*np.random.randn(N)
 
-samples = generate_bspk(10, 0.2*fs) + generate_bspk(8, 0.07*fs) + 0.0001*noise
+samples = generate_bspk(10, 0.2*fs) # + generate_bspk(8, 0.07*fs) + 0.0001*noise
+
 
 #######
 # SCF # based on https://github.com/fchirono/cyclostationarity_analysis
@@ -248,12 +247,10 @@ for ii in range(len(alphas)): # Loop over cyclic frequencies
     pos = samples * np.exp( 1j*np.pi*alphas[ii]*np.arange(N))
 
     # Cross Cyclic Power Spectrum
-    S_slice = 0
     for i in range(num_windows):
         pos_slice = window * pos[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
         neg_slice = window * neg[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
-        S_slice += np.fft.fft(neg_slice) * np.conj(np.fft.fft(pos_slice))
-    S[:, ii] = S_slice
+        S[:, ii] += np.fft.fft(neg_slice) * np.conj(np.fft.fft(pos_slice))
 
 S = np.abs(S)
 

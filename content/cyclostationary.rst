@@ -1,8 +1,8 @@
 .. _freq-domain-chapter:
 
-##################################
-Cyclostationary Signal Processing
-##################################
+##########################
+Cyclostationary Processing
+##########################
 
 Co-authored by `Sam Brown <https://www.linkedin.com/in/samuel-brown-vt/>`_
 
@@ -12,7 +12,7 @@ Co-authored by `Sam Brown <https://www.linkedin.com/in/samuel-brown-vt/>`_
 Introduction
 ****************
 
-Cyclostationary signal processing (CSP) is a set of techniques for exploiting the cyclostationary property found in many real-world communication signals. These are signals such as modulated signals like AM/FM/TV broadcast, cellular, and WiFi as well as radar signals, and other signals that exhibit periodicity in their statistics. A large swath of traditional signal processing techniques are based on the assumption that the signal is stationary, i.e., the statistics of the signal like the mean, variance and higher-order moments do not change over time. However, many real-world signals are cyclostationary, i.e., the statistics of the signal change *periodically* over time. CSP techniques exploit this cyclostationary property to improve the performance of signal processing algorithms. For example, CSP techniques can be used to detect the presence of signals in noise, perform modulation recognition, and separate signals that are overlapping in time and frequency.
+Cyclostationary signal processing (a.k.a., CSP or simply cyclostationary processing) is a set of techniques for exploiting the cyclostationary property found in many real-world communication signals. These are signals such as modulated signals like AM/FM/TV broadcast, cellular, and WiFi as well as radar signals, and other signals that exhibit periodicity in their statistics. A large swath of traditional signal processing techniques are based on the assumption that the signal is stationary, i.e., the statistics of the signal like the mean, variance and higher-order moments do not change over time. However, many real-world signals are cyclostationary, i.e., the statistics of the signal change *periodically* over time. CSP techniques exploit this cyclostationary property to improve the performance of signal processing algorithms. For example, CSP techniques can be used to detect the presence of signals in noise, perform modulation recognition, and separate signals that are overlapping in time and frequency.
 
 ************************************************
 The Cyclic Autocorrelation Function (CAF)
@@ -22,9 +22,80 @@ A good place to start understanding CSP is the cyclic autocorrelation function (
 
 Cyclostationary signals possess a periodic or almost periodic autocorrelation, and the CAF is the set of Fourier series coefficients that describe this periodicity. In other words, the CAF is the amplitude and phase of the harmonics present in a signal's autocorrelation, giving it the following form: :math:`R_x(\tau, \alpha) = \int_{-\infty}^{\infty} x(t)x^*(t-\tau)e^{-j2\pi \alpha t}dt`. It can be seen that the CAF is a function of two variables, the delay :math:`\tau` and the cycke frequency :math:`\alpha`.
 
-CAF in Python
+In Python, the CAF at a given alpha and tau value can be computed using the following code snippet (we'll fill out the surrounding code shortly):
 
-Example CAF output for rect BPSK
+.. code-block:: python
+ 
+ np.sum(np.roll(samples, -1*tau//2) *
+        np.conj(np.roll(samples, tau//2)) *
+        np.exp(-2j * np.pi * alpha * np.arange(len(samples))))
+
+In order to play with the CAF, we first need to simulate an example signal.  For now we will use a rectangular BPSK signal (i.e., BPSK without pulse-shaping applied) with 20 samples per symbol, added to some AWGN.  We will apply a frequency offset to the BPSK signal, so that later we can show off how cyclostationary processing can be used to estimate the frequency offset as well as the cyclic frequency.  The following code snippet simulates the IQ samples we will use for the remainder of the next two sections:
+
+.. code-block:: python
+
+ N = 100000 # number of samples to simulate
+ f_offset = 0.2 # Hz normalized
+ sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
+ 
+ symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1 # random 1's and -1's
+ bpsk = np.repeat(symbols, sps)  # repeat each symbol sps times to make rectangular BPSK
+ bpsk = bpsk[:N]  # clip off the extra samples
+ bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
+ noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
+ samples = bpsk + 0.1*noise  # add noise to the signal
+
+Just for fun let's look at the power spectral density (FFT):
+
+.. image:: ../_images/psd_of_bpsk_used_for_caf.svg
+   :align: center 
+   :target: ../_images/psd_of_bpsk_used_for_caf.svg
+   :alt: PSD of BPSK used for CAF
+
+Now we will compute the CAF at the correct alpha, and over a range of tau values (we'll use -100 to +100 as a starting point).  The correct alpha in our case is simply the samples per symbol inverted, or 0.05 Hz.  Keep in mind we are using normalized Hz, which essentially means our sample rate is 1 and all our frequencies will be between -0.5 and +0.5 Hz.  We will stick our CAF code into a for loop to calculate all taus:
+
+.. code-block:: python
+
+ correct_alpha = 1/sps
+ taus = np.arange(-100, 100)
+ CAF = np.zeros(len(taus), dtype=complex)
+ for i in range(len(taus)):
+     CAF[i] = np.sum(np.roll(samples, -1*taus[i]//2) *
+                     np.conj(np.roll(samples, taus[i]//2)) *
+                     np.exp(-2j * np.pi * correct_alpha * np.arange(N)))
+
+Let's plot the real part of :code:`CAF` using :code:`plt.plot(taus, np.real(CAF))`:
+
+.. image:: ../_images/caf_at_correct_alpha.svg
+   :align: center 
+   :target: ../_images/caf_at_correct_alpha.svg
+   :alt: CAF at correct alpha
+
+It looks a little funky, but keep in mind that tau is still in the time domain, and the pattern we see above will make more sense after we study the SCF in the next section.
+
+One thing we can do is calculate the CAF over a range of alphas, and at each alpha we can find the power in the CAF, by taking its magnitude and taking either the sum or average (doesn't make a difference in this case).  Then if we plot these powers over alpha, we should see spikes at the cyclic frequencies within our signal.  The following code adds the for loop, and uses an alpha step size of 0.005 Hz (note that this will take a long time to run!):
+
+.. code-block:: python
+
+ alphas = np.arange(0, 0.5, 0.005)
+ CAF = np.zeros((len(alphas), len(taus)), dtype=complex)
+ for j in range(len(alphas)):
+     for i in range(len(taus)):
+         CAF[j, i] = np.sum(np.roll(samples, -1*taus[i]//2) *
+                         np.conj(np.roll(samples, taus[i]//2)) *
+                         np.exp(-2j * np.pi * alphas[j] * np.arange(N)))
+ plt.plot(alphas, np.average(np.abs(CAF), axis=1))
+ plt.xlabel('Alpha')
+ plt.ylabel('CAF Power')
+
+.. image:: ../_images/caf_avg_over_alpha.svg
+   :align: center 
+   :target: ../_images/caf_avg_over_alpha.svg
+   :alt: CAF average over alpha
+
+Not only do we see the expected spike at 0.05 Hz, but we also see a spike at integer multiples of 0.05 Hz.  This is because the CAF is a Fourier series, and the harmonics of the fundamental frequency are present in the CAF, especially when we are looking at PSK/QAM signals without pulse shaping.
+
+While the CAF is interesting, it is really just an intermediate step to reach our end-goal; the Spectral Correlation Function (SCF), which we will discuss next.
 
 ************************************************
 The Spectral Correlation Function (SCF)
@@ -35,11 +106,24 @@ The Spectral Correlation Function (SCF)
 * Frequency smoothing and time smoothing methods
 * Include some illustrations of the SCF for simple cyclostationary signals like BPSK and QPSK with rect and SRRC pulse shapes
 
-SCF in Python (FFT of prev CAF code)
+First let's look at the SCF at the correct alpha (0.05 Hz) for our rectangular BPSK signal.  All we need to do is take the FFT of the CAF and plot the magnitude.  The following code snippet goes along with the CAF code we wrote earlier when computing just one alpha:
 
-Example SCF output for rect BPSK
+.. code-block:: python
 
-Interactive Javascript App
+ f = np.linspace(-0.5, 0.5, len(taus))
+ SCF = np.fft.fftshift(np.fft.fft(CAF))
+ plt.plot(f, np.abs(SCF))
+ plt.xlabel('Frequency')
+ plt.ylabel('SCF')
+
+.. image:: ../_images/fft_of_caf.svg
+   :align: center 
+   :target: ../_images/fft_of_caf.svg
+   :alt: FFT of CAF
+
+Note that we can see the 0.2 Hz frequency offset that we applied when simulating the BPSK signal (this has nothing to do with the cyclic frequency or samples per symbol). 
+
+Add Interactive Javascript App here 
 
 ***************************
 Time Smoothing Method (TSM)

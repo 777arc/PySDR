@@ -7,7 +7,7 @@ from matplotlib import colormaps
 
 ##### BPSK Generation #####
 
-num_samples = 100000 # Number of samples to simulate
+num_samples = 10000 # Number of samples to simulate
 
 def pskGen(sps, fc=0, M=2, pulse='rect', beta=.25, Ns=10):
     # Generate random bits
@@ -50,7 +50,7 @@ def pskGen(sps, fc=0, M=2, pulse='rect', beta=.25, Ns=10):
 
 ##### Build Signal Components #####
 
-signal = 2*pskGen(sps=5, fc=0.05, M=2, pulse='srrc') + pskGen(sps=10, fc=0.15, M=2, pulse='srrc') + 1*pskGen(sps=20, fc=-0.3, M=2, pulse='srrc')
+signal = pskGen(sps=10, fc=.15, M=2, pulse='rect')
 
 ##### Add Noise #####
 
@@ -79,7 +79,7 @@ plt.tight_layout()
 
 a_res = 0.005
 a_vals = np.arange(-1, 1, a_res)
-smoothing_len = 2048
+smoothing_len = 256
 window = np.hanning(smoothing_len)
 
 X = np.fft.fft(signal)

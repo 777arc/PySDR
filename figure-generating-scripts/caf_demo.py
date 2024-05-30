@@ -7,7 +7,7 @@ from matplotlib import colormaps
 
 ##### BPSK Generation #####
 
-num_samples = 100 # Number of samples to simulate
+num_samples = 10000 # Number of samples to simulate
 
 def pskGen(sps, fc=0, M=2, pulse='rect', beta=.25, Ns=10):
     # Generate random bits
@@ -50,7 +50,7 @@ def pskGen(sps, fc=0, M=2, pulse='rect', beta=.25, Ns=10):
 
 ##### Build Signal Components #####
 
-signal = pskGen(sps=10, fc=0.05, M=2, pulse='srrc')
+signal = pskGen(sps=10, fc=.15, M=2, pulse='rect')
 
 ##### Add Noise #####
 
@@ -76,30 +76,30 @@ plt.tight_layout()
 
 ##### Generate the Autocorrelation Function #####
 
-tau_vals = np.arange(-num_samples/2, num_samples/2, 1)
-t_vals = np.arange(-num_samples/2, num_samples/2, 1)
+tau_vals = np.arange(-num_samples/2/10, num_samples/2/10, 1).astype(int)
+t_vals = np.arange(num_samples)
 
-acf = np.zeros((num_samples, num_samples), dtype=complex)
+a_res = 0.05
+a_vals = np.arange(-1, 1, a_res)
 
+caf = np.zeros((num_samples, len(a_vals)), dtype=complex)
 
 for i, tau in enumerate(tau_vals):
-    acf[i, :] = np.sum(np.multiply(np.roll(signal, -int(np.floor(tau/2))-1), np.roll(np.conj(signal), int(np.floor(tau/2)))))
-    
-    
-    
-    # plt.figure()
-    # plt.plot(t_vals, np.abs(acf[i, :]))
-    # plt.show()
-    
+    for j, a in enumerate(a_vals):
+        caf[i, j] = np.sum(np.roll(signal, -tau//2) * np.conj(np.roll(signal, tau//2)) * np.exp(-2j*np.pi*a*t_vals))
+    print(tau)
 
-    
+scf = np.fft.fftshift(np.fft.fft(caf, axis=0))
+freq_vals = np.linspace(-0.5, 0.5, num_samples)
 
-plt.figure()
-plt.plot(t_vals, np.abs(acf[:, 50]))
-plt.show()
+# plt.figure()
+# plt.plot(freq_vals, 10*np.log10(np.abs(scf)))
+
+
+
 
 dym_range_dB = 20
-max_val = np.max(abs(acf))
+max_val = np.max(abs(scf))
 linear_scale = False
 
 plt.set_cmap("viridis")
@@ -107,17 +107,41 @@ plt.set_cmap("viridis")
 plt.figure(figsize=(10, 5))
 plt.subplot(1, 2, 1)
 if linear_scale:
-    plt.imshow(np.abs(acf), aspect='auto', 
+    plt.imshow(np.abs(scf), aspect='auto', 
            vmax=max_val)
 else:
-    plt.imshow(10*np.log10(np.abs(acf)), aspect='auto', 
+    plt.imshow(10*np.log10(np.abs(scf)), aspect='auto', 
             vmax=10*np.log10(max_val), vmin=10*np.log10(max_val)-dym_range_dB)
 
-plt.xlabel("Time ($t$)")
-plt.ylabel("Time Delay ($\\tau$)")
+plt.xlabel("Time Delay ($\\tau$)")
+plt.ylabel("Time ($t$)")
 plt.colorbar()
 plt.title("Auto-Correlation Function")
 
-
-
 plt.show()
+
+
+
+# dym_range_dB = 20
+# max_val = np.max(abs(caf))
+# linear_scale = True
+
+# plt.set_cmap("viridis")
+
+# plt.figure(figsize=(10, 5))
+# plt.subplot(1, 2, 1)
+# if linear_scale:
+#     plt.imshow(np.abs(caf), aspect='auto', extent=[-num_samples/2, num_samples/2, -1, 1], 
+#            vmax=max_val)
+# else:
+#     plt.imshow(10*np.log10(np.abs(caf)), aspect='auto', extent=[-num_samples/2, num_samples/2, -1, 1], 
+#             vmax=10*np.log10(max_val), vmin=10*np.log10(max_val)-dym_range_dB)
+
+# plt.xlabel("Time Delay ($\\tau$)")
+# plt.ylabel("Cycle Frequency ($\\alpha$)")
+# plt.colorbar()
+# plt.title("Cyclic Auto-Correlation Function")
+
+
+
+# plt.show()

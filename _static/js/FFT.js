@@ -63,6 +63,27 @@ FFT.prototype.transform = function transform(out, data) {
   this._data = null;
 };
 
+  // radix-2 implementation NOTE: Only called for len=4
+  FFT.prototype._singleTransform2 = function _singleTransform2(outOff, off, step) {
+    const out = this._out;
+    const data = this._data;
+
+    const evenR = data[off];
+    const evenI = data[off + 1];
+    const oddR = data[off + step];
+    const oddI = data[off + step + 1];
+
+    const leftR = evenR + oddR;
+    const leftI = evenI + oddI;
+    const rightR = evenR - oddR;
+    const rightI = evenI - oddI;
+
+    out[outOff] = leftR;
+    out[outOff + 1] = leftI;
+    out[outOff + 2] = rightR;
+    out[outOff + 3] = rightI;
+  }
+
 // radix-4 implementation
 FFT.prototype._transform4 = function _transform4() {
   var out = this._out;

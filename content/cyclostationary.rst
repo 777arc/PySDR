@@ -106,9 +106,10 @@ Strip Spectral Correlation Analyzer (SSCA)
 FFT Accumulation Method (FAM)
 ********************************
 
-****************
+
+********************************
 Python Example TO REMOVE
-****************
+********************************
 
 The following example demonstrates how to compute the SCF of a cyclostationary signal using the `cspy` package. The example generates a random cyclostationary signal, computes the SCF using the `scf` function, and plots the SCF using the `plot_scf` function.
 

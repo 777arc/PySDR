@@ -6,7 +6,7 @@ Cyclostationary Signal Processing
 
 Co-authored by `Sam Brown <https://www.linkedin.com/in/samuel-brown-vt/>`_
 
-Short overview (incl any words we want SEO to pick up)
+1-2 sentence highlight (incl any words we want SEO to pick up, eg CSP)
 
 ****************
 Introduction
@@ -81,6 +81,12 @@ talk about the importance of the window length because it determines the resolut
 ********************************
 Pulse-Shaped BPSK
 ********************************
+
+
+********************************
+SNR and Number of Symbols
+********************************
+
 
 ********************************
 QPSK and Other Signals

@@ -9,60 +9,102 @@ function cyclostationary_app() {
   const canvas = document.getElementById("scf_canvas");
   const ctx = canvas.getContext("2d");
 
+  document.getElementById("freq").addEventListener("input", function () {
+    document.getElementById("freq_display").textContent = Math.round(this.value * 100) / 100;
+    document.getElementById("submit_button").click();
+  });
+
+  document.getElementById("sps").addEventListener("input", function () {
+    document.getElementById("sps_display").textContent = this.value;
+    document.getElementById("submit_button").click();
+  });
+
   // Make slider change label
   document.getElementById("mainform").addEventListener("submit", (e) => {
     e.preventDefault();
+
+    startTime = performance.now();
+
     rect_checked = document.getElementById("rect").checked;
     document.getElementById("rolloff").disabled = rect_checked;
     let alphas = [];
     for (
       let alpha = parseFloat(document.getElementById("alpha_start").value);
-      alpha < parseFloat(document.getElementById("alpha_stop").value);
+      alpha <= parseFloat(document.getElementById("alpha_stop").value); // inclusive
       alpha += parseFloat(document.getElementById("alpha_step").value)
     ) {
       alphas.push(alpha);
     }
-    canvas.width = Nw;
+    if (alphas[0] == 0) {
+      alphas[0] = alphas[1]; // avoid calc at alpha=0 or it throws off color scale
+    }
+
+    scales_width = 20;
+    canvas.width = Nw + scales_width;
     canvas.height = alphas.length;
+    canvas.style.width = Nw + scales_width;
+    canvas.style.height = alphas.length;
     let imgData = ctx.createImageData(Nw, alphas.length); // width, height
     console.log("Number of alphas: " + alphas.length);
-    img = update_img(
-      fs,
-      parseInt(document.getElementById("N").value),
-      Nw,
-      Noverlap,
-      alphas,
-      parseInt(document.getElementById("sps").value),
-      parseFloat(document.getElementById("freq").value) * fs,
-      parseFloat(document.getElementById("rolloff").value),
-      parseFloat(document.getElementById("noise").value),
-      rect_checked
-    );
+
+    const N = parseInt(document.getElementById("N").value);
+    const sps = parseInt(document.getElementById("sps").value);
+    const f_offset = parseFloat(document.getElementById("freq").value) * fs;
+    const rolloff = parseFloat(document.getElementById("rolloff").value);
+    const noise_level = parseFloat(document.getElementById("noise").value);
+
+    const samples = generate_bspk(N, fs, sps, f_offset, rolloff, noise_level, rect_checked);
+
+    const SCF_mag = calc_SCF(samples, alphas, Nw, Noverlap);
+
+    // Create an image out of SCF_mag (converts it from 2d to 1d). FIXME I could probably just have it 1D from the start
+    let img = new Array(alphas.length * Nw).fill(0);
+    let max_val = 0;
+    for (let i = 0; i < alphas.length; i++) {
+      for (let j = 0; j < Nw; j++) {
+        img[i * Nw + j] = SCF_mag[i][j];
+        max_val = Math.max(max_val, SCF_mag[i][j]);
+      }
+    }
+
+    //console.log("Max SCF_mag: " + max_val);
+    //console.log("Min SCF_mag: " + Math.min(...img));
+
+    // Normalize/scale so that half the max is 255
+    for (let i = 0; i < img.length; i++) {
+      img[i] = Math.round((img[i] / max_val) * 2 * 255);
+    }
+    // Truncate to 0 to 255
+    img = img.map((val) => Math.min(255, Math.max(0, val)));
+
     for (let i = 0; i < img.length; i++) {
       imgData.data[i * 4] = viridis[img[i]][0]; // R
       imgData.data[i * 4 + 1] = viridis[img[i]][1]; // G
       imgData.data[i * 4 + 2] = viridis[img[i]][2]; // B
       imgData.data[i * 4 + 3] = 255; // alpha
     }
-    ctx.putImageData(imgData, 0, 0); // data, dx, dy
+    ctx.putImageData(imgData, scales_width, 0); // data, dx, dy
 
     // Add scales
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i <= 10; i++) {
+      // horizontal scales
       ctx.beginPath();
-      ctx.moveTo(Nw * (i / 10), 0);
-      ctx.lineTo(Nw * (i / 10), alphas.length * 0.02);
+      ctx.moveTo(Math.round(Nw * (i / 10) + scales_width) + 0.5, -0.5); // all the 0.5 are to make the lines not fuzzy, you have to straddle pixels
+      ctx.lineTo(Math.round(Nw * (i / 10) + scales_width) + 0.5, Math.round(alphas.length * 0.02) + 0.5);
       ctx.lineWidth = 1;
       ctx.strokeStyle = "#ffffff";
       ctx.stroke();
 
+      // vertical scales
       ctx.beginPath();
-      ctx.moveTo(0, alphas.length * (i / 10));
-      ctx.lineTo(Nw * 0.02, alphas.length * (i / 10));
+      ctx.moveTo(scales_width - 0.5, Math.round(alphas.length * (i / 10)) + 0.5);
+      ctx.lineTo(Math.round(Nw * 0.02 + scales_width) + 0.5, Math.round(alphas.length * (i / 10)) + 0.5);
       ctx.lineWidth = 1;
       ctx.strokeStyle = "#ffffff";
       ctx.stroke();
     }
 
+    console.log(`Processing took ${performance.now() - startTime} ms`); // 0.5ms
     //Plotly.redraw("rectPlot");
   });
 
@@ -77,47 +119,16 @@ function cyclostationary_app() {
   */
 }
 
-function update_img(fs, N, Nw, Noverlap, alphas, sps, f_offset, rolloff, noise_level, rect_checked) {
-  const samples = generate_bspk(N, fs, sps, f_offset, rolloff, noise_level, rect_checked);
-  /*
-    const samples2 = generate_bspk(N, fs, 8, 0.07 * fs);
-    for (let i = 0; i < N; i++) {
-      samples[2 * i] += samples2[2 * i];
-      samples[2 * i + 1] += samples2[2 * i + 1];
-    }
-    */
-
-  const SCF_mag = calc_SCF(samples, alphas, Nw, Noverlap);
-
-  // Create an image out of SCF_mag (converts it from 2d to 1d). FIXME I could probably just have it 1D from the start
-  let img = new Array(alphas.length * Nw).fill(0);
-  for (let i = 0; i < alphas.length; i++) {
-    for (let j = 0; j < Nw; j++) {
-      img[i * Nw + j] = SCF_mag[i][j];
-    }
-  }
-
-  // Print largest value of SCF_mag
-  const max_val = Math.max(...img);
-  //console.log("Max SCF_mag: " + max_val);
-  //console.log("Min SCF_mag: " + Math.min(...img));
-
-  // Normalize/scale
-  for (let i = 0; i < img.length; i++) {
-    img[i] = Math.round((img[i] / max_val) * 255);
-  }
-  return img;
-}
-
 function calc_SCF(samples, alphas, Nw, Noverlap) {
   N = samples.length / 2;
 
   // SCF
   const num_windows = Math.floor((N - Noverlap) / (Nw - Noverlap)); // Number of windows
-  const window = new Array(Nw);
-  for (let i = 0; i < Nw; i++) {
-    window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (Nw - 1)));
-  }
+
+  //const window = new Array(Nw);
+  //for (let i = 0; i < Nw; i++) {
+  //  window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (Nw - 1)));
+  //}
 
   // outter array is for each alpha, inner array is for each window
   let SCF = Array.from({ length: alphas.length }, () => new Array(Nw * 2).fill(0));

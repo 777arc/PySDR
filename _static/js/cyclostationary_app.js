@@ -67,8 +67,8 @@ function cyclostationary_app() {
     scales_height = 25;
     canvas.width = Nw + scales_width + 5; // little at the end for text to use
     canvas.height = alphas.length + scales_height + 10; // little at the end for text to use
-    canvas.style.width = (Nw + scales_width + 5) * 1.5;
-    canvas.style.height = (alphas.length + scales_height + 10) * 1.5;
+    canvas.style.width = String((Nw + scales_width + 5) * 2) + 'px';
+    canvas.style.height = String((alphas.length + scales_height + 10) * 2)  + 'px';
     let imgData = ctx.createImageData(Nw, alphas.length); // width, height
     console.log("Number of alphas: " + alphas.length);
 

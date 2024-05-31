@@ -19,6 +19,25 @@ function cyclostationary_app() {
     document.getElementById("submit_button").click();
   });
 
+  // Reset button. MAKE SURE THESE ALWASY MATCH THE DEFAULTS IN THE HTML!
+  document.getElementById("resetform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    document.getElementById("N").value = "8192";
+    document.getElementById("freq").value = "0.2";
+    document.getElementById("freq_display").textContent = "0.2";
+    document.getElementById("sps").value = "10";
+    document.getElementById("sps_display").textContent = "10";
+    document.getElementById("rolloff").value = "0.5";
+    document.getElementById("rect").checked = true;
+    document.getElementById("alpha_start").value = "0";
+    document.getElementById("alpha_stop").value = "0.3";
+    document.getElementById("alpha_step").value = "0.001";
+    document.getElementById("noise").value = "0.001";
+    
+    document.getElementById("submit_button").click();
+  });
+
+    
   // Make slider change label
   document.getElementById("mainform").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -48,8 +67,8 @@ function cyclostationary_app() {
     scales_height = 25;
     canvas.width = Nw + scales_width + 5; // little at the end for text to use
     canvas.height = alphas.length + scales_height + 10; // little at the end for text to use
-    canvas.style.width = "400px";
-    canvas.style.height = "400px";
+    canvas.style.width = (Nw + scales_width + 5) * 1.5;
+    canvas.style.height = (alphas.length + scales_height + 10) * 1.5;
     let imgData = ctx.createImageData(Nw, alphas.length); // width, height
     console.log("Number of alphas: " + alphas.length);
 
@@ -96,7 +115,7 @@ function cyclostationary_app() {
       ctx.strokeStyle = "#ff6699";
       ctx.stroke();
       ctx.textAlign = "center";
-      ctx.fillText((i / 5), Math.round(Nw * (i / 5) + scales_width) - 0.5, scales_height - 3);
+      ctx.fillText(i / 5, Math.round(Nw * (i / 5) + scales_width) - 0.5, scales_height - 3);
     }
 
     for (let i = 0; i <= 10; i++) {
@@ -108,16 +127,20 @@ function cyclostationary_app() {
       ctx.strokeStyle = "#ff6699";
       ctx.stroke();
       ctx.textAlign = "right";
-      ctx.fillText((i / 10) * (alpha_stop - alpha_start) + alpha_start, 0.5 + scales_width - 2, alphas.length * (i / 10) + scales_height + 5 + 0.5);
+      ctx.fillText(
+        Math.round(((i / 10) * (alpha_stop - alpha_start) + alpha_start) * 100) / 100,
+        0.5 + scales_width - 2,
+        alphas.length * (i / 10) + scales_height + 5 + 0.5
+      );
     }
 
     ctx.textAlign = "center";
-    ctx.fillText('Frequency [Hz]', Nw/2 + scales_width, 9);
-    
+    ctx.fillText("Frequency [Hz]", Nw / 2 + scales_width, 9);
+
     // Make sure this is the last plotting, because it rotates the context
-    ctx.rotate(-Math.PI/2);
+    ctx.rotate(-Math.PI / 2);
     ctx.textAlign = "center";
-    ctx.fillText("Alpha [Hz]", alphas.length/-2 - scales_height, 9);
+    ctx.fillText("Alpha [Hz]", alphas.length / -2 - scales_height, 9);
 
     console.log(`Processing took ${performance.now() - startTime} ms`); // 0.5ms
     //Plotly.redraw("rectPlot");

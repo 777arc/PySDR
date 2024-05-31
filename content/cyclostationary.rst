@@ -123,7 +123,57 @@ First let's look at the SCF at the correct alpha (0.05 Hz) for our rectangular B
 
 Note that we can see the 0.2 Hz frequency offset that we applied when simulating the BPSK signal (this has nothing to do with the cyclic frequency or samples per symbol). 
 
-Add Interactive Javascript App here 
+Below is an interactive JavaScript app that implements an SCF, so that you can play around with different signal and SCF parameters.  Using the default alpha-step, not all samples per symbols will lead to a visible spike in the SCF, but lowering alpha-step increases the processing time.
+
+.. raw:: html
+
+    <form id="mainform" name="mainform">
+        <label>Samples to Simulate </label>
+        <select id="N">
+            <option value="1024">1024</option>
+            <option value="2048">2048</option>
+            <option value="4096">4096</option>
+            <option value="8192" selected="selected">8192</option>
+            <option value="16384">16384</option>
+            <option value="32768">32768</option>
+            <option value="65536">65536</option>
+            <option value="131072">131072</option>
+            <option value="262144">262144</option>
+        </select>
+        <br />
+        <label>Frequency [normalized Hz] </label>
+        <input type="range" id="freq" value="0.2" min="0" max="1" step="0.005">
+        <span id="freq_display">0.2</span>
+        <br />
+        <label>Samples per Symbol [int] </label>
+        <input type="range" id="sps" value="10" min="4" max="20" step="1">
+        <span id="sps_display">10</span>
+        <br />
+        <label>RC Rolloff [0 to 1] </label>
+        <input type="number" id="rolloff" value="0.5" min="0" max="1" step="0.0001">
+        <label>Rectangular Pulses </label>
+        <input type="checkbox" id="rect" checked>
+        <br />
+        <label>Alpha Start </label>
+        <input type="number" id="alpha_start" value="0" min="0" max="100" step="0.0001">
+        <br />
+        <label>Alpha Stop </label>
+        <input type="number" id="alpha_stop" value="0.3" min="0" max="1" step="0.0001">
+        <br />
+        <label>Alpha Step </label>
+        <input type="number" id="alpha_step" value="0.001" min="0.0001" max="0.1" step="0.0001">
+        <br />
+        <label>Noise Level </label>
+        <input type="number" id="noise" value="0.001" min="0" max="10" step="0.0001">
+        <br />
+        <button type="submit" id="submit_button">Submit</button>
+    </form>
+    <form id="resetform" name="resetform">
+        <button type="submit" id="submit_button">Reset</button>
+    </form>
+    <canvas id="scf_canvas"></canvas>
+    <script>cyclostationary_app()</script>
+    </body>
 
 ***************************
 Time Smoothing Method (TSM)

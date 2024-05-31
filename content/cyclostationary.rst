@@ -4,15 +4,17 @@
 Cyclostationary Processing
 ##########################
 
-Co-authored by `Sam Brown <https://www.linkedin.com/in/samuel-brown-vt/>`_
+.. raw:: html
 
-1-2 sentence highlight (incl any words we want SEO to pick up, eg CSP)
+ <span style="display: table; margin: 0 auto; font-size: 20px;">Co-authored by <a href="https://www.linkedin.com/in/samuel-brown-vt">Sam Brown</a></span>
+
+In this chapter we introduce Cyclostationary signal processing (CSP), a relatively niche area of RF signal processing that is used to analyze or detect (often in very low SNR!) signals that exhibit cyclostationary properties, such as most modern digitial modulation schemes.  We cover the Cyclic Autocorrelation Function (CAF), Spectral Correlation Function (SCF), Spectral Coherence Function, conjugate versions of these functions, and efficient implementations using Python examples.
 
 ****************
 Introduction
 ****************
 
-Cyclostationary signal processing (a.k.a., CSP or simply cyclostationary processing) is a set of techniques for exploiting the cyclostationary property found in many real-world communication signals. These are signals such as modulated signals like AM/FM/TV broadcast, cellular, and WiFi as well as radar signals, and other signals that exhibit periodicity in their statistics. A large swath of traditional signal processing techniques are based on the assumption that the signal is stationary, i.e., the statistics of the signal like the mean, variance and higher-order moments do not change over time. However, many real-world signals are cyclostationary, i.e., the statistics of the signal change *periodically* over time. CSP techniques exploit this cyclostationary property to improve the performance of signal processing algorithms. For example, CSP techniques can be used to detect the presence of signals in noise, perform modulation recognition, and separate signals that are overlapping in time and frequency.
+Cyclostationary signal processing (a.k.a., CSP or simply cyclostationary processing) is a set of techniques for exploiting the cyclostationary property found in many real-world communication signals. These are signals such as modulated signals like AM/FM/TV broadcast, cellular, and WiFi as well as radar signals, and other signals that exhibit periodicity in their statistics. A large swath of traditional signal processing techniques are based on the assumption that the signal is stationary, i.e., the statistics of the signal like the mean, variance and higher-order moments do not change over time. However, many real-world signals are cyclostationary, i.e., the statistics of the signal change *periodically* over time. CSP techniques exploit this cyclostationary property, and can be used to detect the presence of signals in noise, perform modulation recognition, and separate signals that are overlapping in both time and frequency.
 
 ************************************************
 The Cyclic Autocorrelation Function (CAF)
@@ -20,7 +22,7 @@ The Cyclic Autocorrelation Function (CAF)
 
 A good place to start understanding CSP is the cyclic autocorrelation function (CAF). The CAF is an extension of the traditional autocorrelation function to cyclostationary signals. As a refresher, the autocorrelation of a random process is the expected product of two time instants of the process and is defined as: :math:`R_x(t_1, t_2) = E[x(t_1)x^*(t_2)]`. Intuitively, it represents the degree to which a signal exhibits repetitive behavior. This can alternatively be written as :math:`R_x(t, \tau) = E[x(t+\tau/2)x^*(t-\tau/2)]` where :math:`\tau` is the delay between the two signals and :math:`t` is the midpoint. Some signals exhibit the property where their autocorrelation does not depend upon the midpoint :math:`t` and only on the delay :math:`\tau`. These signals are stationary of order 2 or just stationary. For cyclostationary signals, however, the midpoint does matter, meaning that the autocorrelation depends on both the delay and the midpoint, a function of two lag parameters.
 
-Cyclostationary signals possess a periodic or almost periodic autocorrelation, and the CAF is the set of Fourier series coefficients that describe this periodicity. In other words, the CAF is the amplitude and phase of the harmonics present in a signal's autocorrelation, giving it the following form: :math:`R_x(\tau, \alpha) = \int_{-\infty}^{\infty} x(t)x^*(t-\tau)e^{-j2\pi \alpha t}dt`. It can be seen that the CAF is a function of two variables, the delay :math:`\tau` and the cycke frequency :math:`\alpha`.
+Cyclostationary signals possess a periodic or almost periodic autocorrelation, and the CAF is the set of Fourier series coefficients that describe this periodicity. In other words, the CAF is the amplitude and phase of the harmonics present in a signal's autocorrelation, giving it the following form: :math:`R_x(\tau, \alpha) = \int_{-\infty}^{\infty} x(t)x^*(t-\tau)e^{-j2\pi \alpha t}dt`. It can be seen that the CAF is a function of two variables, the delay :math:`\tau` (tau) and the cycle frequency :math:`\alpha`.
 
 In Python, the CAF at a given alpha and tau value can be computed using the following code snippet (we'll fill out the surrounding code shortly):
 
@@ -45,14 +47,16 @@ In order to play with the CAF, we first need to simulate an example signal.  For
  noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
  samples = bpsk + 0.1*noise  # add noise to the signal
 
-Just for fun let's look at the power spectral density (FFT):
+Just for fun let's look at the power spectral density (FFT) of the signal itself, *before* any CSP is performed:
 
 .. image:: ../_images/psd_of_bpsk_used_for_caf.svg
    :align: center 
    :target: ../_images/psd_of_bpsk_used_for_caf.svg
    :alt: PSD of BPSK used for CAF
 
-Now we will compute the CAF at the correct alpha, and over a range of tau values (we'll use -100 to +100 as a starting point).  The correct alpha in our case is simply the samples per symbol inverted, or 0.05 Hz.  Keep in mind we are using normalized Hz, which essentially means our sample rate is 1 and all our frequencies will be between -0.5 and +0.5 Hz.  We will stick our CAF code into a for loop to calculate all taus:
+It has the 0.2 Hz frequency shift that we applied, and the samples per symbol of 20 leads to a fairly narrow signal.  Because we did not apply pulse shaping, the signal tapers off very slowly in frequency.
+
+Now we will compute the CAF at the correct alpha, and over a range of tau values (we'll use tau from -100 to +100 as a starting point).  The correct alpha in our case is simply the samples per symbol inverted, or 0.05 Hz.  Keep in mind we are using normalized Hz, which essentially means our sample rate is 1 and all our frequencies will be between -0.5 and +0.5 Hz.  To generate the CAF in Python, we will loop over tau:
 
 .. code-block:: python
 

@@ -25,33 +25,33 @@ function cyclostationary_app() {
 
     startTime = performance.now();
 
+    const N = parseInt(document.getElementById("N").value);
+    const sps = parseInt(document.getElementById("sps").value);
+    const f_offset = parseFloat(document.getElementById("freq").value) * fs;
+    const rolloff = parseFloat(document.getElementById("rolloff").value);
+    const noise_level = parseFloat(document.getElementById("noise").value);
+    const alpha_start = parseFloat(document.getElementById("alpha_start").value);
+    const alpha_stop = parseFloat(document.getElementById("alpha_stop").value); // inclusive
+    const alpha_step = parseFloat(document.getElementById("alpha_step").value);
+
     rect_checked = document.getElementById("rect").checked;
     document.getElementById("rolloff").disabled = rect_checked;
     let alphas = [];
-    for (
-      let alpha = parseFloat(document.getElementById("alpha_start").value);
-      alpha <= parseFloat(document.getElementById("alpha_stop").value); // inclusive
-      alpha += parseFloat(document.getElementById("alpha_step").value)
-    ) {
+    for (let alpha = alpha_start; alpha <= alpha_stop; alpha += alpha_step) {
       alphas.push(alpha);
     }
     if (alphas[0] == 0) {
       alphas[0] = alphas[1]; // avoid calc at alpha=0 or it throws off color scale
     }
 
-    scales_width = 20;
-    canvas.width = Nw + scales_width;
-    canvas.height = alphas.length;
-    canvas.style.width = Nw + scales_width;
-    canvas.style.height = alphas.length;
+    scales_width = 35;
+    scales_height = 25;
+    canvas.width = Nw + scales_width + 5; // little at the end for text to use
+    canvas.height = alphas.length + scales_height + 10; // little at the end for text to use
+    canvas.style.width = "400px";
+    canvas.style.height = "400px";
     let imgData = ctx.createImageData(Nw, alphas.length); // width, height
     console.log("Number of alphas: " + alphas.length);
-
-    const N = parseInt(document.getElementById("N").value);
-    const sps = parseInt(document.getElementById("sps").value);
-    const f_offset = parseFloat(document.getElementById("freq").value) * fs;
-    const rolloff = parseFloat(document.getElementById("rolloff").value);
-    const noise_level = parseFloat(document.getElementById("noise").value);
 
     const samples = generate_bspk(N, fs, sps, f_offset, rolloff, noise_level, rect_checked);
 
@@ -83,26 +83,41 @@ function cyclostationary_app() {
       imgData.data[i * 4 + 2] = viridis[img[i]][2]; // B
       imgData.data[i * 4 + 3] = 255; // alpha
     }
-    ctx.putImageData(imgData, scales_width, 0); // data, dx, dy
+    ctx.putImageData(imgData, scales_width, scales_height); // data, dx, dy
 
     // Add scales
-    for (let i = 0; i <= 10; i++) {
+    ctx.font = "12px serif";
+    for (let i = 0; i <= 5; i++) {
       // horizontal scales
       ctx.beginPath();
-      ctx.moveTo(Math.round(Nw * (i / 10) + scales_width) + 0.5, -0.5); // all the 0.5 are to make the lines not fuzzy, you have to straddle pixels
-      ctx.lineTo(Math.round(Nw * (i / 10) + scales_width) + 0.5, Math.round(alphas.length * 0.02) + 0.5);
+      ctx.moveTo(Math.round(Nw * (i / 5) + scales_width) - 0.5, scales_height); // all the 0.5 are to make the lines not fuzzy, you have to straddle pixels
+      ctx.lineTo(Math.round(Nw * (i / 5) + scales_width) - 0.5, Math.round(alphas.length * 0.02) + scales_height);
       ctx.lineWidth = 1;
-      ctx.strokeStyle = "#ffffff";
+      ctx.strokeStyle = "#ff6699";
       ctx.stroke();
+      ctx.textAlign = "center";
+      ctx.fillText((i / 5), Math.round(Nw * (i / 5) + scales_width) - 0.5, scales_height - 3);
+    }
 
+    for (let i = 0; i <= 10; i++) {
       // vertical scales
       ctx.beginPath();
-      ctx.moveTo(scales_width - 0.5, Math.round(alphas.length * (i / 10)) + 0.5);
-      ctx.lineTo(Math.round(Nw * 0.02 + scales_width) + 0.5, Math.round(alphas.length * (i / 10)) + 0.5);
+      ctx.moveTo(scales_width, Math.round(alphas.length * (i / 10)) + scales_height - 0.5);
+      ctx.lineTo(Math.round(Nw * 0.02 + scales_width), Math.round(alphas.length * (i / 10)) + scales_height - 0.5);
       ctx.lineWidth = 1;
-      ctx.strokeStyle = "#ffffff";
+      ctx.strokeStyle = "#ff6699";
       ctx.stroke();
+      ctx.textAlign = "right";
+      ctx.fillText((i / 10) * (alpha_stop - alpha_start) + alpha_start, 0.5 + scales_width - 2, alphas.length * (i / 10) + scales_height + 5 + 0.5);
     }
+
+    ctx.textAlign = "center";
+    ctx.fillText('Frequency [Hz]', Nw/2 + scales_width, 9);
+    
+    // Make sure this is the last plotting, because it rotates the context
+    ctx.rotate(-Math.PI/2);
+    ctx.textAlign = "center";
+    ctx.fillText("Alpha [Hz]", alphas.length/-2 - scales_height, 9);
 
     console.log(`Processing took ${performance.now() - startTime} ms`); // 0.5ms
     //Plotly.redraw("rectPlot");

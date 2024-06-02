@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 ######################
 # Simulate Rect BPSK #
@@ -16,7 +17,7 @@ bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the B
 noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
 samples = bpsk + 0.1*noise  # add noise to the signal
 
-if True:
+if False:
     # Plot PSD
     PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)/N))**2)
     f = np.linspace(-0.5, 0.5, len(PSD))
@@ -32,45 +33,112 @@ if True:
 # Direct CAF #
 ##############
 
-# CAF only at the correct alpha
-correct_alpha = 1/sps
-taus = np.arange(-100, 100)
-CAF = np.zeros(len(taus), dtype=complex)
-for i in range(len(taus)):
-    CAF[i] = np.sum(np.roll(samples, -1*taus[i]//2) *
-                    np.conj(np.roll(samples, taus[i]//2)) *
-                    np.exp(-2j * np.pi * correct_alpha * np.arange(N)))
-plt.figure(0)
-plt.plot(taus, np.real(CAF))
-plt.xlabel('Tau')
-plt.ylabel('CAF (real part)')
-plt.savefig('../_images/caf_at_correct_alpha.svg', bbox_inches='tight')
-
-# Used in SCF section
-plt.figure(2)
-f = np.linspace(-0.5, 0.5, len(taus))
-SCF = np.fft.fftshift(np.fft.fft(CAF))
-plt.plot(f, np.abs(SCF))
-plt.xlabel('Frequency')
-plt.ylabel('SCF')
-plt.grid()
-plt.savefig('../_images/fft_of_caf.svg', bbox_inches='tight')
-
-# CAF at all alphas
-alphas = np.arange(0, 0.5, 0.005)
-CAF = np.zeros((len(alphas), len(taus)), dtype=complex)
-for j in range(len(alphas)):
+if False:
+    # CAF only at the correct alpha
+    correct_alpha = 1/sps
+    taus = np.arange(-100, 100)
+    CAF = np.zeros(len(taus), dtype=complex)
     for i in range(len(taus)):
-        CAF[j, i] = np.sum(np.roll(samples, -1*taus[i]//2) *
+        CAF[i] = np.sum(np.roll(samples, -1*taus[i]//2) *
                         np.conj(np.roll(samples, taus[i]//2)) *
-                        np.exp(-2j * np.pi * alphas[j] * np.arange(N)))
-plt.figure(1)
-plt.plot(alphas, np.average(np.abs(CAF), axis=1))
-plt.xlabel('Alpha')
-plt.ylabel('CAF Power')
-plt.savefig('../_images/caf_avg_over_alpha.svg', bbox_inches='tight')
+                        np.exp(-2j * np.pi * correct_alpha * np.arange(N)))
+    plt.figure(0)
+    plt.plot(taus, np.real(CAF))
+    plt.xlabel('Tau')
+    plt.ylabel('CAF (real part)')
+    plt.savefig('../_images/caf_at_correct_alpha.svg', bbox_inches='tight')
 
-plt.show()
+    # Used in SCF section
+    plt.figure(2)
+    f = np.linspace(-0.5, 0.5, len(taus))
+    SCF = np.fft.fftshift(np.fft.fft(CAF))
+    plt.plot(f, np.abs(SCF))
+    plt.xlabel('Frequency')
+    plt.ylabel('SCF')
+    plt.grid()
+    plt.savefig('../_images/fft_of_caf.svg', bbox_inches='tight')
+
+    # CAF at all alphas
+    alphas = np.arange(0, 0.5, 0.005)
+    CAF = np.zeros((len(alphas), len(taus)), dtype=complex)
+    for j in range(len(alphas)):
+        for i in range(len(taus)):
+            CAF[j, i] = np.sum(np.roll(samples, -1*taus[i]//2) *
+                            np.conj(np.roll(samples, taus[i]//2)) *
+                            np.exp(-2j * np.pi * alphas[j] * np.arange(N)))
+    plt.figure(1)
+    plt.plot(alphas, np.average(np.abs(CAF), axis=1))
+    plt.xlabel('Alpha')
+    plt.ylabel('CAF Power')
+    plt.savefig('../_images/caf_avg_over_alpha.svg', bbox_inches='tight')
+
+    plt.show()
+
+
+# Freq smoothing
+if True:
+    start_time = time.time()
+
+    alphas = np.arange(0, 0.3, 0.001)
+    Nw = 256 # window length
+    N = len(samples) # signal length
+    window = np.hanning(Nw)
+
+    X = np.fft.fft(samples) # FFT of entire signal
+
+    SCF = np.zeros((len(alphas), N))
+    for i in range(len(alphas)):
+        shift = int(alphas[i] * N/2)
+        SCF[i, :] = np.roll(X, -shift) * np.conj(np.roll(X, shift))
+        SCF[i, :shift] = 0
+        SCF[i, -shift - 1:] = 0
+        SCF[i, :] = np.convolve(SCF[i, :], window, mode='same')
+    SCF = np.abs(SCF)
+    SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
+
+    print("Time taken:", time.time() - start_time)
+
+    extent = (0, 1, float(np.max(alphas)), float(np.min(alphas)))
+    plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
+    plt.xlabel('Frequency [Normalized Hz]')
+    plt.ylabel('Cyclic Frequency [Normalized Hz]')
+    plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
+    plt.show()
+    exit()
+
+
+# Time smoothing
+if False:
+    start_time = time.time()
+
+    alphas = np.arange(0, 0.3, 0.001)
+    Nw = 256 # window length
+    N = len(samples) # signal length
+    Noverlap = int(2/3*Nw) # block overlap
+    num_windows = int((N - Noverlap) / (Nw - Noverlap)) # Number of windows
+    window = np.hanning(Nw)
+
+    SCF = np.zeros((len(alphas), Nw), dtype=complex)
+    for ii in range(len(alphas)): # Loop over cyclic frequencies
+        neg = samples * np.exp(-1j*np.pi*alphas[ii]*np.arange(N))
+        pos = samples * np.exp( 1j*np.pi*alphas[ii]*np.arange(N))
+        for i in range(num_windows):
+            pos_slice = window * pos[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
+            neg_slice = window * neg[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
+            SCF[ii, :] += np.fft.fft(neg_slice) * np.conj(np.fft.fft(pos_slice)) # Cross Cyclic Power Spectrum
+    SCF = np.abs(SCF)
+    SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
+
+    print("Time taken:", time.time() - start_time)
+
+    extent = (0, 1, float(np.max(alphas)), float(np.min(alphas)))
+    plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
+    plt.xlabel('Frequency [Normalized Hz]')
+    plt.ylabel('Cyclic Frequency [Normalized Hz]')
+    plt.savefig('../_images/scf_time_smoothing.svg', bbox_inches='tight')
+    plt.show()
+    exit()
+
 
 
 

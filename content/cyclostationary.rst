@@ -22,7 +22,12 @@ The Cyclic Autocorrelation Function (CAF)
 
 A good place to start understanding CSP is the cyclic autocorrelation function (CAF). The CAF is an extension of the traditional autocorrelation function to cyclostationary signals. As a refresher, the autocorrelation of a random process is the expected product of two time instants of the process and is defined as: :math:`R_x(t_1, t_2) = E[x(t_1)x^*(t_2)]`. Intuitively, it represents the degree to which a signal exhibits repetitive behavior. This can alternatively be written as :math:`R_x(t, \tau) = E[x(t+\tau/2)x^*(t-\tau/2)]` where :math:`\tau` is the delay between the two signals and :math:`t` is the midpoint. Some signals exhibit the property where their autocorrelation does not depend upon the midpoint :math:`t` and only on the delay :math:`\tau`. These signals are stationary of order 2 or just stationary. For cyclostationary signals, however, the midpoint does matter, meaning that the autocorrelation depends on both the delay and the midpoint, a function of two lag parameters.
 
-Cyclostationary signals possess a periodic or almost periodic autocorrelation, and the CAF is the set of Fourier series coefficients that describe this periodicity. In other words, the CAF is the amplitude and phase of the harmonics present in a signal's autocorrelation, giving it the following form: :math:`R_x(\tau, \alpha) = \int_{-\infty}^{\infty} x(t)x^*(t-\tau)e^{-j2\pi \alpha t}dt`. It can be seen that the CAF is a function of two variables, the delay :math:`\tau` (tau) and the cycle frequency :math:`\alpha`.
+Cyclostationary signals possess a periodic or almost periodic autocorrelation, and the CAF is the set of Fourier series coefficients that describe this periodicity. In other words, the CAF is the amplitude and phase of the harmonics present in a signal's autocorrelation, giving it the following form: 
+
+.. math::
+    R_x(\tau, \alpha) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt.
+
+It can be seen that the CAF is a function of two variables, the delay :math:`\tau` (tau) and the cycle frequency :math:`\alpha`.
 
 In Python, the CAF at a given alpha and tau value can be computed using the following code snippet (we'll fill out the surrounding code shortly):
 
@@ -32,7 +37,7 @@ In Python, the CAF at a given alpha and tau value can be computed using the foll
         np.conj(np.roll(samples, tau//2)) *
         np.exp(-2j * np.pi * alpha * np.arange(len(samples))))
 
-In order to play with the CAF, we first need to simulate an example signal.  For now we will use a rectangular BPSK signal (i.e., BPSK without pulse-shaping applied) with 20 samples per symbol, added to some AWGN.  We will apply a frequency offset to the BPSK signal, so that later we can show off how cyclostationary processing can be used to estimate the frequency offset as well as the cyclic frequency.  The following code snippet simulates the IQ samples we will use for the remainder of the next two sections:
+In order to play with the CAF, we first need to simulate an example signal. For now we will use a rectangular BPSK signal (i.e., BPSK without pulse-shaping applied) with 20 samples per symbol, added to some AWGN.  We will apply a frequency offset to the BPSK signal, so that later we can show off how cyclostationary processing can be used to estimate the frequency offset as well as the cyclic frequency.  The following code snippet simulates the IQ samples we will use for the remainder of the next two sections:
 
 .. code-block:: python
 
@@ -104,6 +109,8 @@ While the CAF is interesting, it is really just an intermediate step to reach ou
 ************************************************
 The Spectral Correlation Function (SCF)
 ************************************************
+
+Just as the CAF shows us the periodicity in the autocorrelation of a signal, the SCF shows us the periodicity in the power spectral density (PSD) of a signal. The autocorrelation and the PSD are in fact a Fourier Transform pair, and it therefore it should not come as a surprise that the CAF and the SCF are also a Fourier Transform pair.
 
 * Discuss the Cyclic Wiener Relationship (says that the CAF and the SCF are Fourier transforms of each other)
 * Discuss generalization of the power spectral density

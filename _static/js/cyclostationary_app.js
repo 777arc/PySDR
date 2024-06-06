@@ -24,7 +24,7 @@ function cyclostationary_app() {
     document.getElementById("freq").value = "0.2";
     document.getElementById("freq_display").textContent = "0.2";
     document.getElementById("sps").value = "20";
-    document.getElementById("sps_display").textContent = "10";
+    document.getElementById("sps_display").textContent = "20";
     document.getElementById("rolloff").value = "0.5";
     document.getElementById("rect").checked = true;
     document.getElementById("alpha_start").value = "0";

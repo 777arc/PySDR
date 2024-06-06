@@ -16,6 +16,8 @@ Introduction
 
 Cyclostationary signal processing (a.k.a., CSP or simply cyclostationary processing) is a set of techniques for exploiting the cyclostationary property found in many real-world communication signals. These are signals such as modulated signals like AM/FM/TV broadcast, cellular, and WiFi as well as radar signals, and other signals that exhibit periodicity in their statistics. A large swath of traditional signal processing techniques are based on the assumption that the signal is stationary, i.e., the statistics of the signal like the mean, variance and higher-order moments do not change over time. However, many real-world signals are cyclostationary, i.e., the statistics of the signal change *periodically* over time. CSP techniques exploit this cyclostationary property, and can be used to detect the presence of signals in noise, perform modulation recognition, and separate signals that are overlapping in both time and frequency.
 
+Talk about how for single carrier signals its really just an autocorrelation with an extra shift, and at the right shift the main lobe of each pulse will line up with the sidelobe of the same pulse.  And for OFDM it is the same thing but with the cyclic prefix added on to each symbol.  Explanations of CSP in textbooks and other resources tend to be very math-heavy, but we will try to keep things as simple as possible.
+
 ************************************************
 The Cyclic Autocorrelation Function (CAF)
 ************************************************
@@ -192,7 +194,11 @@ Below is an interactive JavaScript app that implements an SCF, so that you can p
 Frequency Smoothing Method (FSM)
 ********************************
 
-talk about the importance of the window length because it determines the resolution
+the number of samples ends up determining your freq domain resolution
+
+talk about how window length impacts things, since it doesnt really change the resolution, just the window size used in the convolve
+
+point out how even though there is only 1 FFT, you still need to do a ton of convolves
 
 .. code-block:: python
 
@@ -219,12 +225,21 @@ talk about the importance of the window length because it determines the resolut
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
     plt.show()
 
+.. image:: ../_images/scf_freq_smoothing.svg
+   :align: center 
+   :target: ../_images/scf_freq_smoothing.svg
+   :alt: SCF with the Frequency Smoothing Method (FSM), showing cyclostationary signal processing
+
 
 ***************************
 Time Smoothing Method (TSM)
 ***************************
 
 talk about the importance of the window length because it determines the resolution
+
+note the addition of an overlap parameter
+
+point out that the javascript app in the SCF section actually uses the TSM method, with 0 overlap for speed sake
 
 .. code-block:: python
 
@@ -253,6 +268,12 @@ talk about the importance of the window length because it determines the resolut
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
     plt.show()
 
+.. image:: ../_images/scf_time_smoothing.svg
+   :align: center 
+   :target: ../_images/scf_time_smoothing.svg
+   :alt: SCF with the Time Smoothing Method (TSM), showing cyclostationary signal processing
+
+Looks the same as the FSM!
 
 ********************************
 Pulse-Shaped BPSK

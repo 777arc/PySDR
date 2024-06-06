@@ -76,7 +76,7 @@ if False:
 
 
 # Freq smoothing
-if False:
+if True:
     start_time = time.time()
 
     alphas = np.arange(0, 0.3, 0.001)
@@ -103,7 +103,7 @@ if False:
     plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
     plt.xlabel('Frequency [Normalized Hz]')
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
-    plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
+    #plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
     plt.show()
     exit()
 
@@ -137,7 +137,7 @@ if False:
     plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
     plt.xlabel('Frequency [Normalized Hz]')
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
-    plt.savefig('../_images/scf_time_smoothing.svg', bbox_inches='tight')
+    #plt.savefig('../_images/scf_time_smoothing.svg', bbox_inches='tight')
     plt.show()
     exit()
 

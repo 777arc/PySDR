@@ -153,7 +153,7 @@ Below is an interactive JavaScript app that implements an SCF, so that you can p
         </select>
         <br />
         <label>Frequency [normalized Hz] </label>
-        <input type="range" id="freq" value="0.2" min="0" max="1" step="0.005">
+        <input type="range" id="freq" value="0.2" min="-0.5" max="0.5" step="0.05">
         <span id="freq_display">0.2</span>
         <br />
         <label>Samples per Symbol [int] </label>
@@ -186,11 +186,7 @@ Below is an interactive JavaScript app that implements an SCF, so that you can p
     <script>cyclostationary_app()</script>
     </body>
 
-***************************
-Time Smoothing Method (TSM)
-***************************
 
-talk about the importance of the window length because it determines the resolution
 
 ********************************
 Frequency Smoothing Method (FSM)
@@ -200,27 +196,62 @@ talk about the importance of the window length because it determines the resolut
 
 .. code-block:: python
 
- alphas = np.arange(0.05, 0.5, 0.005)
- Nw = 256 # window length
- N = len(samples) # signal length
- Noverlap = int(2/3*Nw) # block overlap
- num_windows = int((N - Noverlap) / (Nw - Noverlap)) # Number of windows
- window = np.hanning(Nw)
- 
- S = np.zeros((Nw, len(alphas)), dtype=complex)
- for ii in range(len(alphas)): # Loop over cyclic frequencies
-     neg = samples * np.exp(-1j*np.pi*alphas[ii]*np.arange(N))
-     pos = samples * np.exp( 1j*np.pi*alphas[ii]*np.arange(N))
-     for i in range(num_windows):
-         pos_slice = window * pos[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
-         neg_slice = window * neg[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
-         S[:, ii] += np.fft.fft(neg_slice) * np.conj(np.fft.fft(pos_slice)) # Cross Cyclic Power Spectrum
- S = np.abs(S)
- 
- plt.imshow(S, aspect='auto', extent=(float(np.min(alphas)), float(np.max(alphas)), fs, 0.0))
- plt.xlabel('Cyclic Frequency [Hz]')
- plt.ylabel('Frequency [Normalized Hz]')
- plt.show()
+    alphas = np.arange(0, 0.3, 0.001)
+    Nw = 256 # window length
+    N = len(samples) # signal length
+    window = np.hanning(Nw)
+
+    X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
+
+    SCF = np.zeros((len(alphas), N), dtype=complex)
+    for i in range(len(alphas)):
+        shift = int(alphas[i] * N/2)
+        SCF[i, :] = np.roll(X, -shift) * np.conj(np.roll(X, shift))
+        SCF[i, :] = np.convolve(SCF[i, :], window, mode='same')
+    SCF = np.abs(SCF)
+    SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
+
+    SCF = SCF[:, ::Nw//2] # decimate by Nw/2 in the freq domain to reduce pixels
+
+    extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
+    plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
+    plt.xlabel('Frequency [Normalized Hz]')
+    plt.ylabel('Cyclic Frequency [Normalized Hz]')
+    plt.show()
+
+
+***************************
+Time Smoothing Method (TSM)
+***************************
+
+talk about the importance of the window length because it determines the resolution
+
+.. code-block:: python
+
+    alphas = np.arange(0, 0.3, 0.001)
+    Nw = 256 # window length
+    N = len(samples) # signal length
+    Noverlap = int(2/3*Nw) # block overlap
+    num_windows = int((N - Noverlap) / (Nw - Noverlap)) # Number of windows
+    window = np.hanning(Nw)
+
+    SCF = np.zeros((len(alphas), Nw), dtype=complex)
+    for ii in range(len(alphas)): # Loop over cyclic frequencies
+        neg = samples * np.exp(-1j*np.pi*alphas[ii]*np.arange(N))
+        pos = samples * np.exp( 1j*np.pi*alphas[ii]*np.arange(N))
+        for i in range(num_windows):
+            pos_slice = window * pos[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
+            neg_slice = window * neg[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
+            SCF[ii, :] += np.fft.fft(neg_slice) * np.conj(np.fft.fft(pos_slice)) # Cross Cyclic Power Spectrum
+    SCF = np.fft.fftshift(SCF, axes=1) # shift the RF freq axis
+    SCF = np.abs(SCF)
+    SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
+
+    extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
+    plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
+    plt.xlabel('Frequency [Normalized Hz]')
+    plt.ylabel('Cyclic Frequency [Normalized Hz]')
+    plt.show()
 
 
 ********************************

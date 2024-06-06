@@ -76,7 +76,7 @@ if False:
 
 
 # Freq smoothing
-if True:
+if False:
     start_time = time.time()
 
     alphas = np.arange(0, 0.3, 0.001)
@@ -84,7 +84,7 @@ if True:
     N = len(samples) # signal length
     window = np.hanning(Nw)
 
-    X = np.fft.fft(samples) # FFT of entire signal
+    X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
 
     SCF = np.zeros((len(alphas), N), dtype=complex)
     for i in range(len(alphas)):
@@ -99,11 +99,11 @@ if True:
     print("Time taken:", time.time() - start_time)
     SCF = SCF[:, ::Nw//2] # decimate by Nw/2 in the freq domain to reduce pixels
 
-    extent = (0, 1, float(np.max(alphas)), float(np.min(alphas)))
+    extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
     plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
     plt.xlabel('Frequency [Normalized Hz]')
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
-    #plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
+    plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
     plt.show()
     exit()
 
@@ -127,12 +127,13 @@ if False:
             pos_slice = window * pos[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
             neg_slice = window * neg[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
             SCF[ii, :] += np.fft.fft(neg_slice) * np.conj(np.fft.fft(pos_slice)) # Cross Cyclic Power Spectrum
+    SCF = np.fft.fftshift(SCF, axes=1) # shift the RF freq axis
     SCF = np.abs(SCF)
     SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
 
     print("Time taken:", time.time() - start_time)
 
-    extent = (0, 1, float(np.max(alphas)), float(np.min(alphas)))
+    extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
     plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
     plt.xlabel('Frequency [Normalized Hz]')
     plt.ylabel('Cyclic Frequency [Normalized Hz]')

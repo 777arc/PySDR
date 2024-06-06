@@ -68,9 +68,9 @@ function cyclostationary_app() {
 
     scales_width = 35;
     scales_height = 25;
-    canvas.width = num_freqs + scales_width + 5; // little at the end for text to use
+    canvas.width = num_freqs + scales_width + 10; // little at the end for text to use
     canvas.height = num_alphas + scales_height + 10; // little at the end for text to use
-    canvas.style.width = String((num_freqs + scales_width + 5) * 2) + "px";
+    canvas.style.width = String((num_freqs + scales_width + 10) * 2) + "px";
     canvas.style.height = String((num_alphas + scales_height + 10) * 2) + "px";
     let imgData = ctx.createImageData(num_freqs, num_alphas); // width, height
     console.log("Number of alphas: " + num_alphas);
@@ -105,16 +105,16 @@ function cyclostationary_app() {
 
     // Add scales
     ctx.font = "12px serif";
-    for (let i = 0; i <= 5; i++) {
+    for (let i = 0; i <= 10; i++) {
       // horizontal scales
       ctx.beginPath();
-      ctx.moveTo(Math.round(num_freqs * (i / 5) + scales_width) - 0.5, scales_height); // all the 0.5 are to make the lines not fuzzy, you have to straddle pixels
-      ctx.lineTo(Math.round(num_freqs * (i / 5) + scales_width) - 0.5, Math.round(num_alphas * 0.02) + scales_height);
+      ctx.moveTo(Math.round(num_freqs * (i / 10) + scales_width) - 0.5, scales_height); // all the 0.5 are to make the lines not fuzzy, you have to straddle pixels
+      ctx.lineTo(Math.round(num_freqs * (i / 10) + scales_width) - 0.5, Math.round(num_alphas * 0.02) + scales_height);
       ctx.lineWidth = 1;
       ctx.strokeStyle = "#ff6699";
       ctx.stroke();
       ctx.textAlign = "center";
-      ctx.fillText(i / 5, Math.round(num_freqs * (i / 5) + scales_width) - 0.5, scales_height - 3);
+      ctx.fillText(Math.round((i / 10 - 0.5)*100)/100, Math.round(num_freqs * (i / 10) + scales_width) - 0.5, scales_height - 3);
     }
 
     for (let i = 0; i <= 10; i++) {
@@ -231,6 +231,7 @@ function calc_SCF_time_smoothing(samples, alphas, Nw) {
     for (let j = 0; j < Nw; j++) {
       SCF_mag[i][j] = SCF[i][2 * j] * SCF[i][2 * j] + SCF[i][2 * j + 1] * SCF[i][2 * j + 1];
     }
+    SCF_mag[i] = fftshift(SCF_mag[i]);
   }
   return SCF_mag;
 }
@@ -292,7 +293,10 @@ function calc_SCF_freq_smoothing(samples, alphas, Nw) {
     for (let i = 0; i < freq_decimation; i++) {
       SCF_mag[alpha_idx][i] = real_part[i * skip] * real_part[i * skip] + imag_part[i * skip] * imag_part[i * skip];
     }
+    // FFT Shift
+    SCF_mag[alpha_idx] = fftshift(SCF_mag[alpha_idx]);
   }
+
   return SCF_mag;
 }
 

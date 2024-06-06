@@ -157,8 +157,8 @@ Below is an interactive JavaScript app that implements an SCF, so that you can p
         <span id="freq_display">0.2</span>
         <br />
         <label>Samples per Symbol [int] </label>
-        <input type="range" id="sps" value="10" min="4" max="20" step="1">
-        <span id="sps_display">10</span>
+        <input type="range" id="sps" value="20" min="4" max="30" step="1">
+        <span id="sps_display">20</span>
         <br />
         <label>RC Rolloff [0 to 1] </label>
         <input type="number" id="rolloff" value="0.5" min="0" max="1" step="0.0001">

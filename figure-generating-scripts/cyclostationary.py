@@ -86,23 +86,24 @@ if True:
 
     X = np.fft.fft(samples) # FFT of entire signal
 
-    SCF = np.zeros((len(alphas), N))
+    SCF = np.zeros((len(alphas), N), dtype=complex)
     for i in range(len(alphas)):
         shift = int(alphas[i] * N/2)
         SCF[i, :] = np.roll(X, -shift) * np.conj(np.roll(X, shift))
-        SCF[i, :shift] = 0
-        SCF[i, -shift - 1:] = 0
+        #SCF[i, :shift] = 0 # do we even need this one?
+        #SCF[i, -shift - 1:] = 0 # since alphas are always positive i dont think we need this
         SCF[i, :] = np.convolve(SCF[i, :], window, mode='same')
     SCF = np.abs(SCF)
     SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
 
     print("Time taken:", time.time() - start_time)
+    SCF = SCF[:, ::Nw//2] # decimate by Nw/2 in the freq domain to reduce pixels
 
     extent = (0, 1, float(np.max(alphas)), float(np.min(alphas)))
     plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
     plt.xlabel('Frequency [Normalized Hz]')
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
-    plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
+    #plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
     plt.show()
     exit()
 

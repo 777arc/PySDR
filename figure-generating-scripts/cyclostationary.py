@@ -76,7 +76,7 @@ if False:
 
 
 # Freq smoothing
-if True:
+if False:
     start_time = time.time()
 
     alphas = np.arange(0, 0.3, 0.001)
@@ -108,7 +108,7 @@ if True:
     exit()
 
 
-# Time smoothing
+# Time smoothing, based on https://www.mathworks.com/matlabcentral/fileexchange/48909-cyclic-spectral-analysis
 if False:
     start_time = time.time()
 
@@ -141,6 +141,176 @@ if False:
     plt.show()
     exit()
 
+
+
+
+# FAM, based on EL Da Costa https://apps.dtic.mil/sti/pdfs/ADA311555.pdf
+# note, its not processing all samples in x, it's just processing the first N
+# https://github.com/avian2/spectrum-sensing-methods/blob/master/sensing/utils.py
+# https://github.com/phwl/cyclostationary/blob/master/analysis/src/cyclostationary.py
+if True:
+    N = 2**14
+    x = samples[0:N]
+    Np = 512 # Number of input channels, defined by the desired frequency # Np=fs/df, where fs is the original data sampling rate.  It must be a power of 2 to avoid truncation or zero-padding in the FFT routines；
+    L = Np//4 # Offset between points in the same column at consecutive rows in the same channelization matrix. It should be chosen to be less than or equal to Np/4;
+
+    # channelization
+    num_windows = (len(x) - Np) // L + 1
+    xs = np.zeros((num_windows, Np), dtype=complex)
+    for i in range(num_windows):
+        xs[i,:] = x[i*L:i*L+Np]
+
+    Pe = int(np.floor(int(np.log(xs.shape[0])/np.log(2))))
+    P = 2**Pe
+    N = L*P
+    print("P:", P, " N:", N, " Pe:", Pe, " Np:", Np, " L:", L)
+
+    xs2 = xs[0:P,:] # figure out why this is needed
+
+    # windowing
+    xw = xs2 * np.tile(np.hanning(Np), (P,1))
+
+    # first FFT
+    XF1 = np.fft.fftshift(np.fft.fft(xw))
+
+    # freq shift down
+    f = np.arange(Np)/float(Np) - 0.5
+    f = np.tile(f, (P, 1))
+    t = np.arange(P)*L
+    t = t.reshape(-1,1) # make it a column vector
+    t = np.tile(t, (1, Np))
+    XD = XF1 * np.exp(-2j*np.pi*f*t)
+
+    # calculating conjugate products, second FFT and the final matrix
+    SCF = np.zeros((2*N, Np))
+    Mp = N//Np//2
+    for k in range(Np):
+        for l in range(Np):
+            XF2 = np.fft.fftshift(np.fft.fft(XD[:,k]*np.conj(XD[:,l])))
+            i = (k + l) // 2
+            a = int(((k - l) / Np + 1) * N)
+            SCF[a-Mp:a+Mp, i] = np.abs(XF2[(P//2-Mp):(P//2+Mp)])**2
+
+    # Get rid of negative alphas
+    SCF = SCF[N:,:]
+
+    # Max pooling in cyclic domain
+    print("Shape of SCF:", SCF.shape)
+    if False:
+        import skimage.measure
+        SCF = skimage.measure.block_reduce(SCF, block_size=(16, 1), func=np.max) # type: ignore
+        print("Shape of SCF:", SCF.shape)
+
+    SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
+
+    extent = (-0.5, 0.5, 1, 0)
+    plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/4)
+    plt.xlabel('Frequency [Normalized Hz]')
+    plt.ylabel('Cyclic Frequency [Normalized Hz]')
+    #plt.savefig('../_images/scf_fam.svg', bbox_inches='tight')
+    plt.show()
+    exit()
+
+''' My first attempt
+    x = samples
+    fs = 1
+    df = 0.005 # freq res. Make sure that DF is much bigger than DALPHA in order to have a reliable estimate.
+    dalpha = 0.0005 # cyclic res
+
+    Np = int(2**(np.ceil(np.log2(fs/df)))) # Number of input channels, defined by the desired frequency # Np=fs/df, where fs is the original data sampling rate.  It must be a power of 2 to avoid truncation or zero-padding in the FFT routines；
+    print("Np:", Np)
+
+    L = Np//4 # Offset between points in the same column at consecutive rows in the same channelization matrix. It should be chosen to be less than or equal to Np/4;
+    print("L:", L)
+
+    P = int(2**(np.ceil(np.log2(fs/dalpha/L)))) # Number of rows formed in the channelization matrix, defined by the desired cyclic frequency resolution (dalpha) as follows:
+    print("P:", P) 
+
+    N = P * L; # Total number of points in the input data.
+    print("N:", N)
+
+    # Slice up the data using overlap defined by L
+    X = np.zeros((Np, P), dtype=complex)
+    for k in range(P):
+        X[:, k] = x[k*L:k*L+Np]
+    print("shape of X:", X.shape)
+
+    # Apply window
+    X = np.matmul(np.diagflat(np.hamming(Np)), X)
+
+    # First FFT
+    XF1 = np.fft.fftshift(np.fft.fft(X))
+    upper = XF1[:, P//2:P]
+    lower = XF1[:, 0:P//2]
+    XF1 = np.concatenate((upper, lower), axis=1)
+    
+    # Downconversion
+    exp_mat = np.zeros((Np, P), dtype=complex)
+    for k in range(Np//-2, Np//2):
+        for m in range(P):
+            exp_mat[k + Np//2, m] = np.exp(-2j*np.pi*k*m*L/Np)
+    XD = XF1 * exp_mat # elementwise
+    
+    XD = np.conj(XD.conj().T) # not sure why this is needed
+    
+    # Multiplication
+    XM = np.zeros((P, Np**2), dtype=complex)
+    for k in range(Np):
+        for l in range(Np):
+            XM[:, (k-1) * Np + l] = XD[:, k] * np.conj(XD[:, l]) # elementwise. 99% sure -1 needs to be there
+
+    # Second FFT
+    XF2 = np.fft.fftshift(np.fft.fft(XM))
+    upper = XF2[:, Np**2//2:Np**2]
+    lower = XF2[:, 0:Np**2//2]
+    XF2 = np.concatenate((upper, lower), axis=1)
+    print(XF2.shape)
+
+    XF2 = XF2[P//4:3*P//4, :]
+    print(XF2.shape)
+
+    if True:
+        SCF = np.zeros((2*N, Np)) # first dim is cylcic freq, second is freq
+        for k1 in range(P//2):
+            for k2 in range(Np**2):
+                if np.remainder(k2, Np) == 0:
+                    l = Np//2
+                else:
+                    l = np.remainder(k2,Np) - Np//2
+                k = int(np.ceil(k2/Np)) - Np//2
+                p = k1 - P/4
+                alpha = (k-l)/Np + p/L/P
+                #print("alpha:", alpha)
+                f = (k+l)/2/Np
+                if alpha < -1 or alpha > 1:
+                    k2 += 1
+                elif f < -.5 or f > 0.5:
+                    k2 += 1
+                else:
+                    kk = int(Np * (f + 0.5))
+                    ll = int(N*(alpha + 1))
+                    SCF[ll, kk] = np.abs(XF2[k1, k2])
+    else:
+        SCF = np.abs(XF2)
+
+    # Max pooling
+    print("Shape of SCF:", SCF.shape)
+    import skimage.measure
+    SCF = skimage.measure.block_reduce(SCF, (20,1), np.max)
+    print("Shape of SCF:", SCF.shape)
+
+    alphas = np.arange(-1, 1, 1/N)
+
+    #SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
+
+    extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
+    plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
+    plt.xlabel('Frequency [Normalized Hz]')
+    plt.ylabel('Cyclic Frequency [Normalized Hz]')
+    #plt.savefig('../_images/scf_fam.svg', bbox_inches='tight')
+    plt.show()
+    exit()
+    '''
 
 
 
@@ -386,38 +556,5 @@ if False:
     S = np.array([np.max(S[i:i+pool_size], axis=0)
                  for i in range(0, len(S), pool_size)])
     print(S.shape)
-
-##########################
-# Time smoothing SCF # based on https://www.mathworks.com/matlabcentral/fileexchange/48909-cyclic-spectral-analysis
-##########################
-
-if False:
-    alphas = np.arange(0.05, 0.5, 0.005)
-    Nw = 256  # window length
-    N = len(samples)  # signal length
-    Noverlap = int(2/3*Nw)  # block overlap
-    num_windows = int((N - Noverlap) / (Nw - Noverlap))  # Number of windows
-    window = np.hanning(Nw)
-
-    S = np.zeros((Nw, len(alphas)), dtype=complex)
-    for ii in range(len(alphas)):  # Loop over cyclic frequencies
-        print("alpha:", alphas[ii])
-        neg = samples * np.exp(-1j*np.pi*alphas[ii]*np.arange(N))
-        pos = samples * np.exp(1j*np.pi*alphas[ii]*np.arange(N))
-
-        # Cross Cyclic Power Spectrum
-        for i in range(num_windows):
-            pos_slice = window * pos[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
-            neg_slice = window * neg[i*(Nw-Noverlap):i*(Nw-Noverlap)+Nw]
-            S[:, ii] += np.fft.fft(neg_slice) * np.conj(np.fft.fft(pos_slice))
-
-    S = np.abs(S)
-
-    plt.imshow(S, aspect='auto', extent=(
-        float(np.min(alphas)), float(np.max(alphas)), fs, 0.0))
-    plt.xlabel('Cyclic Frequency [Hz]')
-    plt.ylabel('Frequency [Normalized Hz]')
-    plt.show()
-
 
 

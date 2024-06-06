@@ -136,7 +136,7 @@ First let's look at the SCF at the correct alpha (0.05 Hz) for our rectangular B
 
 Note that we can see the 0.2 Hz frequency offset that we applied when simulating the BPSK signal (this has nothing to do with the cyclic frequency or samples per symbol). 
 
-Below is an interactive JavaScript app that implements an SCF, so that you can play around with different signal and SCF parameters.  Using the default alpha-step, not all samples per symbols will lead to a visible spike in the SCF, but lowering alpha-step increases the processing time.
+Below is an interactive JavaScript app that implements an SCF, so that you can play around with different signal and SCF parameters.  The frequency of the signal is a fairly straightforward knob, and shows how well the SCF can identify RF frequency.  Try adding pulse shaping by unchecking the Rectangular Pulse option, and play around with different rolloff values.  Note that using the default alpha-step, not all samples per symbols will lead to a visible spike in the SCF.  You can try lowering alpha-step, although it will increase the processing time. 
 
 .. raw:: html
 
@@ -286,7 +286,11 @@ SNR and Number of Symbols
 
 
 ********************************
-QPSK and Other Signals
+QPSK and QAM
+********************************
+
+********************************
+OFDM
 ********************************
 
 ********************************
@@ -297,13 +301,19 @@ Multiple Overlapping Signals
 Spectral Coherence Function
 ********************************
 
+The coherence version of the SCF, sometimes refered to as COH, is simply a normalized version of the SCF
+
 ********************************
-Conjugate Versions
+Conjugates
 ********************************
 
 ***********************************************
 Strip Spectral Correlation Analyzer (SSCA)
 ***********************************************
+
+The FSM and TSM techniques presented earlier work great, especially when you want to calculate a specific set of cyclic frequencies (note how both implementations involve looping over cyclic frequency as the outer loop). However, there is an even more efficient SCF implementation known as the Strip Spectral Correlation Analyzer (SSCA), which inherently calculates the full set of cyclic frequencies (at a certain resolution).  
+
+Note, code may be at the end of https://apps.dtic.mil/sti/pdfs/ADA311555.pdf
 
 ********************************
 FFT Accumulation Method (FAM)

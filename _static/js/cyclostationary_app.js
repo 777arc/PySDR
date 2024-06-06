@@ -164,7 +164,7 @@ function arrayRotate(arr, count) {
 
 // SCF with time smoothing method (lots of FFTs)
 function calc_SCF_time_smoothing(samples, alphas, Nw) {
-  N = samples.length / 2;
+  const N = samples.length / 2;
 
   // SCF
   const num_windows = Math.floor(N / Nw); // Number of windows
@@ -175,16 +175,16 @@ function calc_SCF_time_smoothing(samples, alphas, Nw) {
   //}
 
   // outter array is for each alpha, inner array is for each window
-  let SCF = Array.from({ length: alphas.length }, () => new Array(Nw * 2).fill(0));
+  const SCF = Array.from({ length: alphas.length }, () => new Array(Nw * 2).fill(0)); // need it to start at 0
 
   // Prep
-  let neg = new Array(N * 2);
-  let pos = new Array(N * 2);
+  const neg = new Array(N * 2);
+  const pos = new Array(N * 2);
 
-  let fft_obj_pos = new FFT(Nw);
-  let fft_obj_neg = new FFT(Nw);
-  let neg_out = fft_obj_neg.createComplexArray();
-  let pos_out = fft_obj_pos.createComplexArray();
+  const fft_obj_pos = new FFT(Nw);
+  const fft_obj_neg = new FFT(Nw);
+  const neg_out = fft_obj_neg.createComplexArray();
+  const pos_out = fft_obj_pos.createComplexArray();
 
   // loop through cyclic freq (alphas)
   for (let alpha_idx = 0; alpha_idx < alphas.length; alpha_idx++) {
@@ -200,8 +200,8 @@ function calc_SCF_time_smoothing(samples, alphas, Nw) {
 
     // Cross Cyclic Power Spectrum
     for (let i = 0; i < num_windows; i++) {
-      let pos_slice = pos.slice(2 * i * Nw, 2 * i * Nw + 2 * Nw); // 2* because of how we store complex
-      let neg_slice = neg.slice(2 * i * Nw, 2 * i * Nw + 2 * Nw);
+      const pos_slice = pos.slice(2 * i * Nw, 2 * i * Nw + 2 * Nw); // 2* because of how we store complex
+      const neg_slice = neg.slice(2 * i * Nw, 2 * i * Nw + 2 * Nw);
 
       // Apply window
       //pos_slice = pos_slice.map((val, idx) => val * window[idx]);

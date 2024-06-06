@@ -151,21 +151,19 @@ if False:
 if True:
     N = 2**14
     x = samples[0:N]
-    Np = 512 # Number of input channels, defined by the desired frequency # Np=fs/df, where fs is the original data sampling rate.  It must be a power of 2 to avoid truncation or zero-padding in the FFT routines；
-    L = Np//4 # Offset between points in the same column at consecutive rows in the same channelization matrix. It should be chosen to be less than or equal to Np/4;
-
-    # channelization
+    Np = 512 # Number of input channels, should be power of 2
+    L = Np//4 # Offset between points in the same column at consecutive rows in the same channelization matrix. It should be chosen to be less than or equal to Np/4
     num_windows = (len(x) - Np) // L + 1
-    xs = np.zeros((num_windows, Np), dtype=complex)
-    for i in range(num_windows):
-        xs[i,:] = x[i*L:i*L+Np]
-
-    Pe = int(np.floor(int(np.log(xs.shape[0])/np.log(2))))
+    Pe = int(np.floor(int(np.log(num_windows)/np.log(2))))
     P = 2**Pe
     N = L*P
     print("P:", P, " N:", N, " Pe:", Pe, " Np:", Np, " L:", L)
 
-    xs2 = xs[0:P,:] # figure out why this is needed
+    # channelization
+    xs = np.zeros((num_windows, Np), dtype=complex)
+    for i in range(num_windows):
+        xs[i,:] = x[i*L:i*L+Np]
+    xs2 = xs[0:P,:]
 
     # windowing
     xw = xs2 * np.tile(np.hanning(Np), (P,1))
@@ -181,12 +179,12 @@ if True:
     t = np.tile(t, (1, Np))
     XD = XF1 * np.exp(-2j*np.pi*f*t)
 
-    # calculating conjugate products, second FFT and the final matrix
+    # main calcs
     SCF = np.zeros((2*N, Np))
     Mp = N//Np//2
     for k in range(Np):
         for l in range(Np):
-            XF2 = np.fft.fftshift(np.fft.fft(XD[:,k]*np.conj(XD[:,l])))
+            XF2 = np.fft.fftshift(np.fft.fft(XD[:,k]*np.conj(XD[:,l]))) # second FFT
             i = (k + l) // 2
             a = int(((k - l) / Np + 1) * N)
             SCF[a-Mp:a+Mp, i] = np.abs(XF2[(P//2-Mp):(P//2+Mp)])**2
@@ -203,11 +201,29 @@ if True:
 
     SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
 
+   
+    plt.figure(0)
     extent = (-0.5, 0.5, 1, 0)
     plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/4)
     plt.xlabel('Frequency [Normalized Hz]')
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
-    #plt.savefig('../_images/scf_fam.svg', bbox_inches='tight')
+    plt.savefig('../_images/scf_fam.svg', bbox_inches='tight')
+
+    # Zoom in
+    plt.figure(1)
+    extent = (0, 0.5, 1/8, 0)
+    plt.imshow(SCF[0:N//8,Np//2:], aspect='auto', extent=extent, vmax=np.max(SCF)/4)
+    plt.xlabel('Frequency [Normalized Hz]')
+    plt.ylabel('Cyclic Frequency [Normalized Hz]')
+    plt.savefig('../_images/scf_fam_zoomedin.svg', bbox_inches='tight')
+
+    plt.figure(2, figsize=(10, 5))
+    plt.plot(np.linspace(0, 1, SCF.shape[0]), np.average(SCF, axis=1))
+    plt.grid()
+    plt.xlabel('Cyclic Frequency [Normalized Hz]')
+    plt.ylabel('SCF Power')
+    plt.savefig('../_images/scf_fam_1d.svg', bbox_inches='tight')
+
     plt.show()
     exit()
 

@@ -319,6 +319,68 @@ Note, code may be at the end of https://apps.dtic.mil/sti/pdfs/ADA311555.pdf
 FFT Accumulation Method (FAM)
 ********************************
 
+.. code-block:: python
+
+    N = 2**14
+    x = samples[0:N]
+    Np = 512 # Number of input channels, should be power of 2
+    L = Np//4 # Offset between points in the same column at consecutive rows in the same channelization matrix. It should be chosen to be less than or equal to Np/4
+    num_windows = (len(x) - Np) // L + 1
+    Pe = int(np.floor(int(np.log(num_windows)/np.log(2))))
+    P = 2**Pe
+    N = L*P
+
+    # channelization
+    xs = np.zeros((num_windows, Np), dtype=complex)
+    for i in range(num_windows):
+        xs[i,:] = x[i*L:i*L+Np]
+    xs2 = xs[0:P,:]
+
+    # windowing
+    xw = xs2 * np.tile(np.hanning(Np), (P,1))
+
+    # first FFT
+    XF1 = np.fft.fftshift(np.fft.fft(xw))
+
+    # freq shift down
+    f = np.arange(Np)/float(Np) - 0.5
+    f = np.tile(f, (P, 1))
+    t = np.arange(P)*L
+    t = t.reshape(-1,1) # make it a column vector
+    t = np.tile(t, (1, Np))
+    XD = XF1 * np.exp(-2j*np.pi*f*t)
+
+    # main calcs
+    SCF = np.zeros((2*N, Np))
+    Mp = N//Np//2
+    for k in range(Np):
+        for l in range(Np):
+            XF2 = np.fft.fftshift(np.fft.fft(XD[:,k]*np.conj(XD[:,l]))) # second FFT
+            i = (k + l) // 2
+            a = int(((k - l) / Np + 1) * N)
+            SCF[a-Mp:a+Mp, i] = np.abs(XF2[(P//2-Mp):(P//2+Mp)])**2
+
+.. image:: ../_images/scf_fam.svg
+   :align: center 
+   :target: ../_images/scf_fam.svg
+   :alt: SCF with the FFT Accumulation Method (FAM), showing cyclostationary signal processing
+
+Let's zoom into the interesting part around 0.2 Hz and the low cyclic frequencies, to see more detail:
+
+.. image:: ../_images/scf_fam_zoomedin.svg
+   :align: center 
+   :target: ../_images/scf_fam_zoomedin.svg
+   :alt: Zoomed in version of SCF with the FFT Accumulation Method (FAM), showing cyclostationary signal processing
+
+There is a clear hot spot at 0.05 Hz, and a low one at 0.1 Hz that may be tough to see with this colorscale.
+
+We can also squash the RF frequency axis and plot the SCF in 1D, in order to more easily see which cyclic frequencies are present:
+
+.. image:: ../_images/scf_fam_1d.svg
+   :align: center 
+   :target: ../_images/scf_fam_1d.svg
+   :alt: Cyclic freq plot using the FFT Accumulation Method (FAM), showing cyclostationary signal processing
+
 
 ********************************
 Python Example TO REMOVE

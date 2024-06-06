@@ -191,11 +191,17 @@ function calc_SCF_time_smoothing(samples, alphas, Nw) {
     const alpha_times_pi = alphas[alpha_idx] * Math.PI;
 
     for (let i = 0; i < N; i++) {
-      // remember (a + ib)(c + id) = (ac - bd) + i(ad + bc).
-      neg[2 * i] = samples[2 * i] * Math.cos(-1 * alpha_times_pi * i) - samples[2 * i + 1] * Math.sin(-1 * alpha_times_pi * i);
-      neg[2 * i + 1] = samples[2 * i] * Math.sin(-1 * alpha_times_pi * i) + samples[2 * i + 1] * Math.cos(-1 * alpha_times_pi * i);
-      pos[2 * i] = samples[2 * i] * Math.cos(alpha_times_pi * i) - samples[2 * i + 1] * Math.sin(alpha_times_pi * i);
-      pos[2 * i + 1] = samples[2 * i] * Math.sin(alpha_times_pi * i) + samples[2 * i + 1] * Math.cos(alpha_times_pi * i);
+      // below has been heavily optimized, see python for simpler version of whats going on
+      const cos_term = Math.cos(alpha_times_pi * i);
+      const sin_term = Math.sin(alpha_times_pi * i);
+      const a = samples[2 * i] * cos_term;
+      const b = samples[2 * i + 1] * sin_term;
+      const c = samples[2 * i + 1] * cos_term;
+      const d = samples[2 * i] * sin_term;
+      neg[2 * i] = a + b;
+      neg[2 * i + 1] = c - d;
+      pos[2 * i] = a - b;
+      pos[2 * i + 1] = d + c;
     }
 
     // Cross Cyclic Power Spectrum

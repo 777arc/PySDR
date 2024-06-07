@@ -210,16 +210,15 @@ point out how even though there is only 1 FFT, you still need to do a ton of con
     window = np.hanning(Nw)
 
     X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
-
-    SCF = np.zeros((len(alphas), N), dtype=complex)
+    
+    num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
+    SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
     for i in range(len(alphas)):
         shift = int(alphas[i] * N/2)
-        SCF[i, :] = np.roll(X, -shift) * np.conj(np.roll(X, shift))
-        SCF[i, :] = np.convolve(SCF[i, :], window, mode='same')
+        SCF_slice = np.roll(X, -shift) * np.conj(np.roll(X, shift))
+        SCF[i, :] = np.convolve(SCF_slice, window, mode='same')[::Nw] # apply window and decimate by Nw
     SCF = np.abs(SCF)
     SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
-
-    SCF = SCF[:, ::Nw//2] # decimate by Nw/2 in the freq domain to reduce pixels
 
     extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
     plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)

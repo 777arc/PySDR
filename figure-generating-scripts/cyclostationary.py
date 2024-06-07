@@ -88,37 +88,23 @@ if True:
 
     X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
     
-    N_deci = int(np.ceil(N/Nw))
-
-    SCF = np.zeros((len(alphas), N_deci), dtype=complex)
+    num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
+    SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
     for i in range(len(alphas)):
         shift = int(alphas[i] * N/2)
         SCF_slice = np.roll(X, -shift) * np.conj(np.roll(X, shift))
         #SCF[i, :shift] = 0 # do we even need this one?
-        #SCF[i, -shift - 1:] = 0 # since alphas are always positive i dont think we need this
-        # if False: # freq smoothing
-        #     SCF[i, :] = np.convolve(SCF[i, :], window, mode='same')
-        # else:
-        #     # SCF[i, :] = [np.sum(SCF[i, max(0, a):min(a+Nw, N)]) for a in range(N)]
-        #     # SCF[i, :] = scipy.signal.convolve(SCF[i, :], np.ones((Nw)), mode='same')
-        #     # SCF[i, :] = SCF[i, ::Nw//2]
-        SCF[i, :] = scipy.signal.convolve(SCF_slice, np.ones((Nw)), mode='same')[::Nw]
-    
-    # SCF = scipy.signal.decimate(SCF, Nw//2, ftype='fir', axis=1)
-    
+        SCF[i, :] = np.convolve(SCF_slice, window, mode='same')[::Nw] # apply window and decimate by Nw
     SCF = np.abs(SCF)
     SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
 
     print("Time taken:", time.time() - start_time)
-    # SCF = SCF[:, ::Nw//2] # decimate by Nw/2 in the freq domain to reduce pixels
-    # import skimage.measure
-    # SCF = skimage.measure.block_reduce(SCF, block_size=(1, Nw//2), func=np.max)
 
     extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
     plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
     plt.xlabel('Frequency [Normalized Hz]')
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
-    #plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
+    plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
     plt.show()
     exit()
 

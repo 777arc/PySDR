@@ -200,6 +200,8 @@ talk about how window length impacts things, since it doesnt really change the r
 
 point out how even though there is only 1 FFT, you still need to do a ton of convolves
 
+* Discuss the difference between the periodagram and the PSD, paraphrase blog
+
 .. code-block:: python
 
     alphas = np.arange(0, 0.3, 0.001)
@@ -240,6 +242,8 @@ talk about the importance of the window length because it determines the resolut
 note the addition of an overlap parameter
 
 point out that the javascript app in the SCF section actually uses the TSM method, with 0 overlap for speed sake
+
+* Talk about how the averaging happens by splitting up the time domain signal and recombining
 
 .. code-block:: python
 

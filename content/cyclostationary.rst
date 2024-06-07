@@ -189,7 +189,6 @@ Below is an interactive JavaScript app that implements an SCF, so that you can p
     </body>
 
 
-
 ********************************
 Frequency Smoothing Method (FSM)
 ********************************
@@ -231,6 +230,9 @@ point out how even though there is only 1 FFT, you still need to do a ton of con
    :target: ../_images/scf_freq_smoothing.svg
    :alt: SCF with the Frequency Smoothing Method (FSM), showing cyclostationary signal processing
 
+External Resources on FSM:
+
+* asdasd
 
 ***************************
 Time Smoothing Method (TSM)
@@ -278,6 +280,11 @@ point out that the javascript app in the SCF section actually uses the TSM metho
 
 Looks the same as the FSM!
 
+External Resources on TSM:
+
+* asdasd
+
+
 ********************************
 Pulse-Shaped BPSK
 ********************************
@@ -306,21 +313,24 @@ Spectral Coherence Function
 
 The coherence version of the SCF, sometimes refered to as COH, is simply a normalized version of the SCF
 
+External Resources on COH:
+
+* asdasd
+
+
 ********************************
 Conjugates
 ********************************
 
-***********************************************
-Strip Spectral Correlation Analyzer (SSCA)
-***********************************************
+External Resources on Conjugate CSP:
 
-The FSM and TSM techniques presented earlier work great, especially when you want to calculate a specific set of cyclic frequencies (note how both implementations involve looping over cyclic frequency as the outer loop). However, there is an even more efficient SCF implementation known as the Strip Spectral Correlation Analyzer (SSCA), which inherently calculates the full set of cyclic frequencies (at a certain resolution).  
-
-Note, code may be at the end of https://apps.dtic.mil/sti/pdfs/ADA311555.pdf
+* asdasd
 
 ********************************
 FFT Accumulation Method (FAM)
 ********************************
+
+The FSM and TSM techniques presented earlier work great, especially when you want to calculate a specific set of cyclic frequencies (note how both implementations involve looping over cyclic frequency as the outer loop). However, there is an even more efficient SCF implementation known as the FFT Accumulation Method (FAM), which inherently calculates the full set of cyclic frequencies (i.e., the cyclic frequencies corresponding to every integer shift of the signal, the number of which depend on signal length).  There is also a similar technique known as the `Strip Spectral Correlation Analyzer (SSCA) <https://cyclostationary.blog/2016/03/22/csp-estimators-the-strip-spectral-correlation-analyzer/>`_ which also calculates all cyclic frequencies at once.  These techniques that calculate all cyclic frequencies are sometimes refered to as blind estimators because they tend to be used when no prior knowledge of cyclic frequencies is known (otherwise, you would have a good idea of which cyclic frequencies to calculate and could use the FSM or TSM methods).
 
 .. code-block:: python
 
@@ -384,83 +394,8 @@ We can also squash the RF frequency axis and plot the SCF in 1D, in order to mor
    :target: ../_images/scf_fam_1d.svg
    :alt: Cyclic freq plot using the FFT Accumulation Method (FAM), showing cyclostationary signal processing
 
+External Resources on FAM:
 
-********************************
-Python Example TO REMOVE
-********************************
-
-The following example demonstrates how to compute the SCF of a cyclostationary signal using the `cspy` package. The example generates a random cyclostationary signal, computes the SCF using the `scf` function, and plots the SCF using the `plot_scf` function.
-
-
-.. code-block:: python
-
- ##### Generate the Spectral Correlation Function #####
- 
- a_res = 0.005
- a_vals = np.arange(-1, 1, a_res)
- smoothing_len = 2048
- window = np.hanning(smoothing_len)
- 
- X = np.fft.fft(signal)
- X = np.fft.fftshift(X)
- 
- SCF = np.zeros((len(a_vals), num_samples))
- SCF_conj = np.zeros((len(a_vals), num_samples))
- 
- for i, a in enumerate(a_vals):
-     SCF[i, :] = np.roll(X, -int(np.floor(a*num_samples/2)))*np.conj(np.roll(X, int(np.floor(a*num_samples/2))))
-     SCF[i, :abs(round(a*num_samples/2))] = 0
-     SCF[i, -abs(round(a*num_samples/2))-1:] = 0
-     SCF[i, :] = np.convolve(SCF[i, :], window, mode='same')
-     
-     SCF_conj[i, :] = np.roll(X, int(np.floor(a*num_samples/2))-1)*np.flip(np.roll(X, int(np.floor(a*num_samples/2))))
-     SCF_conj[i, :abs(round(a*num_samples/2))] = 0
-     SCF_conj[i, -abs(round(a*num_samples/2))-1:] = 0
-     SCF_conj[i, :] = np.convolve(SCF_conj[i, :], window, mode='same')
- 
- ##### Plot the Spectral Correlation Function #####
- 
- dym_range_dB = 20
- max_val = np.max(SCF[np.where(a_vals > a_res),:])
- linear_scale = True
- 
- plt.set_cmap("viridis")
- 
- plt.figure(figsize=(10, 5))
- plt.subplot(1, 2, 1)
- if linear_scale:
-     plt.imshow(np.abs(SCF), aspect='auto', extent=[-0.5, 0.5, -1, 1],
-            vmax=max_val)
- else:
-     plt.imshow(10*np.log10(np.abs(SCF)), aspect='auto', extent=[-0.5, 0.5, -1, 1],
-             vmax=10*np.log10(max_val), vmin=10*np.log10(max_val)-dym_range_dB)
- 
- plt.ylim([0, 0.5])
- plt.xlabel("Normalized Frequency")
- plt.ylabel("Cycle Frequency")
- plt.colorbar()
- plt.title("Non-Conjugate SCF")
- 
- max_val = np.max(SCF_conj)
- 
- plt.subplot(1, 2, 2)
- if linear_scale:
-     plt.imshow(np.abs(SCF_conj), aspect='auto', extent=[-0.5, 0.5, -1, 1],
-            vmax=max_val)
- else:
-     plt.imshow(10*np.log10(np.abs(SCF_conj)), aspect='auto', extent=[-0.5, 0.5, -1, 1], 
-             vmax=10*np.log10(max_val), vmin=10*np.log10(max_val)-dym_range_dB)
- plt.xlabel("Normalized Frequency")
- plt.ylabel("Cycle Frequency")
- plt.ylim([-0.5, 0.5])
- plt.colorbar()
- plt.title("Conjugate SCF")
- plt.tight_layout()
- 
- plt.show()
-
-****************
-Further Reading
-****************
-
-https://cyclostationary.blog/
+* R.S. Roberts, W. A. Brown, and H. H. Loomis, Jr., "Computationally Efficient Algorithms for Cyclic Spectral Analysis," IEEE Signal Processing Magazine, April 1991, pp. 38-49. `Available here <https://www.researchgate.net/profile/Faxin-Zhang-2/publication/353071530_Computationally_efficient_algorithms_for_cyclic_spectral_analysis/links/60e69d2d30e8e50c01eb9484/Computationally-efficient-algorithms-for-cyclic-spectral-analysis.pdf>`_
+* Da Costa, Evandro Luiz. Detection and identification of cyclostationary signals. Diss. Naval Postgraduate School, 1996. `Available here <https://apps.dtic.mil/sti/pdfs/ADA311555.pdf>`_
+* Chad's blog post on FAM: https://cyclostationary.blog/2018/06/01/csp-estimators-the-fft-accumulation-method/

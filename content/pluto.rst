@@ -171,7 +171,7 @@ The code below assumes you have the Pluto's Python API installed.  This code ini
     center_freq = 100e6 # Hz
     num_samps = 10000 # number of samples returned per call to rx()
     
-    sdr = adi.Pluto()
+    sdr = adi.Pluto('ip:192.168.2.1')
     sdr.gain_control_mode_chan0 = 'manual'
     sdr.rx_hardwaregain_chan0 = 70.0 # dB
     sdr.rx_lo = int(center_freq)

@@ -28,6 +28,9 @@ if creator_id:
         full_name = full_name.replace("vince baker", "Vince Baker")
         if full_name == "Дмитрий Ступаков":
             continue
+        if full_name == "Al Grant":
+            names.append('Al Grant <img width="12px" height="12px" src="https://pysdr.org/_static/kiwi-bird.svg">')
+            continue
         names.append(full_name) # there's also 'first_name' which might be better for a public display name
     # Patreon Supporters
     html_string = ''

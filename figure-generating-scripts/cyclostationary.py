@@ -31,6 +31,21 @@ if False:
     plt.show()
     exit()
 
+
+###################################################
+# Multiple overlapping signals (replaces samples) #
+###################################################
+f_offset = 0.2 # Hz normalized
+sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
+
+symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1 # random 1's and -1's
+bpsk = np.repeat(symbols, sps)  # repeat each symbol sps times to make rectangular BPSK
+bpsk = bpsk[:N]  # clip off the extra samples
+bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
+noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
+samples = bpsk + 0.1*noise  # add noise to the signal
+
+
 ##############
 # Direct CAF #
 ##############

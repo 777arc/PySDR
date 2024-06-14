@@ -303,6 +303,8 @@ QPSK and QAM
 OFDM
 ********************************
 
+Cyclostationarity is especially strong in OFDM signals due to OFDM's use of a cyclic prefix (CP), which is where the last several samples of each OFDM symbol is copied and added to the beginning of the OFDM symbol.  This leads to a strong cyclic frequency corresponding to the OFDM symbol length (which is equal to the inverse of the subcarrier spacing, plus CP duration). 
+
 ********************************
 Multiple Overlapping Signals
 ********************************

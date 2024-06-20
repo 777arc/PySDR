@@ -4,6 +4,7 @@ import time
 import scipy
 import scipy.signal
 
+
 ######################
 # Simulate Rect BPSK #
 ######################
@@ -35,16 +36,56 @@ if False:
 ###################################################
 # Multiple overlapping signals (replaces samples) #
 ###################################################
-f_offset = 0.2 # Hz normalized
-sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
+if False:
+    f_offset = 0.2 # Hz normalized
+    sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
 
-symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1 # random 1's and -1's
-bpsk = np.repeat(symbols, sps)  # repeat each symbol sps times to make rectangular BPSK
-bpsk = bpsk[:N]  # clip off the extra samples
-bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
-noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
-samples = bpsk + 0.1*noise  # add noise to the signal
+    symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1 # random 1's and -1's
+    bpsk = np.repeat(symbols, sps)  # repeat each symbol sps times to make rectangular BPSK
+    bpsk = bpsk[:N]  # clip off the extra samples
+    bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
+    noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
+    samples = bpsk + 0.1*noise  # add noise to the signal
 
+########
+# OFDM #
+########
+
+# Adapted from https://dspillustrations.com/pages/posts/misc/python-ofdm-example.html
+if True:
+    from scipy.signal import resample
+    N = 100000 # number of samples to simulate
+    num_subcarriers = 64
+    cp_len = num_subcarriers // 4 # length of the cyclic prefix in symbols, in this case 25% of the starting OFDM symbol
+    print("CP length in samples", cp_len*2) # remember there is 2x interpolation at the end
+    print("OFDM symbol length in samples", (num_subcarriers+cp_len)*2) # remember there is 2x interpolation at the end
+    num_symbols = int(np.floor(N/(num_subcarriers+cp_len))) // 2 # remember the interpolate by 2
+    print("Number of OFDM symbols:", num_symbols)
+
+    qpsk_mapping = {
+        (0,0) : 1+1j,
+        (0,1) : 1-1j,
+        (1,0) : -1+1j,
+        (1,1) : -1-1j,
+    }
+    bits_per_symbol = 2
+
+    samples = np.empty(0, dtype=np.complex64)
+    for _ in range(num_symbols):
+        data = np.random.binomial(1, 0.5, num_subcarriers*bits_per_symbol) # 1's and 0's
+        data = data.reshape((num_subcarriers, bits_per_symbol)) # group into subcarriers
+        symbol_freq = np.array([qpsk_mapping[tuple(b)] for b in data]) # remember we start in the freq domain with OFDM
+        symbol_time = np.fft.ifft(symbol_freq)
+        symbol_time = np.hstack([symbol_time[-cp_len:], symbol_time]) # take the last CP samples and stick them at the start of the symbol
+        samples = np.concatenate((samples, symbol_time)) # add symbol to samples buffer
+
+    samples = resample(samples, len(samples)*2) # interpolate by 2x
+    samples = samples[:N] # clip off the few extra samples
+
+    # Add noise
+    SNR_dB = 5
+    n = np.sqrt(np.var(samples) * 10**(-SNR_dB/10) / 2) * (np.random.randn(N) + 1j*np.random.randn(N))
+    samples = samples + n
 
 ##############
 # Direct CAF #
@@ -97,6 +138,9 @@ if True:
     start_time = time.time()
 
     alphas = np.arange(0, 0.3, 0.001)
+    if True: # For OFDM example
+        #alphas = np.arange(0, 0.5+0.0001, 0.0001) # enable max pooling for this one
+        alphas = np.arange(0, 0.02+0.0001, 0.0001)
     Nw = 256 # window length
     N = len(samples) # signal length
     window = np.hanning(Nw)
@@ -112,14 +156,24 @@ if True:
         SCF[i, :] = np.convolve(SCF_slice, window, mode='same')[::Nw] # apply window and decimate by Nw
     SCF = np.abs(SCF)
     SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
+    SCF[-1, :] = 0 # when a=1 is included it also looks bad
 
     print("Time taken:", time.time() - start_time)
+
+    print("SCF shape", SCF.shape)
+    # Max pooling in cyclic domain
+    if False:
+        import skimage.measure
+        SCF = skimage.measure.block_reduce(SCF, block_size=(16, 1), func=np.max) # type: ignore
+        print("Shape of SCF:", SCF.shape)
 
     extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
     plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
     plt.xlabel('Frequency [Normalized Hz]')
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
-    plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
+    #plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
+    #plt.savefig('../_images/scf_freq_smoothing_ofdm.svg', bbox_inches='tight') # for OFDM example
+    #plt.savefig('../_images/scf_freq_smoothing_ofdm_zoomed_in.svg', bbox_inches='tight') # for OFDM example 2
     plt.show()
     exit()
 

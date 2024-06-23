@@ -484,3 +484,24 @@ The Ethernet port is an enormous upgrade because it greatly increases the sample
 To set the IP address for the Ethernet port, plug the Pluto+ in over USB and open the mass storage device, editing config.txt to fill out :code:`[USB_ETHERNET]`.  Cycle power to the Pluto+.  You should now be able to SSH into the Pluto+ over Ethernet using the IP you entered.  If it worked, you can switch the micro USB cable to the 5V port so that it's only powering the Pluto+ and forcing all communications to be over Ethernet.  Remember that even with the regular PlutoSDR (and Pluto+) you can sample up to 61 MHz worth of bandwidth and get contiguous chunks of up to ~10M samples at a time, as long as you wait in between chunks, allowing for powerful spectrum sensing applications.
 
 The Python code for the Pluto+ will be the same as the PlutoSDR, except you need to swap :code:`192.168.2.1` for the Ethernet IP you set.  Try receiving samples in a loop, counting how many you receive, to see how high you can push the sample rate while still receiving roughly the sample rate's worth of samples in Python per second.  As a hint, increasing rx_buffer_size to be very large will help increase the throughput.
+
+************
+AntSDR E200
+************
+
+The AntSDR E200, which we will refer to as the AntSDR, is a low-cost 936X-based SDR, very similar to the Pluto and Pluto+, made by a company called MicroPhase out of Shanghai, China.  Similar to the Pluto+ it uses a 1GB Ethernet connection, although the AntSDR doesn't have any USB data connection option.  What is unique about the AntSDR is it has the ability to act just like a Pluto, using the IIO library, or as a USRP using the UHD library.  By default it ships with the Pluto behavior, but switching to USRP/UHD mode is a simple firmware update.  Both sets of firmware are essentially just copied from Analog Devices/Ettus with very minor tweaks to support the AntSDR's hardware.  Another unique aspect is the fact you can purchase the board with either the 9363 or 9361 chip installed; while they are the same functional part, the 9361 is binned at the factory to have higher RF performance at the upper frequencies.  Note that the Pluto and Pluto+ all only come with the 9363.  The AntSDR specifications claim that the 9363-based version only goes up to 3.8 GHz and a 20 MHz sample rate, but that is not the case; it is able to reach the full 6 GHz and ~60 MHz of sample rate (although not 100% of samples will make it over 1GB Ethernet).  Like the other Plutos, the AntSDR is a 2x2 device, with the second transmit and receive channels accessible through U.FL connectors on the board.  All of the other RF performance and technical specs are going to be similar or identical to the Pluto/Pluto+.  It is available to purchase from `Crowd Supply <https://www.crowdsupply.com/microphase-technology/antsdr-e200#products>`_ and AliExpress.
+
+.. image:: ../_images/AntSDR.png
+   :scale: 100 % 
+   :align: center
+   :alt: The AntSDR E200 SDR with optional case enclosure
+
+Setting up and using the AntSDR in Pluto mode is similar to the Pluto+, just note that the default IP is 192.168.1.10 and it does not have any USB data connection so there is no mass storage device for updating firmware or changing settings (instead, an SD card can be used to update the firmware and SSH for changing settings).  The Pluto/IIO firmware can be found here https://github.com/MicroPhase/antsdr-fw-patch and the USRP/UHD firmware here https://github.com/MicroPhase/antsdr_uhd.  
+
+You may want to change the AntSDR's IP address, which can be done with:
+
+.. code-block:: bash
+
+ fw_setenv ipaddr_eth 192.168.2.1
+
+Follow `these steps <https://github.com/MicroPhase/antsdr_uhd?tab=readme-ov-file#quick-start-guide>`_ to install the USRP/UHD firmware on the AntSDR as well as host-side drivers on your machine.  You can then use :code:`uhd_find_devices` and :code:`uhd_usrp_probe` like normal (see the USRP chapter for more info). 

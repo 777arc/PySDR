@@ -291,6 +291,68 @@ External Resources on TSM:
 Pulse-Shaped BPSK
 ********************************
 
+Up until this point we have only investigated CSP of a rectangular BPSK signal.  Let's now look at a BPSK signal with a raised-cosine (RC) pulse shape, which is a common pulse shape used in digital communications, and is used to reduce the occupied bandwidth of the signal compared to rectangular BPSK.  As discussed in the Pulse Shaping chapter, the RC pulse shape in the time domain is given by:
+
+.. math::
+ h(t) = \mathrm{sinc}\left( \frac{t}{T} \right) \frac{\cos\left(\frac{\pi\beta t}{T}\right)}{1 - \left( \frac{2 \beta t}{T}   \right)^2}
+
+The :math:`\beta` parameter determines how quickly the filter tapers off in the time domain, which will be inversely proportional with how quickly it tapers off in frequency:
+
+.. image:: ../_images/raised_cosine_freq.svg
+   :align: center 
+   :target: ../_images/raised_cosine_freq.svg
+   :alt: The raised cosine filter in the frequency domain with a variety of roll-off values
+
+We can simulate a BPSK signal with a raised-cosine pulse shaping using the following code snippet; note the first 5 lines and last 4 lines are the same as rectangular BPSK:
+
+.. code-block:: python
+
+    N = 100000 # number of samples to simulate
+    f_offset = 0.2 # Hz normalized
+    sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
+    num_symbols = int(np.ceil(N/sps))
+    symbols = np.random.randint(0, 2, num_symbols) * 2 - 1 # random 1's and -1's
+
+    pulse_train = np.zeros(num_symbols * sps)
+    pulse_train[::sps] = symbols # easier explained by looking at an example output
+    print(pulse_train[0:96].astype(int))
+
+    # Raised-Cosine Filter for Pulse Shaping
+    beta = 0.3 # rolloff parameter (avoid exactly 0.25, 0.5, and 1.0)
+    num_taps = 101 # somewhat arbitrary
+    t = np.arange(num_taps) - (num_taps-1)//2
+    h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2) # RC equation
+    bpsk = np.convolve(pulse_train, h, 'same') # apply the pulse shaping
+    
+    bpsk = bpsk[:N]  # clip off the extra samples
+    bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
+    noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
+    samples = bpsk + 0.1*noise  # add noise to the signal
+
+Note that :code:`pulse_train` is simply our symbols with :code:`sps - 1` zeros after each one, in sequence, e.g.:
+
+.. code-block:: bash
+
+ [ 1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0
+   0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0
+   0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0
+   0  0  0  0  0  0  0  0 -1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+
+Below shows the BPSK in the time domain, before noise and the frequency shift is added:
+
+.. image:: ../_images/pulse_shaped_BSPK.svg
+   :align: center 
+   :target: ../_images/pulse_shaped_BSPK.svg
+   :alt: Pulse-shaped BPSK signal with a raised-cosine pulse shape
+
+Now let's calculate the SCF of this pulse-shaped BPSK signal with a rolloff of 0.3 and frequency shift of 0.2 Hz.  We will use the FSM, with the same FSM parameters and symbol length as used in in rectangular BPSK example, to make it a fair comparison:
+
+.. image:: ../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg
+   :align: center 
+   :target: ../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg
+   :alt: SCF of pulse-shaped BPSK using the Frequency Smoothing Method (FSM)
+
+As you can see, we no longer get the sidelobes in the frequency axis, and in the cyclic frequency axis we don't get as strong of harmonics of the fundamental cyclic frequency.  This is because the raised-cosine pulse shape has a much better spectral containment than the rectangular pulse shape, and the sidelobes are much lower.  As a result, pulse-shaped signals tend to have a much "cleaner" SCF than rectangular signals, resembling a single spike.  This will apply to all single carrier digitally modulated signals, not just BPSK.
 
 ********************************
 SNR and Number of Symbols

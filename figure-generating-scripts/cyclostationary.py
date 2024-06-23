@@ -5,20 +5,22 @@ import scipy
 import scipy.signal
 
 
+
 ######################
 # Simulate Rect BPSK #
 ######################
 
-N = 100000 # number of samples to simulate
-f_offset = 0.2 # Hz normalized
-sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
+if False:
+    N = 100000 # number of samples to simulate
+    f_offset = 0.2 # Hz normalized
+    sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
 
-symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1 # random 1's and -1's
-bpsk = np.repeat(symbols, sps)  # repeat each symbol sps times to make rectangular BPSK
-bpsk = bpsk[:N]  # clip off the extra samples
-bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
-noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
-samples = bpsk + 0.1*noise  # add noise to the signal
+    symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1 # random 1's and -1's
+    bpsk = np.repeat(symbols, sps)  # repeat each symbol sps times to make rectangular BPSK
+    bpsk = bpsk[:N]  # clip off the extra samples
+    bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
+    noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
+    samples = bpsk + 0.1*noise  # add noise to the signal
 
 if False:
     # Plot PSD
@@ -33,10 +35,54 @@ if False:
     exit()
 
 
+##############################################
+# BPSK with Pulse Shaping (replaces samples) #
+##############################################
+
+if True:
+    N = 100000 # number of samples to simulate
+    f_offset = 0.2 # Hz normalized
+    sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
+    num_symbols = int(np.ceil(N/sps))
+    symbols = np.random.randint(0, 2, num_symbols) * 2 - 1 # random 1's and -1's
+
+    pulse_train = np.zeros(num_symbols * sps)
+    pulse_train[::sps] = symbols # easier explained by looking at an example output
+    #print(pulse_train[0:96].astype(int))
+
+    # Raised-Cosine Filter for Pulse Shaping
+    beta = 0.3 # rolloff parameter (avoid exactly 0.25, 0.5, and 1.0)
+    num_taps = 101 # somewhat arbitrary
+    t = np.arange(num_taps) - (num_taps-1)//2
+    h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2) # RC equation
+    bpsk = np.convolve(pulse_train, h, 'same') # apply the pulse shaping
+    
+    bpsk = bpsk[:N]  # clip off the extra samples
+    
+    # Need to plot it before the freq shift up
+    if False:
+        plt.plot(bpsk[0:sps*10])
+        for i in range(10):
+            plt.text(i*sps, int(pulse_train[i*sps]), str(int((pulse_train[i*sps] + 1)/2)), ha='left', fontsize=16) # show 1's and 0's
+        plt.grid()
+        plt.axis((0, sps*10, -2, 2))
+        plt.xlabel("Sample Index")
+        plt.ylabel("Sample Value (I)")
+        plt.savefig('../_images/pulse_shaped_BSPK.svg', bbox_inches='tight')
+        plt.show()
+        exit()
+    
+    bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
+    noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
+    samples = bpsk + 0.1*noise  # add noise to the signal
+
+
+
 ###################################################
 # Multiple overlapping signals (replaces samples) #
 ###################################################
 if False:
+    N = 100000 # number of samples to simulate
     f_offset = 0.2 # Hz normalized
     sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
 
@@ -47,12 +93,12 @@ if False:
     noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
     samples = bpsk + 0.1*noise  # add noise to the signal
 
-########
-# OFDM #
-########
+###########################
+# OFDM (replaces samples) #
+###########################
 
 # Adapted from https://dspillustrations.com/pages/posts/misc/python-ofdm-example.html
-if True:
+if False:
     from scipy.signal import resample
     N = 100000 # number of samples to simulate
     num_subcarriers = 64
@@ -138,7 +184,7 @@ if True:
     start_time = time.time()
 
     alphas = np.arange(0, 0.3, 0.001)
-    if True: # For OFDM example
+    if False: # For OFDM example
         #alphas = np.arange(0, 0.5+0.0001, 0.0001) # enable max pooling for this one
         alphas = np.arange(0, 0.02+0.0001, 0.0001)
     Nw = 256 # window length
@@ -174,6 +220,7 @@ if True:
     #plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
     #plt.savefig('../_images/scf_freq_smoothing_ofdm.svg', bbox_inches='tight') # for OFDM example
     #plt.savefig('../_images/scf_freq_smoothing_ofdm_zoomed_in.svg', bbox_inches='tight') # for OFDM example 2
+    #plt.savefig('../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg', bbox_inches='tight')
     plt.show()
     exit()
 
@@ -422,7 +469,7 @@ def generate_bspk(sps, f_offset):
         pulse = np.zeros(sps)
         pulse[0] = bit*2-1  # set the first value to either a 1 or -1
         bpsk = np.concatenate((bpsk, pulse))  # add the 8 samples to the signal
-    num_taps = 101  # for our RRC filter
+    num_taps = 101  # for our RC filter
     if False:  # RC pulse shaping
         beta = 0.249
         t = np.arange(num_taps) - (num_taps-1)//2

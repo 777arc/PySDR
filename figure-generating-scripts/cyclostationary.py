@@ -51,7 +51,9 @@ if False:
     #print(pulse_train[0:96].astype(int))
 
     # Raised-Cosine Filter for Pulse Shaping
-    beta = 0.3 # rolloff parameter (avoid exactly 0.2, 0.25, 0.5, and 1.0)
+    #beta = 0.3 # rolloff parameter (avoid exactly 0.2, 0.25, 0.5, and 1.0)
+    #beta = 0.6 # 2nd fig
+    beta = 0.9 # 3rd fig
     num_taps = 101 # somewhat arbitrary
     t = np.arange(num_taps) - (num_taps-1)//2
     h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2) # RC equation
@@ -81,7 +83,7 @@ if False:
 ###################################################
 # Multiple overlapping signals (replaces samples) #
 ###################################################
-if True:
+if False:
     N = 1000000 # number of samples to simulate
 
     def fractional_delay(x, delay):
@@ -270,6 +272,8 @@ if True:
     #plt.savefig('../_images/scf_freq_smoothing_ofdm.svg', bbox_inches='tight') # for OFDM example
     #plt.savefig('../_images/scf_freq_smoothing_ofdm_zoomed_in.svg', bbox_inches='tight') # for OFDM example 2
     #plt.savefig('../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg', bbox_inches='tight')
+    #plt.savefig('../_images/scf_freq_smoothing_pulse_shaped_bpsk2.svg', bbox_inches='tight')
+    #plt.savefig('../_images/scf_freq_smoothing_pulse_shaped_bpsk3.svg', bbox_inches='tight')
     #plt.savefig('../_images/scf_freq_smoothing_pulse_multiple_signals.svg', bbox_inches='tight') # I ADDED ANNOTATIONS TO THIS ONE!!!!
     plt.show()
     exit()

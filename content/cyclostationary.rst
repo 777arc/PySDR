@@ -27,9 +27,9 @@ A good place to start understanding CSP is the cyclic autocorrelation function (
 Cyclostationary signals possess a periodic or almost periodic autocorrelation, and the CAF is the set of Fourier series coefficients that describe this periodicity. In other words, the CAF is the amplitude and phase of the harmonics present in a signal's autocorrelation, giving it the following form: 
 
 .. math::
-    R_x(\tau, \alpha) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt.
+    R_x^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt.
 
-It can be seen that the CAF is a function of two variables, the delay :math:`\tau` (tau) and the cycle frequency :math:`\alpha`. Cycle frequencies in CSP represent the rates at which a signals' statistics change which, in the case of the CAF, is the second-order moment or variance. Therefore, cycle frequencies often correspond to prominent periodic behavior such as modulated symbols in communications signals. We will see how the symbol rate and its integer multiples (harmonics) manifest as cycle frequencies in the CAF.
+It can be seen that the CAF is a function of two variables, the delay :math:`\tau` (tau) and the cycle frequency :math:`\alpha`. Cycle frequencies in CSP represent the rates at which a signals' statistics change which, in the case of the CAF, is the second-order moment or variance. Therefore, cycle frequencies often correspond to prominent periodic behavior such as modulated symbols in communications signals. We will see how the symbol rate of a BPSK signal and its integer multiples (harmonics) manifest as cycle frequencies in the CAF.
 
 In Python, the CAF at a given alpha and tau value can be computed using the following code snippet (we'll fill out the surrounding code shortly):
 
@@ -114,14 +114,25 @@ While the CAF is interesting, it is really just an intermediate step to reach ou
 The Spectral Correlation Function (SCF)
 ************************************************
 
-Just as the CAF shows us the periodicity in the autocorrelation of a signal, the SCF shows us the periodicity in the power spectral density (PSD) of a signal. The autocorrelation and the PSD are in fact a Fourier Transform pair, and it therefore it should not come as a surprise that the CAF and the SCF are also a Fourier Transform pair.
+Just as the CAF shows us the periodicity in the autocorrelation of a signal, the SCF shows us the periodicity in the power spectral density (PSD) of a signal. The autocorrelation and the PSD are in fact a Fourier Transform pair, and it therefore it should not come as a surprise that the CAF and the SCF are also a Fourier Transform pair. This relationship is known as the *Cyclic Wiener Relationship*. This fact should make even more sense when one considers that the CAF and SCF evaluated at a cycle frequency of :math:`\alpha=0` are the autocorrelation and PSD, respectively.
 
-* Discuss the Cyclic Wiener Relationship (says that the CAF and the SCF are Fourier transforms of each other)
-* Discuss generalization of the power spectral density
-* Frequency smoothing and time smoothing methods
-* Include some illustrations of the SCF for simple cyclostationary signals like BPSK and QPSK with rect and SRRC pulse shapes
+Computing the SCF usually involves some form of averaging; either time-based or frequency-based. First, consider the periodogam which is simply the squared magnitude of the Fourier Transform of a signal: :math:`I(u,f) = \frac{1}{N}\left|X(u,f)\right|^2`. We can obtain the cyclic periodogram through the product of two fourier transforms shifted in frequency: :math:`I^{\alpha}(u,f) = \frac{1}{N}X(u,f + \alpha/2) X^*(u,f - \alpha/2)`. Both of these represent estimates of the PSD and the SCF, but to obtain the true value of the SCF one must average over time:
 
-First let's look at the SCF at the correct alpha (0.05 Hz) for our rectangular BPSK signal.  All we need to do is take the FFT of the CAF and plot the magnitude.  The following code snippet goes along with the CAF code we wrote earlier when computing just one alpha:
+.. math::
+    S_X^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X^*(t,f - \alpha/2) dt
+
+which is known as the Time Smoothing Method (TSM).
+
+Or over frequency:
+
+.. math::
+    S_X^{\alpha}(f) = \lim_{\Delta\rightarrow 0} \lim_{T\rightarrow \infty} \frac{1}{T} g_{\Delta}(f) \otimes \left[X(t,f + \alpha/2) X^*(t,f - \alpha/2)\right]
+
+where the function :math:`g_{\Delta}(f)` is a frequency smoothing function that averages over a small range of frequencies. This is known as the Frequency Smoothing Method (FSM).
+
+In addition to the above two formulas, one can also simply take the Fourier transform of the CAF to obtain the SCF. Doing this is less computationally efficient in practice, but it is a good way to understand the relationship between the two functions.
+
+Returning to our 20 sample-per-symbol BPSK signal, let's look at the SCF at the correct alpha (0.05 Hz). All we need to do is take the FFT of the CAF and plot the magnitude. The following code snippet goes along with the CAF code we wrote earlier when computing just one alpha:
 
 .. code-block:: python
 

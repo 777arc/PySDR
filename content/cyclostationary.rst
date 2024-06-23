@@ -29,7 +29,7 @@ Cyclostationary signals possess a periodic or almost periodic autocorrelation, a
 .. math::
     R_x(\tau, \alpha) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt.
 
-It can be seen that the CAF is a function of two variables, the delay :math:`\tau` (tau) and the cycle frequency :math:`\alpha`.
+It can be seen that the CAF is a function of two variables, the delay :math:`\tau` (tau) and the cycle frequency :math:`\alpha`. Cycle frequencies in CSP represent the rates at which a signals' statistics change which, in the case of the CAF, is the second-order moment or variance. Therefore, cycle frequencies often correspond to prominent periodic behavior such as modulated symbols in communications signals. We will see how the symbol rate and its integer multiples (harmonics) manifest as cycle frequencies in the CAF.
 
 In Python, the CAF at a given alpha and tau value can be computed using the following code snippet (we'll fill out the surrounding code shortly):
 
@@ -633,3 +633,7 @@ Signal Detection with known cyclic frequency
 ********************************
 
 * Talk about the Tau
+
+********************************
+Cyclic Filtering
+********************************

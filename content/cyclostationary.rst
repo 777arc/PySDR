@@ -108,6 +108,8 @@ Not only do we see the expected spike at 0.05 Hz, but we also see a spike at int
 
 While the CAF is interesting, it is really just an intermediate step to reach our end-goal; the Spectral Correlation Function (SCF), which we will discuss next.
 
+* Talk about the averaging the SCF over frequency
+
 ************************************************
 The Spectral Correlation Function (SCF)
 ************************************************
@@ -296,8 +298,10 @@ SNR and Number of Symbols
 
 
 ********************************
-QPSK and QAM
+QPSK and Higher-Order Modulation
 ********************************
+
+* Mention higher-order cyclic moments and cummulants
 
 ********************************
 OFDM
@@ -378,7 +382,7 @@ Conjugates
 
 External Resources on Conjugate CSP:
 
-* asdasd
+* BPSK vs QPSK
 
 ********************************
 FFT Accumulation Method (FAM)
@@ -453,3 +457,9 @@ External Resources on FAM:
 * R.S. Roberts, W. A. Brown, and H. H. Loomis, Jr., "Computationally Efficient Algorithms for Cyclic Spectral Analysis," IEEE Signal Processing Magazine, April 1991, pp. 38-49. `Available here <https://www.researchgate.net/profile/Faxin-Zhang-2/publication/353071530_Computationally_efficient_algorithms_for_cyclic_spectral_analysis/links/60e69d2d30e8e50c01eb9484/Computationally-efficient-algorithms-for-cyclic-spectral-analysis.pdf>`_
 * Da Costa, Evandro Luiz. Detection and identification of cyclostationary signals. Diss. Naval Postgraduate School, 1996. `Available here <https://apps.dtic.mil/sti/pdfs/ADA311555.pdf>`_
 * Chad's blog post on FAM: https://cyclostationary.blog/2018/06/01/csp-estimators-the-fft-accumulation-method/
+
+********************************
+Signal Detection with known cyclic frequency
+********************************
+
+* Talk about the Tau

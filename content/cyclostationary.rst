@@ -287,10 +287,76 @@ External Resources on TSM:
 * asdasd
 
 
-********************************
+*****************
 Pulse-Shaped BPSK
-********************************
+*****************
 
+Up until this point, we have only investigated CSP of a *rectangular* BPSK signal.  However, in actual RF systems, we almost never see rectangular pulses, with the one exception being the BPSK chipping sequence within direct-sequence spread spectrum (DSSS) which tends to be approximately rectangular.  
+
+Let's now look at a BPSK signal with a raised-cosine (RC) pulse shape, which is a common pulse shape used in digital communications, and is used to reduce the occupied bandwidth of the signal compared to rectangular BPSK.  As discussed in the Pulse Shaping chapter, the RC pulse shape in the time domain is given by:
+
+.. math::
+ h(t) = \mathrm{sinc}\left( \frac{t}{T} \right) \frac{\cos\left(\frac{\pi\beta t}{T}\right)}{1 - \left( \frac{2 \beta t}{T}   \right)^2}
+
+The :math:`\beta` parameter determines how quickly the filter tapers off in the time domain, which will be inversely proportional with how quickly it tapers off in frequency:
+
+.. image:: ../_images/raised_cosine_freq.svg
+   :align: center 
+   :target: ../_images/raised_cosine_freq.svg
+   :alt: The raised cosine filter in the frequency domain with a variety of roll-off values
+
+Note that :math:`\beta=0` corresponds to an infinitely long pulse shape and thus is not practical.  Also note that :math:`\beta=1` does *not* correspond to a rectangular pulse shape.  The roll-off factor is typically chosen to be between 0.2 and 0.4 in practice.
+
+We can simulate a BPSK signal with a raised-cosine pulse shaping using the following code snippet; note the first 5 lines and last 4 lines are the same as rectangular BPSK:
+
+.. code-block:: python
+
+    N = 100000 # number of samples to simulate
+    f_offset = 0.2 # Hz normalized
+    sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
+    num_symbols = int(np.ceil(N/sps))
+    symbols = np.random.randint(0, 2, num_symbols) * 2 - 1 # random 1's and -1's
+
+    pulse_train = np.zeros(num_symbols * sps)
+    pulse_train[::sps] = symbols # easier explained by looking at an example output
+    print(pulse_train[0:96].astype(int))
+
+    # Raised-Cosine Filter for Pulse Shaping
+    beta = 0.3 # rolloff parameter (avoid exactly 0.2, 0.25, 0.5, and 1.0)
+    num_taps = 101 # somewhat arbitrary
+    t = np.arange(num_taps) - (num_taps-1)//2
+    h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2) # RC equation
+    bpsk = np.convolve(pulse_train, h, 'same') # apply the pulse shaping
+    
+    bpsk = bpsk[:N]  # clip off the extra samples
+    bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
+    noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
+    samples = bpsk + 0.1*noise  # add noise to the signal
+
+Note that :code:`pulse_train` is simply our symbols with :code:`sps - 1` zeros after each one, in sequence, e.g.:
+
+.. code-block:: bash
+
+ [ 1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0
+   0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0
+   0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0
+   0  0  0  0  0  0  0  0 -1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0...
+
+The plot below shows the BPSK in the time domain, before noise, and before the frequency shift is added:
+
+.. image:: ../_images/pulse_shaped_BSPK.svg
+   :align: center 
+   :target: ../_images/pulse_shaped_BSPK.svg
+   :alt: Pulse-shaped BPSK signal with a raised-cosine pulse shape
+
+Now let's calculate the SCF of this pulse-shaped BPSK signal with a rolloff of 0.3 and frequency shift of 0.2 Hz.  We will use the FSM, with the same FSM parameters and symbol length as used in the rectangular BPSK example, to make it a fair comparison:
+
+.. image:: ../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg
+   :align: center 
+   :target: ../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg
+   :alt: SCF of pulse-shaped BPSK using the Frequency Smoothing Method (FSM)
+
+As you can see, we no longer get the sidelobes in the frequency axis, and in the cyclic frequency axis we don't get as strong of harmonics of the fundamental cyclic frequency.  This is because the raised-cosine pulse shape has a much better spectral containment than the rectangular pulse shape, and the sidelobes are much lower.  As a result, pulse-shaped signals tend to have a much "cleaner" SCF than rectangular signals, resembling a single spike.  This will apply to all single carrier digitally modulated signals, not just BPSK.
 
 ********************************
 SNR and Number of Symbols
@@ -364,6 +430,94 @@ Note the horizontal line torwards the top, indicating there is a low cyclic freq
 ********************************
 Multiple Overlapping Signals
 ********************************
+
+Up until now we have only looked at one signal at a time, but what if our received signal contains multiple individual signals that overlap in frequency, time, and even cyclic frequency (i.e., have the same samples per symbol)?  This is a common scenario in RF communications, and cyclostationary processing can be used to separate these signals.  Let's simulate three signals, each with different properties:
+
+* Signal 1: Rectangular BPSK with 20 samples per symbol and 0.2 Hz frequency offset
+* Signal 2: Pulse-shaped BPSK with 20 samples per symbol, -0.1 Hz frequency offset, and 0.35 roll-off
+* Signal 3: Pulse-shaped QPSK with 4 samples per symbol, 0.2 Hz frequency offset, and 0.21 roll-off
+
+As you can see, we have two signals that have the same cyclic frequency, and two with the same RF frequency.
+
+A fractional delay filter with an arbitrary (non-integer) delay is applied to each signal, so that there are no weird artifacts caused by the signals being simulated with aligned samples.  The rectangular BPSK signal is reduced in power compared to the other two, as rectangular-pulsed signals exhibit very strong cyclostationary properties so they tend to dominate the SCF.
+
+.. raw:: html
+
+   <details>
+   <summary>Expand for Python code simulating the three signals</summary>
+
+.. code-block:: python
+
+    N = 1000000 # number of samples to simulate
+
+    def fractional_delay(x, delay):
+        N = 21 # number of taps
+        n = np.arange(-N//2, N//2) # ...-3,-2,-1,0,1,2,3...
+        h = np.sinc(n - delay) # calc filter taps
+        h *= np.hamming(N) # window the filter to make sure it decays to 0 on both sides
+        h /= np.sum(h) # normalize to get unity gain, we don't want to change the amplitude/power
+        return np.convolve(x, h, 'same') # apply filter
+
+    # Signal 1, Rect BPSK
+    sps = 20
+    f_offset = 0.2
+    signal1 = np.repeat(np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1, sps)
+    signal1 = signal1[:N] * np.exp(2j * np.pi * f_offset * np.arange(N))
+    signal1 = fractional_delay(signal1, 0.12345)
+
+    # Signal 2, Pulse-shaped BPSK
+    sps = 20
+    f_offset = -0.1
+    beta = 0.35
+    symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1
+    pulse_train = np.zeros(int(np.ceil(N/sps)) * sps)
+    pulse_train[::sps] = symbols
+    t = np.arange(101) - (101-1)//2
+    h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2)
+    signal2 = np.convolve(pulse_train, h, 'same')
+    signal2 = signal2[:N] * np.exp(2j * np.pi * f_offset * np.arange(N))
+    signal2 = fractional_delay(signal2, 0.52634)
+
+    # Signal 3, Pulse-shaped QPSK
+    sps = 4
+    f_offset = 0.2
+    beta = 0.21
+    data = x_int = np.random.randint(0, 4, int(np.ceil(N/sps))) # 0 to 3
+    data_degrees = data*360/4.0 + 45 # 45, 135, 225, 315 degrees
+    symbols = np.cos(data_degrees*np.pi/180.0) + 1j*np.sin(data_degrees*np.pi/180.0)
+    pulse_train = np.zeros(int(np.ceil(N/sps)) * sps, dtype=complex)
+    pulse_train[::sps] = symbols
+    t = np.arange(101) - (101-1)//2
+    h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2)
+    signal3 = np.convolve(pulse_train, h, 'same')
+    signal3 = signal3[:N] * np.exp(2j * np.pi * f_offset * np.arange(N))
+    signal3 = fractional_delay(signal3, 0.3526)
+
+    # Add noise
+    noise = np.random.randn(N) + 1j*np.random.randn(N)
+    samples = 0.5*signal1 + signal2 + 1.5*signal3 + 0.1*noise
+
+.. raw:: html
+
+   </details>
+
+Before we dive into the CSP, let's look at the PSD of this signal:
+
+.. image:: ../_images/psd_of_multiple_signals.svg
+   :align: center 
+   :target: ../_images/psd_of_multiple_signals.svg
+   :alt: PSD of three different signals
+
+Signals 1 and 3, which are on the positive side of the PSD, overlap and you can barely see Signal 1 (which is narrower) sticking out.  We can also get a feel for the noise level.
+
+We will now use the FSM to calculate the SCF of these combined signals:
+
+.. image:: ../_images/scf_freq_smoothing_pulse_multiple_signals.svg
+   :align: center 
+   :target: ../_images/scf_freq_smoothing_pulse_multiple_signals.svg
+   :alt: SCF of three different signals using the Frequency Smoothing Method (FSM)
+
+Notice how Signal 1, even though it's rectangular pulse-shaped, has its harmonics mostly masked by the cone above Signal 3.  Recall that in the PSD, Signal 1 was "hiding behind" Signal 3.  Through CSP, we can detect that Signal 1 is present, and get a close approximation of its cyclic frequency, which can then be used to synchronize to it.  This is the power of cyclostationary signal processing!
 
 ********************************
 Spectral Coherence Function

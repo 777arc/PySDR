@@ -287,11 +287,13 @@ External Resources on TSM:
 * asdasd
 
 
-********************************
+*****************
 Pulse-Shaped BPSK
-********************************
+*****************
 
-Up until this point we have only investigated CSP of a rectangular BPSK signal.  Let's now look at a BPSK signal with a raised-cosine (RC) pulse shape, which is a common pulse shape used in digital communications, and is used to reduce the occupied bandwidth of the signal compared to rectangular BPSK.  As discussed in the Pulse Shaping chapter, the RC pulse shape in the time domain is given by:
+Up until this point, we have only investigated CSP of a *rectangular* BPSK signal.  However, in actual RF systems, we almost never see rectangular pulses, with the one exception being the BPSK chipping sequence within direct-sequence spread spectrum (DSSS) which tends to be approximately rectangular.  
+
+Let's now look at a BPSK signal with a raised-cosine (RC) pulse shape, which is a common pulse shape used in digital communications, and is used to reduce the occupied bandwidth of the signal compared to rectangular BPSK.  As discussed in the Pulse Shaping chapter, the RC pulse shape in the time domain is given by:
 
 .. math::
  h(t) = \mathrm{sinc}\left( \frac{t}{T} \right) \frac{\cos\left(\frac{\pi\beta t}{T}\right)}{1 - \left( \frac{2 \beta t}{T}   \right)^2}
@@ -302,6 +304,8 @@ The :math:`\beta` parameter determines how quickly the filter tapers off in the 
    :align: center 
    :target: ../_images/raised_cosine_freq.svg
    :alt: The raised cosine filter in the frequency domain with a variety of roll-off values
+
+Note that :math:`\beta=0` corresponds to an infinitely long pulse shape and thus is not practical.  Also note that :math:`\beta=1` does *not* correspond to a rectangular pulse shape.  The roll-off factor is typically chosen to be between 0.2 and 0.4 in practice.
 
 We can simulate a BPSK signal with a raised-cosine pulse shaping using the following code snippet; note the first 5 lines and last 4 lines are the same as rectangular BPSK:
 
@@ -336,16 +340,16 @@ Note that :code:`pulse_train` is simply our symbols with :code:`sps - 1` zeros a
  [ 1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0
    0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0
    0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0
-   0  0  0  0  0  0  0  0 -1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
+   0  0  0  0  0  0  0  0 -1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0...
 
-Below shows the BPSK in the time domain, before noise and the frequency shift is added:
+The plot below shows the BPSK in the time domain, before noise, and before the frequency shift is added:
 
 .. image:: ../_images/pulse_shaped_BSPK.svg
    :align: center 
    :target: ../_images/pulse_shaped_BSPK.svg
    :alt: Pulse-shaped BPSK signal with a raised-cosine pulse shape
 
-Now let's calculate the SCF of this pulse-shaped BPSK signal with a rolloff of 0.3 and frequency shift of 0.2 Hz.  We will use the FSM, with the same FSM parameters and symbol length as used in in rectangular BPSK example, to make it a fair comparison:
+Now let's calculate the SCF of this pulse-shaped BPSK signal with a rolloff of 0.3 and frequency shift of 0.2 Hz.  We will use the FSM, with the same FSM parameters and symbol length as used in the rectangular BPSK example, to make it a fair comparison:
 
 .. image:: ../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg
    :align: center 

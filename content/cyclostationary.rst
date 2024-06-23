@@ -360,14 +360,30 @@ The plot below shows the BPSK in the time domain, before noise, and before the f
    :target: ../_images/pulse_shaped_BSPK.svg
    :alt: Pulse-shaped BPSK signal with a raised-cosine pulse shape
 
-Now let's calculate the SCF of this pulse-shaped BPSK signal with a rolloff of 0.3 and frequency shift of 0.2 Hz.  We will use the FSM, with the same FSM parameters and symbol length as used in the rectangular BPSK example, to make it a fair comparison:
+Now let's calculate the SCF of this pulse-shaped BPSK signal with a rolloff of 0.3, 0.6, and 0.9. We will use the same frequency shift of 0.2 Hz, and the FSM, with the same FSM parameters and symbol length as used in the rectangular BPSK example, to make it a fair comparison:
+
+:code:`beta = 0.3`:
 
 .. image:: ../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg
    :align: center 
    :target: ../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg
-   :alt: SCF of pulse-shaped BPSK using the Frequency Smoothing Method (FSM)
+   :alt: SCF of pulse-shaped BPSK using the Frequency Smoothing Method (FSM) beta 0.3
 
-As you can see, we no longer get the sidelobes in the frequency axis, and in the cyclic frequency axis we don't get as strong of harmonics of the fundamental cyclic frequency.  This is because the raised-cosine pulse shape has a much better spectral containment than the rectangular pulse shape, and the sidelobes are much lower.  As a result, pulse-shaped signals tend to have a much "cleaner" SCF than rectangular signals, resembling a single spike.  This will apply to all single carrier digitally modulated signals, not just BPSK.
+:code:`beta = 0.6`:
+
+.. image:: ../_images/scf_freq_smoothing_pulse_shaped_bpsk2.svg
+   :align: center 
+   :target: ../_images/scf_freq_smoothing_pulse_shaped_bpsk2.svg
+   :alt: SCF of pulse-shaped BPSK using the Frequency Smoothing Method (FSM) beta 0.6
+
+:code:`beta = 0.9`:
+
+.. image:: ../_images/scf_freq_smoothing_pulse_shaped_bpsk3.svg
+   :align: center 
+   :target: ../_images/scf_freq_smoothing_pulse_shaped_bpsk3.svg
+   :alt: SCF of pulse-shaped BPSK using the Frequency Smoothing Method (FSM) beta 0.9
+
+In all three, we no longer get the sidelobes in the frequency axis, and in the cyclic frequency axis we don't get as strong of harmonics of the fundamental cyclic frequency.  This is because the raised-cosine pulse shape has a much better spectral containment than the rectangular pulse shape, and the sidelobes are much lower.  As a result, pulse-shaped signals tend to have a much "cleaner" SCF than rectangular signals, resembling a single spike with a smearing above it.  This will apply to all single carrier digitally modulated signals, not just BPSK.  As beta gets larger we get a broader spike in the frequency axis because the signal takes up more bandwidth.
 
 ********************************
 SNR and Number of Symbols

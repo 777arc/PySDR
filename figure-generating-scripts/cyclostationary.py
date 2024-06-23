@@ -39,7 +39,7 @@ if False:
 # BPSK with Pulse Shaping (replaces samples) #
 ##############################################
 
-if True:
+if False:
     N = 100000 # number of samples to simulate
     f_offset = 0.2 # Hz normalized
     sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
@@ -51,7 +51,7 @@ if True:
     #print(pulse_train[0:96].astype(int))
 
     # Raised-Cosine Filter for Pulse Shaping
-    beta = 0.3 # rolloff parameter (avoid exactly 0.25, 0.5, and 1.0)
+    beta = 0.3 # rolloff parameter (avoid exactly 0.2, 0.25, 0.5, and 1.0)
     num_taps = 101 # somewhat arbitrary
     t = np.arange(num_taps) - (num_taps-1)//2
     h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2) # RC equation
@@ -81,17 +81,66 @@ if True:
 ###################################################
 # Multiple overlapping signals (replaces samples) #
 ###################################################
-if False:
-    N = 100000 # number of samples to simulate
-    f_offset = 0.2 # Hz normalized
-    sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
+if True:
+    N = 1000000 # number of samples to simulate
 
-    symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1 # random 1's and -1's
-    bpsk = np.repeat(symbols, sps)  # repeat each symbol sps times to make rectangular BPSK
-    bpsk = bpsk[:N]  # clip off the extra samples
-    bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
-    noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
-    samples = bpsk + 0.1*noise  # add noise to the signal
+    def fractional_delay(x, delay):
+        N = 21 # number of taps
+        n = np.arange(-N//2, N//2) # ...-3,-2,-1,0,1,2,3...
+        h = np.sinc(n - delay) # calc filter taps
+        h *= np.hamming(N) # window the filter to make sure it decays to 0 on both sides
+        h /= np.sum(h) # normalize to get unity gain, we don't want to change the amplitude/power
+        return np.convolve(x, h, 'same') # apply filter
+
+    # Signal 1, Rect BPSK
+    sps = 20
+    f_offset = 0.2
+    signal1 = np.repeat(np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1, sps)
+    signal1 = signal1[:N] * np.exp(2j * np.pi * f_offset * np.arange(N))
+    signal1 = fractional_delay(signal1, 0.12345)
+
+    # Signal 2, Pulse-shaped BPSK
+    sps = 20
+    f_offset = -0.1
+    beta = 0.35
+    symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1
+    pulse_train = np.zeros(int(np.ceil(N/sps)) * sps)
+    pulse_train[::sps] = symbols
+    t = np.arange(101) - (101-1)//2
+    h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2)
+    signal2 = np.convolve(pulse_train, h, 'same')
+    signal2 = signal2[:N] * np.exp(2j * np.pi * f_offset * np.arange(N))
+    signal2 = fractional_delay(signal2, 0.52634)
+
+    # Signal 3, Pulse-shaped QPSK
+    sps = 4
+    f_offset = 0.2
+    beta = 0.21
+    data = x_int = np.random.randint(0, 4, int(np.ceil(N/sps))) # 0 to 3
+    data_degrees = data*360/4.0 + 45 # 45, 135, 225, 315 degrees
+    symbols = np.cos(data_degrees*np.pi/180.0) + 1j*np.sin(data_degrees*np.pi/180.0)
+    pulse_train = np.zeros(int(np.ceil(N/sps)) * sps, dtype=complex)
+    pulse_train[::sps] = symbols
+    t = np.arange(101) - (101-1)//2
+    h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2)
+    signal3 = np.convolve(pulse_train, h, 'same')
+    signal3 = signal3[:N] * np.exp(2j * np.pi * f_offset * np.arange(N))
+    signal3 = fractional_delay(signal3, 0.3526)
+
+    # Add noise
+    noise = np.random.randn(N) + 1j*np.random.randn(N)
+    samples = 0.5*signal1 + signal2 + 1.5*signal3 + 0.1*noise
+
+    if False:
+        PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)/N))**2)
+        f = np.linspace(-0.5, 0.5, len(PSD))
+        plt.plot(f, PSD)
+        plt.xlabel('Frequency')
+        plt.ylabel('PSD')
+        plt.grid()
+        plt.savefig('../_images/psd_of_multiple_signals.svg', bbox_inches='tight')
+        plt.show()
+        exit()
 
 ###########################
 # OFDM (replaces samples) #
@@ -221,6 +270,7 @@ if True:
     #plt.savefig('../_images/scf_freq_smoothing_ofdm.svg', bbox_inches='tight') # for OFDM example
     #plt.savefig('../_images/scf_freq_smoothing_ofdm_zoomed_in.svg', bbox_inches='tight') # for OFDM example 2
     #plt.savefig('../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg', bbox_inches='tight')
+    #plt.savefig('../_images/scf_freq_smoothing_pulse_multiple_signals.svg', bbox_inches='tight') # I ADDED ANNOTATIONS TO THIS ONE!!!!
     plt.show()
     exit()
 

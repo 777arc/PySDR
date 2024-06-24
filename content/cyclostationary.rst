@@ -588,16 +588,19 @@ The coherence version of the SCF, sometimes refered to as COH, is simply a norma
 
 External Resources on COH:
 
-* asdasd
-
+#. 1
+#. 2
 
 ********************************
 Conjugates
 ********************************
 
+* BPSK vs QPSK
+
 External Resources on Conjugate CSP:
 
-* BPSK vs QPSK
+#. 1
+#. 2
 
 ********************************
 FFT Accumulation Method (FAM)

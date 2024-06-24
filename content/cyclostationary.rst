@@ -18,28 +18,58 @@ Cyclostationary signal processing (a.k.a., CSP or simply cyclostationary process
 
 Talk about how for single carrier signals its really just an autocorrelation with an extra shift, and at the right shift the main lobe of each pulse will line up with the sidelobe of the same pulse.  And for OFDM it is the same thing but with the cyclic prefix added on to each symbol.  Explanations of CSP in textbooks and other resources tend to be very math-heavy, but we will try to keep things as simple as possible.
 
+*************************
+Review of Autocorrelation
+*************************
+
+Even if you think you're familiar with the autocorrelation function, it is worth taking a moment to review it, because it is the foundation of CSP. The autocorrelation function is a measure of the similarity (a.k.a., correlation) between a signal and the time-shifted version of itself.  Intuitively, it represents the degree to which a signal exhibits repetitive behavior.  The autocorrelation of signal :math:`x(t)` is defined as:
+
+.. math::
+    R_x(\tau) = E[x(t)x^*(t-\tau)]
+
+where :math:`E` is the expectation operator, :math:`\tau` is the time delay,  and :math:`*` is the complex conjugate symbol.  In discrete time, with a limited number of samples, which is what we care about, this becomes:
+
+.. math::
+    R_x(\tau) = \frac{1}{N} \sum_{n=-N/2}^{N/2} x\left[ n+\frac{\tau}{2} \right] x^*\left[ n-\frac{\tau}{2} \right]
+
+where :math:`N` is the number of samples in the signal.  
+
+If the signal is periodic in some way, such as a QPSK signal's symbol shape repeating, then the autocorrelation evaluated over a range of tau will also be periodic.  For example, if a QPSK signal has 8 samples per symbol, then when tau is an integer multiple of 8, there will be a much stronger "measure of the similarity" than other values of tau.  The period of the autocorrelation is what we will ultimately be detecting as part of CSP techniques.
+
 ************************************************
 The Cyclic Autocorrelation Function (CAF)
 ************************************************
 
-A good place to start understanding CSP is the cyclic autocorrelation function (CAF). The CAF is an extension of the traditional autocorrelation function to cyclostationary signals. As a refresher, the autocorrelation of a random process is the expected product of two time instants of the process and is defined as: :math:`R_x(t_1, t_2) = E[x(t_1)x^*(t_2)]`. Intuitively, it represents the degree to which a signal exhibits repetitive behavior. This can alternatively be written as :math:`R_x(t, \tau) = E[x(t+\tau/2)x^*(t-\tau/2)]` where :math:`\tau` is the delay between the two signals and :math:`t` is the midpoint. Some signals exhibit the property where their autocorrelation does not depend upon the midpoint :math:`t` and only on the delay :math:`\tau`. These signals are stationary of order 2 or just stationary. For cyclostationary signals, however, the midpoint does matter, meaning that the autocorrelation depends on both the delay and the midpoint, a function of two lag parameters.
+As discussed in the previous section, we want to find out when there is periodicity in our autocorrelation.  Recall the Fourier transform equation, where if we want to test how strong a certain frequency :math:`f` exists within some arbitrary signal :math:`x(t)`, we can do so with the following equation:
 
-Cyclostationary signals possess a periodic or almost periodic autocorrelation, and the CAF is the set of Fourier series coefficients that describe this periodicity. In other words, the CAF is the amplitude and phase of the harmonics present in a signal's autocorrelation, giving it the following form: 
+.. math::
+    X(f) = \int x(t) e^{-j2\pi ft} dt
+
+So if we want to find periodicity in our autocorrelation, we simply calculate: 
 
 .. math::
     R_x^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt.
 
+or in discrete time:
+
+.. math::
+    R_x^a(\tau) = \frac{1}{N} \sum_{n=-N/2}^{N/2} x\left[ n+\frac{\tau}{2} \right] x^*\left[ n-\frac{\tau}{2} \right] e^{-j2\pi a n}
+
+which tests how strong frequency :math:`a` is.  We call the above equation the Cyclic Autocorrelation Function (CAF).  Another way to think about the CAF is as a set of Fourier series coefficients that describe this periodicity. In other words, the CAF is the amplitude and phase of the harmonics present in a signal's autocorrelation.  We use the term "cyclostationary" to refer to signals that possess a periodic or almost periodic autocorrelation.  The CAF is an extension of the traditional autocorrelation function to cyclostationary signals.
+
 It can be seen that the CAF is a function of two variables, the delay :math:`\tau` (tau) and the cycle frequency :math:`\alpha`. Cycle frequencies in CSP represent the rates at which a signals' statistics change which, in the case of the CAF, is the second-order moment or variance. Therefore, cycle frequencies often correspond to prominent periodic behavior such as modulated symbols in communications signals. We will see how the symbol rate of a BPSK signal and its integer multiples (harmonics) manifest as cycle frequencies in the CAF.
 
-In Python, the CAF at a given alpha and tau value can be computed using the following code snippet (we'll fill out the surrounding code shortly):
+In Python, the CAF of signal :code:`samples` at a given :code:`alpha` and :code:`tau` value can be computed using the following code snippet (we'll fill out the surrounding code shortly).
 
 .. code-block:: python
  
- np.sum(np.roll(samples, -1*tau//2) *
-        np.conj(np.roll(samples, tau//2)) *
-        np.exp(-2j * np.pi * alpha * np.arange(len(samples))))
+ CAF = np.sum(samples *
+              np.conj(np.roll(samples, tau)) *
+              np.exp(-2j * np.pi * alpha * np.arange(N)))
 
-In order to play with the CAF, we first need to simulate an example signal. For now we will use a rectangular BPSK signal (i.e., BPSK without pulse-shaping applied) with 20 samples per symbol, added to some AWGN.  We will apply a frequency offset to the BPSK signal, so that later we can show off how cyclostationary processing can be used to estimate the frequency offset as well as the cyclic frequency.  The following code snippet simulates the IQ samples we will use for the remainder of the next two sections:
+We use :code:`np.roll` to shift one of the sets of samples by tau, because you have to shift by an integer number of samples, so if we shifted both sets of samples in opposite directions we would skip every other shift.
+
+In order to play with the CAF in Python, we first need to simulate an example signal. For now we will use a rectangular BPSK signal (i.e., BPSK without pulse-shaping applied) with 20 samples per symbol, added to some AWGN.  We will apply a frequency offset to the BPSK signal, so that later we can show off how cyclostationary processing can be used to estimate the frequency offset as well as the cyclic frequency.  The following code snippet simulates the IQ samples we will use for the remainder of the next two sections:
 
 .. code-block:: python
 
@@ -67,13 +97,13 @@ Now we will compute the CAF at the correct alpha, and over a range of tau values
 
 .. code-block:: python
 
- correct_alpha = 1/sps
- taus = np.arange(-100, 100)
- CAF = np.zeros(len(taus), dtype=complex)
- for i in range(len(taus)):
-     CAF[i] = np.sum(np.roll(samples, -1*taus[i]//2) *
-                     np.conj(np.roll(samples, taus[i]//2)) *
-                     np.exp(-2j * np.pi * correct_alpha * np.arange(N)))
+    correct_alpha = 1/sps # equates to 0.05 Hz
+    taus = np.arange(-100, 101) # -100 to +100 in steps of 1
+    CAF = np.zeros(len(taus), dtype=complex)
+    for i in range(len(taus)):
+        CAF[i] = np.sum(samples *
+                        np.conj(np.roll(samples, taus[i])) *
+                        np.exp(-2j * np.pi * correct_alpha * np.arange(N)))
 
 Let's plot the real part of :code:`CAF` using :code:`plt.plot(taus, np.real(CAF))`:
 
@@ -82,33 +112,39 @@ Let's plot the real part of :code:`CAF` using :code:`plt.plot(taus, np.real(CAF)
    :target: ../_images/caf_at_correct_alpha.svg
    :alt: CAF at correct alpha
 
-It looks a little funky, but keep in mind that tau is still in the time domain, and the pattern we see above will make more sense after we study the SCF in the next section.
+It looks a little funny, but keep in mind that tau represents the time domain, and the important part is that there is a lot of energy in the CAF at this alpha, because it's the alpha corresponding to a cyclic frequency within our signal.  To prove this, let's look at the CAF at an incorrect alpha, say 0.08 Hz:
+
+.. image:: ../_images/caf_at_incorrect_alpha.svg
+   :align: center 
+   :target: ../_images/caf_at_incorrect_alpha.svg
+   :alt: CAF at incorrect alpha
+
+Note the y-axis, there is way less energy in the CAF this time.  The specific patterns we see above are less important at the moment, and will make more sense after we study the SCF in the next section.
 
 One thing we can do is calculate the CAF over a range of alphas, and at each alpha we can find the power in the CAF, by taking its magnitude and taking either the sum or average (doesn't make a difference in this case).  Then if we plot these powers over alpha, we should see spikes at the cyclic frequencies within our signal.  The following code adds the for loop, and uses an alpha step size of 0.005 Hz (note that this will take a long time to run!):
 
 .. code-block:: python
 
- alphas = np.arange(0, 0.5, 0.005)
- CAF = np.zeros((len(alphas), len(taus)), dtype=complex)
- for j in range(len(alphas)):
-     for i in range(len(taus)):
-         CAF[j, i] = np.sum(np.roll(samples, -1*taus[i]//2) *
-                         np.conj(np.roll(samples, taus[i]//2)) *
-                         np.exp(-2j * np.pi * alphas[j] * np.arange(N)))
- plt.plot(alphas, np.average(np.abs(CAF), axis=1))
- plt.xlabel('Alpha')
- plt.ylabel('CAF Power')
+    alphas = np.arange(0, 0.5, 0.005)
+    CAF = np.zeros((len(alphas), len(taus)), dtype=complex)
+    for j in range(len(alphas)):
+        for i in range(len(taus)):
+            CAF[j, i] = np.sum(samples *
+                        np.conj(np.roll(samples, taus[i])) *
+                        np.exp(-2j * np.pi * alphas[j] * np.arange(N)))
+    CAF_magnitudes = np.average(np.abs(CAF), axis=1) # at each alpha, calc power in the CAF
+    plt.plot(alphas, CAF_magnitudes)
+    plt.xlabel('Alpha')
+    plt.ylabel('CAF Power')
 
 .. image:: ../_images/caf_avg_over_alpha.svg
    :align: center 
    :target: ../_images/caf_avg_over_alpha.svg
    :alt: CAF average over alpha
 
-Not only do we see the expected spike at 0.05 Hz, but we also see a spike at integer multiples of 0.05 Hz.  This is because the CAF is a Fourier series, and the harmonics of the fundamental frequency are present in the CAF, especially when we are looking at PSK/QAM signals without pulse shaping.
+Not only do we see the expected spike at 0.05 Hz, but we also see a spike at integer multiples of 0.05 Hz.  This is because the CAF is a Fourier series, and the harmonics of the fundamental frequency are present in the CAF, especially when we are looking at PSK/QAM signals without pulse shaping.  The energy at alpha = 0 is the total power in the power spectral density (PSD) of the signal, and it is not important for CSP, in fact we will typically null it out.
 
-While the CAF is interesting, it is really just an intermediate step to reach our end-goal; the Spectral Correlation Function (SCF), which we will discuss next.
-
-* Talk about the averaging the SCF over frequency
+While the CAF is interesting, we often want to view cyclic frequency over RF frequency, which we can do using the Spectral Correlation Function (SCF), which we will discuss next.
 
 ************************************************
 The Spectral Correlation Function (SCF)

@@ -10,7 +10,7 @@ import scipy.signal
 # Simulate Rect BPSK #
 ######################
 
-if False:
+if True:
     N = 100000 # number of samples to simulate
     f_offset = 0.2 # Hz normalized
     sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
@@ -83,7 +83,7 @@ if False:
 ###################################################
 # Multiple overlapping signals (replaces samples) #
 ###################################################
-if True:
+if False:
     N = 1000000 # number of samples to simulate
 
     def fractional_delay(x, delay):
@@ -188,46 +188,54 @@ if False:
 # Direct CAF #
 ##############
 
-if False:
+if True:
     # CAF only at the correct alpha
-    correct_alpha = 1/sps
-    taus = np.arange(-100, 100)
+    correct_alpha = 1/sps # equates to 0.05 Hz
+    #correct_alpha = 0.08 # INCORRECT ALPHA FOR SAKE OF PLOT
+    taus = np.arange(-100, 101) # -100 to +100 in steps of 1
     CAF = np.zeros(len(taus), dtype=complex)
     for i in range(len(taus)):
-        CAF[i] = np.sum(np.roll(samples, -1*taus[i]//2) *
-                        np.conj(np.roll(samples, taus[i]//2)) *
+        CAF[i] = np.sum(samples *
+                        np.conj(np.roll(samples, taus[i])) *
                         np.exp(-2j * np.pi * correct_alpha * np.arange(N)))
     plt.figure(0)
     plt.plot(taus, np.real(CAF))
     plt.xlabel('Tau')
     plt.ylabel('CAF (real part)')
-    plt.savefig('../_images/caf_at_correct_alpha.svg', bbox_inches='tight')
+    #plt.savefig('../_images/caf_at_correct_alpha.svg', bbox_inches='tight')
+    #plt.savefig('../_images/caf_at_incorrect_alpha.svg', bbox_inches='tight')
 
     # Used in SCF section
-    plt.figure(2)
-    f = np.linspace(-0.5, 0.5, len(taus))
+    plt.figure(1)
+    f = np.linspace(-0.5, 0.5, len(CAF))
     SCF = np.fft.fftshift(np.fft.fft(CAF))
-    plt.plot(f, np.abs(SCF))
+    SCF_magnitude = np.abs(SCF)
+    plt.plot(f, SCF_magnitude)
     plt.xlabel('Frequency')
-    plt.ylabel('SCF')
+    plt.ylabel('SCF Magnitude')
     plt.grid()
-    plt.savefig('../_images/fft_of_caf.svg', bbox_inches='tight')
+    #plt.savefig('../_images/fft_of_caf.svg', bbox_inches='tight')
+    
+    #plt.show()
+    #exit()
 
     # CAF at all alphas
     alphas = np.arange(0, 0.5, 0.005)
     CAF = np.zeros((len(alphas), len(taus)), dtype=complex)
     for j in range(len(alphas)):
         for i in range(len(taus)):
-            CAF[j, i] = np.sum(np.roll(samples, -1*taus[i]//2) *
-                            np.conj(np.roll(samples, taus[i]//2)) *
-                            np.exp(-2j * np.pi * alphas[j] * np.arange(N)))
-    plt.figure(1)
-    plt.plot(alphas, np.average(np.abs(CAF), axis=1))
+            CAF[j, i] = np.sum(samples *
+                        np.conj(np.roll(samples, taus[i])) *
+                        np.exp(-2j * np.pi * alphas[j] * np.arange(N)))
+    CAF_magnitudes = np.average(np.abs(CAF), axis=1) # at each alpha, calc power in the CAF
+    plt.figure(2)
+    plt.plot(alphas, CAF_magnitudes)
     plt.xlabel('Alpha')
     plt.ylabel('CAF Power')
     plt.savefig('../_images/caf_avg_over_alpha.svg', bbox_inches='tight')
 
     plt.show()
+    exit()
 
 
 # Freq smoothing

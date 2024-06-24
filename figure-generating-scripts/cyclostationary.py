@@ -51,9 +51,9 @@ if False:
     #print(pulse_train[0:96].astype(int))
 
     # Raised-Cosine Filter for Pulse Shaping
-    #beta = 0.3 # rolloff parameter (avoid exactly 0.2, 0.25, 0.5, and 1.0)
+    beta = 0.3 # rolloff parameter (avoid exactly 0.2, 0.25, 0.5, and 1.0)
     #beta = 0.6 # 2nd fig
-    beta = 0.9 # 3rd fig
+    #beta = 0.9 # 3rd fig
     num_taps = 101 # somewhat arbitrary
     t = np.arange(num_taps) - (num_taps-1)//2
     h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2) # RC equation
@@ -83,7 +83,7 @@ if False:
 ###################################################
 # Multiple overlapping signals (replaces samples) #
 ###################################################
-if False:
+if True:
     N = 1000000 # number of samples to simulate
 
     def fractional_delay(x, delay):
@@ -231,7 +231,7 @@ if False:
 
 
 # Freq smoothing
-if True:
+if False:
     start_time = time.time()
 
     alphas = np.arange(0, 0.3, 0.001)
@@ -319,7 +319,7 @@ if False:
 # note, its not processing all samples in x, it's just processing the first N
 # https://github.com/avian2/spectrum-sensing-methods/blob/master/sensing/utils.py
 # https://github.com/phwl/cyclostationary/blob/master/analysis/src/cyclostationary.py
-if True:
+if False:
     N = 2**14
     x = samples[0:N]
     Np = 512 # Number of input channels, should be power of 2
@@ -499,10 +499,72 @@ if True:
     exit()
     '''
 
+#######################
+# Non-CSP Alternative #
+#######################
 
+# Run using the multiple signals scenario
+if True:
+    samples_list = [signal1 + 0.1*noise,
+                    signal2 + 0.1*noise,
+                    signal3 + 0.1*noise,
+                    signal1 + signal2 + signal3 + 0.1*noise]
+    labels = ['Signal 1', 'Signal 2', 'Signal 3', 'Combined']
+    fig, axs = plt.subplots(4, 1, figsize=(5, 8))
+    for i in range(4):
+        samples = samples_list[i]
+        samples_mag = np.abs(samples) # note that samples * np.conj(samples) is pretty much the same
+        magnitude_metric = np.abs(np.fft.fft(samples_mag))
+        magnitude_metric = magnitude_metric[:len(magnitude_metric)//2] # only need half because input is real
+        magnitude_metric[0] = 0 # null out the DC component
 
+        # Plot
+        f = np.linspace(0, 0.5, len(samples)//2)
+        axs[i].plot(f, magnitude_metric)
+        axs[i].grid()
+        axs[i].set_xlabel('Frequency [Hz]')
+        axs[i].set_ylabel(labels[i])
+    plt.savefig('../_images/non_csp_metric.svg', bbox_inches='tight')
+    plt.show()
 
+    ''' ALSO INCLUDED THE RF ESTIMATION METHODS
+    samples_squared = samples**2
+    squared_metric = np.abs(np.fft.fftshift(np.fft.fft(samples_squared)))/len(samples)
+    squared_metric[len(squared_metric)//2] = 0 # null out the DC component
 
+    samples_quartic = samples**4
+    quartic_metric = np.abs(np.fft.fftshift(np.fft.fft(samples_quartic)))/len(samples)
+    quartic_metric[len(quartic_metric)//2] = 0 # null out the DC component
+
+    fig, [ax0, ax1, ax2] = plt.subplots(1, 3, figsize=(10, 3))
+
+    f = np.linspace(0, 0.5, len(samples)//2)
+    ax0.plot(f, magnitude_metric)
+    ax0.grid()
+    ax0.set_xlabel('Frequency [Hz]')
+    ax0.set_title('Magnitude Metric')
+
+    f_squared = np.linspace(-0.25, 0.25, len(samples))
+    ax1.plot(f_squared, squared_metric)
+    ax1.grid()
+    ax1.set(ylim=(0, 1.1))
+    ax1.set_xlabel('Frequency [Hz]')
+    ax1.set_title('Squared Metric')
+
+    f_quartic = np.linspace(-0.125, 0.125, len(samples))
+    ax2.plot(f_quartic, quartic_metric)
+    ax2.grid()
+    ax2.set(ylim=(0, 1.1))
+    ax2.set_xlabel('Frequency [Hz]')
+    ax2.set_title('Quartic Metric')
+    
+    #plt.savefig('../_images/non_csp_metric1.svg', bbox_inches='tight')
+    #plt.savefig('../_images/non_csp_metric2.svg', bbox_inches='tight')
+    #plt.savefig('../_images/non_csp_metric3.svg', bbox_inches='tight')
+    #plt.savefig('../_images/non_csp_metricALL.svg', bbox_inches='tight')
+    plt.show()
+    '''
+    exit()
 
 ##### EVERYTHING BEYOND THIS POINT ISNT IN THE CHAPTER YET ##########
 

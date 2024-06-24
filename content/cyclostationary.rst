@@ -458,13 +458,15 @@ Note the horizontal line torwards the top, indicating there is a low cyclic freq
 Multiple Overlapping Signals
 ********************************
 
-Up until now we have only looked at one signal at a time, but what if our received signal contains multiple individual signals that overlap in frequency, time, and even cyclic frequency (i.e., have the same samples per symbol)?  This is a common scenario in RF communications, and cyclostationary processing can be used to separate these signals.  Let's simulate three signals, each with different properties:
+Up until now we have only looked at one signal at a time, but what if our received signal contains multiple individual signals that overlap in frequency, time, and even cyclic frequency (i.e., have the same samples per symbol)?  If signals don't overlap in frequency at all, you can use simple filtering to separate them, and a PSD to detect them, assuming they are above the noise floor.  If they don't overlap in time, then you can detect the rising and falling edge of each transmitting, then use time-gating to separate the signal processing of each one.  In CSP we are often focused on detecting the presence of signals at different cyclic frequencies that overlap in both time and frequency. 
+
+Let's simulate three signals, each with different properties:
 
 * Signal 1: Rectangular BPSK with 20 samples per symbol and 0.2 Hz frequency offset
 * Signal 2: Pulse-shaped BPSK with 20 samples per symbol, -0.1 Hz frequency offset, and 0.35 roll-off
 * Signal 3: Pulse-shaped QPSK with 4 samples per symbol, 0.2 Hz frequency offset, and 0.21 roll-off
 
-As you can see, we have two signals that have the same cyclic frequency, and two with the same RF frequency.
+As you can see, we have two signals that have the same cyclic frequency, and two with the same RF frequency.  This will let us experiment with different degrees of parameter overlap.
 
 A fractional delay filter with an arbitrary (non-integer) delay is applied to each signal, so that there are no weird artifacts caused by the signals being simulated with aligned samples.  The rectangular BPSK signal is reduced in power compared to the other two, as rectangular-pulsed signals exhibit very strong cyclostationary properties so they tend to dominate the SCF.
 
@@ -545,6 +547,54 @@ We will now use the FSM to calculate the SCF of these combined signals:
    :alt: SCF of three different signals using the Frequency Smoothing Method (FSM)
 
 Notice how Signal 1, even though it's rectangular pulse-shaped, has its harmonics mostly masked by the cone above Signal 3.  Recall that in the PSD, Signal 1 was "hiding behind" Signal 3.  Through CSP, we can detect that Signal 1 is present, and get a close approximation of its cyclic frequency, which can then be used to synchronize to it.  This is the power of cyclostationary signal processing!
+
+**********************
+Alternative to the SCF
+**********************
+
+The SCF is not the only way to detect cyclostationarity in a signal.  There is actually a much simpler way (both in terms of conceptually and computational complexity).  All you need to do is take the **FFT of the magnitude** of the signal, and look for spikes.  In Python this is extremely simple:
+
+.. code-block:: python
+
+    samples_mag = np.abs(samples)
+    #samples_mag = samples * np.conj(samples) # pretty much the same
+    magnitude_metric = np.abs(np.fft.fft(samples_mag))
+
+Note that this method is effectively the same as multiplying the signal by the complex conjugate of itself, then taking the FFT.
+
+Before plotting the metric we will null out the DC component, as it will contain a lot of energy and throw off the dynamic range.  We will also get rid of half of the FFT output, because the input to the FFT is real, so the output is symmetric.  We can then plot the metric and see the spikes:
+
+.. code-block:: python
+
+    magnitude_metric = magnitude_metric[:len(magnitude_metric)//2] # only need half because input is real
+    magnitude_metric[0] = 0 # null out the DC component
+    f = np.linspace(-0.5, 0.5, len(samples))
+    plt.plot(f, magnitude_metric)
+
+You can then use a peak finding algorithm, such as scipy's :code:`signal.find_peaks()`.  Below we plot :code:`magnitude_metric` for each of the three signals used in the Multiple Overlapping Signals section, first individually, then combined:
+
+.. image:: ../_images/non_csp_metric.svg
+   :align: center 
+   :target: ../_images/non_csp_metric.svg
+   :alt: Metric for detecting cyclostationarity in a signal without using a CAF or SCF
+
+The rectangular BPSK harmonics are unfortunately overlapping with the other signal's cyclic frequencies, but this shows one downside of this alternative approach: you can't view cyclic frequency over RF frequency like in the SCF.  
+
+While this method exploits cyclostationarity in signals, it's typically not considered a "CSP technique". 
+
+For finding the RF frequency of a signal, i.e., the carrier frequency offset, there is a similar trick.  For BPSK signals, all you have to do is take the FFT of the signal squared (this will be a complex input to the FFT).  It will show a spike at the carrier frequency offset multiplied by two.  For QPSK signals, you can take the FFT of the signal to the 4th power, and it will show a spike at the carrier frequency offset multiplied by 4.
+
+.. code-block:: python
+
+    samples_squared = samples**2
+    squared_metric = np.abs(np.fft.fftshift(np.fft.fft(samples_squared)))/len(samples)
+    squared_metric[len(squared_metric)//2] = 0 # null out the DC component
+
+    samples_quartic = samples**4
+    quartic_metric = np.abs(np.fft.fftshift(np.fft.fft(samples_quartic)))/len(samples)
+    quartic_metric[len(quartic_metric)//2] = 0 # null out the DC component
+
+You can try this method out on your own simulated or captured signals, it's very useful outside of CSP.
 
 ********************************
 Spectral Coherence Function

@@ -150,23 +150,9 @@ While the CAF is interesting, we often want to view cyclic frequency over RF fre
 The Spectral Correlation Function (SCF)
 ************************************************
 
-Just as the CAF shows us the periodicity in the autocorrelation of a signal, the SCF shows us the periodicity in the power spectral density (PSD) of a signal. The autocorrelation and the PSD are in fact a Fourier Transform pair, and it therefore it should not come as a surprise that the CAF and the SCF are also a Fourier Transform pair. This relationship is known as the *Cyclic Wiener Relationship*. This fact should make even more sense when one considers that the CAF and SCF evaluated at a cycle frequency of :math:`\alpha=0` are the autocorrelation and PSD, respectively.
+Just as the CAF shows us the periodicity in the autocorrelation of a signal, the SCF shows us the periodicity in the PSD of a signal. The autocorrelation and the PSD are in fact a Fourier transform pair, and therefore it should not come as a surprise that the CAF and the SCF are also a Fourier Transform pair. This relationship is known as the *Cyclic Wiener Relationship*. This fact should make even more sense when one considers that the CAF and SCF evaluated at a cycle frequency of :math:`\alpha=0` are the autocorrelation and PSD, respectively.
 
-Computing the SCF usually involves some form of averaging; either time-based or frequency-based. First, consider the periodogam which is simply the squared magnitude of the Fourier Transform of a signal: :math:`I(u,f) = \frac{1}{N}\left|X(u,f)\right|^2`. We can obtain the cyclic periodogram through the product of two fourier transforms shifted in frequency: :math:`I^{\alpha}(u,f) = \frac{1}{N}X(u,f + \alpha/2) X^*(u,f - \alpha/2)`. Both of these represent estimates of the PSD and the SCF, but to obtain the true value of the SCF one must average over time:
-
-.. math::
-    S_X^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X^*(t,f - \alpha/2) dt
-
-which is known as the Time Smoothing Method (TSM).
-
-Or over frequency:
-
-.. math::
-    S_X^{\alpha}(f) = \lim_{\Delta\rightarrow 0} \lim_{T\rightarrow \infty} \frac{1}{T} g_{\Delta}(f) \otimes \left[X(t,f + \alpha/2) X^*(t,f - \alpha/2)\right]
-
-where the function :math:`g_{\Delta}(f)` is a frequency smoothing function that averages over a small range of frequencies. This is known as the Frequency Smoothing Method (FSM).
-
-In addition to the above two formulas, one can also simply take the Fourier transform of the CAF to obtain the SCF. Doing this is less computationally efficient in practice, but it is a good way to understand the relationship between the two functions.
+One can simply take the Fourier transform of the CAF to obtain the SCF.  Doing this is extremely computationally intensive, but it is a good way to understand the relationship between the two functions.  The other downside of just taking the FFT of the CAF is it does not involve any averaging.
 
 Returning to our 20 sample-per-symbol BPSK signal, let's look at the SCF at the correct alpha (0.05 Hz). All we need to do is take the FFT of the CAF and plot the magnitude. The following code snippet goes along with the CAF code we wrote earlier when computing just one alpha:
 
@@ -184,6 +170,30 @@ Returning to our 20 sample-per-symbol BPSK signal, let's look at the SCF at the 
    :alt: FFT of CAF
 
 Note that we can see the 0.2 Hz frequency offset that we applied when simulating the BPSK signal (this has nothing to do with the cyclic frequency or samples per symbol). 
+
+Efficient/practical computing of the SCF usually involves some form of averaging; either time-based or frequency-based. First, consider the periodogam which is simply the squared magnitude of the Fourier transform of a signal:
+
+.. math::
+
+ I(u,f) = \frac{1}{N}\left|X(u,f)\right|^2
+ 
+We can obtain the cyclic periodogram through the product of two Fourier transforms shifted in frequency:
+
+.. math::
+
+ I^{\alpha}(u,f) = \frac{1}{N}X(u,f + \alpha/2) X^*(u,f - \alpha/2)
+
+Both of these represent estimates of the PSD and the SCF, but to obtain the true value of the SCF one must average over either time or frequency.  Averaging over time is known as the Time Smoothing Method (TSM):
+
+.. math::
+    S_X^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X^*(t,f - \alpha/2) dt
+
+while averaging over frequency is known as the Frequency Smoothing Method (FSM):
+
+.. math::
+    S_X^{\alpha}(f) = \lim_{\Delta\rightarrow 0} \lim_{T\rightarrow \infty} \frac{1}{T} g_{\Delta}(f) \otimes \left[X(t,f + \alpha/2) X^*(t,f - \alpha/2)\right]
+
+where the function :math:`g_{\Delta}(f)` is a frequency smoothing function that averages over a small range of frequencies.  In the next two sections we will dive into these methods, but before diving too deep, let's play around with the SCF to get some intuition.
 
 Below is an interactive JavaScript app that implements an SCF, so that you can play around with different signal and SCF parameters.  The frequency of the signal is a fairly straightforward knob, and shows how well the SCF can identify RF frequency.  Try adding pulse shaping by unchecking the Rectangular Pulse option, and play around with different rolloff values.  Note that using the default alpha-step, not all samples per symbols will lead to a visible spike in the SCF.  You can try lowering alpha-step, although it will increase the processing time. 
 
@@ -277,7 +287,7 @@ This method has the advantage that only one large FFT is required, but it also h
 
 External Resources on FSM:
 
-* Todo
+#. `Chad's blog post on FSM <https://cyclostationary.blog/2015/11/20/csp-estimators-the-frequency-smoothing-method/#:~:text=The%20FSM%20is%20a%20way,averaging%20of%20the%20cyclic%20periodogram>`_
 
 ***************************
 Time Smoothing Method (TSM)
@@ -318,12 +328,11 @@ Now we can look at an implementation of the TSM in python. The code snippet belo
    :target: ../_images/scf_time_smoothing.svg
    :alt: SCF with the Time Smoothing Method (TSM), showing cyclostationary signal processing
 
-Looks the same as the FSM!
+Looks roughly the same as the FSM!
 
 External Resources on TSM:
 
-* asdasd
-
+#. `Chad's blog post on TSM <https://cyclostationary.blog/2015/12/18/csp-estimators-the-time-smoothing-method/>`_
 
 *****************
 Pulse-Shaped BPSK
@@ -716,7 +725,7 @@ Note the horizontal line torwards the top, indicating there is a low cyclic freq
    :target: ../_images/scf_freq_smoothing_ofdm_zoomed_in.svg
    :alt: SCF of OFDM using the Frequency Smoothing Method (FSM) zoomed into the lower cyclic freqs
 
-Further resources on OFDM within the context of CSP:
+External resources on OFDM within the context of CSP:
 
 #. Sutton, Paul D., Keith E. Nolan, and Linda E. Doyle. "Cyclostationary signatures in practical cognitive radio applications." IEEE Journal on selected areas in Communications 26.1 (2008): 13-24. `Available here <https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4413137&casa_token=81U1yMeRKMsAAAAA:6sQr9-VngNa2p_OW4zVyeQsRdUrZPkx3L-6ZPsH9LCo-pnTxs_AhjfAx27MFBbo4kl3YlgdkQJk&tag=1>`_
 

@@ -206,13 +206,9 @@ Below is an interactive JavaScript app that implements an SCF, so that you can p
 Frequency Smoothing Method (FSM)
 ********************************
 
-the number of samples ends up determining your freq domain resolution
+Now that we have a good conceptual understanding of the SCF, let's look at how we can compute it efficiently. Below is an implementation of the FSM discussed above, which is a frequency-based averaging method. The code snippet below calculates the SCF for the BPSK signal with 20 samples per symbol over a range of cyclic frequencies. First it computes the cyclic periodogram by multiplying two shifted versions of the FFT, and then each slice is filtered with a window function whose length determines the resolution of the resulting SCF estimate. So, longer windows will produce smoother results with lower resolution while shorter ones will do the opposite.
 
-talk about how window length impacts things, since it doesnt really change the resolution, just the window size used in the convolve
-
-point out how even though there is only 1 FFT, you still need to do a ton of convolves
-
-* Discuss the difference between the periodagram and the PSD, paraphrase blog
+This method has the advantage that only one large FFT is required, but it also has the disadvantage that many convolution operations are required for the smoothing.
 
 .. code-block:: python
 
@@ -245,19 +241,14 @@ point out how even though there is only 1 FFT, you still need to do a ton of con
 
 External Resources on FSM:
 
-* asdasd
+* Todo
 
 ***************************
 Time Smoothing Method (TSM)
 ***************************
 
-talk about the importance of the window length because it determines the resolution
+Now we can look at an implementation of the TSM in python. The code snippet below divides the signal into *num_windows* blocks, each of length *Nw* with an overlap of *Noverlap*. The signal is then multiplied by a window function and the FFT is taken. The SCF is then calculated by averaging the result from each block. The window length plays the same exact role as in the FSM determining the resolution/smoothness tradeoff.
 
-note the addition of an overlap parameter
-
-point out that the javascript app in the SCF section actually uses the TSM method, with 0 overlap for speed sake
-
-* Talk about how the averaging happens by splitting up the time domain signal and recombining
 
 .. code-block:: python
 

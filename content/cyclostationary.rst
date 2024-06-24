@@ -388,64 +388,6 @@ QPSK and Higher-Order Modulation
 * Mention higher-order cyclic moments and cummulants
 
 ********************************
-OFDM
-********************************
-
-Cyclostationarity is especially strong in OFDM signals due to OFDM's use of a cyclic prefix (CP), which is where the last several samples of each OFDM symbol is copied and added to the beginning of the OFDM symbol.  This leads to a strong cyclic frequency corresponding to the OFDM symbol length (which is equal to the inverse of the subcarrier spacing, plus CP duration). 
-
-Simulation of OFDM with a CP using 64 subcarriers, 25% CP, and QPSK modulation.  We'll interpolate by 2x to simulate receiving at a reasonable sample rate, so that means the OFDM symbol length in number of samples will be (64 + (64*0.25)) * 2 = 160 samples.  That means we should get spikes at alphas that are an integer multiple of 1/160, or 0.00625, 0.0125, 0.01875, etc. We will simulate 100k samples which corresponds to 625 OFDM symbols (recall that each OFDM symbol is fairly long).  
-
-.. code-block:: python
-
-    from scipy.signal import resample
-    N = 100000 # number of samples to simulate
-    num_subcarriers = 64
-    cp_len = num_subcarriers // 4 # length of the cyclic prefix in symbols, in this case 25% of the starting OFDM symbol
-    print("CP length in samples", cp_len*2) # remember there is 2x interpolation at the end
-    print("OFDM symbol length in samples", (num_subcarriers+cp_len)*2) # remember there is 2x interpolation at the end
-    num_symbols = int(np.floor(N/(num_subcarriers+cp_len))) // 2 # remember the interpolate by 2
-    print("Number of OFDM symbols:", num_symbols)
-
-    qpsk_mapping = {
-        (0,0) : 1+1j,
-        (0,1) : 1-1j,
-        (1,0) : -1+1j,
-        (1,1) : -1-1j,
-    }
-    bits_per_symbol = 2
-
-    samples = np.empty(0, dtype=np.complex64)
-    for _ in range(num_symbols):
-        data = np.random.binomial(1, 0.5, num_subcarriers*bits_per_symbol) # 1's and 0's
-        data = data.reshape((num_subcarriers, bits_per_symbol)) # group into subcarriers
-        symbol_freq = np.array([qpsk_mapping[tuple(b)] for b in data]) # remember we start in the freq domain with OFDM
-        symbol_time = np.fft.ifft(symbol_freq)
-        symbol_time = np.hstack([symbol_time[-cp_len:], symbol_time]) # take the last CP samples and stick them at the start of the symbol
-        samples = np.concatenate((samples, symbol_time)) # add symbol to samples buffer
-
-    samples = resample(samples, len(samples)*2) # interpolate by 2x
-    samples = samples[:N] # clip off the few extra samples
-
-    # Add noise
-    SNR_dB = 5
-    n = np.sqrt(np.var(samples) * 10**(-SNR_dB/10) / 2) * (np.random.randn(N) + 1j*np.random.randn(N))
-    samples = samples + n
-
-Using the FSM to calculate the SCF at a relatively high cyclic resolution of 0.0001:
-
-.. image:: ../_images/scf_freq_smoothing_ofdm.svg
-   :align: center 
-   :target: ../_images/scf_freq_smoothing_ofdm.svg
-   :alt: SCF of OFDM using the Frequency Smoothing Method (FSM)
-
-Note the horizontal line torwards the top, indicating there is a low cyclic frequency.  Zooming into the lower cyclic frequencies, we can clearly see the cyclic frequency corresponding to the OFDM symbol length (alpha = 0.0125).  Not sure why we only get a spike at 2x, and not 1x or 3x or 4x...  Even dropping the resolution by another 10x doesn't show anything else besides the 2x.
-
-.. image:: ../_images/scf_freq_smoothing_ofdm_zoomed_in.svg
-   :align: center 
-   :target: ../_images/scf_freq_smoothing_ofdm_zoomed_in.svg
-   :alt: SCF of OFDM using the Frequency Smoothing Method (FSM) zoomed into the lower cyclic freqs
-
-********************************
 Multiple Overlapping Signals
 ********************************
 
@@ -681,11 +623,75 @@ External Resources on FAM:
 * Chad's blog post on FAM: https://cyclostationary.blog/2018/06/01/csp-estimators-the-fft-accumulation-method/
 
 ********************************
-Signal Detection with known cyclic frequency
+OFDM
 ********************************
 
-* Talk about the Tau
+Cyclostationarity is especially strong in OFDM signals due to OFDM's use of a cyclic prefix (CP), which is where the last several samples of each OFDM symbol is copied and added to the beginning of the OFDM symbol.  This leads to a strong cyclic frequency corresponding to the OFDM symbol length (which is equal to the inverse of the subcarrier spacing, plus CP duration). 
 
-********************************
-Cyclic Filtering
-********************************
+Simulation of OFDM with a CP using 64 subcarriers, 25% CP, and QPSK modulation.  We'll interpolate by 2x to simulate receiving at a reasonable sample rate, so that means the OFDM symbol length in number of samples will be (64 + (64*0.25)) * 2 = 160 samples.  That means we should get spikes at alphas that are an integer multiple of 1/160, or 0.00625, 0.0125, 0.01875, etc. We will simulate 100k samples which corresponds to 625 OFDM symbols (recall that each OFDM symbol is fairly long).  
+
+.. code-block:: python
+
+    from scipy.signal import resample
+    N = 100000 # number of samples to simulate
+    num_subcarriers = 64
+    cp_len = num_subcarriers // 4 # length of the cyclic prefix in symbols, in this case 25% of the starting OFDM symbol
+    print("CP length in samples", cp_len*2) # remember there is 2x interpolation at the end
+    print("OFDM symbol length in samples", (num_subcarriers+cp_len)*2) # remember there is 2x interpolation at the end
+    num_symbols = int(np.floor(N/(num_subcarriers+cp_len))) // 2 # remember the interpolate by 2
+    print("Number of OFDM symbols:", num_symbols)
+
+    qpsk_mapping = {
+        (0,0) : 1+1j,
+        (0,1) : 1-1j,
+        (1,0) : -1+1j,
+        (1,1) : -1-1j,
+    }
+    bits_per_symbol = 2
+
+    samples = np.empty(0, dtype=np.complex64)
+    for _ in range(num_symbols):
+        data = np.random.binomial(1, 0.5, num_subcarriers*bits_per_symbol) # 1's and 0's
+        data = data.reshape((num_subcarriers, bits_per_symbol)) # group into subcarriers
+        symbol_freq = np.array([qpsk_mapping[tuple(b)] for b in data]) # remember we start in the freq domain with OFDM
+        symbol_time = np.fft.ifft(symbol_freq)
+        symbol_time = np.hstack([symbol_time[-cp_len:], symbol_time]) # take the last CP samples and stick them at the start of the symbol
+        samples = np.concatenate((samples, symbol_time)) # add symbol to samples buffer
+
+    samples = resample(samples, len(samples)*2) # interpolate by 2x
+    samples = samples[:N] # clip off the few extra samples
+
+    # Add noise
+    SNR_dB = 5
+    n = np.sqrt(np.var(samples) * 10**(-SNR_dB/10) / 2) * (np.random.randn(N) + 1j*np.random.randn(N))
+    samples = samples + n
+
+Using the FSM to calculate the SCF at a relatively high cyclic resolution of 0.0001:
+
+.. image:: ../_images/scf_freq_smoothing_ofdm.svg
+   :align: center 
+   :target: ../_images/scf_freq_smoothing_ofdm.svg
+   :alt: SCF of OFDM using the Frequency Smoothing Method (FSM)
+
+Note the horizontal line torwards the top, indicating there is a low cyclic frequency.  Zooming into the lower cyclic frequencies, we can clearly see the cyclic frequency corresponding to the OFDM symbol length (alpha = 0.0125).  Not sure why we only get a spike at 2x, and not 1x or 3x or 4x...  Even dropping the resolution by another 10x doesn't show anything else besides the 2x, if anyone knows feel free to use the "Suggest an Edit" link at the bottom of this page.
+
+.. image:: ../_images/scf_freq_smoothing_ofdm_zoomed_in.svg
+   :align: center 
+   :target: ../_images/scf_freq_smoothing_ofdm_zoomed_in.svg
+   :alt: SCF of OFDM using the Frequency Smoothing Method (FSM) zoomed into the lower cyclic freqs
+
+Further resources on OFDM within the context of CSP:
+
+#. Sutton, Paul D., Keith E. Nolan, and Linda E. Doyle. "Cyclostationary signatures in practical cognitive radio applications." IEEE Journal on selected areas in Communications 26.1 (2008): 13-24. `Available here <https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4413137&casa_token=81U1yMeRKMsAAAAA:6sQr9-VngNa2p_OW4zVyeQsRdUrZPkx3L-6ZPsH9LCo-pnTxs_AhjfAx27MFBbo4kl3YlgdkQJk&tag=1>`_
+
+********************************************
+Signal Detection With Known Cyclic Frequency
+********************************************
+
+In some applications you may want to use CSP to detect a signal/waveform that is already known, such as variants of 802.11, LTE, 5G, etc.  If you know the cyclic frequency of the signal, and you know your sample rate, then you really only need to calculate a single alpha and single tau.  
+
+***********************************
+Cyclic Filtering with FRESH Filters
+***********************************
+
+Coming Soon!

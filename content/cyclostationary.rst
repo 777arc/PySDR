@@ -425,10 +425,16 @@ In all three, we no longer get the sidelobes in the frequency axis, and in the c
 SNR and Number of Symbols
 ********************************
 
+Coming Soon!
+
+* Mention how at a certain point, higher SNR doesn't help, and instead you need more symbols
+* Mention how packet-based waveforms will lead to a limited number of symbols per transmission
 
 ********************************
 QPSK and Higher-Order Modulation
 ********************************
+
+Coming Soon!
 
 * Mention higher-order cyclic moments and cummulants
 

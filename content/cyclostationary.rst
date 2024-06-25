@@ -649,8 +649,7 @@ Although it may not be immediately obvious, this result contains four terms corr
 
 It turns out that the 1st and 4th ones are effectively the same thing as far as information we can obtain from them, as are the 2nd and 3rd.  So there are really only two cases we care about, the conjugate case and the non-conjugate case.  In summary, if one wishes to obtain the full extent of statistical information from :math:`y(t)`, each combination of conjugated and non-conjugated terms must be considered.
 
-
-
+STILL HAVE YET TO FIND A GOOD EXAMPLE OF WHEN CONJ GIVES YOU EXTRA INFORMATION THAT NORMAL SCF DOESNT INCLUDE
 
 ********************************
 FFT Accumulation Method (FAM)

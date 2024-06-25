@@ -16,6 +16,7 @@ Introduction
 
 Cyclostationary signal processing (a.k.a., CSP or simply cyclostationary processing) is a set of techniques for exploiting the cyclostationary property found in many real-world communication signals. These are signals such as modulated signals like AM/FM/TV broadcast, cellular, and WiFi as well as radar signals, and other signals that exhibit periodicity in their statistics. A large swath of traditional signal processing techniques are based on the assumption that the signal is stationary, i.e., the statistics of the signal like the mean, variance and higher-order moments do not change over time. However, many real-world signals are cyclostationary, i.e., the statistics of the signal change *periodically* over time. CSP techniques exploit this cyclostationary property, and can be used to detect the presence of signals in noise, perform modulation recognition, and separate signals that are overlapping in both time and frequency.
 
+* Might need revising VV
 Talk about how for single carrier signals its really just an autocorrelation with an extra shift, and at the right shift the main lobe of each pulse will line up with the sidelobe of the same pulse.  And for OFDM it is the same thing but with the cyclic prefix added on to each symbol.  Explanations of CSP in textbooks and other resources tend to be very math-heavy, but we will try to keep things as simple as possible.
 
 *************************
@@ -595,12 +596,50 @@ External Resources on COH:
 Conjugates
 ********************************
 
-* BPSK vs QPSK
+Up until this point, we have been using the following formulas for the CAF and the SCF where the complex conjugate of the signal is used in the second term:
 
-External Resources on Conjugate CSP:
+.. math::
+    R_x^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt.
+    S_X^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X^*(t,f - \alpha/2) dt
 
-#. 1
-#. 2
+There is, however, an alternate form for the CAF and SCF in which neither term is conjugated. These forms are called the *conjugate CAF* and the *conjugate SCF*, respectively:
+
+.. math::
+    R_{x^*}^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x(t - \tau/2)e^{-j2\pi \alpha t}dt.
+    S_{x^*}^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X(t,f - \alpha/2) dt
+
+To understand the significance of the conjugate forms, consider the quadrature representation of a real-valued bandpass signal:
+
+.. math::
+    y(t) = s_I(t) \cos(2\pi f_c t + \phi) + s_Q(t) \sin(2\pi f_c t + \phi)
+
+Using Euler's formula, we can rewrite this as:
+
+.. math::
+    y(t) = \frac{S_I(t) - i s_Q(t)}{2} e^{i 2\pi f_c t + i \phi} + \frac{S_I(t) + i s_Q(t)}{2} e^{-i 2\pi f_c t - i \phi}
+
+It can now be seen that a complex envelope :math:`z(t)` can be used to represent the real-valued signal :math:`y(t)`, assuming that the signal bandwidth is much smaller than the carrier frequency :math:`f_c`:
+
+.. math::
+    y(t) = z(t) e^{i 2 \pi f_c t + i \phi} + z^*(t) e^{-i 2 \pi f_c t - i \phi}
+
+This is known as the complex-baseband representation (see *this* previous chapter). If one were to compute the lag product of the real signal :math:`y(t)`, the following terms would result:
+
+.. math::
+    y(t + \tau_1) y(t + \tau_2) = \left(z(t + \tau_1) e^{i 2 \pi f_c (t + \tau_1) + i \phi} + z^*(t + \tau_1) e^{-i 2 \pi f_c (t + \tau_1) - i \phi}\right) \times \left(z(t + \tau_2) e^{i 2 \pi f_c (t + \tau_2) + i \phi} + z^*(t + \tau_2) e^{-i 2 \pi f_c (t + \tau_2) - i \phi}\right)
+
+Although it may not be immediately obvious, this result contains four terms corresponding to the four combinations of conjugated and non-conjugated :math:`z(t)`:
+
+.. math::
+    1\) z(t + \tau_1) z(t + \tau_2)
+    2\) z(t + \tau_1) z^*(t + \tau_1)
+    3\) z^*(t + \tau_1) z(t + \tau_1)
+    4\) z^*(t + \tau_1) z^*(t + \tau_1)
+
+This exercise demonstrates that, if one wishes to obtain the full extent of statistical information from :math:`y(t)`, each combination of conjugated and non-conjugated terms must be considered. But, due to the fact that the first two cominations are just conjugates of the last two, only two forms are actually needed.
+
+To be continued...
+
 
 ********************************
 FFT Accumulation Method (FAM)

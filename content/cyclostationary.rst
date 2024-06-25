@@ -19,6 +19,8 @@ Cyclostationary signal processing (a.k.a., CSP or simply cyclostationary process
 * Might need revising VV
 Talk about how for single carrier signals its really just an autocorrelation with an extra shift, and at the right shift the main lobe of each pulse will line up with the sidelobe of the same pulse.  And for OFDM it is the same thing but with the cyclic prefix added on to each symbol.  Explanations of CSP in textbooks and other resources tend to be very math-heavy, but we will try to keep things as simple as possible.
 
+Add some history and mention the big names in CSP
+
 *************************
 Review of Autocorrelation
 *************************
@@ -585,6 +587,8 @@ You can try this method out on your own simulated or captured signals, it's very
 Spectral Coherence Function
 ********************************
 
+Coming Soon!
+
 The coherence version of the SCF, sometimes refered to as COH, is simply a normalized version of the SCF
 
 External Resources on COH:
@@ -596,49 +600,56 @@ External Resources on COH:
 Conjugates
 ********************************
 
-Up until this point, we have been using the following formulas for the CAF and the SCF where the complex conjugate of the signal is used in the second term:
+Up until this point, we have been using the following formulas for the CAF and the SCF where the complex conjugate (:math:`*` symbol) of the signal is used in the second term:
 
 .. math::
-    R_x^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt.
+    R_x^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt \\
     S_X^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X^*(t,f - \alpha/2) dt
 
-There is, however, an alternate form for the CAF and SCF in which neither term is conjugated. These forms are called the *conjugate CAF* and the *conjugate SCF*, respectively:
+There is, however, an alternate form for the CAF and SCF in which there is no conjugate included. These forms are called the *conjugate CAF* and the *conjugate SCF*, respectively.  The naming convention it's a little confusing, but the main thing to remember is that there's a "normal" version of the CAF/SCF, and a conjugate version.  The conjugate version is useful when you want to extract more information from the signal, but it's not always necessary depending on the signal.  The conjugate CAF and SCF are defined as:
 
 .. math::
-    R_{x^*}^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x(t - \tau/2)e^{-j2\pi \alpha t}dt.
+    R_{x^*}^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x(t - \tau/2)e^{-j2\pi \alpha t}dt \\
     S_{x^*}^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X(t,f - \alpha/2) dt
+
+which is the same as the original CAF and SCF, but without the conjugate.  The discrete time versions, as well as Python code versions, are also all the same except for the conjugate being removed.
 
 To understand the significance of the conjugate forms, consider the quadrature representation of a real-valued bandpass signal:
 
 .. math::
-    y(t) = s_I(t) \cos(2\pi f_c t + \phi) + s_Q(t) \sin(2\pi f_c t + \phi)
+    y(t) = x_I(t) \cos(2\pi f_c t + \phi) + x_Q(t) \sin(2\pi f_c t + \phi)
 
-Using Euler's formula, we can rewrite this as:
+:math:`x_I(t)` and :math:`x_Q(t)` are the in-phase (I) and quadrature (Q) components of the signal, respectively, and it is these IQ samples that we are ultimately processing with CSP at baseband.
 
-.. math::
-    y(t) = \frac{S_I(t) - i s_Q(t)}{2} e^{i 2\pi f_c t + i \phi} + \frac{S_I(t) + i s_Q(t)}{2} e^{-i 2\pi f_c t - i \phi}
-
-It can now be seen that a complex envelope :math:`z(t)` can be used to represent the real-valued signal :math:`y(t)`, assuming that the signal bandwidth is much smaller than the carrier frequency :math:`f_c`:
+Using Euler's formula, :math:`e^{jx} = \cos(x) + j \sin(x)`, we can rewrite the above equation using complex exponentials:
 
 .. math::
-    y(t) = z(t) e^{i 2 \pi f_c t + i \phi} + z^*(t) e^{-i 2 \pi f_c t - i \phi}
+    y(t) = \frac{x_I(t) - j x_Q(t)}{2} e^{j 2\pi f_c t + j \phi} + \frac{x_I(t) + j x_Q(t)}{2} e^{-j 2\pi f_c t - j \phi}
 
-This is known as the complex-baseband representation (see *this* previous chapter). If one were to compute the lag product of the real signal :math:`y(t)`, the following terms would result:
+We can use complex envelope, which we will call :math:`z(t)`, to represent the real-valued signal :math:`y(t)`, assuming that the signal bandwidth is much smaller than the carrier frequency :math:`f_c` which is typically the case in RF applications:
 
 .. math::
-    y(t + \tau_1) y(t + \tau_2) = \left(z(t + \tau_1) e^{i 2 \pi f_c (t + \tau_1) + i \phi} + z^*(t + \tau_1) e^{-i 2 \pi f_c (t + \tau_1) - i \phi}\right) \times \left(z(t + \tau_2) e^{i 2 \pi f_c (t + \tau_2) + i \phi} + z^*(t + \tau_2) e^{-i 2 \pi f_c (t + \tau_2) - i \phi}\right)
+    y(t) = z(t) e^{j 2 \pi f_c t + j \phi} + z^*(t) e^{-j 2 \pi f_c t - j \phi}
+
+This is known as the complex-baseband representation.
+
+Coming back to the CAF, let's try computing the portion of the CAF known as the "lag product", which is just the :math:`x(t + \tau/2) x(t - \tau/2)` part:
+
+.. math::
+    \left(z(t + \tau/2) e^{j 2 \pi f_c (t + \tau/2) + j \phi} + z^*(t + \tau/2) e^{-j 2 \pi f_c (t + \tau/2) - j \phi}\right) \times \\ \left(z(t - \tau/2) e^{j 2 \pi f_c (t - \tau/2) + j \phi} + z^*(t - \tau/2) e^{-j 2 \pi f_c (t - \tau/2) - j \phi}\right)
 
 Although it may not be immediately obvious, this result contains four terms corresponding to the four combinations of conjugated and non-conjugated :math:`z(t)`:
 
 .. math::
-    1\) z(t + \tau_1) z(t + \tau_2)
-    2\) z(t + \tau_1) z^*(t + \tau_1)
-    3\) z^*(t + \tau_1) z(t + \tau_1)
-    4\) z^*(t + \tau_1) z^*(t + \tau_1)
+    z(t + \tau/2) z(t - \tau/2) e^{(\ldots)} \\
+    z(t + \tau/2) z^*(t - \tau/2) e^{(\ldots)} \\
+    z^*(t + \tau/2) z(t - \tau/2) e^{(\ldots)} \\
+    z^*(t + \tau/2) z^*(t - \tau/2) e^{(\ldots)}
 
-This exercise demonstrates that, if one wishes to obtain the full extent of statistical information from :math:`y(t)`, each combination of conjugated and non-conjugated terms must be considered. But, due to the fact that the first two cominations are just conjugates of the last two, only two forms are actually needed.
 
-To be continued...
+It turns out that the 1st and 4th ones are effectively the same thing as far as information we can obtain from them, as are the 2nd and 3rd.  So there are really only two cases we care about, the conjugate case and the non-conjugate case.  In summary, if one wishes to obtain the full extent of statistical information from :math:`y(t)`, each combination of conjugated and non-conjugated terms must be considered.
+
+
 
 
 ********************************

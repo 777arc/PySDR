@@ -599,13 +599,13 @@ Conjugates
 Up until this point, we have been using the following formulas for the CAF and the SCF where the complex conjugate of the signal is used in the second term:
 
 .. math::
-    R_x^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt.
+    R_x^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt.\\
     S_X^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X^*(t,f - \alpha/2) dt
 
 There is, however, an alternate form for the CAF and SCF in which neither term is conjugated. These forms are called the *conjugate CAF* and the *conjugate SCF*, respectively:
 
 .. math::
-    R_{x^*}^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x(t - \tau/2)e^{-j2\pi \alpha t}dt.
+    R_{x^*}^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x(t - \tau/2)e^{-j2\pi \alpha t}dt.\\
     S_{x^*}^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X(t,f - \alpha/2) dt
 
 To understand the significance of the conjugate forms, consider the quadrature representation of a real-valued bandpass signal:
@@ -631,10 +631,10 @@ This is known as the complex-baseband representation (see *this* previous chapte
 Although it may not be immediately obvious, this result contains four terms corresponding to the four combinations of conjugated and non-conjugated :math:`z(t)`:
 
 .. math::
-    1\) z(t + \tau_1) z(t + \tau_2)
-    2\) z(t + \tau_1) z^*(t + \tau_1)
-    3\) z^*(t + \tau_1) z(t + \tau_1)
-    4\) z^*(t + \tau_1) z^*(t + \tau_1)
+    z(t + \tau_1) z(t + \tau_2)\\
+    z(t + \tau_1) z^*(t + \tau_1)\\
+    z^*(t + \tau_1) z(t + \tau_1)\\
+    z^*(t + \tau_1) z^*(t + \tau_1)
 
 This exercise demonstrates that, if one wishes to obtain the full extent of statistical information from :math:`y(t)`, each combination of conjugated and non-conjugated terms must be considered. But, due to the fact that the first two cominations are just conjugates of the last two, only two forms are actually needed.
 

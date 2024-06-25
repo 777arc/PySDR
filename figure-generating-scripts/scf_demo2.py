@@ -50,7 +50,7 @@ def pskGen(sps, fc=0, M=2, pulse='rect', beta=.25, Ns=10):
 
 ##### Build Signal Components #####
 
-signal = pskGen(sps=10, fc=.15, M=2, pulse='rect')
+signal = pskGen(sps=10, fc=.3, M=2, pulse='rect') + pskGen(sps=10, fc=.1, M=4, pulse='rect')
 
 ##### Add Noise #####
 
@@ -149,7 +149,7 @@ else:
             vmax=10*np.log10(max_val), vmin=10*np.log10(max_val)-dym_range_dB)
 plt.xlabel("Normalized Frequency")
 plt.ylabel("Cycle Frequency")
-plt.ylim([-0.5, 0.5])
+plt.ylim([-1, 1])
 plt.colorbar()
 plt.title("Conjugate SCF")
 plt.tight_layout()

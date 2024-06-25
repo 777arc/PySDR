@@ -613,11 +613,7 @@ Up until this point, we have been using the following formulas for the CAF and t
 There is, however, an alternate form for the CAF and SCF in which there is no conjugate included. These forms are called the *conjugate CAF* and the *conjugate SCF*, respectively.  The naming convention it's a little confusing, but the main thing to remember is that there's a "normal" version of the CAF/SCF, and a conjugate version.  The conjugate version is useful when you want to extract more information from the signal, but it's not always necessary depending on the signal.  The conjugate CAF and SCF are defined as:
 
 .. math::
-<<<<<<< HEAD
-    R_{x^*}^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x(t - \tau/2)e^{-j2\pi \alpha t}dt.\\
-=======
     R_{x^*}^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x(t - \tau/2)e^{-j2\pi \alpha t}dt \\
->>>>>>> 7d74ae4d722e998ba584bcc116382ef0ee5a78bd
     S_{x^*}^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X(t,f - \alpha/2) dt
 
 which is the same as the original CAF and SCF, but without the conjugate.  The discrete time versions, as well as Python code versions, are also all the same except for the conjugate being removed.
@@ -649,18 +645,10 @@ Coming back to the CAF, let's try computing the portion of the CAF known as the 
 Although it may not be immediately obvious, this result contains four terms corresponding to the four combinations of conjugated and non-conjugated :math:`z(t)`:
 
 .. math::
-<<<<<<< HEAD
-    z(t + \tau_1) z(t + \tau_2)\\
-    z(t + \tau_1) z^*(t + \tau_1)\\
-    z^*(t + \tau_1) z(t + \tau_1)\\
-    z^*(t + \tau_1) z^*(t + \tau_1)
-=======
     z(t + \tau/2) z(t - \tau/2) e^{(\ldots)} \\
     z(t + \tau/2) z^*(t - \tau/2) e^{(\ldots)} \\
     z^*(t + \tau/2) z(t - \tau/2) e^{(\ldots)} \\
     z^*(t + \tau/2) z^*(t - \tau/2) e^{(\ldots)}
->>>>>>> 7d74ae4d722e998ba584bcc116382ef0ee5a78bd
-
 
 It turns out that the 1st and 4th ones are effectively the same thing as far as information we can obtain from them, as are the 2nd and 3rd.  So there are really only two cases we care about, the conjugate case and the non-conjugate case.  In summary, if one wishes to obtain the full extent of statistical information from :math:`y(t)`, each combination of conjugated and non-conjugated terms must be considered.
 

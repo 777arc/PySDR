@@ -596,9 +596,9 @@ External Resources on COH:
 #. 1
 #. 2
 
-********************************
+**********
 Conjugates
-********************************
+**********
 
 Up until this point, we have been using the following formulas for the CAF and the SCF where the complex conjugate (:math:`*` symbol) of the signal is used in the second term:
 
@@ -648,7 +648,95 @@ Although it may not be immediately obvious, this result contains four terms corr
 
 It turns out that the 1st and 4th ones are effectively the same thing as far as information we can obtain from them, as are the 2nd and 3rd.  So there are really only two cases we care about, the conjugate case and the non-conjugate case.  In summary, if one wishes to obtain the full extent of statistical information from :math:`y(t)`, each combination of conjugated and non-conjugated terms must be considered.
 
-STILL HAVE YET TO FIND A GOOD EXAMPLE OF WHEN CONJ GIVES YOU EXTRA INFORMATION THAT NORMAL SCF DOESNT INCLUDE
+In order to implement the conjugate SCF using the frequency smoothing method, there is one extra step beyond removing the :code:`conj()`, because we are doing one big FFT and then averaging in the frequency domain.  There is a property of the Fourier transform that states that a complex conjugate in the time domain corresponds to the frequency domain being flipped and conjugated:
+
+.. math::
+    x^*(t) \leftrightarrow X^*(-f)
+
+Now because we were already complex conjugating the second term in the normal SCF (recall that we were using the code :code:`SCF_slice = np.roll(X, -shift) * np.conj(np.roll(X, shift))`), when we complex conjugate it again it just goes away, so what we are left with is the following:
+
+.. code-block:: python
+
+    SCF_slice = np.roll(X, -shift) * np.flip(np.roll(X, -shift - 1))
+
+Note the added :code:`np.flip()`, and the :code:`roll()` needs to happen in the reverse direction.  The full FSM implementation of the conjugate SCF is as follows:
+
+.. code-block:: python
+
+    alphas = np.arange(-1, 1, 0.01) # Conj SCF should be calculated from -1 to +1
+    Nw = 256 # window length
+    N = len(samples) # signal length
+    window = np.hanning(Nw)
+
+    X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
+    
+    num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
+    SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
+    for i in range(len(alphas)):
+        shift = int(alphas[i] * N/2)
+        SCF_slice = np.roll(X, -shift) * np.flip(np.roll(X, -shift - 1)) # THIS LINE IS THE ONLY DIFFERENCE
+        SCF[i, :] = np.convolve(SCF_slice, window, mode='same')[::Nw]
+    SCF = np.abs(SCF)
+
+    extent = (-0.5, 0.5, float(np.min(alphas)), float(np.max(alphas)))
+    plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2, origin='lower')
+    plt.xlabel('Frequency [Normalized Hz]')
+    plt.ylabel('Cyclic Frequency [Normalized Hz]')
+    plt.show()
+
+Another big change with the conjugate SCF is that we want to calculate alphas between -1 and +1, whereas with the normal SCF we just did 0.0 to 0.5 due to symmetry.  You will see why this is the case first-hand once we start looking at the conjugate SCF of example signals.
+
+Now what is the importance of doing the conjugate SCF?  To demonstrate, let's look at the conjugate SCF of our basic rectangular BPSK signal with 20 samples per symbol (leading to a cyclic frequency of 0.05 Hz) and 0.2 Hz frequency offset:
+
+.. image:: ../_images/scf_conj_rect_bpsk.svg
+   :align: center 
+   :target: ../_images/scf_conj_rect_bpsk.svg
+   :alt: Conjugate SCF of rectangular BPSK using the Frequency Smoothing Method (FSM)
+
+Here is the big take-away from this section: what you ultimately get in the conjugate SCF are spikes at the cyclic frequency +/- **twice** the carrier frequency offset, which we will refer to as :math:`f_c`. In the frequency axis it will be centered at 0 Hz instead of :math:`f_c`.  Our frequency offset was 0.2 Hz, so we end up getting spikes at 0.4 Hz +/- the cyclic frequency of 0.05 Hz.  If there is one thing to remember about the conjugate SCF, it is to expect spikes at:
+
+.. math::
+    2f_c \pm \alpha
+
+Let's now look at pulse-shaped BPSK with the same 0.2 Hz offset, 20 samples per symbol, and a 0.3 roll-off:
+
+.. image:: ../_images/scf_conj_pulseshaped_bpsk.svg
+   :align: center 
+   :target: ../_images/scf_conj_pulseshaped_bpsk.svg
+   :alt: Conjugate SCF of raised cosine pulse-shaped BPSK using the Frequency Smoothing Method (FSM)
+
+Seems reasonable given the normal SCF pattern we saw with BPSK.
+
+Now for the fun part, let's look at the conjugate SCF of rectangular QPSK with the same 0.2 Hz and 20 samples per symbol:
+
+.. image:: ../_images/scf_conj_rect_qpsk.svg
+   :align: center 
+   :target: ../_images/scf_conj_rect_qpsk.svg
+   :alt: Conjugate SCF of rectangular QPSK using the Frequency Smoothing Method (FSM)
+
+At first it might seem like there was a bug in our code, but take a look at the colorbar, which indicates what values the colors correspond to.  When using :code:`plt.imshow()` with automatic scaling, you have to be aware that it's always going to scale the colors (in our case, purple through yellow) from the lowest value to the highest value of the 2D array we give it.  In the case of our conjugate SCF of QPSK, the entire output is relatively low, becuase it turns out *there are no spikes in the conjugate SCF when using QPSK*.  Here is the same QPSK output but using the scaling to match our previous BPSK examples:
+
+.. image:: ../_images/scf_conj_rect_qpsk_scaled.svg
+   :align: center 
+   :target: ../_images/scf_conj_rect_qpsk_scaled.svg
+   :alt: Conjugate SCF of rectangular QPSK using the Frequency Smoothing Method (FSM) with scaling
+
+Note the range of the colorbar.
+
+The conjugate SCF for QPSK, as well as higher order PSK and QAM, is essentially zero/noise.  This means we can use the conjugate SCF to detect the presence of BPSK (e.g., the chipping sequence in DSSS) even if there are a bunch of QPSK/QAM signals overlapping with it.  This is a very powerful tool in the CSP toolbox!
+
+Let's try running the conjugate SCF on the three-signal scenario we've been using several times throughout this tutorial, which includes the following signals:
+
+* Signal 1: Rectangular BPSK with 20 samples per symbol and 0.2 Hz frequency offset
+* Signal 2: Pulse-shaped BPSK with 20 samples per symbol, -0.1 Hz frequency offset, and 0.35 roll-off
+* Signal 3: Pulse-shaped QPSK with 4 samples per symbol, 0.2 Hz frequency offset, and 0.21 roll-off
+
+.. image:: ../_images/scf_conj_multiple_signals.svg
+   :align: center 
+   :target: ../_images/scf_conj_multiple_signals.svg
+   :alt: Conjugate SCF of three different signals using the Frequency Smoothing Method (FSM)
+
+(figure out why the -0.1 Hz isnt showing up in the right spot)
 
 ********************************
 FFT Accumulation Method (FAM)

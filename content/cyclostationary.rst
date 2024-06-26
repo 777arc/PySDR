@@ -738,6 +738,8 @@ Let's try running the conjugate SCF on the three-signal scenario we've been usin
 
 (figure out why the -0.1 Hz isnt showing up in the right spot)
 
+ADD THE SCF SLICES
+
 ********************************
 FFT Accumulation Method (FAM)
 ********************************

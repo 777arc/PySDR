@@ -10,7 +10,7 @@ import scipy.signal
 # Simulate Rect BPSK #
 ######################
 
-if False:
+if True:
     N = 100000 # number of samples to simulate
     f_offset = 0.2 # Hz normalized
     sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
@@ -39,7 +39,7 @@ if False:
 # BPSK with Pulse Shaping (replaces samples) #
 ##############################################
 
-if True:
+if False:
     N = 100000 # number of samples to simulate
     f_offset = 0.2 # Hz normalized
     sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
@@ -185,6 +185,17 @@ if False:
     n = np.sqrt(np.var(samples) * 10**(-SNR_dB/10) / 2) * (np.random.randn(N) + 1j*np.random.randn(N))
     samples = samples + n
 
+############
+# Resample #
+############
+
+if False:
+    from scipy.signal import resample_poly
+    print(len(samples))
+    samples = resample_poly(samples, 10, 9) # samples, up, down
+    print(len(samples))
+
+
 ##############
 # Direct CAF #
 ##############
@@ -258,12 +269,14 @@ if True:
     for i in range(len(alphas)):
         shift = int(alphas[i] * N/2)
         SCF_slice = np.roll(X, -shift) * np.conj(np.roll(X, shift))
-        #SCF_slice = np.roll(X, -shift) * np.roll(X, shift) # CONJUGATE VERSION
         #SCF[i, :shift] = 0 # do we even need this one?
         SCF[i, :] = np.convolve(SCF_slice, window, mode='same')[::Nw] # apply window and decimate by Nw
     SCF = np.abs(SCF)
-    SCF[0, :] = 0 # null out alpha=0 which is just the PSD of the signal, it throws off the dynamic range
-    SCF[-1, :] = 0 # when a=1 is included it also looks bad
+
+    # null out alpha= 0, 1, -1 which is just the PSD of the signal, it throws off the dynamic range
+    SCF[np.argmin(np.abs(alphas)), :] = 0 
+    SCF[np.argmin(np.abs(alphas - 1)), :] = 0
+    SCF[np.argmin(np.abs(alphas - (-1))), :] = 0
 
     print("Time taken:", time.time() - start_time)
 
@@ -288,6 +301,45 @@ if True:
     plt.show()
     exit()
 
+
+# CONJUGATE VERSION Freq smoothing
+if False:
+    alphas = np.arange(-1, 1, 0.0025) # (use for both conj and normal modes so they look good side by side)
+    Nw = 256 # window length
+    N = len(samples) # signal length
+    window = np.hanning(Nw)
+
+    X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
+    
+    num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
+    SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
+    for i in range(len(alphas)):
+        shift = int(alphas[i] * N/2)
+        #SCF_slice = np.roll(X, -shift) * np.conj(np.roll(X, shift))
+        SCF_slice = np.roll(X, -shift) * np.roll(X, shift) # CONJUGATE VERSION
+        #SCF[i, :shift] = 0 # do we even need this one?
+        SCF[i, :] = np.convolve(SCF_slice, window, mode='same')[::Nw] # apply window and decimate by Nw
+    SCF = np.abs(SCF)
+
+    # null out alpha= 0, 1, -1 which is just the PSD of the signal, it throws off the dynamic range
+    #SCF[np.argmin(np.abs(alphas)), :] = 0 
+    #SCF[np.argmin(np.abs(alphas - 1)), :] = 0
+    #SCF[np.argmin(np.abs(alphas - (-1))), :] = 0
+
+    print("SCF shape", SCF.shape)
+    # Max pooling in cyclic domain
+    if False:
+        import skimage.measure
+        SCF = skimage.measure.block_reduce(SCF, block_size=(16, 1), func=np.max) # type: ignore
+        print("Shape of SCF:", SCF.shape)
+
+    extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
+    plt.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
+    plt.xlabel('Frequency [Normalized Hz]')
+    plt.ylabel('Cyclic Frequency [Normalized Hz]')
+    #plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
+    plt.show()
+    exit()
 
 # Time smoothing, based on https://www.mathworks.com/matlabcentral/fileexchange/48909-cyclic-spectral-analysis
 if False:

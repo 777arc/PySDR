@@ -603,11 +603,7 @@ Conjugates
 Up until this point, we have been using the following formulas for the CAF and the SCF where the complex conjugate (:math:`*` symbol) of the signal is used in the second term:
 
 .. math::
-<<<<<<< HEAD
-    R_x^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt.\\
-=======
     R_x^{\alpha}(\tau) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt \\
->>>>>>> 7d74ae4d722e998ba584bcc116382ef0ee5a78bd
     S_X^{\alpha}(f) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X^*(t,f - \alpha/2) dt
 
 There is, however, an alternate form for the CAF and SCF in which there is no conjugate included. These forms are called the *conjugate CAF* and the *conjugate SCF*, respectively.  The naming convention it's a little confusing, but the main thing to remember is that there's a "normal" version of the CAF/SCF, and a conjugate version.  The conjugate version is useful when you want to extract more information from the signal, but it's not always necessary depending on the signal.  The conjugate CAF and SCF are defined as:

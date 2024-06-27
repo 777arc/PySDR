@@ -673,7 +673,7 @@ Note the added :code:`np.flip()`, and the :code:`roll()` needs to happen in the 
     num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
     SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
     for i in range(len(alphas)):
-        shift = int(alphas[i] * N/2)
+        shift = int(np.round(alphas[i] * N/2))
         SCF_slice = np.roll(X, -shift) * np.flip(np.roll(X, -shift - 1)) # THIS LINE IS THE ONLY DIFFERENCE
         SCF[i, :] = np.convolve(SCF_slice, window, mode='same')[::Nw]
     SCF = np.abs(SCF)
@@ -736,9 +736,7 @@ Let's try running the conjugate SCF on the three-signal scenario we've been usin
    :target: ../_images/scf_conj_multiple_signals.svg
    :alt: Conjugate SCF of three different signals using the Frequency Smoothing Method (FSM)
 
-(figure out why the -0.1 Hz isnt showing up in the right spot)
-
-ADD THE SCF SLICES
+Notice how we can see the two BPSK signals but the QPSK signal doesn't show up, or else we would see a spike at alpha = 0.65 and 0.15 Hz.  It might be hard to see without zooming in, but there are spikes at 0.4 +/- 0.05 Hz and -0.2 +/- 0.05 Hz.
 
 ********************************
 FFT Accumulation Method (FAM)

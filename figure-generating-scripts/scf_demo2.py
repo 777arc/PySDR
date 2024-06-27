@@ -89,12 +89,12 @@ SCF = np.zeros((len(a_vals), num_samples), dtype=complex)
 SCF_conj = np.zeros((len(a_vals), num_samples), dtype=complex)
 
 for i, a in enumerate(a_vals):
-    SCF[i, :] = np.roll(X, -int(np.floor(a*num_samples/2)))*np.conj(np.roll(X, int(np.floor(a*num_samples/2))))
+    SCF[i, :] = np.roll(X, -int(np.round(a*num_samples/2)))*np.conj(np.roll(X, int(np.round(a*num_samples/2))))
     # SCF[i, :abs(round(a*num_samples/2))] = 0
     # SCF[i, -abs(round(a*num_samples/2))-1:] = 0
     SCF[i, :] = np.convolve(SCF[i, :], window, mode='same')
     
-    SCF_conj_slice = np.roll(X, int(np.floor(a*num_samples/2))-1)*np.flip(np.roll(X, int(np.floor(a*num_samples/2))))
+    SCF_conj_slice = np.roll(X, int(np.round(a*num_samples/2))-1)*np.flip(np.roll(X, int(np.round(a*num_samples/2))))
     SCF_conj_slice[:abs(round(a*num_samples/2))] = 0
     SCF_conj_slice[-abs(round(a*num_samples/2))-1:] = 0
     SCF_conj[i, :] = np.convolve(SCF_conj_slice, window, mode='same')

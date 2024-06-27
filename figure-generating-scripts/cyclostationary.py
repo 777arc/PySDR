@@ -15,8 +15,10 @@ if False:
     f_offset = 0.2 # Hz normalized
     sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
 
-    #symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1 # random 1's and -1's
-    symbols = (np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1) + 1j*(np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1) # QPSK
+    # BPSK
+    symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1 # random 1's and -1's
+    # QPSK
+    #symbols = (np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1) + 1j*(np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1) # QPSK
     bpsk = np.repeat(symbols, sps)  # repeat each symbol sps times to make rectangular BPSK
     bpsk = bpsk[:N]  # clip off the extra samples
     bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
@@ -305,7 +307,11 @@ if False:
 
 # CONJUGATE VERSION Freq smoothing
 if True:
-    alphas = np.arange(-1, 1, 0.01) # Conj SCF should be calculated from -1 to +1
+    # For multiple signals
+    #samples = signal1 + signal2 + signal3 + 0.1*noise
+    #samples = samples[0:100000]
+
+    alphas = np.arange(-1, 1, 0.0025) # Conj SCF should be calculated from -1 to +1
     Nw = 256 # window length
     N = len(samples) # signal length
     window = np.hanning(Nw)
@@ -315,7 +321,7 @@ if True:
     num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
     SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
     for i in range(len(alphas)):
-        shift = int(alphas[i] * N/2)
+        shift = int(np.round(alphas[i] * N/2))
         SCF_slice = np.roll(X, -shift) * np.flip(np.roll(X, -shift - 1)) # THIS LINE IS THE ONLY DIFFERENCE
         SCF[i, :] = np.convolve(SCF_slice, window, mode='same')[::Nw]
     SCF = np.abs(SCF)
@@ -337,7 +343,7 @@ if True:
     #plt.savefig('../_images/scf_conj_pulseshaped_bpsk.svg', bbox_inches='tight')
     #plt.savefig('../_images/scf_conj_rect_qpsk.svg', bbox_inches='tight')
     #plt.savefig('../_images/scf_conj_rect_qpsk_scaled.svg', bbox_inches='tight')
-    plt.savefig('../_images/scf_conj_multiple_signals.svg', bbox_inches='tight')
+    #plt.savefig('../_images/scf_conj_multiple_signals.svg', bbox_inches='tight') # THIS ONE WAS EDITING IN INKSCAPE!
     plt.show()
     exit()
 

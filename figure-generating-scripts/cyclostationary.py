@@ -10,7 +10,7 @@ import scipy.signal
 # Simulate Rect BPSK #
 ######################
 
-if False:
+if True:
     N = 100000 # number of samples to simulate
     f_offset = 0.2 # Hz normalized
     sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
@@ -42,7 +42,7 @@ if False:
 # BPSK with Pulse Shaping (replaces samples) #
 ##############################################
 
-if True:
+if False:
     N = 100000 # number of samples to simulate
     f_offset = 0.2 # Hz normalized
     sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
@@ -386,7 +386,7 @@ if True:
     ax1.set_title('Spectral Coherence Function (COH)')
 
     #plt.savefig('../_images/scf_coherence.svg', bbox_inches='tight')
-    plt.savefig('../_images/scf_coherence_pulse_shaped.svg', bbox_inches='tight')
+    #plt.savefig('../_images/scf_coherence_pulse_shaped.svg', bbox_inches='tight')
     plt.show()
     exit()
 

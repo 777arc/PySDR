@@ -587,14 +587,21 @@ You can try this method out on your own simulated or captured signals, it's very
 Spectral Coherence Function
 ********************************
 
-Coming Soon!
+Now we introduce another measure of cyclostationarity which can prove more insightful than the raw SCF in many cases: the Spectral Coherence Function (SCohF). The SCohF takes the SCF and normalizes it such that the result lies between 0 and 1. This is useful because it isolates the information about the cyclostationarity of the signal from information about the signal's power spectrum, both of which are contained in the raw SCF. By normalizing, the power spectrum information is removed from the result leaving only the effects of cyclic correlation.
 
-The coherence version of the SCF, sometimes refered to as COH, is simply a normalized version of the SCF
+To aide in one's understanding of the SCohF, it is helpful to review the concept of the correlation coefficient from statistics (link to wiki or something). The correlation coefficient :math:`\rho_{X,Y}` quanitfies the degree to which two random variables are linearly related and, like the SCohF, lies between 0 and 1. It is defined as the covariance divided by the product of the standard deviations:
 
-External Resources on COH:
+.. math::
+    \rho_{X,Y} = \frac{E[(X-\mu_X)(Y-\mu_Y)]}{\sigma_X \sigma_Y}
 
-#. 1
-#. 2
+The SCohF extends this concept to spectral correlation such that it quantifies the degree to which the power spectrum of a signal at one frequency is related to the power spectrum of the signal at another frequency. To calculate the SCohF, we first calculate the SCF as before and then normalize by the product of two shifted PSD terms, analagous to normalizing by the product of standard deviations:
+
+.. math::
+    \rho = C_x^{\alpha}(f) = \frac{S_X^{\alpha}(f)}{\left[S_x^0(f + \alpha/2)S_x^0(f - \alpha/2)\right]^{1/2}}
+
+The terms in the denominator :math:`S_x^0(f + \alpha/2)` and :math:`S_x^0(f - \alpha/2)` are simply the power spectral density shifted by :math:`\alpha/2` and :math:`-\alpha/2`. Another way to think about this is that the SCF is a cross-spectral density (a power spectrum that involves two input signals) while the normalizing terms in the denominator are the auto-spectral densities (power spectra that involve only one input signal).
+
+Now let us provide a Python example where we calculate the SCohF for a BPSK signal with 20 samples per symbol and 0.2 Hz frequency offset:
 
 **********
 Conjugates

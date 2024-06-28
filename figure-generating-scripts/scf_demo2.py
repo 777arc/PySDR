@@ -50,7 +50,7 @@ def pskGen(sps, fc=0, M=2, pulse='rect', beta=.25, Ns=10):
 
 ##### Build Signal Components #####
 
-signal = pskGen(sps=10, fc=.3, M=2, pulse='rect') + pskGen(sps=10, fc=.1, M=4, pulse='rect')
+signal = pskGen(sps=10, fc=.3, M=2, pulse='rect') + 0*pskGen(sps=10, fc=.1, M=4, pulse='rect')
 
 ##### Add Noise #####
 
@@ -77,7 +77,7 @@ plt.tight_layout()
 
 ##### Generate the Spectral Correlation Function #####
 
-a_res = 0.00025
+a_res = 0.005
 a_vals = np.arange(-1, 1, a_res)
 smoothing_len = 256
 window = np.hanning(smoothing_len)
@@ -116,6 +116,8 @@ plt.title("Spectral Correlation Function Slices")
 # plt.figure()
 # plt.plot(10*np.log10(SCF_conj[int(len(a_vals)*.5), :]))
 
+SCOH = np.divide(SCF, SCF[0, :])
+
 
 dym_range_dB = 20
 max_val = np.max(np.abs(SCF[np.where(a_vals > a_res),:]))
@@ -137,6 +139,8 @@ plt.ylabel("Cycle Frequency")
 plt.colorbar()
 plt.title("Non-Conjugate SCF")
 
+
+
 max_val = np.max(np.abs(SCF_conj))
 
 plt.subplot(1, 2, 2)
@@ -152,5 +156,28 @@ plt.ylim([-1, 1])
 plt.colorbar()
 plt.title("Conjugate SCF")
 plt.tight_layout()
+
+
+
+##### Spectral Coherence #####
+
+dym_range_dB = 20
+max_val = np.max(np.abs(SCOH[np.where(a_vals > a_res),:]))
+linear_scale = True
+
+plt.set_cmap("viridis")
+
+plt.figure(figsize=(10, 5))
+if linear_scale:
+    plt.imshow(np.abs(SCOH), aspect='auto', extent=(-0.5, 0.5, -1, 1), vmax=max_val)
+else:
+    plt.imshow(10*np.log10(np.abs(SCOH)), aspect='auto', extent=(-0.5, 0.5, -1, 1),
+            vmax=10*np.log10(max_val), vmin=10*np.log10(max_val)-dym_range_dB)
+
+plt.ylim([0, 0.5])
+plt.xlabel("Normalized Frequency")
+plt.ylabel("Cycle Frequency")
+plt.colorbar()
+plt.title("Spectral Coherence Function")
 
 plt.show()

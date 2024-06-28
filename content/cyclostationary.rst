@@ -257,7 +257,7 @@ Frequency Smoothing Method (FSM)
 
 Now that we have a good conceptual understanding of the SCF, let's look at how we can compute it efficiently. Below is an implementation of the FSM discussed above, which is a frequency-based averaging method. The code snippet below calculates the SCF for the BPSK signal with 20 samples per symbol over a range of cyclic frequencies. First it computes the cyclic periodogram by multiplying two shifted versions of the FFT, and then each slice is filtered with a window function whose length determines the resolution of the resulting SCF estimate. So, longer windows will produce smoother results with lower resolution while shorter ones will do the opposite.
 
-This method has the advantage that only one large FFT is required, but it also has the disadvantage that many convolution operations are required for the smoothing.
+This method has the advantage that only one large FFT is required, but it also has the disadvantage that many convolution operations are required for the smoothing.  Note the decimation that occurs after the convolve using :code:`[::Nw]`; this is optional but highly recommended to reduce the number of pixels you'll ultimately need to display, and because of the way the SCF is calculated we're not "throwing away" information by decimating by :code:`Nw`.
 
 .. code-block:: python
 
@@ -583,25 +583,98 @@ For finding the RF frequency of a signal, i.e., the carrier frequency offset, th
 
 You can try this method out on your own simulated or captured signals, it's very useful outside of CSP.
 
-********************************
-Spectral Coherence Function
-********************************
+*********************************
+Spectral Coherence Function (COH)
+*********************************
 
-Now we introduce another measure of cyclostationarity which can prove more insightful than the raw SCF in many cases: the Spectral Coherence Function (SCohF). The SCohF takes the SCF and normalizes it such that the result lies between 0 and 1. This is useful because it isolates the information about the cyclostationarity of the signal from information about the signal's power spectrum, both of which are contained in the raw SCF. By normalizing, the power spectrum information is removed from the result leaving only the effects of cyclic correlation.
+*TLDR: The spectral coherence function is a normalized version of the SCF that, in some situations, is worth using in place of the regular SCF.*
 
-To aide in one's understanding of the SCohF, it is helpful to review the concept of the correlation coefficient from statistics (link to wiki or something). The correlation coefficient :math:`\rho_{X,Y}` quanitfies the degree to which two random variables are linearly related and, like the SCohF, lies between 0 and 1. It is defined as the covariance divided by the product of the standard deviations:
+Another measure of cyclostationarity, which can prove more insightful than the raw SCF in many cases, is the Spectral Coherence Function (COH). The COH takes the SCF and normalizes it such that the result lies between -1 and 1 (although we will be looking at magnitude which is between 0 and 1). This is useful because it isolates the information about the cyclostationarity of the signal from information about the signal's power spectrum, both of which are contained in the raw SCF. By normalizing, the power spectrum information is removed from the result leaving only the effects of cyclic correlation.
+
+To aide in one's understanding of the COH, it is helpful to review the concept of the `correlation coefficient <https://en.wikipedia.org/wiki/Pearson_correlation_coefficient>`_ from statistics. The correlation coefficient :math:`\rho_{X,Y}` quanitfies the degree to which two random variables are related and, like the COH, lies between -1 and 1. It is defined as the covariance divided by the product of the standard deviations:
 
 .. math::
     \rho_{X,Y} = \frac{E[(X-\mu_X)(Y-\mu_Y)]}{\sigma_X \sigma_Y}
 
-The SCohF extends this concept to spectral correlation such that it quantifies the degree to which the power spectrum of a signal at one frequency is related to the power spectrum of the signal at another frequency. To calculate the SCohF, we first calculate the SCF as before and then normalize by the product of two shifted PSD terms, analagous to normalizing by the product of standard deviations:
+The COH extends this concept to spectral correlation such that it quantifies the degree to which the power spectrum of a signal at one frequency is related to the power spectral density (PSD) of the signal at another frequency.  These two frequencies are simply the frequency shifts that we apply as part of calculating the SCF.  To calculate the COH, we first calculate the SCF as before, denoted :math:`S_X^{\alpha}(f)`, and then normalize by the product of two shifted PSD terms, analagous to normalizing by the product of standard deviations:
 
 .. math::
-    \rho = C_x^{\alpha}(f) = \frac{S_X^{\alpha}(f)}{\left[S_x^0(f + \alpha/2)S_x^0(f - \alpha/2)\right]^{1/2}}
+    \rho = C_x^{\alpha}(f) = \frac{S_X^{\alpha}(f)}{\sqrt{X(f + \alpha/2) X(f - \alpha/2)}}
 
-The terms in the denominator :math:`S_x^0(f + \alpha/2)` and :math:`S_x^0(f - \alpha/2)` are simply the power spectral density shifted by :math:`\alpha/2` and :math:`-\alpha/2`. Another way to think about this is that the SCF is a cross-spectral density (a power spectrum that involves two input signals) while the normalizing terms in the denominator are the auto-spectral densities (power spectra that involve only one input signal).
+The denominator is the important/new part, the two terms :math:`X(f + \alpha/2)` and :math:`X(f - \alpha/2)` are simply the PSD shifted by :math:`\alpha/2` and :math:`-\alpha/2`. Another way to think about this is that the SCF is a cross-spectral density (a power spectrum that involves two input signals) while the normalizing terms in the denominator are the auto-spectral densities (power spectra that involve only one input signal).
 
-Now let us provide a Python example where we calculate the SCohF for a BPSK signal with 20 samples per symbol and 0.2 Hz frequency offset:
+We will now apply this to our Python code, specifically the SCF using the frequency smoothing method (FSM).  Because the FSM does the averaging in the frequency domain, we already have :math:`X(f + \alpha/2)` and :math:`X(f - \alpha/2)` at our disposal, in the Python code they are simply :code:`np.roll(X, -shift)` and :code:`np.roll(X, shift)`, so we multiply them together, take the square root, and divide our SCF slice by that result (note that this happens within the for loop over alpha):
+
+.. code-block:: python
+
+    COH_slice = SCF_slice / np.sqrt(np.roll(X, -shift) * np.roll(X, shift))
+
+Lastly, we will repeat the same convolve and decimation that we did to calculate the final SCF slice 
+
+.. code-block:: python
+
+    COH[i, :] = np.convolve(COH_slice, window, mode='same')[::Nw]
+
+.. raw:: html
+
+   <details>
+   <summary>Expand for the full code to generate and plot both the SCF and COH</summary>
+
+.. code-block:: python
+
+    alphas = np.arange(0, 0.3, 0.001)
+    Nw = 256 # window length
+    N = len(samples) # signal length
+    window = np.hanning(Nw)
+    
+    X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
+    
+    num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
+    SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
+    COH = np.zeros((len(alphas), num_freqs), dtype=complex)
+    for i in range(len(alphas)):
+        shift = int(alphas[i] * N/2)
+        SCF_slice = np.roll(X, -shift) * np.conj(np.roll(X, shift))
+        SCF[i, :] = np.convolve(SCF_slice, window, mode='same')[::Nw] # apply window and decimate by Nw
+        COH_slice = SCF_slice / np.sqrt(np.roll(X, -shift) * np.roll(X, shift))
+        COH[i, :] = np.convolve(COH_slice, window, mode='same')[::Nw] # apply the same windowing + decimation
+    SCF = np.abs(SCF)
+    COH = np.abs(COH)
+
+    # null out alpha=0 for both so that it doesnt hurt our dynamic range and ability to see the non-zero alphas
+    SCF[np.argmin(np.abs(alphas)), :] = 0
+    COH[np.argmin(np.abs(alphas)), :] = 0
+
+    extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
+    fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(10, 5))
+    ax0.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
+    ax0.set_xlabel('Frequency [Normalized Hz]')
+    ax0.set_ylabel('Cyclic Frequency [Normalized Hz]')
+    ax0.set_title('Regular SCF')
+    ax1.imshow(COH, aspect='auto', extent=extent, vmax=np.max(COH)/2)
+    ax1.set_xlabel('Frequency [Normalized Hz]')
+    ax1.set_title('Spectral Coherence Function (COH)')
+    plt.show()
+
+.. raw:: html
+
+   </details>
+
+Now let us calculate the COH (as well as regular SCF) for a rectangular BPSK signal with 20 samples per symbol and 0.2 Hz frequency offset:
+
+.. image:: ../_images/scf_coherence.svg
+   :align: center 
+   :target: ../_images/scf_coherence.svg
+   :alt: SCF and COH of a rectangular BPSK signal with 20 samples per symbol and 0.2 Hz frequency offset
+
+As you can see, the higher alphas are much more pronounced in the COH than in the SCF.  Running the same code on the pulse-shaped BPSK signal we find there is not a ton of difference:
+
+.. image:: ../_images/scf_coherence_pulse_shaped.svg
+   :align: center 
+   :target: ../_images/scf_coherence_pulse_shaped.svg
+   :alt: SCF and COH of a pulse-shaped BPSK signal with 20 samples per symbol and 0.2 Hz frequency offset
+
+Try generating both the SCF and COH for your application to see which one works best!
 
 **********
 Conjugates

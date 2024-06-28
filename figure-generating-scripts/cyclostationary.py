@@ -42,7 +42,7 @@ if False:
 # BPSK with Pulse Shaping (replaces samples) #
 ##############################################
 
-if False:
+if True:
     N = 100000 # number of samples to simulate
     f_offset = 0.2 # Hz normalized
     sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
@@ -87,7 +87,7 @@ if False:
 ###################################################
 # Multiple overlapping signals (replaces samples) #
 ###################################################
-if True:
+if False:
     N = 1000000 # number of samples to simulate
 
     def fractional_delay(x, delay):
@@ -306,7 +306,7 @@ if False:
 
 
 # CONJUGATE VERSION Freq smoothing
-if True:
+if False:
     # For multiple signals
     #samples = signal1 + signal2 + signal3 + 0.1*noise
     #samples = samples[0:100000]
@@ -344,6 +344,49 @@ if True:
     #plt.savefig('../_images/scf_conj_rect_qpsk.svg', bbox_inches='tight')
     #plt.savefig('../_images/scf_conj_rect_qpsk_scaled.svg', bbox_inches='tight')
     #plt.savefig('../_images/scf_conj_multiple_signals.svg', bbox_inches='tight') # THIS ONE WAS EDITING IN INKSCAPE!
+    plt.show()
+    exit()
+
+# Freq smoothing Coherence Function
+if True:
+    alphas = np.arange(0, 0.3, 0.001)
+    Nw = 256 # window length
+    N = len(samples) # signal length
+    window = np.hanning(Nw)
+
+    X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
+    
+    num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
+    SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
+    COH = np.zeros((len(alphas), num_freqs), dtype=complex)
+    for i in range(len(alphas)):
+        shift = int(alphas[i] * N/2)
+        SCF_slice = np.roll(X, -shift) * np.conj(np.roll(X, shift))
+        SCF[i, :] = np.convolve(SCF_slice, window, mode='same')[::Nw] # apply window and decimate by Nw
+        COH_slice = SCF_slice / np.sqrt(np.roll(X, -shift) * np.roll(X, shift))
+        COH[i, :] = np.convolve(COH_slice, window, mode='same')[::Nw] # apply the same windowing + decimation
+    SCF = np.abs(SCF)
+    COH = np.abs(COH)
+
+    # null out alpha=0 for both so that it doesnt hurt our dynamic range and ability to see the non-zero alphas
+    SCF[np.argmin(np.abs(alphas)), :] = 0
+    COH[np.argmin(np.abs(alphas)), :] = 0
+
+    print("SCF shape", SCF.shape)
+
+    extent = (-0.5, 0.5, float(np.max(alphas)), float(np.min(alphas)))
+    fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(10, 5))
+    ax0.imshow(SCF, aspect='auto', extent=extent, vmax=np.max(SCF)/2)
+    ax0.set_xlabel('Frequency [Normalized Hz]')
+    ax0.set_ylabel('Cyclic Frequency [Normalized Hz]')
+    ax0.set_title('Regular SCF')
+
+    ax1.imshow(COH, aspect='auto', extent=extent, vmax=np.max(COH)/2)
+    ax1.set_xlabel('Frequency [Normalized Hz]')
+    ax1.set_title('Spectral Coherence Function (COH)')
+
+    #plt.savefig('../_images/scf_coherence.svg', bbox_inches='tight')
+    plt.savefig('../_images/scf_coherence_pulse_shaped.svg', bbox_inches='tight')
     plt.show()
     exit()
 

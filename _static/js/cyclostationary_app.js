@@ -2,67 +2,146 @@ function cyclostationary_app() {
   // Params
   const fs = 1; // sample rate in Hz
   const Nw = 256; // window length
-  //const Noverlap = Math.floor((2 / 3) * Nw); // block overlap
-  const Noverlap = 0; // block overlap
 
   // Display the image using html
   const canvas = document.getElementById("scf_canvas");
   const ctx = canvas.getContext("2d");
 
+  document.getElementById("freq").addEventListener("input", function () {
+    document.getElementById("freq_display").textContent = Math.round(this.value * 100) / 100;
+    document.getElementById("submit_button").click();
+  });
+
+  document.getElementById("sps").addEventListener("input", function () {
+    document.getElementById("sps_display").textContent = this.value;
+    document.getElementById("submit_button").click();
+  });
+
+  // Reset button. MAKE SURE THESE ALWASY MATCH THE DEFAULTS IN THE HTML!
+  document.getElementById("resetform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    document.getElementById("N").value = "8192";
+    document.getElementById("freq").value = "0.2";
+    document.getElementById("freq_display").textContent = "0.2";
+    document.getElementById("sps").value = "20";
+    document.getElementById("sps_display").textContent = "20";
+    document.getElementById("rolloff").value = "0.5";
+    document.getElementById("rect").checked = true;
+    document.getElementById("alpha_start").value = "0";
+    document.getElementById("alpha_stop").value = "0.3";
+    document.getElementById("alpha_step").value = "0.001";
+    document.getElementById("noise").value = "0.001";
+
+    document.getElementById("submit_button").click();
+  });
+
   // Make slider change label
   document.getElementById("mainform").addEventListener("submit", (e) => {
     e.preventDefault();
+
+    startTime = performance.now();
+
+    const N = parseInt(document.getElementById("N").value);
+    const sps = parseInt(document.getElementById("sps").value);
+    const f_offset = parseFloat(document.getElementById("freq").value) * fs;
+    const rolloff = parseFloat(document.getElementById("rolloff").value);
+    const noise_level = parseFloat(document.getElementById("noise").value);
+    const alpha_start = parseFloat(document.getElementById("alpha_start").value);
+    const alpha_stop = parseFloat(document.getElementById("alpha_stop").value); // inclusive
+    const alpha_step = parseFloat(document.getElementById("alpha_step").value);
+
     rect_checked = document.getElementById("rect").checked;
     document.getElementById("rolloff").disabled = rect_checked;
     let alphas = [];
-    for (
-      let alpha = parseFloat(document.getElementById("alpha_start").value);
-      alpha < parseFloat(document.getElementById("alpha_stop").value);
-      alpha += parseFloat(document.getElementById("alpha_step").value)
-    ) {
+    for (let alpha = alpha_start; alpha <= alpha_stop; alpha += alpha_step) {
       alphas.push(alpha);
     }
-    canvas.width = Nw;
-    canvas.height = alphas.length;
-    let imgData = ctx.createImageData(Nw, alphas.length); // width, height
-    console.log("Number of alphas: " + alphas.length);
-    img = update_img(
-      fs,
-      parseInt(document.getElementById("N").value),
-      Nw,
-      Noverlap,
-      alphas,
-      parseInt(document.getElementById("sps").value),
-      parseFloat(document.getElementById("freq").value) * fs,
-      parseFloat(document.getElementById("rolloff").value),
-      parseFloat(document.getElementById("noise").value),
-      rect_checked
-    );
+    if (alphas[0] == 0) {
+      alphas[0] = alphas[1]; // avoid calc at alpha=0 or it throws off color scale
+    }
+
+    const samples = generate_bspk(N, fs, sps, f_offset, rolloff, noise_level, rect_checked);
+
+    const SCF_mag = calc_SCF_time_smoothing(samples, alphas, Nw);
+    const num_alphas = SCF_mag.length; // cyclic domain
+    const num_freqs = SCF_mag[0].length; // RF freq domain
+
+    scales_width = 35;
+    scales_height = 25;
+    canvas.width = num_freqs + scales_width + 10; // little at the end for text to use
+    canvas.height = num_alphas + scales_height + 10; // little at the end for text to use
+    canvas.style.width = String((num_freqs + scales_width + 10) * 2) + "px";
+    canvas.style.height = String((num_alphas + scales_height + 10) * 2) + "px";
+    let imgData = ctx.createImageData(num_freqs, num_alphas); // width, height
+    console.log("Number of alphas: " + num_alphas);
+
+    // Create an image out of SCF_mag (converts it from 2d to 1d). FIXME I could probably just have it 1D from the start
+    let img = new Array(num_alphas * num_freqs).fill(0);
+    let max_val = 0;
+    for (let i = 0; i < num_alphas; i++) {
+      for (let j = 0; j < num_freqs; j++) {
+        img[i * num_freqs + j] = SCF_mag[i][j];
+        max_val = Math.max(max_val, SCF_mag[i][j]);
+      }
+    }
+
+    //console.log("Max SCF_mag: " + max_val);
+    //console.log("Min SCF_mag: " + Math.min(...img));
+
+    // Normalize/scale so that half the max is 255
+    for (let i = 0; i < img.length; i++) {
+      img[i] = Math.round((img[i] / max_val) * 2 * 255);
+    }
+    // Truncate to 0 to 255
+    img = img.map((val) => Math.min(255, Math.max(0, val)));
+
     for (let i = 0; i < img.length; i++) {
       imgData.data[i * 4] = viridis[img[i]][0]; // R
       imgData.data[i * 4 + 1] = viridis[img[i]][1]; // G
       imgData.data[i * 4 + 2] = viridis[img[i]][2]; // B
       imgData.data[i * 4 + 3] = 255; // alpha
     }
-    ctx.putImageData(imgData, 0, 0); // data, dx, dy
+    ctx.putImageData(imgData, scales_width, scales_height); // data, dx, dy
 
     // Add scales
-    for (let i = 0; i < 10; i++) {
+    ctx.font = "12px serif";
+    for (let i = 0; i <= 10; i++) {
+      // horizontal scales
       ctx.beginPath();
-      ctx.moveTo(Nw * (i / 10), 0);
-      ctx.lineTo(Nw * (i / 10), alphas.length * 0.02);
+      ctx.moveTo(Math.round(num_freqs * (i / 10) + scales_width) - 0.5, scales_height); // all the 0.5 are to make the lines not fuzzy, you have to straddle pixels
+      ctx.lineTo(Math.round(num_freqs * (i / 10) + scales_width) - 0.5, Math.round(num_alphas * 0.02) + scales_height);
       ctx.lineWidth = 1;
-      ctx.strokeStyle = "#ffffff";
+      ctx.strokeStyle = "#ff6699";
       ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(0, alphas.length * (i / 10));
-      ctx.lineTo(Nw * 0.02, alphas.length * (i / 10));
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "#ffffff";
-      ctx.stroke();
+      ctx.textAlign = "center";
+      ctx.fillText(Math.round((i / 10 - 0.5)*100)/100, Math.round(num_freqs * (i / 10) + scales_width) - 0.5, scales_height - 3);
     }
 
+    for (let i = 0; i <= 10; i++) {
+      // vertical scales
+      ctx.beginPath();
+      ctx.moveTo(scales_width, Math.round(num_alphas * (i / 10)) + scales_height - 0.5);
+      ctx.lineTo(Math.round(num_freqs * 0.02 + scales_width), Math.round(num_alphas * (i / 10)) + scales_height - 0.5);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#ff6699";
+      ctx.stroke();
+      ctx.textAlign = "right";
+      ctx.fillText(
+        Math.round(((i / 10) * (alpha_stop - alpha_start) + alpha_start) * 100) / 100,
+        0.5 + scales_width - 2,
+        num_alphas * (i / 10) + scales_height + 5 + 0.5
+      );
+    }
+
+    ctx.textAlign = "center";
+    ctx.fillText("Frequency [Hz]", num_freqs / 2 + scales_width, 9);
+
+    // Make sure this is the last plotting, because it rotates the context
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = "center";
+    ctx.fillText("Alpha [Hz]", num_alphas / -2 - scales_height, 9);
+
+    console.log(`Processing took ${performance.now() - startTime} ms`); // 0.5ms
     //Plotly.redraw("rectPlot");
   });
 
@@ -77,76 +156,58 @@ function cyclostationary_app() {
   */
 }
 
-function update_img(fs, N, Nw, Noverlap, alphas, sps, f_offset, rolloff, noise_level, rect_checked) {
-  const samples = generate_bspk(N, fs, sps, f_offset, rolloff, noise_level, rect_checked);
-  /*
-    const samples2 = generate_bspk(N, fs, 8, 0.07 * fs);
-    for (let i = 0; i < N; i++) {
-      samples[2 * i] += samples2[2 * i];
-      samples[2 * i + 1] += samples2[2 * i + 1];
-    }
-    */
-
-  const SCF_mag = calc_SCF(samples, alphas, Nw, Noverlap);
-
-  // Create an image out of SCF_mag (converts it from 2d to 1d). FIXME I could probably just have it 1D from the start
-  let img = new Array(alphas.length * Nw).fill(0);
-  for (let i = 0; i < alphas.length; i++) {
-    for (let j = 0; j < Nw; j++) {
-      img[i * Nw + j] = SCF_mag[i][j];
-    }
-  }
-
-  // Print largest value of SCF_mag
-  const max_val = Math.max(...img);
-  //console.log("Max SCF_mag: " + max_val);
-  //console.log("Min SCF_mag: " + Math.min(...img));
-
-  // Normalize/scale
-  for (let i = 0; i < img.length; i++) {
-    img[i] = Math.round((img[i] / max_val) * 255);
-  }
-  return img;
+function arrayRotate(arr, count) {
+  const len = arr.length;
+  arr.push(...arr.splice(0, ((-count % len) + len) % len));
+  return arr;
 }
 
-function calc_SCF(samples, alphas, Nw, Noverlap) {
-  N = samples.length / 2;
+// SCF with time smoothing method (lots of FFTs)
+function calc_SCF_time_smoothing(samples, alphas, Nw) {
+  const N = samples.length / 2;
 
   // SCF
-  const num_windows = Math.floor((N - Noverlap) / (Nw - Noverlap)); // Number of windows
-  const window = new Array(Nw);
-  for (let i = 0; i < Nw; i++) {
-    window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (Nw - 1)));
-  }
+  const num_windows = Math.floor(N / Nw); // Number of windows
+
+  //const window = new Array(Nw);
+  //for (let i = 0; i < Nw; i++) {
+  //  window[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (Nw - 1)));
+  //}
 
   // outter array is for each alpha, inner array is for each window
-  let SCF = Array.from({ length: alphas.length }, () => new Array(Nw * 2).fill(0));
+  const SCF = Array.from({ length: alphas.length }, () => new Array(Nw * 2).fill(0)); // need it to start at 0
 
   // Prep
-  let neg = new Array(N * 2);
-  let pos = new Array(N * 2);
+  const neg = new Array(N * 2);
+  const pos = new Array(N * 2);
 
-  let fft_obj_pos = new FFT(Nw);
-  let fft_obj_neg = new FFT(Nw);
-  let neg_out = fft_obj_neg.createComplexArray();
-  let pos_out = fft_obj_pos.createComplexArray();
+  const fft_obj_pos = new FFT(Nw);
+  const fft_obj_neg = new FFT(Nw);
+  const neg_out = fft_obj_neg.createComplexArray();
+  const pos_out = fft_obj_pos.createComplexArray();
 
   // loop through cyclic freq (alphas)
   for (let alpha_idx = 0; alpha_idx < alphas.length; alpha_idx++) {
     const alpha_times_pi = alphas[alpha_idx] * Math.PI;
 
     for (let i = 0; i < N; i++) {
-      // remember (a + ib)(c + id) = (ac - bd) + i(ad + bc).
-      neg[2 * i] = samples[2 * i] * Math.cos(-1 * alpha_times_pi * i) - samples[2 * i + 1] * Math.sin(-1 * alpha_times_pi * i);
-      neg[2 * i + 1] = samples[2 * i] * Math.sin(-1 * alpha_times_pi * i) + samples[2 * i + 1] * Math.cos(-1 * alpha_times_pi * i);
-      pos[2 * i] = samples[2 * i] * Math.cos(alpha_times_pi * i) - samples[2 * i + 1] * Math.sin(alpha_times_pi * i);
-      pos[2 * i + 1] = samples[2 * i] * Math.sin(alpha_times_pi * i) + samples[2 * i + 1] * Math.cos(alpha_times_pi * i);
+      // below has been heavily optimized, see python for simpler version of whats going on
+      const cos_term = Math.cos(alpha_times_pi * i);
+      const sin_term = Math.sin(alpha_times_pi * i);
+      const a = samples[2 * i] * cos_term;
+      const b = samples[2 * i + 1] * sin_term;
+      const c = samples[2 * i + 1] * cos_term;
+      const d = samples[2 * i] * sin_term;
+      neg[2 * i] = a + b;
+      neg[2 * i + 1] = c - d;
+      pos[2 * i] = a - b;
+      pos[2 * i + 1] = d + c;
     }
 
     // Cross Cyclic Power Spectrum
     for (let i = 0; i < num_windows; i++) {
-      let pos_slice = pos.slice(2 * i * (Nw - Noverlap), 2 * i * (Nw - Noverlap) + 2 * Nw); // 2* because of how we store complex
-      let neg_slice = neg.slice(2 * i * (Nw - Noverlap), 2 * i * (Nw - Noverlap) + 2 * Nw);
+      const pos_slice = pos.slice(2 * i * Nw, 2 * i * Nw + 2 * Nw); // 2* because of how we store complex
+      const neg_slice = neg.slice(2 * i * Nw, 2 * i * Nw + 2 * Nw);
 
       // Apply window
       //pos_slice = pos_slice.map((val, idx) => val * window[idx]);
@@ -170,7 +231,72 @@ function calc_SCF(samples, alphas, Nw, Noverlap) {
     for (let j = 0; j < Nw; j++) {
       SCF_mag[i][j] = SCF[i][2 * j] * SCF[i][2 * j] + SCF[i][2 * j + 1] * SCF[i][2 * j + 1];
     }
+    SCF_mag[i] = fftshift(SCF_mag[i]);
   }
+  return SCF_mag;
+}
+
+// SCF using the freq smoothing method (1 FFT, lots of convolves)
+function calc_SCF_freq_smoothing(samples, alphas, Nw) {
+  const N = samples.length / 2;
+
+  const window = Array.from({ length: Nw }, (_, i) => 0.5 * (1 - Math.cos((2 * Math.PI * i) / (Nw - 1)))); // hanning window
+
+  // FFT entire signal
+  let fft_obj = new FFT(N);
+  let X = fft_obj.createComplexArray(); // output of fft
+  fft_obj.transform(X, samples);
+
+  // separate into real and imag
+  const X_real = new Array(N);
+  const X_imag = new Array(N);
+  const X_real_rev = new Array(N);
+  const X_imag_rev = new Array(N);
+  for (let i = 0; i < N; i++) {
+    X_real[i] = X[i * 2];
+    X_imag[i] = X[i * 2 + 1];
+    X_real_rev[i] = X[i * 2];
+    X_imag_rev[i] = X[i * 2 + 1];
+  }
+
+  const freq_decimation = Math.floor((N / Nw) * 8); // sort of arbitrary but if we dont decimate there will be thousands of pixels horizontally
+  const skip = Math.floor(N / freq_decimation);
+
+  // outter array is for each alpha, inner array will hold magnitudes
+  let SCF_mag = Array.from({ length: alphas.length }, () => new Array(freq_decimation));
+
+  // loop through cyclic freq (alphas)
+  let prev_shift = 0;
+
+  for (let alpha_idx = 0; alpha_idx < alphas.length; alpha_idx++) {
+    const shift = Math.floor((alphas[alpha_idx] * N) / 2); // scalar, number of samples to shift by
+    arrayRotate(X_real, shift - prev_shift);
+    arrayRotate(X_imag, shift - prev_shift);
+    arrayRotate(X_real_rev, -1 * (shift - prev_shift));
+    arrayRotate(X_imag_rev, -1 * (shift - prev_shift));
+    prev_shift = shift;
+
+    let real_part = new Array(N);
+    let imag_part = new Array(N);
+    for (let i = 0; i < N; i++) {
+      // TODO: based on the code Sam had, might not need to calc for all i
+      // includes the conj of the non-rev part (X_imag), otherwise its just a complex multiply
+      real_part[i] = X_real_rev[i] * X_real[i] + X_imag_rev[i] * X_imag[i];
+      imag_part[i] = X_imag_rev[i] * X_real[i] - X_real_rev[i] * X_imag[i];
+    }
+
+    // Apply window (a critical part to the freq smoothing method!)
+    real_part = convolve(real_part, window).slice(Nw / 2, N + Nw / 2); // slice makes it like "same" mode
+    imag_part = convolve(imag_part, window).slice(Nw / 2, N + Nw / 2);
+
+    // Take magnitude squared but also decimate by Nw
+    for (let i = 0; i < freq_decimation; i++) {
+      SCF_mag[alpha_idx][i] = real_part[i * skip] * real_part[i * skip] + imag_part[i * skip] * imag_part[i * skip];
+    }
+    // FFT Shift
+    SCF_mag[alpha_idx] = fftshift(SCF_mag[alpha_idx]);
+  }
+
   return SCF_mag;
 }
 
@@ -205,7 +331,7 @@ function convolve(x, y) {
   let lenX = x.length;
   let lenY = y.length;
 
-  // Perform convolution, using "same" mode
+  // Perform convolution, using "full" mode
   for (let i = 0; i < lenX + lenY - 1; i++) {
     let sum = 0;
     for (let j = Math.max(0, i - lenY + 1); j <= Math.min(i, lenX - 1); j++) {

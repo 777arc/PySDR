@@ -193,7 +193,7 @@ html_sidebars = {
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {'description':'By <a href="https://pysdr.org/content/about_author.html">Dr. Marc Lichtman</a>',
+html_theme_options = {'description':'By <a href="https://pysdr.org/content/about_author.html">Dr. Marc Lichtman</a> - pysdr@vt.edu',
                       'logo': 'logo.svg',
                       'logo_name': True, # used if the logo doesn't contain the project name itself
                       'fixed_sidebar': True, # on smaller screens you can't see the whole sidebar, and it won't scroll
@@ -264,7 +264,8 @@ html_css_files = ['custom.css',]
 
 html_js_files = [
     'js/beamforming_slider_app.js',
-    'js/FFT.js'
+    'js/FFT.js',
+    'js/cyclostationary_app.js'
 ]
 
 # Add any extra paths that contain custom files (such as robots.txt or

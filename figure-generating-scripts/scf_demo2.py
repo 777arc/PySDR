@@ -50,7 +50,7 @@ def pskGen(sps, fc=0, M=2, pulse='rect', beta=.25, Ns=10):
 
 ##### Build Signal Components #####
 
-signal = pskGen(sps=10, fc=.15, M=2, pulse='rect')
+signal = pskGen(sps=10, fc=.3, M=2, pulse='rect') + 0*pskGen(sps=10, fc=.1, M=4, pulse='rect')
 
 ##### Add Noise #####
 
@@ -85,21 +85,21 @@ window = np.hanning(smoothing_len)
 X = np.fft.fft(signal)
 X = np.fft.fftshift(X)
 
-SCF = np.zeros((len(a_vals), num_samples))
-SCF_conj = np.zeros((len(a_vals), num_samples))
+SCF = np.zeros((len(a_vals), num_samples), dtype=complex)
+SCF_conj = np.zeros((len(a_vals), num_samples), dtype=complex)
 
 for i, a in enumerate(a_vals):
-    SCF[i, :] = np.roll(X, -int(np.floor(a*num_samples/2)))*np.conj(np.roll(X, int(np.floor(a*num_samples/2))))
-    SCF[i, :abs(round(a*num_samples/2))] = 0
-    SCF[i, -abs(round(a*num_samples/2))-1:] = 0
+    SCF[i, :] = np.roll(X, -int(np.round(a*num_samples/2)))*np.conj(np.roll(X, int(np.round(a*num_samples/2))))
+    # SCF[i, :abs(round(a*num_samples/2))] = 0
+    # SCF[i, -abs(round(a*num_samples/2))-1:] = 0
     SCF[i, :] = np.convolve(SCF[i, :], window, mode='same')
     
-    SCF_conj[i, :] = np.roll(X, int(np.floor(a*num_samples/2))-1)*np.flip(np.roll(X, int(np.floor(a*num_samples/2))))
-    SCF_conj[i, :abs(round(a*num_samples/2))] = 0
-    SCF_conj[i, -abs(round(a*num_samples/2))-1:] = 0
-    SCF_conj[i, :] = np.convolve(SCF_conj[i, :], window, mode='same')
+    SCF_conj_slice = np.roll(X, int(np.round(a*num_samples/2))-1)*np.flip(np.roll(X, int(np.round(a*num_samples/2))))
+    SCF_conj_slice[:abs(round(a*num_samples/2))] = 0
+    SCF_conj_slice[-abs(round(a*num_samples/2))-1:] = 0
+    SCF_conj[i, :] = np.convolve(SCF_conj_slice, window, mode='same')
 
-
+'''
 plt.figure()
 symb_rate = 0.1
 a_ind = np.where((np.mod(a_vals, symb_rate) < a_res/2) & (abs(a_vals) < 3*symb_rate))
@@ -112,13 +112,15 @@ plt.ylim([max_val-60, max_val+10])
 plt.grid()
 plt.legend(["a = " + str(round(a_vals[i], 3)) for i in a_ind[0]])
 plt.title("Spectral Correlation Function Slices")
-
+'''
 # plt.figure()
 # plt.plot(10*np.log10(SCF_conj[int(len(a_vals)*.5), :]))
 
+SCOH = np.divide(SCF, SCF[0, :])
+
 
 dym_range_dB = 20
-max_val = np.max(SCF[np.where(a_vals > a_res),:])
+max_val = np.max(np.abs(SCF[np.where(a_vals > a_res),:]))
 linear_scale = True
 
 plt.set_cmap("viridis")
@@ -126,10 +128,9 @@ plt.set_cmap("viridis")
 plt.figure(figsize=(10, 5))
 plt.subplot(1, 2, 1)
 if linear_scale:
-    plt.imshow(np.abs(SCF), aspect='auto', extent=[-0.5, 0.5, -1, 1],
-           vmax=max_val)
+    plt.imshow(np.abs(SCF), aspect='auto', extent=(-0.5, 0.5, -1, 1), vmax=max_val)
 else:
-    plt.imshow(10*np.log10(np.abs(SCF)), aspect='auto', extent=[-0.5, 0.5, -1, 1],
+    plt.imshow(10*np.log10(np.abs(SCF)), aspect='auto', extent=(-0.5, 0.5, -1, 1),
             vmax=10*np.log10(max_val), vmin=10*np.log10(max_val)-dym_range_dB)
 
 plt.ylim([0, 0.5])
@@ -138,7 +139,9 @@ plt.ylabel("Cycle Frequency")
 plt.colorbar()
 plt.title("Non-Conjugate SCF")
 
-max_val = np.max(SCF_conj)
+
+
+max_val = np.max(np.abs(SCF_conj))
 
 plt.subplot(1, 2, 2)
 if linear_scale:
@@ -149,9 +152,32 @@ else:
             vmax=10*np.log10(max_val), vmin=10*np.log10(max_val)-dym_range_dB)
 plt.xlabel("Normalized Frequency")
 plt.ylabel("Cycle Frequency")
-plt.ylim([-0.5, 0.5])
+plt.ylim([-1, 1])
 plt.colorbar()
 plt.title("Conjugate SCF")
 plt.tight_layout()
+
+
+
+##### Spectral Coherence #####
+
+dym_range_dB = 20
+max_val = np.max(np.abs(SCOH[np.where(a_vals > a_res),:]))
+linear_scale = True
+
+plt.set_cmap("viridis")
+
+plt.figure(figsize=(10, 5))
+if linear_scale:
+    plt.imshow(np.abs(SCOH), aspect='auto', extent=(-0.5, 0.5, -1, 1), vmax=max_val)
+else:
+    plt.imshow(10*np.log10(np.abs(SCOH)), aspect='auto', extent=(-0.5, 0.5, -1, 1),
+            vmax=10*np.log10(max_val), vmin=10*np.log10(max_val)-dym_range_dB)
+
+plt.ylim([0, 0.5])
+plt.xlabel("Normalized Frequency")
+plt.ylabel("Cycle Frequency")
+plt.colorbar()
+plt.title("Spectral Coherence Function")
 
 plt.show()

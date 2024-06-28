@@ -27,4 +27,5 @@ by :ref:`Dr. Marc Lichtman<author-chapter>`
    content/rds
    content/doa
    content/phaser
+   content/cyclostationary
    content/about_author

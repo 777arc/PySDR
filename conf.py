@@ -64,7 +64,7 @@ else:
 # ones.
 extensions = [
     'sphinx.ext.imgmath',
-    #'sphinx.ext.autosectionlabel', #added for dutch
+    'sphinx.ext.autosectionlabel',
     #'sphinxcontrib.tikz', #added for dutch
 ]
 imgmath_image_format = 'svg' # way better looking than pngs (its vectorized after all!)

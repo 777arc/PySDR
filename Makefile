@@ -59,7 +59,6 @@ spelling:
 .PHONY: html
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
-	$(SPHINXBUILD) -b spelling . _spelling
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 	@echo replacing title of index page

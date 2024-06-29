@@ -234,7 +234,7 @@ Below is an interactive JavaScript app that implements an SCF, so that you can p
 Frequency Smoothing Method (FSM)
 ********************************
 
-Now that we have a good conceptual understanding of the SCF, let's look at how we can compute it efficiently.  First, consider the periodogram which is simply the squared magnitude of the Fourier transform of a signal:
+Nowassadsdasd that we have a good conceptual understanding of the SCF, let's look at how we can compute it efficiently.  First, consider the periodogram which is simply the squared magnitude of the Fourier transform of a signal:
 
 .. math::
 

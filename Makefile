@@ -54,7 +54,8 @@ clean:
 
 .PHONY: html
 html:
-	$(SPHINXBUILD) -b html -b spelling $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
+	$(SPHINXBUILD) -b spelling . _spelling
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 	@echo replacing title of index page

@@ -591,11 +591,11 @@ To aide in one's understanding of the COH, it is helpful to review the concept o
 The COH extends this concept to spectral correlation such that it quantifies the degree to which the power spectral density (PSD) of a signal at one frequency is related to the PSD of the same signal at another frequency.  These two frequencies are simply the frequency shifts that we apply as part of calculating the SCF.  To calculate the COH, we first calculate the SCF as before, denoted :math:`S_X(f,\alpha)`, and then normalize by the product of two shifted PSD terms, analogous to normalizing by the product of standard deviations:
 
 .. math::
-    \rho = C_x(f, \alpha) = \frac{S_X(f,\alpha)}{\sqrt{X(f + \alpha/2) X(f - \alpha/2)}}
+    \rho = C_x(f, \alpha) = \frac{S_X(f,\alpha)}{\sqrt{C_x^0(f + \alpha/2) C_x^0(f - \alpha/2)}}
 
-The denominator is the important/new part, the two terms :math:`X(f + \alpha/2)` and :math:`X(f - \alpha/2)` are simply the PSD shifted by :math:`\alpha/2` and :math:`-\alpha/2`. Another way to think about this is that the SCF is a cross-spectral density (a power spectrum that involves two input signals) while the normalizing terms in the denominator are the auto-spectral densities (power spectra that involve only one input signal).
+The denominator is the important/new part, the two terms :math:`C_x^0(f + \alpha/2)` and :math:`C_x^0(f - \alpha/2)` are simply the PSD shifted by :math:`\alpha/2` and :math:`-\alpha/2`. Another way to think about this is that the SCF is a cross-spectral density (a power spectrum that involves two input signals) while the normalizing terms in the denominator are the auto-spectral densities (power spectra that involve only one input signal).
 
-We will now apply this to our Python code, specifically the SCF using the frequency smoothing method (FSM).  Because the FSM does the averaging in the frequency domain, we already have :math:`X(f + \alpha/2)` and :math:`X(f - \alpha/2)` at our disposal, in the Python code they are simply :code:`np.roll(X, -shift)` and :code:`np.roll(X, shift)` because :code:`X` is our signal after taking the FFT.  So all we have to do is multiply them together, take the square root, and divide our SCF slice by that result (note that this happens within the for loop over alpha):
+We will now apply this to our Python code, specifically the SCF using the frequency smoothing method (FSM).  Because the FSM does the averaging in the frequency domain, we already have :math:`C_x^0(f + \alpha/2)` and :math:`C_x^0(f - \alpha/2)` at our disposal, in the Python code they are simply :code:`np.roll(X, -shift)` and :code:`np.roll(X, shift)` because :code:`X` is our signal after taking the FFT.  So all we have to do is multiply them together, take the square root, and divide our SCF slice by that result (note that this happens within the for loop over alpha):
 
 .. code-block:: python
 

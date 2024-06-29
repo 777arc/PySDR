@@ -60,7 +60,7 @@ jobs:
 
       - name: Fail if spelling errors
         if: steps.check_files.outputs.files_exists == 'true'
-        run: exit 1
+        run: cat _spelling/content/* && exit 1
 
       - name: Zip just English version for Release
         uses: montudor/action-zip@v1

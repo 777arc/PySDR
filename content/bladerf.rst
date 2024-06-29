@@ -60,7 +60,7 @@ On Ubuntu and other Debian-based systems, you can install the bladeRF software w
  cd ../libraries/libbladeRF_bindings/python
  sudo python3 setup.py install
 
-This will install the libbladerf library, Python bindings, bladerf command line tools, the firmware downloader, and the FPGA bitstream downloader.  To check which version of the library you installed, use :code:`bladerf-tool version` (this guide was written using libbladeRF version v2.5.0).
+This will install the libbladerf library, Python bindings, bladeRF command line tools, the firmware downloader, and the FPGA bitstream downloader.  To check which version of the library you installed, use :code:`bladerf-tool version` (this guide was written using libbladeRF version v2.5.0).
 
 If you are using Ubuntu through WSL, on the Windows side you will need to forward the bladeRF USB device to WSL, first by installing the latest `usbipd utility msi <https://github.com/dorssel/usbipd-win/releases>`_ (this guide assumes you have usbipd-win 4.0.0 or higher), then opening PowerShell in administrator mode and running:
 

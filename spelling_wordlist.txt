@@ -271,3 +271,7 @@ lasercutting
 hackathon
 cumulants
 precompiled
+Tarik
+Benaddi
+λ
+π

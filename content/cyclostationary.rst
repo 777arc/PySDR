@@ -234,7 +234,7 @@ Below is an interactive JavaScript app that implements an SCF, so that you can p
 Frequency Smoothing Method (FSM)
 ********************************
 
-Nowassadsdasd that we have a good conceptual understanding of the SCF, let's look at how we can compute it efficiently.  First, consider the periodogram which is simply the squared magnitude of the Fourier transform of a signal:
+Now that we have a good conceptual understanding of the SCF, let's look at how we can compute it efficiently.  First, consider the periodogram which is simply the squared magnitude of the Fourier transform of a signal:
 
 .. math::
 
@@ -550,7 +550,7 @@ Before plotting the metric we will null out the DC component, as it will contain
     f = np.linspace(-0.5, 0.5, len(samples))
     plt.plot(f, magnitude_metric)
 
-You can then use a peak finding algorithm, such as scipy's :code:`signal.find_peaks()`.  Below we plot :code:`magnitude_metric` for each of the three signals used in the Multiple Overlapping Signals section, first individually, then combined:
+You can then use a peak finding algorithm, such as SciPy's :code:`signal.find_peaks()`.  Below we plot :code:`magnitude_metric` for each of the three signals used in the Multiple Overlapping Signals section, first individually, then combined:
 
 .. image:: ../_images/non_csp_metric.svg
    :align: center 

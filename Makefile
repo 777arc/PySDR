@@ -52,6 +52,10 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 
+.PHONY: spelling
+spelling:
+	$(SPHINXBUILD) -b spelling . _spelling
+
 .PHONY: html
 html:
 	$(SPHINXBUILD) -b spelling . _spelling

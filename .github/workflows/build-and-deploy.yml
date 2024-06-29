@@ -53,6 +53,7 @@ jobs:
           CREATOR_ID: ${{ secrets.CREATOR_ID }}
 
       - name: Check for spelling errors
+        id: check_files
         uses: andstor/file-existence-action@v3
         with:
           files: "_spelling/content/*.spelling"

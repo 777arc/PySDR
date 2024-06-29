@@ -4,7 +4,7 @@
 BladeRF in Python
 ##################
 
-The bladeRF 2.0 (a.k.a. bladeRF 2.0 micro) from the company `Nuand <https://www.nuand.com>`_ is a USB 3.0-based SDR with two receive channels, two transmit channels, a tunable range of 47 MHz to 6 GHz, and the ability to sample up to 61 MHz or as high as 122 MHz when hacked.  It uses the AD9361 RF integrated circuit (RFIC) just like the USRP B210 and PlutoSDR, so RF performance will be similar.  The bladeRF 2.0 was released in 2021, maintains a small formfactor at 2.5" x 4.5", and comes in two different FPGA sizes (xA4 and xA9).  While this chapter focuses on the bladeRF 2.0, a lot of the code will also apply to the original bladeRF which `came out in 2013 <https://www.kickstarter.com/projects/1085541682/bladerf-usb-30-software-defined-radio>`_.
+The bladeRF 2.0 (a.k.a. bladeRF 2.0 micro) from the company `Nuand <https://www.nuand.com>`_ is a USB 3.0-based SDR with two receive channels, two transmit channels, a tunable range of 47 MHz to 6 GHz, and the ability to sample up to 61 MHz or as high as 122 MHz when hacked.  It uses the AD9361 RF integrated circuit (RFIC) just like the USRP B210 and PlutoSDR, so RF performance will be similar.  The bladeRF 2.0 was released in 2021, maintains a small form factor at 2.5" x 4.5", and comes in two different FPGA sizes (xA4 and xA9).  While this chapter focuses on the bladeRF 2.0, a lot of the code will also apply to the original bladeRF which `came out in 2013 <https://www.kickstarter.com/projects/1085541682/bladerf-usb-30-software-defined-radio>`_.
 
 .. image:: ../_images/bladeRF_micro.png
    :scale: 35 %

@@ -17,7 +17,7 @@ As we learned in the :ref:`noise-chapter` chapter, wireless channels are noisy, 
    :align: center
    :alt: Comparing noisy QPSK and 16QAM to demonstrate why forward error correction, a.k.a. channel coding, is needed
    
-A failed CRC usually results in a retransmission, at least when using a protocol like TCP.  If Alice is sending a message to Bob, we would rather not have to make Bob send a message back to Alice requesting the information again.  The purpose of channel coding is to transmit **redundant** information. The redundancy is a failsafe that reduces the amount of erroneous packets, retransmissions, or dropped data.
+A failed CRC usually results in a retransmission, at least when using a protocol like TCP.  If Alice is sending a message to Bob, we would rather not have to make Bob send a message back to Alice requesting the information again.  The purpose of channel coding is to transmit **redundant** information. The redundancy is a fail-safe that reduces the amount of erroneous packets, retransmissions, or dropped data.
 
 We discussed why we need channel coding, so let's see where it occurs in the transmit-receive chain:
 

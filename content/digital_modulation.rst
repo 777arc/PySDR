@@ -20,12 +20,12 @@ As a simplified example, let's say we have a wire and are sending 1's and 0's us
    :align: center
    :alt: Pulse train of ones and zeros depicting the concept of a digital symbol that carries information
 
-In the above example each symbol represents one bit.  How can we convey more than one bit per symbol?  Let's study the signals that travel down Ethernet cables, which is defined in an IEEE standard called IEEE 802.3 1000BASE-T.  The common operating mode of ethernet uses a 4-level amplitude modulation (2 bits per symbol) with 8 ns symbols.
+In the above example each symbol represents one bit.  How can we convey more than one bit per symbol?  Let's study the signals that travel down Ethernet cables, which is defined in an IEEE standard called IEEE 802.3 1000BASE-T.  The common operating mode of Ethernet uses a 4-level amplitude modulation (2 bits per symbol) with 8 ns symbols.
 
 .. image:: ../_images/ethernet.svg
    :align: center
    :target: ../_images/ethernet.svg
-   :alt: Plot of IEEE 802.3 1000BASE-T ethernet voltage signal showing 4-level amplitude shift keying (ASK)
+   :alt: Plot of IEEE 802.3 1000BASE-T Ethernet voltage signal showing 4-level amplitude shift keying (ASK)
 
 Take a moment to try to answer these questions:
 
@@ -40,7 +40,7 @@ Take a moment to try to answer these questions:
    <summary>Answers</summary>
 
 1. 250 Mbps - (1/8e-9)*2
-2. Four (which is what ethernet cables have)
+2. Four (which is what Ethernet cables have)
 3. 4 bits per symbol - log_2(16)
 4. 0.5 Gbps - (1/8e-9)*4
 
@@ -51,7 +51,7 @@ Take a moment to try to answer these questions:
 *******************
 Wireless Symbols
 *******************
-Question: Why can’t we directly transmit the ethernet signal shown in the figure above?  There are many reasons, the biggest two being:
+Question: Why can’t we directly transmit the Ethernet signal shown in the figure above?  There are many reasons, the biggest two being:
 
 1. Low frequencies require *huge* antennas, and the signal above contains frequencies down to DC (0 Hz).  We can’t transmit DC.
 2. Square waves take an excessive amount of spectrum for the bits per second--recall from the :ref:`freq-domain-chapter` chapter that sharp changes in time domain use a large amount of bandwidth/spectrum:

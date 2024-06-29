@@ -523,7 +523,7 @@ The above code shows basic usage of these four methods, but you may be wondering
    :align: center 
    :target: ../_images/convolve_comparison_100000.svg
 
-As you can see, :code:`scipy.signal.convolve` actually switches its method to FFT-based automatically at a certian input size.  Either way, :code:`fftconvolve` is the clear winner for these size taps and inputs, which represent fairly typical sizes in RF applications.  A lot of the code within PySDR actually uses :code:`np.convolve:` simply because it's one less import and the performance difference is negligible for low datarate or non-real-time applications.
+As you can see, :code:`scipy.signal.convolve` actually switches its method to FFT-based automatically at a certain input size.  Either way, :code:`fftconvolve` is the clear winner for these size taps and inputs, which represent fairly typical sizes in RF applications.  A lot of the code within PySDR actually uses :code:`np.convolve:` simply because it's one less import and the performance difference is negligible for low data rate or non-real-time applications.
 
 Lastly, we will show the output in the frequency domain, so we can finally check whether the firwin2 method gave us a filter that matched our design parameters.  Starting from the code above that gave us :code:`h2`:
 
@@ -706,7 +706,7 @@ And as we have learned, square pulses are not efficient because they use an exce
 .. image:: ../_images/square-wave.svg
    :align: center 
 
-So what we do is we "pulse shape" these blocky-looking symbols so that they take up less bandwidth in the frequency domain.  We "pulse shape" by using a low-pass filter because it discards the higher frequency components of our symbols.  Below shows an example of symbols in the time (top) and frequency (bottom) domain, before and after a pulse-shaping filter has been applied:
+So what we do is we "pulse shape" these block-looking symbols so that they take up less bandwidth in the frequency domain.  We "pulse shape" by using a low-pass filter because it discards the higher frequency components of our symbols.  Below shows an example of symbols in the time (top) and frequency (bottom) domain, before and after a pulse-shaping filter has been applied:
 
 .. image:: ../_images/pulse_shaping.png
    :scale: 70 % 

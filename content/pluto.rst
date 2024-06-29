@@ -37,10 +37,10 @@ Setting up VM
 While the Python code provided in this textbook should work under Windows, Mac, and Linux, the install instructions below are specific to Ubuntu 22. If you have trouble installing the software on your OS following `the instructions provided by Analog Devices <https://wiki.analog.com/university/tools/pluto/users/quick_start>`_, I recommend installing an Ubuntu 22 VM and trying the instructions below.  Alternatively, if you're on Windows 11, Windows Subsystem for Linux (WSL) using Ubuntu 22 tends to run fairly well and supports graphics out-of-the-box. 
 
 1. Install and open `VirtualBox <https://www.virtualbox.org/wiki/Downloads>`_.
-2. Create a new VM.  For memory size, I recommend using 50% of your computer’s RAM.
+2. Create a new VM.  For memory size, I recommend using 50% of your computer's RAM.
 3. Create the virtual hard disk, choose VDI, and dynamically allocate size.  15 GB should be enough. If you want to be really safe you can use more.
 4. Download Ubuntu 22 Desktop .iso- https://ubuntu.com/download/desktop
-5. Start the VM. It will ask you for installation media. Choose the Ubuntu 22 desktop .iso file.  Choose “install ubuntu”, use default options, and a pop up will warn you about the changes you are about to make. Hit continue.  Choose name/password and then wait for the VM to finish initializing.  After finishing the VM will restart, but you should power off the VM after the restart.
+5. Start the VM. It will ask you for installation media. Choose the Ubuntu 22 desktop .iso file.  Choose "install Ubuntu", use default options, and a pop up will warn you about the changes you are about to make. Hit continue.  Choose name/password and then wait for the VM to finish initializing.  After finishing the VM will restart, but you should power off the VM after the restart.
 6. Go into the VM settings (the gear icon).
 7. Under system > processor > choose at least 3 CPUs.  If you have an actual video card then in display > video memory > choose something much higher.
 8. Start up your VM.
@@ -52,7 +52,7 @@ Connecting PlutoSDR
 1. If running OSX, within OSX, not the VM, in system preferences, enable "kernel extensions".  Then install HoRNDIS (you may need to reboot after).
 2. If running Windows, install this driver: https://github.com/analogdevicesinc/plutosdr-m2k-drivers-win/releases/download/v0.7/PlutoSDR-M2k-USB-Drivers.exe
 3. If running Linux you shouldn't have to do anything special.
-4. Plug Pluto into the host machine over USB. Make sure to use the middle USB port on Pluto because the other is for power only.  Plugging in Pluto should create a virtual network adapter, i.e., the Pluto appears like a USB ethernet adapter.
+4. Plug Pluto into the host machine over USB. Make sure to use the middle USB port on Pluto because the other is for power only.  Plugging in Pluto should create a virtual network adapter, i.e., the Pluto appears like a USB Ethernet adapter.
 5. On the host machine (not VM), open a terminal or your preferred ping tool and ping 192.168.2.1.  If that doesn't work, stop and debug the network interface.
 6. Within the VM, open a new terminal
 7. Ping 192.168.2.1.  If that doesn't work stop here and debug.  While pinging, unplug your Pluto and make sure the pinging stalls out, if it keeps pinging then something else at that IP address is on the network, and you'll have to change the IP of the Pluto (or other device) before moving on.
@@ -152,7 +152,7 @@ And for 0.32 and higher use:
  fw_setenv compatible ad9364
  reboot
 
-You should now be able to tune up to 6 GHz and down to 70 MHz, not to mention use a sample rate up to 56 MHz!  Yay!
+You should now be able to tune up to 6 GHz and down to 70 MHz, not to mention use a sample rate up to 56 MHz!
 
 ************************
 Receiving
@@ -255,7 +255,7 @@ If you want to continuously transmit the same set of samples on repeat, instead 
 
  sdr.tx_cyclic_buffer = True # Enable cyclic buffers
 
-You would then transmit your samples like normal: :code:`sdr.tx(samples)` just one time, and the Pluto will keep transmitting the signal indefinitely, until the sdr object destructor is called.  To change the samples that are being continuously transmitted, you cannot simply call :code:`sdr.tx(samples)` again with a new set of samples, you have to first call :code:`sdr.tx_destroy_buffer()`, then call :code:`sdr.tx(samples)`.
+You would then transmit your samples like normal: :code:`sdr.tx(samples)` just one time, and the Pluto will keep transmitting the signal indefinitely, until the :code:`sdr` object destructor is called.  To change the samples that are being continuously transmitted, you cannot simply call :code:`sdr.tx(samples)` again with a new set of samples, you have to first call :code:`sdr.tx_destroy_buffer()`, then call :code:`sdr.tx(samples)`.
 
 Transmitting Over the Air Legally
 #################################
@@ -355,9 +355,9 @@ It is a good exercise to slowly adjust :code:`sdr.tx_hardwaregain_chan0` and :co
 Maia SDR and IQEngine
 **********************************
 
-Want to use your Pluto as a real-time spectrum analyzer on your PC or smartphone?  The open-source `Maia SDR <https://maia-sdr.org/>`_ project provides a modified firmware image for the Pluto that runs an FFT on the Pluto's FPGA, and a web server on the Pluto's ARM CPU!  This web interface is used to set the frequncy and other SDR parameters, and view the spectrogram in a waterfall-style display.  You can make recordings of the raw IQ samples up to 400MB in size, and download them to your computer/phone or view them in IQEngine.
+Want to use your Pluto as a real-time spectrum analyzer on your PC or smartphone?  The open-source `Maia SDR <https://maia-sdr.org/>`_ project provides a modified firmware image for the Pluto that runs an FFT on the Pluto's FPGA, and a web server on the Pluto's ARM CPU!  This web interface is used to set the frequency and other SDR parameters, and view the spectrogram in a waterfall-style display.  You can make recordings of the raw IQ samples up to 400MB in size, and download them to your computer/phone or view them in IQEngine.
 
-Install the latest Maia Pluto firmware by downloading the `latest release <https://github.com/maia-sdr/plutosdr-fw/releases/>`_, specifically the file named :code:`plutosdr-fw-maia-sdr-vX.Y.Z.zip`. Unzip and copy the :code:`pluto.frm` file onto your Pluto's mass storage device (it resembles a USB flash drive), then eject the pluto (don't unplug), this is the same process as upgrading the Pluto's firmware; it will blink for several minutes and then restart.  Lastly, SSH into the Pluto as we did in the "hack your Pluto" section, using :code:`ssh root@192.168.2.1` in a terminal, with default password :code:`analog`.  Once SSHed in, you must run the following three commands one at a time:
+Install the latest Maia Pluto firmware by downloading the `latest release <https://github.com/maia-sdr/plutosdr-fw/releases/>`_, specifically the file named :code:`plutosdr-fw-maia-sdr-vX.Y.Z.zip`. Unzip and copy the :code:`pluto.frm` file onto your Pluto's mass storage device (it resembles a USB flash drive), then eject the Pluto (don't unplug), this is the same process as upgrading the Pluto's firmware; it will blink for several minutes and then restart.  Lastly, SSH into the Pluto as we did in the "hack your Pluto" section, using :code:`ssh root@192.168.2.1` in a terminal, with default password :code:`analog`.  Once SSHed in, you must run the following three commands one at a time:
 
 .. code-block:: bash
 
@@ -388,7 +388,7 @@ To test how fast Maia can run, try increasing the :code:`Spectrum Rate` to 100 H
 Reference API
 ************************
 
-For the entire list of sdr properties and functions you can call, refer to the `pyadi-iio Pluto Python code (AD936X) <https://github.com/analogdevicesinc/pyadi-iio/blob/master/adi/ad936x.py>`_.
+For the entire list of SDR properties and functions you can call, refer to the `pyadi-iio Pluto Python code (AD936X) <https://github.com/analogdevicesinc/pyadi-iio/blob/master/adi/ad936x.py>`_.
 
 ************************
 Python Exercises
@@ -435,17 +435,17 @@ Additionally, in order to time how long something takes, you can use the followi
 
 Here are several hints to get you started.
 
-Hint 1: You'll need to put the line "samples = sdr.rx()" into a loop that runs many times (e.g., 100 times). You must count how many samples you get each call to sdr.rx() while tracking how much time has elapsed.
+Hint 1: You'll need to put the line :code:`samples = sdr.rx()` into a loop that runs many times (e.g., 100 times). You must count how many samples you get each call to :code:`sdr.rx()` while tracking how much time has elapsed.
 
 Hint 2: Just because you are calculating samples per second, that doesn't mean you have to perform exactly 1 second's worth of receiving samples. You can divide the number of samples you received by the amount of time that passed.
 
-Hint 3: Start at sample_rate = 10e6 like the code shows because this rate is way more than USB 2.0 can support. You will be able to see how much data gets through.  Then you can tweak rx_buffer_size. Make it a lot larger and see what happens.  Once you have a working script and have fiddled with rx_buffer_size, try adjusting sample_rate. Determine how low you have to go until you are able to receive 100% of samples in Python (i.e., sample at a 100% duty cycle).
+Hint 3: Start at :code:`sample_rate = 10e6` like the code shows because this rate is way more than USB 2.0 can support. You will be able to see how much data gets through.  Then you can tweak rx_buffer_size. Make it a lot larger and see what happens.  Once you have a working script and have fiddled with :code:`rx_buffer_size`, try adjusting :code:`sample_rate`. Determine how low you have to go until you are able to receive 100% of samples in Python (i.e., sample at a 100% duty cycle).
 
-Hint 4: In your loop where you call sdr.rx(), try to do as little as possible so that it doesn't add extra delay in execution time. Don't do anything intensive like print from inside the loop.
+Hint 4: In your loop where you call :code:`sdr.rx()`, try to do as little as possible so that it doesn't add extra delay in execution time. Don't do anything intensive like print from inside the loop.
 
 As part of this exercise you will get an idea for the max throughput of USB 2.0. You can look up online to verify your findings.
 
-As a bonus, try changing the center_freq and rx_rf_bandwidth to see if it impacts the rate you can receive samples off the Pluto.
+As a bonus, try changing the :code:`center_freq` and :code:`rx_rf_bandwidth` to see if it impacts the rate you can receive samples off the Pluto.
 
 
 Exercise 2: Create a Spectrogram/Waterfall
@@ -457,9 +457,9 @@ In the :ref:`freq-domain-chapter` chapter we learned the Python code to perform 
 
 Hints:
 
-1. Try setting sdr.rx_buffer_size to the FFT size so that you always perform 1 FFT for each call to `sdr.rx()`.
-2. Build a 2d array to hold all the FFT results where each row is 1 FFT.  A 2d array filled with zeros can be created with: `np.zeros((num_rows, fft_size))`.  Access row i of the array with: `waterfall_2darray[i,:]`.
-3. `plt.imshow()` is a convenient way to display a 2d array. It scales the color automatically.
+1. Try setting :code:`sdr.rx_buffer_size` to the FFT size so that you always perform 1 FFT for each call to :code:`sdr.rx()`.
+2. Build a 2d array to hold all the FFT results where each row is 1 FFT.  A 2D array filled with zeros can be created with: :code:`np.zeros((num_rows, fft_size))`.  Access row :code:`i` of the array with: :code:`waterfall_2darray[i,:]`.
+3. :code:`plt.imshow()` is a convenient way to display a 2d array. It scales the color automatically.
 
 As a stretch goal, make the spectrogram update live.
 
@@ -467,7 +467,7 @@ As a stretch goal, make the spectrogram update live.
 Pluto+
 ******
 
-The Pluto+ (a.k.a. Pluto Plus) is an unofficial and upgraded version of the original PlutoSDR, primarily available from Aliexpress.  It includes a Gigabit Ethernet port, both RX and both TX channels exposed via SMA, a MicroSD slot, 0.5PPM VCTCXO, and an external clock input via U.FL port on the PCB.  
+The Pluto+ (a.k.a. Pluto Plus) is an unofficial and upgraded version of the original PlutoSDR, primarily available from AliExpress.  It includes a Gigabit Ethernet port, both RX and both TX channels exposed via SMA, a MicroSD slot, 0.5PPM VCTCXO, and an external clock input via U.FL port on the PCB.  
 
 .. image:: ../_images/pluto_plus.png
    :scale: 70 % 

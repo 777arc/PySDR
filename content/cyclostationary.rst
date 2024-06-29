@@ -8,7 +8,7 @@ Cyclostationary Processing
 
  <span style="display: table; margin: 0 auto; font-size: 20px;">Co-authored by <a href="https://www.linkedin.com/in/samuel-brown-vt">Sam Brown</a></span>
 
-In this chapter we demystify cyclostationary signal processing (a.k.a. CSP), a relatively niche area of RF signal processing that is used to analyze or detect (often in very low SNR!) signals that exhibit cyclostationary properties, such as most modern digitial modulation schemes.  We cover the Cyclic Autocorrelation Function (CAF), Spectral Correlation Function (SCF), Spectral Coherence Function (COH), conjugate versions of these functions, and how they can be applied.  This chapter includes several full Python implementations, with examples that involve BPSK, QPSK, OFDM, and multiple combined signals.
+In this chapter we demystify cyclostationary signal processing (a.k.a. CSP), a relatively niche area of RF signal processing that is used to analyze or detect (often in very low SNR!) signals that exhibit cyclostationary properties, such as most modern digital modulation schemes.  We cover the Cyclic Autocorrelation Function (CAF), Spectral Correlation Function (SCF), Spectral Coherence Function (COH), conjugate versions of these functions, and how they can be applied.  This chapter includes several full Python implementations, with examples that involve BPSK, QPSK, OFDM, and multiple combined signals.
 
 ****************
 Introduction
@@ -177,7 +177,7 @@ Note that we can see the 0.2 Hz frequency offset that we applied when simulating
 
 Unfortunately, doing this for thousands or millions of alphas is extremely computationally intensive.  The other downside of just taking the FFT of the CAF is it does not involve any averaging. Efficient/practical computing of the SCF usually involves some form of averaging; either time-based or frequency-based, as we will discuss in the next two sections.
 
-Below is an interactive JavaScript app that implements an SCF, so that you can play around with different signal and SCF parameters to build your intuition.  The frequency of the signal is a fairly straightforward knob, and shows how well the SCF can identify RF frequency.  Try adding pulse shaping by unchecking the Rectangular Pulse option, and play around with different rolloff values.  Note that using the default alpha-step, not all samples per symbols will lead to a visible spike in the SCF.  You can try lowering alpha-step, although it will increase the processing time. 
+Below is an interactive JavaScript app that implements an SCF, so that you can play around with different signal and SCF parameters to build your intuition.  The frequency of the signal is a fairly straightforward knob, and shows how well the SCF can identify RF frequency.  Try adding pulse shaping by unchecking the Rectangular Pulse option, and play around with different roll-off values.  Note that using the default alpha-step, not all samples per symbols will lead to a visible spike in the SCF.  You can try lowering alpha-step, although it will increase the processing time. 
 
 .. raw:: html
 
@@ -234,7 +234,7 @@ Below is an interactive JavaScript app that implements an SCF, so that you can p
 Frequency Smoothing Method (FSM)
 ********************************
 
-Now that we have a good conceptual understanding of the SCF, let's look at how we can compute it efficiently.  First, consider the periodogam which is simply the squared magnitude of the Fourier transform of a signal:
+Now that we have a good conceptual understanding of the SCF, let's look at how we can compute it efficiently.  First, consider the periodogram which is simply the squared magnitude of the Fourier transform of a signal:
 
 .. math::
 
@@ -297,7 +297,7 @@ This method has the advantage that only one large FFT is required, but it also h
 Time Smoothing Method (TSM)
 ***************************
 
-Next we will look at an implementation of the TSM in Python. The code snippet below divides the signal into *num_windows* blocks, each of length *Nw* with an overlap of *Noverlap*.  Note that the overlap functionality is not required, but tends to help make a nicer output.  The signal is then multiplied by a window function (in this case, Hanning, but it can be any window) and the FFT is taken. The SCF is then calculated by averaging the result from each block. The window length plays the same exact role as in the FSM determining the resolution/smoothness tradeoff.
+Next we will look at an implementation of the TSM in Python. The code snippet below divides the signal into *num_windows* blocks, each of length *Nw* with an overlap of *Noverlap*.  Note that the overlap functionality is not required, but tends to help make a nicer output.  The signal is then multiplied by a window function (in this case, Hanning, but it can be any window) and the FFT is taken. The SCF is then calculated by averaging the result from each block. The window length plays the same exact role as in the FSM determining the resolution/smoothness trade-off.
 
 
 .. code-block:: python
@@ -369,7 +369,7 @@ We can simulate a BPSK signal with a raised-cosine pulse shaping using the follo
     print(pulse_train[0:96].astype(int))
 
     # Raised-Cosine Filter for Pulse Shaping
-    beta = 0.3 # rolloff parameter (avoid exactly 0.2, 0.25, 0.5, and 1.0)
+    beta = 0.3 # roll-off parameter (avoid exactly 0.2, 0.25, 0.5, and 1.0)
     num_taps = 101 # somewhat arbitrary
     t = np.arange(num_taps) - (num_taps-1)//2
     h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2) # RC equation
@@ -396,7 +396,7 @@ The plot below shows the pulse-shaped BPSK in the time domain, before noise, and
    :target: ../_images/pulse_shaped_BSPK.svg
    :alt: Pulse-shaped BPSK signal with a raised-cosine pulse shape
 
-Now let's calculate the SCF of this pulse-shaped BPSK signal with a rolloff of 0.3, 0.6, and 0.9. We will use the same frequency shift of 0.2 Hz, and the FSM implementation, with the same FSM parameters and symbol length as used in the rectangular BPSK example, to make it a fair comparison:
+Now let's calculate the SCF of this pulse-shaped BPSK signal with a roll-off of 0.3, 0.6, and 0.9. We will use the same frequency shift of 0.2 Hz, and the FSM implementation, with the same FSM parameters and symbol length as used in the rectangular BPSK example, to make it a fair comparison:
 
 :code:`beta = 0.3`:
 
@@ -419,7 +419,7 @@ Now let's calculate the SCF of this pulse-shaped BPSK signal with a rolloff of 0
    :target: ../_images/scf_freq_smoothing_pulse_shaped_bpsk3.svg
    :alt: SCF of pulse-shaped BPSK using the Frequency Smoothing Method (FSM) beta 0.9
 
-In all three, we no longer get the sidelobes in the frequency axis, and in the cyclic frequency axis we don't get as strong of harmonics of the fundamental cyclic frequency.  This is because the raised-cosine pulse shape has a much better spectral containment than the rectangular pulse shape, and the sidelobes are much lower.  As a result, pulse-shaped signals tend to have a much "cleaner" SCF than rectangular signals, resembling a single spike with a smearing above it.  This will apply to all single carrier digitally modulated signals, not just BPSK.  As beta gets larger we get a broader spike in the frequency axis because the signal takes up more bandwidth.
+In all three, we no longer get the sidelobes in the frequency axis, and in the cyclic frequency axis we don't get the same powerful harmonics of the fundamental cyclic frequency.  This is because the raised-cosine pulse shape has a much better spectral containment than the rectangular pulse shape, and the sidelobes are much lower.  As a result, pulse-shaped signals tend to have a much "cleaner" SCF than rectangular signals, resembling a single spike with a smearing above it.  This will apply to all single carrier digitally modulated signals, not just BPSK.  As beta gets larger we get a broader spike in the frequency axis because the signal takes up more bandwidth.
 
 ********************************
 SNR and Number of Symbols
@@ -431,7 +431,7 @@ Coming Soon!  We will cover how at a certain point, higher SNR doesn't help, and
 QPSK and Higher-Order Modulation
 ********************************
 
-Coming Soon! It will include QPSK, higher order PSK, QAM, and a breif intro into higher-order cyclic moments and cummulants.
+Coming Soon! It will include QPSK, higher order PSK, QAM, and a brief intro into higher-order cyclic moments and cumulants.
 
 ********************************
 Multiple Overlapping Signals
@@ -527,11 +527,11 @@ We will now use the FSM to calculate the SCF of these combined signals:
 
 Notice how Signal 1, even though it's rectangular pulse-shaped, has its harmonics mostly masked by the cone above Signal 3.  Recall that in the PSD, Signal 1 was "hiding behind" Signal 3.  Through CSP, we can detect that Signal 1 is present, and get a close approximation of its cyclic frequency, which can then be used to synchronize to it.  This is the power of cyclostationary signal processing!
 
-**********************
-Alternative to the SCF
-**********************
+************************
+Alternative CSP Features
+************************
 
-It's important to understand that the SCF is not the only way to detect cyclostationarity in a signal, especially if you don't care about seeing cyclic frequency over RF frequency.  One simple method (both in terms of conceptually and computational complexity) involves taking the **FFT of the magnitude** of the signal, and looking for spikes.  In Python this is extremely simple:
+The SCF is not the only way to detect cyclostationarity in a signal, especially if you don't care about seeing cyclic frequency over RF frequency.  One simple method (both in terms of conceptually and computational complexity) involves taking the **FFT of the magnitude** of the signal, and looking for spikes.  In Python this is extremely simple:
 
 .. code-block:: python
 
@@ -583,12 +583,12 @@ Spectral Coherence Function (COH)
 
 Another measure of cyclostationarity, which can prove more insightful than the raw SCF in many cases, is the Spectral Coherence Function (COH). The COH takes the SCF and normalizes it such that the result lies between -1 and 1 (although we will be looking at magnitude which is between 0 and 1). This is useful because it isolates the information about the cyclostationarity of the signal from information about the signal's power spectrum, both of which are contained in the raw SCF. By normalizing, the power spectrum information is removed from the result leaving only the effects of cyclic correlation.
 
-To aide in one's understanding of the COH, it is helpful to review the concept of the `correlation coefficient <https://en.wikipedia.org/wiki/Pearson_correlation_coefficient>`_ from statistics. The correlation coefficient :math:`\rho_{X,Y}` quanitfies the degree to which two random variables :math:`X` and :math:`Y` are related, on a scale from -1 to 1. It is defined as the covariance divided by the product of the standard deviations:
+To aide in one's understanding of the COH, it is helpful to review the concept of the `correlation coefficient <https://en.wikipedia.org/wiki/Pearson_correlation_coefficient>`_ from statistics. The correlation coefficient :math:`\rho_{X,Y}` quantifies the degree to which two random variables :math:`X` and :math:`Y` are related, on a scale from -1 to 1. It is defined as the covariance divided by the product of the standard deviations:
 
 .. math::
     \rho_{X,Y} = \frac{E[(X-\mu_X)(Y-\mu_Y)]}{\sigma_X \sigma_Y}
 
-The COH extends this concept to spectral correlation such that it quantifies the degree to which the power spectral density (PSD) of a signal at one frequency is related to the PSD of the same signal at another frequency.  These two frequencies are simply the frequency shifts that we apply as part of calculating the SCF.  To calculate the COH, we first calculate the SCF as before, denoted :math:`S_X(f,\alpha)`, and then normalize by the product of two shifted PSD terms, analagous to normalizing by the product of standard deviations:
+The COH extends this concept to spectral correlation such that it quantifies the degree to which the power spectral density (PSD) of a signal at one frequency is related to the PSD of the same signal at another frequency.  These two frequencies are simply the frequency shifts that we apply as part of calculating the SCF.  To calculate the COH, we first calculate the SCF as before, denoted :math:`S_X(f,\alpha)`, and then normalize by the product of two shifted PSD terms, analogous to normalizing by the product of standard deviations:
 
 .. math::
     \rho = C_x(f, \alpha) = \frac{S_X(f,\alpha)}{\sqrt{X(f + \alpha/2) X(f - \alpha/2)}}
@@ -786,7 +786,7 @@ Now for the fun part, let's look at the conjugate SCF of rectangular QPSK with t
    :target: ../_images/scf_conj_rect_qpsk.svg
    :alt: Conjugate SCF of rectangular QPSK using the Frequency Smoothing Method (FSM)
 
-At first it might seem like there was a bug in our code, but take a look at the colorbar, which indicates what values the colors correspond to.  When using :code:`plt.imshow()` with automatic scaling, you have to be aware that it's always going to scale the colors (in our case, purple through yellow) from the lowest value to the highest value of the 2D array we give it.  In the case of our conjugate SCF of QPSK, the entire output is relatively low, becuase it turns out *there are no spikes in the conjugate SCF when using QPSK*.  Here is the same QPSK output but using the scaling to match our previous BPSK examples:
+At first it might seem like there was a bug in our code, but take a look at the colorbar, which indicates what values the colors correspond to.  When using :code:`plt.imshow()` with automatic scaling, you have to be aware that it's always going to scale the colors (in our case, purple through yellow) from the lowest value to the highest value of the 2D array we give it.  In the case of our conjugate SCF of QPSK, the entire output is relatively low, because it turns out *there are no spikes in the conjugate SCF when using QPSK*.  Here is the same QPSK output but using the scaling to match our previous BPSK examples:
 
 .. image:: ../_images/scf_conj_rect_qpsk_scaled.svg
    :align: center 
@@ -814,7 +814,7 @@ Notice how we can see the two BPSK signals but the QPSK signal doesn't show up, 
 FFT Accumulation Method (FAM)
 ********************************
 
-The FSM and TSM techniques presented earlier work great, especially when you want to calculate a specific set of cyclic frequencies (note how both implementations involve looping over cyclic frequency as the outer loop). However, there is an even more efficient SCF implementation known as the FFT Accumulation Method (FAM), which inherently calculates the full set of cyclic frequencies (i.e., the cyclic frequencies corresponding to every integer shift of the signal, the number of which depend on signal length).  There is also a similar technique known as the `Strip Spectral Correlation Analyzer (SSCA) <https://cyclostationary.blog/2016/03/22/csp-estimators-the-strip-spectral-correlation-analyzer/>`_ which also calculates all cyclic frequencies at once, but is not covered in this chapter to avoid repetition.  This class of techniques that calculate all cyclic frequencies are sometimes refered to as "blind estimators" because they tend to be used when no prior knowledge of cyclic frequencies is known (otherwise, you would have a good idea of which cyclic frequencies to calculate and could use the FSM or TSM methods).  The FAM is a time-smoothing method (think of it like a fancy TSM), while the SSCA is like a fancy FSM.
+The FSM and TSM techniques presented earlier work great, especially when you want to calculate a specific set of cyclic frequencies (note how both implementations involve looping over cyclic frequency as the outer loop). However, there is an even more efficient SCF implementation known as the FFT Accumulation Method (FAM), which inherently calculates the full set of cyclic frequencies (i.e., the cyclic frequencies corresponding to every integer shift of the signal, the number of which depend on signal length).  There is also a similar technique known as the `Strip Spectral Correlation Analyzer (SSCA) <https://cyclostationary.blog/2016/03/22/csp-estimators-the-strip-spectral-correlation-analyzer/>`_ which also calculates all cyclic frequencies at once, but is not covered in this chapter to avoid repetition.  This class of techniques that calculate all cyclic frequencies are sometimes referred to as "blind estimators" because they tend to be used when no prior knowledge of cyclic frequencies is known (otherwise, you would have a good idea of which cyclic frequencies to calculate and could use the FSM or TSM methods).  The FAM is a time-smoothing method (think of it like a fancy TSM), while the SSCA is like a fancy FSM.
 
 The minimal Python code to implement the FAM is actually fairly simple, although because we are no longer looping over alpha it is not as easy to tie back to the math.  Just like the TSM, we break the signal into a bunch of time windows, with some overlap.  A Hanning window is applied to each chunk of samples.  There are two stages of FFTs performed as part of the FAM algorithm, and within the code note that the first FFT is performed on a 2D array, so it's doing a bunch of FFTs in one line of code.  After a frequency shift, we do a second FFT to build the SCF (we then take the magnitude squared).  For a more thorough explanation of the FAM, refer to the external resources at the end of this section.
 
@@ -947,7 +947,7 @@ Using the FSM to calculate the SCF at a relatively high cyclic resolution of 0.0
    :target: ../_images/scf_freq_smoothing_ofdm.svg
    :alt: SCF of OFDM using the Frequency Smoothing Method (FSM)
 
-Note the horizontal line torwards the top, indicating there is a low cyclic frequency.  Zooming into the lower cyclic frequencies, we can clearly see the cyclic frequency corresponding to the OFDM symbol length (alpha = 0.0125).  Not sure why we only get a spike at 2x, and not 1x or 3x or 4x...  Even dropping the resolution by another 10x doesn't show anything else besides the 2x, if anyone knows feel free to use the "Suggest an Edit" link at the bottom of this page.
+Note the horizontal line towards the top, indicating there is a low cyclic frequency.  Zooming into the lower cyclic frequencies, we can clearly see the cyclic frequency corresponding to the OFDM symbol length (alpha = 0.0125).  Not sure why we only get a spike at 2x, and not 1x or 3x or 4x...  Even dropping the resolution by another 10x doesn't show anything else besides the 2x, if anyone knows feel free to use the "Suggest an Edit" link at the bottom of this page.
 
 .. image:: ../_images/scf_freq_smoothing_ofdm_zoomed_in.svg
    :align: center 
@@ -962,7 +962,7 @@ External resources on OFDM within the context of CSP:
 Signal Detection With Known Cyclic Frequency
 ********************************************
 
-In some applications you may want to use CSP to detect a signal/waveform that is already known, such as variants of 802.11, LTE, 5G, etc.  If you know the cyclic frequency of the signal, and you know your sample rate, then you really only need to calculate a single alpha and single tau.  Coming soon will be an example of this type of problem using an RF recoring of WiFi.
+In some applications you may want to use CSP to detect a signal/waveform that is already known, such as variants of 802.11, LTE, 5G, etc.  If you know the cyclic frequency of the signal, and you know your sample rate, then you really only need to calculate a single alpha and single tau.  Coming soon will be an example of this type of problem using an RF recording of WiFi.
 
 ***********************************
 Cyclic Filtering with FRESH Filters

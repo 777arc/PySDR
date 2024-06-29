@@ -63,7 +63,7 @@ make latexpdf
 
 Ideas for future chapters:
 
-* Equalization, would be the last step needed to finish the end-to-end comms link
+* Equalization, would be the last step needed to finish the end-to-end communications link
 * Cyclostationary analysis
 * OFDM, simulating OFDM and CP, show via Python how it turns freq selective fading into flat fading
 * How to create real-time SDR apps with GUIs in Python using pyqt and pyqtgraph, or even just matplotlib with updating

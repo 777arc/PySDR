@@ -35,12 +35,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.7
 
       - name: apt installs
         run: sudo apt update && sudo apt install -y texlive-latex-extra pdf2svg
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5.1.0
         with:
           python-version: '3.10'
       
@@ -93,13 +93,13 @@ jobs:
           CREATOR_ID: ${{ secrets.CREATOR_ID }}
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3.0.1
         with:
           path: './_build'
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4.0.5
 
       - name: Get current date
         id: date

@@ -11,7 +11,7 @@ center_freq = 100e6
 sample_rate = 10e6
 time_plot_samples = 500
 
-class QCustomThread(QThread):
+class SDRThread(QThread):
     time_plot_update = pyqtSignal(np.ndarray)
     fft_plot_update = pyqtSignal(np.ndarray)
     waterfall_plot_update = pyqtSignal(np.ndarray, bool)
@@ -107,12 +107,8 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
-
-        self.startWork()
-
-
-    def startWork(self):
-        myQCustomThread = QCustomThread(self)
+        # Signals and slots stuff
+        sdr_thread = SDRThread(self)
         f = np.linspace(center_freq - sample_rate/2.0, center_freq + sample_rate/2.0, fft_size) / 1e6
         def time_plot_callback(samples):
             self.time_plot_curve_i.setData(samples.real)
@@ -124,10 +120,10 @@ class MainWindow(QMainWindow):
             if reset_range:
                 self.fft_plot.autoRange()
                 self.time_plot.autoRange()
-        myQCustomThread.time_plot_update.connect(time_plot_callback) # connect the signal to the callback
-        myQCustomThread.fft_plot_update.connect(fft_plot_callback)
-        myQCustomThread.waterfall_plot_update.connect(waterfall_plot_callback)
-        myQCustomThread.start()
+        sdr_thread.time_plot_update.connect(time_plot_callback) # connect the signal to the callback
+        sdr_thread.fft_plot_update.connect(fft_plot_callback)
+        sdr_thread.waterfall_plot_update.connect(waterfall_plot_callback)
+        sdr_thread.start()
     
     def update_colormap(self):
         self.imageitem.setLevels(self.range_slider.value())

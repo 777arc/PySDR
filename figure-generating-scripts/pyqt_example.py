@@ -1,5 +1,5 @@
 from PyQt6.QtCore import QSize, Qt, QThread, pyqtSignal
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget  # tested with PyQt6==6.7.0
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QSlider  # tested with PyQt6==6.7.0
 import pyqtgraph as pg # tested with pyqtgraph==0.13.7
 from superqt import QRangeSlider # adds a double-handled range slider to pyqt
 import numpy as np
@@ -19,7 +19,6 @@ class QCustomThread(QThread):
         spectrogram = np.zeros((fft_size, num_rows))
         PSD_avg = np.zeros(fft_size)
         t = np.arange(time_plot_samples)/sample_rate*1e6 # in microseconds
-        first_time = True
         i = num_rows - 1 # counter to reset colormap, but do it at the start
         while True:
             start_t = time.time()
@@ -42,7 +41,8 @@ class QCustomThread(QThread):
                 i = 0
             else:
                 self.waterfall_plot_update.emit(spectrogram, False)
-
+            
+            time.sleep(0.01) # without a tiny delay the main GUI thread gets blocked and you cant move the slider
             
             #window.imageitem.translate((center_freq - sample_rate/2.0) / 1e6, 0)
             #window.imageitem.scale(sample_rate/fft_size/1e6, time_per_row)
@@ -80,6 +80,7 @@ class MainWindow(QMainWindow):
         #self.waterfall.getPlotItem().getViewBox().translateBy(x=10.0)
         self.imageitem = pg.ImageItem(axisOrder='col-major') # some of these args are purely for performance
         self.imageitem.setColorMap(pg.colormap.get('viridis', source='matplotlib'))
+        self.imageitem.setLevels((20, 50))
         self.waterfall.addItem(self.imageitem)
         self.waterfall.setMouseEnabled(x=False, y=False)
         layout.addWidget(self.waterfall, 3, 0)
@@ -97,7 +98,8 @@ class MainWindow(QMainWindow):
         self.range_slider = QRangeSlider(Qt.Orientation.Horizontal)
         self.range_slider.setValue((20, 50))
         self.range_slider.setRange(-30, 100)
-        self.range_slider.valueChanged.connect(self.update_colormap)
+        self.range_slider.sliderMoved.connect(self.update_colormap) # there's also a valueChanged option
+        #self.range_slider.setTracking(True)
         layout.addWidget(self.range_slider, 4, 0)
         
 
@@ -105,7 +107,9 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
+
         self.startWork()
+
 
     def startWork(self):
         myQCustomThread = QCustomThread(self)
@@ -116,20 +120,16 @@ class MainWindow(QMainWindow):
         def fft_plot_callback(PSD_avg):
             self.fft_plot_curve_fft.setData(f, PSD_avg)
         def waterfall_plot_callback(spectrogram, reset_range):
+            self.imageitem.setImage(spectrogram, autoLevels=False) 
             if reset_range:
-                self.imageitem.setImage(spectrogram, autoLevels=True) 
                 self.fft_plot.autoRange()
                 self.time_plot.autoRange()
-            else:
-                self.imageitem.setImage(spectrogram, autoLevels=False)
         myQCustomThread.time_plot_update.connect(time_plot_callback) # connect the signal to the callback
         myQCustomThread.fft_plot_update.connect(fft_plot_callback)
         myQCustomThread.waterfall_plot_update.connect(waterfall_plot_callback)
         myQCustomThread.start()
     
     def update_colormap(self):
-        print("GOT HERE")
-        print(self.range_slider.value())
         self.imageitem.setLevels(self.range_slider.value())
 
 app = QApplication([])

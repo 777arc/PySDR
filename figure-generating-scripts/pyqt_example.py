@@ -30,9 +30,9 @@ class SDRWorker(QObject):
     freq = 0 # in kHz, to deal with QSlider being ints and with a max of 2 billion
 
     # Slots
-    def update_freq(self, val):
+    def update_freq(self, val): # TODO: WE COULD JUST MODIFY THE SDR IN THE GUI THREAD
         print("Updated freq to:", val, 'kHz')
-        self.freq = val
+        sdr.rx_lo = int(val*1e3)
     
     def update_gain(self, val):
         print("Updated gain to:", val, 'dB')
@@ -70,7 +70,7 @@ class SDRWorker(QObject):
             else:
                 self.waterfall_plot_update.emit(spectrogram, False)
             
-            time.sleep(0.01) # without a tiny delay the main GUI thread gets blocked and you cant move the slider
+            time.sleep(0.001) # without a tiny delay the main GUI thread gets blocked and you cant move the slider
             
             #window.imageitem.translate((center_freq - sample_rate/2.0) / 1e6, 0)
             #window.imageitem.scale(sample_rate/fft_size/1e6, time_per_row)
@@ -97,6 +97,7 @@ class MainWindow(QMainWindow):
         self.time_plot = pg.PlotWidget(labels={'left': 'Amplitude', 'bottom': 'Time [microseconds]'}, enableMenu=False)
         #self.time_plot.getPlotItem().getViewBox().setMouseMode(pg.ViewBox.RectMode)
         self.time_plot.setMouseEnabled(x=False, y=True)
+        self.time_plot.setYRange(-2048, 2048) # Plutos sampling range
         self.time_plot_curve_i = self.time_plot.plot([]) 
         self.time_plot_curve_q = self.time_plot.plot([]) 
         layout.addWidget(self.time_plot, 1, 0)
@@ -128,13 +129,14 @@ class MainWindow(QMainWindow):
         # Freq slider with label, all units in kHz
         freq_slider = QSlider(Qt.Orientation.Horizontal)
         freq_slider.setRange(0, int(6e6))
-        freq_slider.setValue(int(750e3))
+        freq_slider.setValue(int(center_freq/1e3))
         freq_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         freq_slider.setTickInterval(int(1e6))
         freq_slider.sliderMoved.connect(self.worker.update_freq) # there's also a valueChanged option
         freq_label = QLabel()
         def update_freq_label(val):
             freq_label.setText("Frequency [MHz]: " + str(val/1e3))
+            self.fft_plot.autoRange()
         freq_slider.sliderMoved.connect(update_freq_label)
         update_freq_label(freq_slider.value()) # initialize the label
         layout.addWidget(freq_slider, 4, 0)
@@ -171,7 +173,6 @@ class MainWindow(QMainWindow):
             self.imageitem.setImage(spectrogram, autoLevels=False) 
             if reset_range:
                 self.fft_plot.autoRange()
-                self.time_plot.autoRange()
         self.worker.time_plot_update.connect(time_plot_callback) # connect the signal to the callback
         self.worker.fft_plot_update.connect(fft_plot_callback)
         self.worker.waterfall_plot_update.connect(waterfall_plot_callback)

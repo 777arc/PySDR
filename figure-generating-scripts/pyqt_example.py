@@ -1,12 +1,12 @@
 from PyQt6.QtCore import QSize, Qt, QThread, pyqtSignal, QObject
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QSlider, QLabel  # tested with PyQt6==6.7.0
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QSlider, QLabel, QHBoxLayout, QPushButton  # tested with PyQt6==6.7.0
 import pyqtgraph as pg # tested with pyqtgraph==0.13.7
 import numpy as np
 import time
 import adi
 
 # Defaults
-fft_size = 1024
+fft_size = 1024 # determines buffer size
 num_rows = 500
 center_freq = 100e6
 sample_rate = 10e6
@@ -55,7 +55,7 @@ class SDRWorker(QObject):
 
             self.time_plot_update.emit(samples[0:time_plot_samples])
             
-            PSD = 10.0*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2)
+            PSD = 10.0*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2/(fft_size*sample_rate))
 
             PSD_avg = PSD_avg * 0.99 + PSD * 0.01
             self.fft_plot_update.emit(PSD_avg)
@@ -86,6 +86,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("The PySDR Spectrum Analyzer")
         self.setFixedSize(QSize(1500, 1000)) # window size, starting size should fit on 1920 x 1080
 
+        self.spectrogram_min = 0
+        self.spectrogram_max = 0
+
         layout = QGridLayout()
 
         # Initialize worker and thread
@@ -107,24 +110,42 @@ class MainWindow(QMainWindow):
         #self.fft_plot.getPlotItem().getViewBox().setMouseMode(pg.ViewBox.RectMode)
         self.fft_plot.setMouseEnabled(x=False, y=True)
         self.fft_plot_curve_fft = self.fft_plot.plot([]) 
+        self.fft_plot.setXRange(center_freq/1e6 - sample_rate/2e6, center_freq/1e6 + sample_rate/2e6)
+        self.fft_plot.setYRange(-60, 0)
         layout.addWidget(self.fft_plot, 2, 0)
         
-        # Create waterfall plot
+        # Layout container for waterfall related stuff
+        waterfall_layout = QHBoxLayout()
+        layout.addLayout(waterfall_layout, 3, 0)
+
+        # Waterfall plot
         self.waterfall = pg.PlotWidget(labels={'left': 'Time [s]', 'bottom': 'Frequency [MHz]'}, enableMenu=False)
         #self.waterfall.getPlotItem().getViewBox().translateBy(x=10.0)
         self.imageitem = pg.ImageItem(axisOrder='col-major') # some of these args are purely for performance
         self.imageitem.setColorMap(pg.colormap.get('viridis', source='matplotlib'))
-        self.imageitem.setLevels((20, 50))
+        self.imageitem.setLevels((-60, 0))
         self.waterfall.addItem(self.imageitem)
         self.waterfall.setMouseEnabled(x=False, y=False)
-        layout.addWidget(self.waterfall, 3, 0)
+        waterfall_layout.addWidget(self.waterfall)
 
         # Colorbar for waterfall
         colorbar = pg.GraphicsLayoutWidget() # the bar needs a widget to be contained in
-        bar = pg.ColorBarItem(colorMap=pg.colormap.get('viridis', source='matplotlib'))
+        colorbar.setMaximumWidth(80)
+        bar = pg.ColorBarItem(colorMap=pg.colormap.get('viridis', source='matplotlib'), width=40)
         bar.setImageItem(self.imageitem)
         colorbar.addItem(bar)
-        layout.addWidget(colorbar, 3, 1)
+        waterfall_layout.addWidget(colorbar)
+
+        # Auto range button
+        auto_range_button = QPushButton('Auto\nRange')
+        auto_range_button.setMaximumWidth(50)
+        def update_colormap():
+            new_min = self.spectrogram_min + 5
+            new_max = self.spectrogram_max - 5
+            self.imageitem.setLevels((new_min, new_max))
+            bar.setLevels((new_min, new_max))
+        auto_range_button.clicked.connect(update_colormap)
+        waterfall_layout.addWidget(auto_range_button)
 
         # Freq slider with label, all units in kHz
         freq_slider = QSlider(Qt.Orientation.Horizontal)
@@ -163,24 +184,25 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         # Signals and slots stuff
-        f = np.linspace(center_freq - sample_rate/2.0, center_freq + sample_rate/2.0, fft_size) / 1e6
         def time_plot_callback(samples):
             self.time_plot_curve_i.setData(samples.real)
             self.time_plot_curve_q.setData(samples.imag)
         def fft_plot_callback(PSD_avg):
+            # TODO figure out if there's a way to just change the visual ticks instead of the actual x vals
+            f = np.linspace(freq_slider.value()*1e3 - sample_rate/2.0, freq_slider.value()*1e3 + sample_rate/2.0, fft_size) / 1e6
             self.fft_plot_curve_fft.setData(f, PSD_avg)
+            self.fft_plot.setXRange(freq_slider.value()*1e3/1e6 - sample_rate/2e6, freq_slider.value()*1e3/1e6 + sample_rate/2e6)
         def waterfall_plot_callback(spectrogram, reset_range):
             self.imageitem.setImage(spectrogram, autoLevels=False) 
             if reset_range:
                 self.fft_plot.autoRange()
+            self.spectrogram_min = np.min(spectrogram)
+            self.spectrogram_max = np.max(spectrogram)
         self.worker.time_plot_update.connect(time_plot_callback) # connect the signal to the callback
         self.worker.fft_plot_update.connect(fft_plot_callback)
         self.worker.waterfall_plot_update.connect(waterfall_plot_callback)
         self.sdr_thread.started.connect(self.worker.run) # kicks off the worker
         self.sdr_thread.start()
-    
-    #def update_colormap(self):
-    #    self.imageitem.setLevels(self.range_slider.value())
 
 
 app = QApplication([])

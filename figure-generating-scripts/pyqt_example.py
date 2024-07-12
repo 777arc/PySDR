@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         # Signals and slots stuff
-        sdr_thread = SDRThread(self)
+        sdr_thread = SDRThread(self) # arg is the parent Qobject
         f = np.linspace(center_freq - sample_rate/2.0, center_freq + sample_rate/2.0, fft_size) / 1e6
         def time_plot_callback(samples):
             self.time_plot_curve_i.setData(samples.real)

@@ -107,25 +107,22 @@ class MainWindow(QMainWindow):
         colorbar.addItem(bar)
         layout.addWidget(colorbar, 3, 1)
 
-        # Label for freq slider
+        # Freq slider with label, all units in kHz
+        freq_slider = QSlider(Qt.Orientation.Horizontal)
+        freq_slider.setRange(0, int(6e6))
+        freq_slider.setValue(int(750e3))
+        freq_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        freq_slider.setTickInterval(int(1e6))
+        freq_slider.sliderMoved.connect(self.worker.update_freq) # there's also a valueChanged option
         freq_label = QLabel()
         def update_freq_label(val):
             freq_label.setText("Frequency [MHz]: " + str(val/1e3))
+        freq_slider.sliderMoved.connect(update_freq_label)
+        update_freq_label(freq_slider.value()) # initialize the label
+        layout.addWidget(freq_slider, 4, 0)
         layout.addWidget(freq_label, 4, 1)
 
-        # Freq slider, all units in kHz
-        self.freq_slider = QSlider(Qt.Orientation.Horizontal)
-        self.freq_slider.setRange(0, int(6e6))
-        self.freq_slider.setValue(int(750e3))
-        self.freq_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
-        self.freq_slider.setTickInterval(int(1e6))
-        self.freq_slider.sliderMoved.connect(self.worker.update_freq) # there's also a valueChanged option
-        self.freq_slider.sliderMoved.connect(update_freq_label)
-        update_freq_label(self.freq_slider.value()) # initialize the label
-        layout.addWidget(self.freq_slider, 4, 0)
 
-
-        
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)

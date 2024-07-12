@@ -86,13 +86,11 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.waterfall, 3, 0)
 
         # Colorbar for waterfall
-        '''
         colorbar = pg.GraphicsLayoutWidget() # the bar needs a widget to be contained in
         bar = pg.ColorBarItem(colorMap=pg.colormap.get('viridis', source='matplotlib'))
         bar.setImageItem(self.imageitem)
         colorbar.addItem(bar)
         layout.addWidget(colorbar, 3, 1)
-        '''
 
         # Colormap range slider
         self.range_slider = QRangeSlider(Qt.Orientation.Horizontal)
@@ -102,7 +100,6 @@ class MainWindow(QMainWindow):
         #self.range_slider.setTracking(True)
         layout.addWidget(self.range_slider, 4, 0)
         
-
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)

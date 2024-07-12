@@ -5,12 +5,13 @@ import numpy as np
 import time
 import adi
 
+# Defaults
 fft_size = 1024
 num_rows = 500
 center_freq = 100e6
 sample_rate = 10e6
 time_plot_samples = 500
-gain = 65 # 0 to 74.5 dB
+gain = 65 # 0 to 73 dB. int
 
 # Init SDR
 sdr = adi.Pluto("ip:192.168.1.174")
@@ -33,6 +34,10 @@ class SDRWorker(QObject):
         print("Updated freq to:", val, 'kHz')
         self.freq = val
     
+    def update_gain(self, val):
+        print("Updated gain to:", val, 'dB')
+        sdr.rx_hardwaregain_chan0 = val
+
     def run(self):
         spectrogram = np.zeros((fft_size, num_rows))
         PSD_avg = np.zeros(fft_size)
@@ -134,6 +139,21 @@ class MainWindow(QMainWindow):
         update_freq_label(freq_slider.value()) # initialize the label
         layout.addWidget(freq_slider, 4, 0)
         layout.addWidget(freq_label, 4, 1)
+
+        # Gain slider with label
+        gain_slider = QSlider(Qt.Orientation.Horizontal)
+        gain_slider.setRange(0, 73)
+        gain_slider.setValue(gain)
+        gain_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        gain_slider.setTickInterval(2)
+        gain_slider.sliderMoved.connect(self.worker.update_gain)
+        gain_label = QLabel()
+        def update_gain_label(val):
+            gain_label.setText("Gain: " + str(val))
+        gain_slider.sliderMoved.connect(update_gain_label)
+        update_gain_label(gain_slider.value()) # initialize the label
+        layout.addWidget(gain_slider, 5, 0)
+        layout.addWidget(gain_label, 5, 1)
 
 
         central_widget = QWidget()

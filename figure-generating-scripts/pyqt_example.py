@@ -1,9 +1,9 @@
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import QSize, Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget  # tested with PyQt6==6.7.0
 import pyqtgraph as pg # tested with pyqtgraph==0.13.7
+from superqt import QRangeSlider # adds a double-handled range slider to pyqt
 import numpy as np
 import time
-import threading # simpler code than using QThread with signals and slots
 
 fft_size = 1024
 num_rows = 500
@@ -11,46 +11,44 @@ center_freq = 100e6
 sample_rate = 10e6
 time_plot_samples = 500
 
-def worker_thread(window, quit_event):
-    spectrogram = np.zeros((fft_size, num_rows))
-    PSD_avg = np.zeros(fft_size)
-    f = np.linspace(center_freq - sample_rate/2.0, center_freq + sample_rate/2.0, fft_size) / 1e6
-    t = np.arange(time_plot_samples)/sample_rate*1e6 # in microseconds
-    first_time = True
-    i = num_rows - 1 # counter to reset colormap, but do it at the start
-    while not quit_event.is_set(): # will break when we close the window
-        start_t = time.time()
-        
-        samples = np.random.randn(fft_size) + 0.5 +  1j*np.random.randn(fft_size) # generate some random samples
-
-        window.time_plot_curve_i.setData(samples[0:time_plot_samples].real)
-        window.time_plot_curve_q.setData(samples[0:time_plot_samples].imag)
-        
-
-        PSD = 10.0*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2)
-
-        PSD_avg = PSD_avg * 0.99 + PSD * 0.01
-        
-        window.fft_plot_curve_fft.setData(f, PSD_avg) # FFT plot
-        
-    
-        spectrogram[:] = np.roll(spectrogram, 1, axis=1) # shifts waterfall 1 row
-        spectrogram[:,0] = PSD # fill last row with new fft results
+class QCustomThread(QThread):
+    time_plot_update = pyqtSignal(np.ndarray)
+    fft_plot_update = pyqtSignal(np.ndarray)
+    waterfall_plot_update = pyqtSignal(np.ndarray, bool)
+    def run(self):
+        spectrogram = np.zeros((fft_size, num_rows))
+        PSD_avg = np.zeros(fft_size)
+        t = np.arange(time_plot_samples)/sample_rate*1e6 # in microseconds
+        first_time = True
+        i = num_rows - 1 # counter to reset colormap, but do it at the start
+        while True:
+            start_t = time.time()
             
-        # Display waterfall
-        i += 1
-        if i == num_rows:
-            window.imageitem.setImage(spectrogram, autoLevels=True) # auto range only on occasion
-            window.fft_plot.autoRange()
-            window.time_plot.autoRange()
-            i = 0
-        else:
-            window.imageitem.setImage(spectrogram, autoLevels=False)
+            samples = np.random.randn(fft_size) + 0.5 +  1j*np.random.randn(fft_size) # generate some random samples
 
-        #window.imageitem.translate((center_freq - sample_rate/2.0) / 1e6, 0)
-        #window.imageitem.scale(sample_rate/fft_size/1e6, time_per_row)
+            self.time_plot_update.emit(samples[0:time_plot_samples])
+            
+            PSD = 10.0*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2)
 
-        print("Frames per second:", 1/(time.time() - start_t))
+            PSD_avg = PSD_avg * 0.99 + PSD * 0.01
+            self.fft_plot_update.emit(PSD_avg)
+        
+            spectrogram[:] = np.roll(spectrogram, 1, axis=1) # shifts waterfall 1 row
+            spectrogram[:,0] = PSD # fill last row with new fft results
+
+            i += 1
+            if i == num_rows:
+                self.waterfall_plot_update.emit(spectrogram, True)
+                i = 0
+            else:
+                self.waterfall_plot_update.emit(spectrogram, False)
+
+            
+            #window.imageitem.translate((center_freq - sample_rate/2.0) / 1e6, 0)
+            #window.imageitem.scale(sample_rate/fft_size/1e6, time_per_row)
+
+            #print("Frames per second:", 1/(time.time() - start_t))
+
 
 # Subclass QMainWindow to customize your application's main window
 class MainWindow(QMainWindow):
@@ -95,29 +93,47 @@ class MainWindow(QMainWindow):
         layout.addWidget(colorbar, 3, 1)
         '''
 
+        # Colormap range slider
+        self.range_slider = QRangeSlider(Qt.Orientation.Horizontal)
+        self.range_slider.setValue((20, 50))
+        self.range_slider.setRange(-30, 100)
+        self.range_slider.valueChanged.connect(self.update_colormap)
+        layout.addWidget(self.range_slider, 4, 0)
+        
+
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
 
-    def handleButton(self):
-        self.time_plot.autoRange()
-        self.fft_plot.autoRange()
+        self.startWork()
+
+    def startWork(self):
+        myQCustomThread = QCustomThread(self)
+        f = np.linspace(center_freq - sample_rate/2.0, center_freq + sample_rate/2.0, fft_size) / 1e6
+        def time_plot_callback(samples):
+            self.time_plot_curve_i.setData(samples.real)
+            self.time_plot_curve_q.setData(samples.imag)
+        def fft_plot_callback(PSD_avg):
+            self.fft_plot_curve_fft.setData(f, PSD_avg)
+        def waterfall_plot_callback(spectrogram, reset_range):
+            if reset_range:
+                self.imageitem.setImage(spectrogram, autoLevels=True) 
+                self.fft_plot.autoRange()
+                self.time_plot.autoRange()
+            else:
+                self.imageitem.setImage(spectrogram, autoLevels=False)
+        myQCustomThread.time_plot_update.connect(time_plot_callback) # connect the signal to the callback
+        myQCustomThread.fft_plot_update.connect(fft_plot_callback)
+        myQCustomThread.waterfall_plot_update.connect(waterfall_plot_callback)
+        myQCustomThread.start()
+    
+    def update_colormap(self):
+        print("GOT HERE")
+        print(self.range_slider.value())
+        self.imageitem.setLevels(self.range_slider.value())
 
 app = QApplication([])
 window = MainWindow()
 window.show()  # IMPORTANT!!!!! Windows are hidden by default.
-
-# Spawn and start the worker thread
-threads = []
-quit_event = threading.Event() # Make a signal for the threads to stop running
-rx_thread = threading.Thread(target=worker_thread, args=(window, quit_event))
-threads.append(rx_thread)
-rx_thread.start()
-rx_thread.setName("worker_thread") # so we can monitor it using htop or system monitor
-
 app.exec() # Start the event loop
 
-# Interrupt and join the threads, so that when you close the window, the entire app stops
-quit_event.set()
-for thr in threads:
-    thr.join()

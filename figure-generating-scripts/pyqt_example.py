@@ -3,12 +3,23 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QSl
 import pyqtgraph as pg # tested with pyqtgraph==0.13.7
 import numpy as np
 import time
+import adi
 
 fft_size = 1024
 num_rows = 500
 center_freq = 100e6
 sample_rate = 10e6
 time_plot_samples = 500
+gain = 65 # 0 to 74.5 dB
+
+# Init SDR
+sdr = adi.Pluto("ip:192.168.1.174")
+sdr.rx_lo = int(center_freq)
+sdr.rx_rf_bandwidth = int(2*sample_rate)
+sdr.rx_buffer_size = int(fft_size)
+sdr.gain_control_mode_chan0 = 'manual'
+sdr.rx_hardwaregain_chan0 = gain # dB
+
 
 class SDRWorker(QObject):
     time_plot_update = pyqtSignal(np.ndarray)
@@ -33,7 +44,9 @@ class SDRWorker(QObject):
 
             QApplication.processEvents()
             
-            samples = np.random.randn(fft_size) + 0.5 +  1j*np.random.randn(fft_size) # generate some random samples
+            #samples = np.random.randn(fft_size) + 0.5 +  1j*np.random.randn(fft_size) # generate some random samples
+            samples = sdr.rx() # Receive samples
+            samples = samples.astype(np.complex64) # type: ignore
 
             self.time_plot_update.emit(samples[0:time_plot_samples])
             
@@ -147,6 +160,7 @@ class MainWindow(QMainWindow):
     
     #def update_colormap(self):
     #    self.imageitem.setLevels(self.range_slider.value())
+
 
 app = QApplication([])
 window = MainWindow()

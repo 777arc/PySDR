@@ -7,7 +7,7 @@ import adi
 
 # Defaults
 fft_size = 1024 # determines buffer size
-num_rows = 500
+num_rows = 200
 center_freq = 100e6
 sample_rate = 10e6
 time_plot_samples = 500
@@ -53,7 +53,7 @@ class SDRWorker(QObject):
             samples = sdr.rx() # Receive samples
             samples = samples.astype(np.complex64) # type: ignore
 
-            self.time_plot_update.emit(samples[0:time_plot_samples])
+            self.time_plot_update.emit(samples[0:time_plot_samples]/2**11) # make it go from -1 to 1 at highest gain
             
             PSD = 10.0*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2/(fft_size*sample_rate))
 
@@ -70,7 +70,7 @@ class SDRWorker(QObject):
             else:
                 self.waterfall_plot_update.emit(spectrogram, False)
             
-            time.sleep(0.001) # without a tiny delay the main GUI thread gets blocked and you cant move the slider
+            time.sleep(0.01) # without a tiny delay the main GUI thread gets blocked and you cant move the slider
             
             #window.imageitem.translate((center_freq - sample_rate/2.0) / 1e6, 0)
             #window.imageitem.scale(sample_rate/fft_size/1e6, time_per_row)
@@ -100,7 +100,7 @@ class MainWindow(QMainWindow):
         self.time_plot = pg.PlotWidget(labels={'left': 'Amplitude', 'bottom': 'Time [microseconds]'}, enableMenu=False)
         #self.time_plot.getPlotItem().getViewBox().setMouseMode(pg.ViewBox.RectMode)
         self.time_plot.setMouseEnabled(x=False, y=True)
-        self.time_plot.setYRange(-2048, 2048) # Plutos sampling range
+        self.time_plot.setYRange(-1.1, 1.1)
         self.time_plot_curve_i = self.time_plot.plot([]) 
         self.time_plot_curve_q = self.time_plot.plot([]) 
         layout.addWidget(self.time_plot, 1, 0)

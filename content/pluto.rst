@@ -69,6 +69,7 @@ The terminal commands below should build and install the latest version of:
 
 
 .. code-block:: bash
+
  sudo apt-get update
  sudo apt-get install build-essential git libxml2-dev bison flex libcdk5-dev cmake python3-pip libusb-1.0-0-dev libavahi-client-dev libavahi-common-dev libaio-dev
  cd ~

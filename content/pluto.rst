@@ -492,16 +492,211 @@ AntSDR E200
 The AntSDR E200, which we will refer to as the AntSDR, is a low-cost 936X-based SDR, very similar to the Pluto and Pluto+, made by a company called MicroPhase out of Shanghai, China.  Similar to the Pluto+ it uses a 1GB Ethernet connection, although the AntSDR doesn't have any USB data connection option.  What is unique about the AntSDR is it has the ability to act just like a Pluto, using the IIO library, or as a USRP using the UHD library.  By default it ships with the Pluto behavior, but switching to USRP/UHD mode is a simple firmware update.  Both sets of firmware are essentially just copied from Analog Devices/Ettus with very minor tweaks to support the AntSDR's hardware.  Another unique aspect is the fact you can purchase the board with either the 9363 or 9361 chip installed; while they are the same functional part, the 9361 is binned at the factory to have higher RF performance at the upper frequencies.  Note that the Pluto and Pluto+ all only come with the 9363.  The AntSDR specifications claim that the 9363-based version only goes up to 3.8 GHz and a 20 MHz sample rate, but that is not the case; it is able to reach the full 6 GHz and ~60 MHz of sample rate (although not 100% of samples will make it over 1GB Ethernet).  Like the other Plutos, the AntSDR is a 2x2 device, with the second transmit and receive channels accessible through U.FL connectors on the board.  All of the other RF performance and technical specs are going to be similar or identical to the Pluto/Pluto+.  It is available to purchase from `Crowd Supply <https://www.crowdsupply.com/microphase-technology/antsdr-e200#products>`_ and AliExpress.
 
 .. image:: ../_images/AntSDR.png
-   :scale: 100 % 
+   :scale: 80 % 
    :align: center
    :alt: The AntSDR E200 SDR with optional case enclosure
 
-Setting up and using the AntSDR in Pluto mode is similar to the Pluto+, just note that the default IP is 192.168.1.10 and it does not have any USB data connection so there is no mass storage device for updating firmware or changing settings (instead, an SD card can be used to update the firmware and SSH for changing settings).  The Pluto/IIO firmware can be found here https://github.com/MicroPhase/antsdr-fw-patch and the USRP/UHD firmware here https://github.com/MicroPhase/antsdr_uhd.  
+The little DIP switch on the AntSDR switches between booting off of the SD card or off of the onboard Quad SPI (QSPI) flash memory.  At the time of this writing, the E200 comes with the Pluto firmware loaded in QPSI and the USRP/UHD firmware loaded onto the SD card, allowing the switch to be used to switch between modes without any further action.
 
-You may want to change the AntSDR's IP address, which can be done with:
+The E200 block diagram is shown below.
+
+.. image:: ../_images/AntSDR_E200_block_diagram.png
+   :scale: 80 % 
+   :align: center
+   :alt: The AntSDR E200 block diagram
+
+Setting up and using the AntSDR in Pluto mode is similar to the Pluto+, just note that the default IP is 192.168.1.10 and it does not have any USB data connection so there is no mass storage device for updating firmware or changing settings.  Instead, an SD card can be used to update the firmware and SSH for changing settings.  Alternatively, if you are able to SSH into the device, you can change the device's IP address use the command: :code:`fw_setenv ipaddr_eth 192.168.2.1` replacing the IP address with your desired address.  The Pluto/IIO firmware can be found here https://github.com/MicroPhase/antsdr-fw-patch and the USRP/UHD firmware here https://github.com/MicroPhase/antsdr_uhd.  
+
+If the SD card did not come with the USRP/UHD driver, or you want to install the latest version, you can follow `these steps <https://github.com/MicroPhase/antsdr_uhd?tab=readme-ov-file#quick-start-guide>`_ to install the USRP/UHD firmware on the AntSDR as well as host-side drivers on your machine which are a slightly tweaked version of the normal UHD host-side code.  You can then use :code:`uhd_find_devices` and :code:`uhd_usrp_probe` like normal (see the USRP chapter for more info and example code that will work with the AntSDR in USRP mode).  The following commands were used to install the host-side code on Ubuntu 22:
 
 .. code-block:: bash
 
- fw_setenv ipaddr_eth 192.168.2.1
+ sudo apt-get update
+ sudo apt-get install autoconf automake build-essential ccache cmake cpufrequtils doxygen ethtool \
+ g++ git inetutils-tools libboost-all-dev libncurses5 libncurses5-dev libusb-1.0-0 libusb-1.0-0-dev \
+ libusb-dev python3-dev python3-mako python3-numpy python3-requests python3-scipy python3-setuptools \
+ python3-ruamel.yaml
+ cd ~
+ git clone git@github.com:MicroPhase/antsdr_uhd.git
+ cd host
+ mkdir build
+ cd build
+ cmake -DENABLE_X400=OFF -DENABLE_N320=OFF -DENABLE_X300=OFF -DENABLE_USRP2=OFF -DENABLE_USRP1=OFF -DENABLE_N300=OFF -DENABLE_E320=OFF  -DENABLE_E300=OFF ../
+ (NOTE - at this point, make sure in the "enabled components" you see ANT and LibUHD - Python API)
+ make -j8
+ sudo make install
+ sudo ldconfig
+ export PYTHONPATH="${PYTHONPATH}:/usr/local/lib/python3/dist-packages"
+ sudo sysctl -w net.core.rmem_max=1000000
+ sudo sysctl -w net.core.wmem_max=1000000
 
-Follow `these steps <https://github.com/MicroPhase/antsdr_uhd?tab=readme-ov-file#quick-start-guide>`_ to install the USRP/UHD firmware on the AntSDR as well as host-side drivers on your machine.  You can then use :code:`uhd_find_devices` and :code:`uhd_usrp_probe` like normal (see the USRP chapter for more info). 
+On the device side, the USRP firmware already on the SD card that came with the AntSDR was used, by switching the DIP switch under the Ethernet port to "SD".
+ 
+The AntSDR can be identified and probed using the following commands:
+
+.. code-block:: bash
+
+ uhd_find_devices --args addr=192.168.1.10
+ uhd_usrp_probe --args addr=192.168.1.10
+
+Below is an example of the output when working correctly:
+
+.. code-block:: bash
+
+   $ uhd_find_devices --args addr=192.168.1.10
+   [INFO] [UHD] linux; GNU C++ version 11.3.0; Boost_107400; UHD_4.1.0.0-0-d2f0b1b1
+   --------------------------------------------------
+   -- UHD Device 0
+   --------------------------------------------------
+   Device Address:
+      serial: 0223D80FF0D767EBC6D3AAAA6793E64D
+      addr: 192.168.1.10
+      name: ANTSDR-E200
+      product: E200  v1
+      type: ant
+
+   $ uhd_usrp_probe --args addr=192.168.1.10
+   [INFO] [UHD] linux; GNU C++ version 11.3.0; Boost_107400; UHD_4.1.0.0-0-d2f0b1b1
+   [INFO] [ANT] Detected Device: ANTSDR
+   [INFO] [ANT] Initialize CODEC control...
+   [INFO] [ANT] Initialize Radio control...
+   [INFO] [ANT] Performing register loopback test... 
+   [INFO] [ANT] Register loopback test passed
+   [INFO] [ANT] Performing register loopback test... 
+   [INFO] [ANT] Register loopback test passed
+   [INFO] [ANT] Setting master clock rate selection to 'automatic'.
+   [INFO] [ANT] Asking for clock rate 16.000000 MHz... 
+   [INFO] [ANT] Actually got clock rate 16.000000 MHz.
+   _____________________________________________________
+   /
+   |       Device: B-Series Device
+   |     _____________________________________________________
+   |    /
+   |   |       Mboard: B210
+   |   |   magic: 45568
+   |   |   eeprom_revision: v0.1
+   |   |   eeprom_compat: 1
+   |   |   product: MICROPHASE
+   |   |   name: ANT
+   |   |   serial: 0223D80FF0D767EBC6D3AAAA6793E64D
+   |   |   FPGA Version: 16.0
+   |   |   
+   |   |   Time sources:  none, internal, external
+   |   |   Clock sources: internal, external
+   |   |   Sensors: ref_locked
+   |   |     _____________________________________________________
+   |   |    /
+   |   |   |       RX DSP: 0
+   |   |   |   
+   |   |   |   Freq range: -8.000 to 8.000 MHz
+   |   |     _____________________________________________________
+   |   |    /
+   |   |   |       RX DSP: 1
+   |   |   |   
+   |   |   |   Freq range: -8.000 to 8.000 MHz
+   |   |     _____________________________________________________
+   |   |    /
+   |   |   |       RX Dboard: A
+   |   |   |     _____________________________________________________
+   |   |   |    /
+   |   |   |   |       RX Frontend: A
+   |   |   |   |   Name: FE-RX1
+   |   |   |   |   Antennas: TX/RX, RX2
+   |   |   |   |   Sensors: temp, rssi, lo_locked
+   |   |   |   |   Freq range: 50.000 to 6000.000 MHz
+   |   |   |   |   Gain range PGA: 0.0 to 76.0 step 1.0 dB
+   |   |   |   |   Bandwidth range: 200000.0 to 56000000.0 step 0.0 Hz
+   |   |   |   |   Connection Type: IQ
+   |   |   |   |   Uses LO offset: No
+   |   |   |     _____________________________________________________
+   |   |   |    /
+   |   |   |   |       RX Frontend: B
+   |   |   |   |   Name: FE-RX2
+   |   |   |   |   Antennas: TX/RX, RX2
+   |   |   |   |   Sensors: temp, rssi, lo_locked
+   |   |   |   |   Freq range: 50.000 to 6000.000 MHz
+   |   |   |   |   Gain range PGA: 0.0 to 76.0 step 1.0 dB
+   |   |   |   |   Bandwidth range: 200000.0 to 56000000.0 step 0.0 Hz
+   |   |   |   |   Connection Type: IQ
+   |   |   |   |   Uses LO offset: No
+   |   |   |     _____________________________________________________
+   |   |   |    /
+   |   |   |   |       RX Codec: A
+   |   |   |   |   Name: B210 RX dual ADC
+   |   |   |   |   Gain Elements: None
+   |   |     _____________________________________________________
+   |   |    /
+   |   |   |       TX DSP: 0
+   |   |   |   
+   |   |   |   Freq range: -8.000 to 8.000 MHz
+   |   |     _____________________________________________________
+   |   |    /
+   |   |   |       TX DSP: 1
+   |   |   |   
+   |   |   |   Freq range: -8.000 to 8.000 MHz
+   |   |     _____________________________________________________
+   |   |    /
+   |   |   |       TX Dboard: A
+   |   |   |     _____________________________________________________
+   |   |   |    /
+   |   |   |   |       TX Frontend: A
+   |   |   |   |   Name: FE-TX1
+   |   |   |   |   Antennas: TX/RX
+   |   |   |   |   Sensors: temp, lo_locked
+   |   |   |   |   Freq range: 50.000 to 6000.000 MHz
+   |   |   |   |   Gain range PGA: 0.0 to 89.8 step 0.2 dB
+   |   |   |   |   Bandwidth range: 200000.0 to 56000000.0 step 0.0 Hz
+   |   |   |   |   Connection Type: IQ
+   |   |   |   |   Uses LO offset: No
+   |   |   |     _____________________________________________________
+   |   |   |    /
+   |   |   |   |       TX Frontend: B
+   |   |   |   |   Name: FE-TX2
+   |   |   |   |   Antennas: TX/RX
+   |   |   |   |   Sensors: temp, lo_locked
+   |   |   |   |   Freq range: 50.000 to 6000.000 MHz
+   |   |   |   |   Gain range PGA: 0.0 to 89.8 step 0.2 dB
+   |   |   |   |   Bandwidth range: 200000.0 to 56000000.0 step 0.0 Hz
+   |   |   |   |   Connection Type: IQ
+   |   |   |   |   Uses LO offset: No
+   |   |   |     _____________________________________________________
+   |   |   |    /
+   |   |   |   |       TX Codec: A
+   |   |   |   |   Name: B210 TX dual DAC
+   |   |   |   |   Gain Elements: None
+
+
+Lastly, you can test the Python API using the following Python snippet, either in a Python terminal or a Python script:
+
+.. code-block:: python
+
+ import uhd
+ usrp = uhd.usrp.MultiUSRP("addr=192.168.1.10")
+ samples = usrp.recv_num_samps(10000, 100e6, 1e6, [0], 50)
+ print(samples[0:10])
+
+This should receive 10,000 samples at 100 MHz center frequency, 1 MHz sample rate, and 50 dB gain.  It will print out the IQ values of the first 10 samples to verify everything worked.  For next steps and more examples, refer to the :ref:`usrp-chapter` Chapter.
+
+If :code:`import uhd` says ModuleNotFoundError, you may have to add the following line to your .bashrc file:
+
+.. code-block:: bash
+
+ export PYTHONPATH="${PYTHONPATH}:/usr/local/lib/python3/dist-packages"
+
+
+
+************
+AntSDR E310
+************
+
+In addition to the E200, MicroPhase also makes a model call the AntSDR E310.  The AntSDR E310 is very similar to the E200, except it has the 2nd receive and 2nd transmit channel exposed as SMA connectors on the front, and it currently only supports the Pluto/IIO mode (no USRP mode). It uses the same FPGA as the E200.  One other difference is that is has an extra USB C port that acts as a USB OTG interface (e.g., to attach a USB drive).  The AntSDR E310 is only available on `AliExpress <https://www.aliexpress.us/item/3256802994929985.html?gatewayAdapt=glo2usa4itemAdapt>`_ (not Crowd Supply, like the E200).  At the time of this writing the E310 is roughly the same price as the E200, so if you don't plan on using "USRP-mode", and value having the extra channels exposed over SMA even if it means a slightly larger form factor, the E310 is a good choice.
+
+.. image:: ../_images/AntSDR_E310.png
+   :scale: 80 % 
+   :align: center
+   :alt: The AntSDR E310 SDR with optional case enclosure
+
+.. image:: ../_images/AntSDR_Comparison.jpg
+   :scale: 70 % 
+   :align: center
+   :alt: The AntSDR E200 and E310 side by side

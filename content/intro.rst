@@ -27,7 +27,7 @@ This textbook acts as a hands-on introduction to the areas of DSP, SDR, and wire
 #. Better at understanding equations *after* learning the concepts
 #. Looking for concise explanations, not a 1,000 page textbook
 
-An example is a Computer Science student interested in a job involving wireless communications after graduation, although it can be used by anyone itching to learn about SDR who has programming experience.  As such, it covers the necessary theory to understand DSP techniques without the intense math that is usually included in DSP courses.  Instead of burying ourselves in equations, an abundance of images and animations are used to help convey the concepts, such as the Fourier series complex plane animation below.  I believe that equations are best understood *after* learning the concepts through visuals and practical exercises.  The heavy use of animations is why PySDR will never have a hardcopy version being sold on Amazon.  
+An example is a Computer Science student interested in a job involving wireless communications after graduation, although it can be used by anyone itching to learn about SDR who has programming experience.  As such, it covers the necessary theory to understand DSP techniques without the intense math that is usually included in DSP courses.  Instead of burying ourselves in equations, an abundance of images and animations are used to help convey the concepts, such as the Fourier series complex plane animation below.  I believe that equations are best understood *after* learning the concepts through visuals and practical exercises.  The heavy use of animations is why PySDR will never have a hard copy version being sold on Amazon.  
 
 .. image:: ../_images/fft_logo_wide.gif
    :scale: 70 %   

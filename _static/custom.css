@@ -1,123 +1,130 @@
-
 /* See https://github.com/bitprophet/alabaster/issues/139 */
 div.body {
-    max-width: fit-content;
+  max-width: fit-content;
 }
 
 /* Makes sidebar scrollable when the window isn't big enough to show all content */
 div.sphinxsidebar {
-    max-height: 100%;
-    overflow-y: auto;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 /* remove extra padding to keep sidebar slim */
 div.sphinxsidebarwrapper {
-    padding-right: 0px;
+  padding-right: 0px;
 }
 
 /* Remove the extra 30 pixels of margin at the top of the page */
 div.document {
-    margin-top: 0px;
+  margin-top: 0px;
 }
 
 /* Quick Search */
 #searchlabel {
-    display: none;
+  display: none;
 }
 
 .search {
-    padding-right: 40px;
+  padding-right: 40px;
 }
-
 
 /* Colors and text decoration.
  For example, :black:`text in black` or :blink:`text blinking` in rST. */
 
 .black {
-    color: black;
+  color: black;
 }
 
 .gray {
-    color: gray;
+  color: gray;
 }
 
 .grey {
-    color: gray;
+  color: gray;
 }
 
 .silver {
-    color: silver;
+  color: silver;
 }
 
 .white {
-    color: white;
+  color: white;
 }
 
 .maroon {
-    color: maroon;
+  color: maroon;
 }
 
 .red {
-    color: red;
+  color: red;
 }
 
 .magenta {
-    color: magenta;
+  color: magenta;
 }
 
 .fuchsia {
-    color: fuchsia;
+  color: fuchsia;
 }
 
 .pink {
-    color: pink;
+  color: pink;
 }
 
 .orange {
-    color: orange;
+  color: orange;
 }
 
 .yellow {
-    color: yellow;
+  color: yellow;
 }
 
 .lime {
-    color: lime;
+  color: lime;
 }
 
 .green {
-    color: green;
+  color: green;
 }
 
 .olive {
-    color: olive;
+  color: olive;
 }
 
 .teal {
-    color: teal;
+  color: teal;
 }
 
 .cyan {
-    color: cyan;
+  color: cyan;
 }
 
 .aqua {
-    color: aqua;
+  color: aqua;
 }
 
 .blue {
-    color: blue;
+  color: blue;
 }
 
 .navy {
-    color: navy;
+  color: navy;
 }
 
 .purple {
-    color: purple;
+  color: purple;
 }
 
 .slider-span {
-    display: inline-block;
-    width: 80px;
-  }
+  display: inline-block;
+  width: 80px;
+}
+
+canvas {
+  image-rendering: optimizeSpeed; /* Older versions of FF          */
+  image-rendering: -moz-crisp-edges; /* FF 6.0+                       */
+  image-rendering: -webkit-optimize-contrast; /* Safari                        */
+  image-rendering: -o-crisp-edges; /* OS X & Windows Opera (12.02+) */
+  image-rendering: pixelated; /* Awesome future-browsers       */
+  -ms-interpolation-mode: nearest-neighbor; /* IE                            */
+}

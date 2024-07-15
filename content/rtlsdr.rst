@@ -36,7 +36,7 @@ On Ubuntu 20, 22, and other Debian-based systems, you can install the RTL-SDR so
 
  sudo apt install rtl-sdr
 
-This will install the librtlsdr library, and command line tools such as rtl_sdr, rtl_tcp, rtl_fm, and rtl_test.
+This will install the librtlsdr library, and command line tools such as :code:`rtl_sdr`, :code:`rtl_tcp`, :code:`rtl_fm`, and :code:`rtl_test`.
 
 Next, install the Python wrapper for librtlsdr using:
 
@@ -93,13 +93,13 @@ For Windows users, see https://www.rtl-sdr.com/rtl-sdr-quick-start-guide/.
 Testing the RTL-SDR
 ********************************
 
-If the software setup worked, you should be able to run the following test, which will tune the RTL-SDR to the FM radio band and record 1 million samples to a file called recording.iq in /tmp.
+If the software setup worked, you should be able to run the following test, which will tune the RTL-SDR to the FM radio band and record 1 million samples to a file called :code:`recording.iq` in :code:`/tmp`.
 
 .. code-block:: bash
 
     rtl_sdr /tmp/recording.iq -s 2e6 -f 100e6 -n 1e6
 
-If you get :code:`No supported devices found`, even when adding a :code:`sudo` to the beginning, then linux is unable to see the RTL-SDR at all.  If it works with :code:`sudo`, then it's a udev rules problem, try restarting the computer after going through the udev setup instructions above.  Alternatively, you can just use :code:`sudo` for everything, including running Python.
+If you get :code:`No supported devices found`, even when adding a :code:`sudo` to the beginning, then Linux is unable to see the RTL-SDR at all.  If it works with :code:`sudo`, then it's a udev rules problem, try restarting the computer after going through the udev setup instructions above.  Alternatively, you can just use :code:`sudo` for everything, including running Python.
 
 You can test out Python's ability to see the RTL-SDR using the following script:
 
@@ -138,7 +138,7 @@ At the end of our script, or whenever we are done grabbing samples off the RTL-S
 Gain Setting
 #############
 
-By setting :code:`sdr.gain = 'auto'` we are enabling automatic gain control (AGC), which will cause the RTL-SDR to adjust the receive gain based on the signals it receives, attempting to fill out the 8-bit ADC without saturating it.  For a lot of situations, such as making a spectrum analyzer, it is useful to keep the gain at a constant value, meaning we have to set a manual gain.  The RTL-SDR does not have an infinitely adjustable gain; you can see the list of valid gain values using :code:`print(sdr.valid_gains_db)`.  That being said, if you set it to a gain not on this list, it will autmoatically pick the closest allowable value.  You can always check what the current gain is set to with :code:`print(sdr.gain)`.  In the example below, we set the gain to a 49.6 dB and receive 4096 samples, then plot them in the time domain:
+By setting :code:`sdr.gain = 'auto'` we are enabling automatic gain control (AGC), which will cause the RTL-SDR to adjust the receive gain based on the signals it receives, attempting to fill out the 8-bit ADC without saturating it.  For a lot of situations, such as making a spectrum analyzer, it is useful to keep the gain at a constant value, meaning we have to set a manual gain.  The RTL-SDR does not have an infinitely adjustable gain; you can see the list of valid gain values using :code:`print(sdr.valid_gains_db)`.  That being said, if you set it to a gain not on this list, it will automatically pick the closest allowable value.  You can always check what the current gain is set to with :code:`print(sdr.gain)`.  In the example below, we set the gain to a 49.6 dB and receive 4096 samples, then plot them in the time domain:
 
 .. code-block:: python
 
@@ -168,7 +168,7 @@ By setting :code:`sdr.gain = 'auto'` we are enabling automatic gain control (AGC
    :target: ../_images/rtlsdr-gain.svg
    :alt: RTL-SDR manual gain example
 
-There are a couple things to note here.  The first ~2k samples do not seem to have much signal power in them, because they represent transients.  It is recommended to throw away the first 2k samples each script, e.g., using :code:`sdr.read_samples(2048)` and not doing anything with the output.  The other thing we notice is that pyrtlsdr is returning the samples to us as floats, in between -1 and +1.  Even though it uses an 8-bit ADC and produces integer values, pyrtlsdr is dividing by 127.0 for our convinience.
+There are a couple things to note here.  The first ~2k samples do not seem to have much signal power in them, because they represent transients.  It is recommended to throw away the first 2k samples each script, e.g., using :code:`sdr.read_samples(2048)` and not doing anything with the output.  The other thing we notice is that pyrtlsdr is returning the samples to us as floats, in between -1 and +1.  Even though it uses an 8-bit ADC and produces integer values, pyrtlsdr is dividing by 127.0 for our convenience.
 
 Allowed Sample Rates
 #####################

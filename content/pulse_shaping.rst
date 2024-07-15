@@ -10,7 +10,7 @@ This chapter covers pulse shaping, inter-symbol-interference, matched filtering,
 Inter-Symbol-Interference (ISI)
 **********************************
 
-In the :ref:`filters-chapter` chapter we learned that blocky-shaped symbols/pulses use an excess amount of spectrum, and we can greatly reduce the amount of spectrum used by "shaping" our pulses.  However, you can't  use just any low-pass filter or you might get inter-symbol-interference (ISI), where symbols bleed into and interfere with each other.
+In the :ref:`filters-chapter` chapter we learned that block-shaped symbols/pulses use an excess amount of spectrum, and we can greatly reduce the amount of spectrum used by "shaping" our pulses.  However, you can't  use just any low-pass filter or you might get inter-symbol-interference (ISI), where symbols bleed into and interfere with each other.
 
 When we transmit digital symbols, we transmit them back-to-back (as opposed to waiting some time between them).  When you apply a pulse-shaping filter, it elongates the pulse in the time domain (in order to condense it in frequency), which causes adjacent symbols to overlap with each other.  The overlap is fine, as long as your pulse-shaping filter meets this one criterion: all of the pulses must add up to zero at every multiple of our symbol period :math:`T`, except for one of the pulses.  The idea is best understood through the following visualization:
 

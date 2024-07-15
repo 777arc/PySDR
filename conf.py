@@ -64,7 +64,7 @@ else:
 # ones.
 extensions = [
     'sphinx.ext.imgmath',
-    #'sphinx.ext.autosectionlabel', #added for dutch
+    'sphinx.ext.autosectionlabel',
     #'sphinxcontrib.tikz', #added for dutch
 ]
 imgmath_image_format = 'svg' # way better looking than pngs (its vectorized after all!)
@@ -193,7 +193,7 @@ html_sidebars = {
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {'description':'By <a href="https://pysdr.org/content/about_author.html">Dr. Marc Lichtman</a>',
+html_theme_options = {'description':'By <a href="https://pysdr.org/content/about_author.html">Dr. Marc Lichtman</a> - pysdr@vt.edu',
                       'logo': 'logo.svg',
                       'logo_name': True, # used if the logo doesn't contain the project name itself
                       'fixed_sidebar': True, # on smaller screens you can't see the whole sidebar, and it won't scroll
@@ -264,7 +264,8 @@ html_css_files = ['custom.css',]
 
 html_js_files = [
     'js/beamforming_slider_app.js',
-    'js/FFT.js'
+    'js/FFT.js',
+    'js/cyclostationary_app.js'
 ]
 
 # Add any extra paths that contain custom files (such as robots.txt or
@@ -328,30 +329,17 @@ html_show_sourcelink = False
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'textbookdoc'
 
-# -- Options for LaTeX output ---------------------------------------------
-tikz_latex_preamble = r'\usepackage{circuitikz}'
+# -- Options for LaTeX output, russian is needed for the ukrainian version to work
+tikz_latex_preamble = r'''
+\usepackage{circuitikz}
+\usepackage[russian]{babel}
+'''
 #imgmath_latex_preamble = r'\usepackage{siunitx}'
 
 
-latex_elements = {
-#    'extrapackages': r'\usepackage{siunitx}',
-#    'passoptionstopackages': r'\PassOptionsToPackage{svgnames}{xcolor}',
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+latex_elements = {}
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
-
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
-
-# Latex figure (float) alignment
-#'figure_align': 'htbp',
-}
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
+# Grouping the document tree into LaTeX files. List of tuples (source start file, target name, title, author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'textbook.tex', u'textbook Documentation',
      u'Marc Lichtman', 'manual'),
@@ -420,3 +408,6 @@ rst_prolog = """
 .. default-role::
 
 """
+
+# Normally tikz uses pdf2svg but this was needed to get ukraining characters to work
+tikz_proc_suite = 'GhostScript'

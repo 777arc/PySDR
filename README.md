@@ -16,10 +16,9 @@ For testing changes to the textbook locally, you can build using the following s
 
 ### Ubuntu/Debian
 
+Look at `.github/workflows/build-and-deploy.yml` and run the apt/pip installs, then:
+
 ```bash
-sudo apt update
-sudo apt install -y texlive-latex-extra pdf2svg
-pip install -r requirements.txt
 make html
 make html-fr
 make html-nl
@@ -63,11 +62,11 @@ make latexpdf
 
 Ideas for future chapters:
 
-* Equalization, would be the last step needed to finish the end-to-end comms link
-* Cyclostationary analysis
+* Equalization, would be the last step needed to finish the end-to-end communications link
 * OFDM, simulating OFDM and CP, show via Python how it turns freq selective fading into flat fading
 * How to create real-time SDR apps with GUIs in Python using pyqt and pyqtgraph, or even just matplotlib with updating
 * Python code that lets the Pluto (or RTL-SDR) act as an FM receiver, like with sound output
-* End to end example that shows how to detect start of packet and other concepts not covered in RDS chapter
+* End-to-end example that shows how to detect start of packet and other concepts not covered in RDS chapter
+* Intro to radar
 
 <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Unported License</a>.

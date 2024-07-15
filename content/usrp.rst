@@ -9,7 +9,7 @@ USRP in Python
    :align: center
    :alt: The family of USRP radios from Ettus Research
    
-In this chapter we learn how to use the UHD Python API to control and receive/transmit signals with a `USRP <https://www.ettus.com/>`_ which is a series of SDRs made by Ettus Research (now part of NI).  We will discuss transmitting and receiving on the USRP in Python, and dive into USRP-specific topics including stream args, subdevices, channels, 10 MHz and PPS synchronization.  
+In this chapter we learn how to use the UHD Python API to control and receive/transmit signals with a `USRP <https://www.ettus.com/>`_ which is a series of SDRs made by Ettus Research (now part of NI).  We will discuss transmitting and receiving on the USRP in Python, and dive into USRP-specific topics including stream arguments, subdevices, channels, 10 MHz and PPS synchronization.  
 
 ************************
 Software/Drivers Install
@@ -26,7 +26,7 @@ Setting Up an Ubuntu 22 VM
 2. Install and open `VirtualBox <https://www.virtualbox.org/wiki/Downloads>`_.
 3. Create a new VM.  For memory size, I recommend using 50% of your computer’s RAM.
 4. Create the virtual hard disk, choose VDI, and dynamically allocate size.  15 GB should be enough. If you want to be really safe you can use more.
-5. Start the VM. It will ask you for installation media. Choose the Ubuntu 22 desktop .iso file.  Choose “install ubuntu”, use default options, and a pop up will warn you about the changes you are about to make. Hit continue.  Choose name/password and then wait for the VM to finish initializing.  After finishing the VM will restart, but you should power off the VM after the restart.
+5. Start the VM. It will ask you for installation media. Choose the Ubuntu 22 desktop .iso file.  Choose "install Ubuntu", use default options, and a pop up will warn you about the changes you are about to make. Hit continue.  Choose name/password and then wait for the VM to finish initializing.  After finishing the VM will restart, but you should power off the VM after the restart.
 6. Go into the VM settings (the gear icon).
 7. Under system > processor > choose at least 3 CPUs.  If you have an actual video card then in display > video memory > choose something much higher.
 8. Start up your VM.

@@ -4,7 +4,7 @@
 BladeRF in Python
 ##################
 
-The bladeRF 2.0 (a.k.a. bladeRF 2.0 micro) from the company `Nuand <https://www.nuand.com>`_ is a USB 3.0-based SDR with two receive channels, two transmit channels, a tunable range of 47 MHz to 6 GHz, and the ability to sample up to 61 MHz or as high as 122 MHz when hacked.  It uses the AD9361 RF integrated circuit (RFIC) just like the USRP B210 and PlutoSDR, so RF performance will be similar.  The bladeRF 2.0 was released in 2021, maintains a small formfactor at 2.5" x 4.5", and comes in two different FPGA sizes (xA4 and xA9).  While this chapter focuses on the bladeRF 2.0, a lot of the code will also apply to the original bladeRF which `came out in 2013 <https://www.kickstarter.com/projects/1085541682/bladerf-usb-30-software-defined-radio>`_.
+The bladeRF 2.0 (a.k.a. bladeRF 2.0 micro) from the company `Nuand <https://www.nuand.com>`_ is a USB 3.0-based SDR with two receive channels, two transmit channels, a tunable range of 47 MHz to 6 GHz, and the ability to sample up to 61 MHz or as high as 122 MHz when hacked.  It uses the AD9361 RF integrated circuit (RFIC) just like the USRP B210 and PlutoSDR, so RF performance will be similar.  The bladeRF 2.0 was released in 2021, maintains a small form factor at 2.5" x 4.5", and comes in two different FPGA sizes (xA4 and xA9).  While this chapter focuses on the bladeRF 2.0, a lot of the code will also apply to the original bladeRF which `came out in 2013 <https://www.kickstarter.com/projects/1085541682/bladerf-usb-30-software-defined-radio>`_.
 
 .. image:: ../_images/bladeRF_micro.png
    :scale: 35 %
@@ -60,7 +60,7 @@ On Ubuntu and other Debian-based systems, you can install the bladeRF software w
  cd ../libraries/libbladeRF_bindings/python
  sudo python3 setup.py install
 
-This will install the libbladerf library, Python bindings, bladerf command line tools, the firmware downloader, and the FPGA bitstream downloader.  To check which version of the library you installed, use :code:`bladerf-tool version` (this guide was written using libbladeRF version v2.5.0).
+This will install the libbladerf library, Python bindings, bladeRF command line tools, the firmware downloader, and the FPGA bitstream downloader.  To check which version of the library you installed, use :code:`bladerf-tool version` (this guide was written using libbladeRF version v2.5.0).
 
 If you are using Ubuntu through WSL, on the Windows side you will need to forward the bladeRF USB device to WSL, first by installing the latest `usbipd utility msi <https://github.com/dorssel/usbipd-win/releases>`_ (this guide assumes you have usbipd-win 4.0.0 or higher), then opening PowerShell in administrator mode and running:
 

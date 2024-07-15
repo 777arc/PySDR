@@ -168,7 +168,7 @@ Noise Power Budget
 
 Now that we know the received signal power, let's change topic to received noise, since we need both to calculate SNR after all.  We can find received noise with a similar style power budget.
 
-Now is a good time to talk about where noise enters our comms link.  Answer: **At the receiver!**  The signal is not corrupted with noise until we go to receive it.  It is *extremely* important to understand this fact! Many students don't quite internalize it, and they end up making a foolish error as a result.  There is not noise floating around us in the air. The noise comes from the fact that our receiver has an amplifier and other electronics that are not perfect and not at 0 degrees Kelvin (K).
+Now is a good time to talk about where noise enters our communications link.  Answer: **At the receiver!**  The signal is not corrupted with noise until we go to receive it.  It is *extremely* important to understand this fact! Many students don't quite internalize it, and they end up making a foolish error as a result.  There is not noise floating around us in the air. The noise comes from the fact that our receiver has an amplifier and other electronics that are not perfect and not at 0 degrees Kelvin (K).
 
 A popular and simple formulation for the noise budget uses the "kTB" approach:
 
@@ -259,4 +259,4 @@ For our noise budget:
  
 Therefore our SNR is -105.7 - (-140.8) = **35.1 dB**.  It's not surprising it is a huge number, considering we are claiming to only be 30 km from the aircraft under free space.  If ADS-B signals couldn't reach 30 km then ADS-B wouldn't be a very effective system--no one would hear each other until they were very close.  Under this example we can easily decode the signals; pulse-position modulation (PPM) is fairly robust and does not require that high an SNR.  What's difficult is when you try to receive ADS-B while inside a classroom, with an antenna that is very poorly matched, and a strong FM radio station nearby causing interference.  Those factors could easily lead to 20-30 dB of losses.
 
-This example was really just a back-of-the-envelope calculation, but it demonstrated the basics of creating a link budget and understanding the important parameters of a comms link. 
+This example was really just a back-of-the-envelope calculation, but it demonstrated the basics of creating a link budget and understanding the important parameters of a communications link. 

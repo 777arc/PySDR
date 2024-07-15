@@ -75,7 +75,7 @@ Using a new Python script, we can read in this file using :code:`np.fromfile()`,
     plt.grid(True)
     plt.show()
 
-A big mistake is to forget to tell np.fromfile() the file format. Binary files don't include any information about their format.  By default, np.fromfile() assumes it is reading in an array of float64s.
+A big mistake is to forget to tell :code:`np.fromfile()` the file format. Binary files don't include any information about their format.  By default, :code:`np.fromfile()` assumes it is reading in an array of float64s.
 
 Most other languages have methods to read in binary files, e.g., in MATLAB you can use fread().  For visually analyzing an RF file see the section below.
 
@@ -124,7 +124,7 @@ Visually Analyzing an RF File
 
 Although we learned how to create our own spectrogram plot in the :ref:`freq-domain-chapter` Chapter, nothing beats using an already created piece of software.  When it comes to analyzing RF recordings without having to install anything, the go-to website is `IQEngine <https://iqengine.org>`_ which is an entire toolkit for analyzing, processing, and sharing RF recordings.
 
-For those who want a desktop app, there is also `inspectrum <https://github.com/miek/inspectrum>`_.  Inspectrum is a fairly simple but powerful graphical tool for scanning through an RF file visually, with fine control over the colormap range and FFT size (zoom amount).  You can hold alt and use the scrollwheel to shift through time.  It has optional cursors to measure the delta-time between two bursts of energy, and the ability to export a slice of the RF file into a new file.  For installation on Debian-based platforms such as Ubuntu, use the following commands:
+For those who want a desktop app, there is also `inspectrum <https://github.com/miek/inspectrum>`_.  Inspectrum is a fairly simple but powerful graphical tool for scanning through an RF file visually, with fine control over the colormap range and FFT size (zoom amount).  You can hold alt and use the scroll wheel to shift through time.  It has optional cursors to measure the delta-time between two bursts of energy, and the ability to export a slice of the RF file into a new file.  For installation on Debian-based platforms such as Ubuntu, use the following commands:
 
 .. code-block:: bash
 
@@ -199,7 +199,7 @@ If you are capturing your RF recording from within Python, e.g., using the Pytho
  cd SigMF
  sudo pip install .
 
-The Python code to write the .sigmf-meta file for the example towards the beginning of this chapter, where we saved qpsk_in_noise.iq, is shown below:
+The Python code to write the .sigmf-meta file for the example towards the beginning of this chapter, where we saved :code:`qpsk_in_noise.iq`, is shown below:
 
 .. code-block:: python
 
@@ -262,7 +262,7 @@ A little bonus for those who read this far; the SigMF logo is actually stored as
    :align: center
    :alt: The SigMF logo animation
 
-The Python code used to read in the logo file (located `here <https://github.com/gnuradio/SigMF/tree/master/logo>`_) and produce the animated gif above is shown below, for those curious:
+The Python code used to read in the logo file (located `here <https://github.com/gnuradio/SigMF/tree/master/logo>`_) and produce the animated GIF above is shown below, for those curious:
 
 .. code-block:: python
 
@@ -307,7 +307,7 @@ The Python code used to read in the logo file (located `here <https://github.com
 SigMF Collection for Array Recordings
 **************************************
 
-If you have a phased array, MIMO digital array, TDOA sensors, or any other situation where you are recording multiple channels of synchronized RF data, then you are probably wondering how you store the raw IQ of several streams to file with SigMF.  The SigMF **Collection** system was designed exactly for these applications; a Collection is simply a group of SigMF Recordings (each being one meta and one data file), grouped together using a top-level :code:`.sigmf-collection` JSON file.  This JSON file is fairly straightforward; it needs to have the version of SigMF, an optional description, and then a list of "streams" which is really just the basename of each SigMF Recording in the collection.  Here is an example of a :code:`.sigmf-collection` file:
+If you have a phased array, MIMO digital array, TDOA sensors, or any other situation where you are recording multiple channels of synchronized RF data, then you are probably wondering how you store the raw IQ of several streams to file with SigMF.  The SigMF **Collection** system was designed exactly for these applications; a Collection is simply a group of SigMF Recordings (each being one meta and one data file), grouped together using a top-level :code:`.sigmf-collection` JSON file.  This JSON file is fairly straightforward; it needs to have the version of SigMF, an optional description, and then a list of "streams" which is really just the base name of each SigMF Recording in the collection.  Here is an example of a :code:`.sigmf-collection` file:
 
 .. code-block:: json
 
@@ -344,7 +344,7 @@ The names of the Recordings don't have to be :code:`channel-0`, :code:`channel-1
 * :code:`channel-3.sigmf-meta`
 * :code:`channel-3.sigmf-data`
 
-You may be thinking this will lead to a huge number of files, for example a 16-element array would lead to 33 files!  It is for this reason that SigMF introduced the **Archive** system, which is really just SigMF's term for tarball-ing a set of files.  A SigMF Archive file uses the extension :code:`.sigmf`, not :code:`.tar`!  Many people think that .tar files are compressed, but they are not; they are simply a way to group files together (it's essentially a file concatenate, no compression involved).  You may have seen a :code:`.tar.gz` file before; this is a tarball that has been compressed with gzip.  For our SigMF Archives we won't bother compressing them, as the data files are already binary and won't compress much, especially if automatic gain control was used.  If you want to create a SigMF Archive in Python, you can tarball all files in a directory together like so:
+You may be thinking this will lead to a huge number of files, for example a 16-element array would lead to 33 files!  It is for this reason that SigMF introduced the **Archive** system, which is really just SigMF's term for tarballing a set of files.  A SigMF Archive file uses the extension :code:`.sigmf`, not :code:`.tar`!  Many people think that .tar files are compressed, but they are not; they are simply a way to group files together (it's essentially a file concatenate, no compression involved).  You may have seen a :code:`.tar.gz` file before; this is a tarball that has been compressed with gzip.  For our SigMF Archives we won't bother compressing them, as the data files are already binary and won't compress much, especially if automatic gain control was used.  If you want to create a SigMF Archive in Python, you can tarball all files in a directory together like so:
 
 .. code-block:: python
 

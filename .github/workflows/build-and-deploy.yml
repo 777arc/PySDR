@@ -35,12 +35,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.7
 
       - name: apt installs
-        run: sudo apt update && sudo apt install -y texlive-latex-extra pdf2svg
+        run: sudo apt update && sudo apt install -y texlive-latex-extra texlive-lang-cyrillic ghostscript
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5.1.0
         with:
           python-version: '3.10'
       
@@ -51,6 +51,16 @@ jobs:
         run: make html
         env:
           CREATOR_ID: ${{ secrets.CREATOR_ID }}
+
+      - name: Check for spelling errors
+        id: check_files
+        uses: andstor/file-existence-action@v3
+        with:
+          files: "_spelling/content/*.spelling"
+
+      - name: Fail if spelling errors
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: cat _spelling/content/* && exit 1
 
       - name: Zip just English version for Release
         uses: montudor/action-zip@v1
@@ -83,13 +93,13 @@ jobs:
           CREATOR_ID: ${{ secrets.CREATOR_ID }}
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3.0.1
         with:
           path: './_build'
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4.0.5
 
       - name: Get current date
         id: date

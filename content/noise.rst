@@ -4,7 +4,7 @@
 Noise and dB
 #############
 
-In this chapter we will discuss noise, including how it is modeled and handled in a wireless communications system.  Concepts include AWGN, complex noise, and SNR/SINR.  We will also introduce decibels (dB) along the way, as it is widely within wireless comms and SDR.
+In this chapter we will discuss noise, including how it is modeled and handled in a wireless communications system.  Concepts include AWGN, complex noise, and SNR/SINR.  We will also introduce decibels (dB) along the way, as it is widely within wireless communications and SDR.
 
 ************************
 Gaussian Noise
@@ -151,7 +151,7 @@ We can see that it looks roughly the same across all frequencies and is fairly f
  plt.plot(np.real(X), '.-')
  plt.show()
 
-Take note that the randn() function by default uses mean = 0 and variance = 1.  Both of the plots will look something like this:
+Take note that the :code:`randn()` function by default uses mean = 0 and variance = 1.  Both of the plots will look something like this:
 
 .. image:: ../_images/noise_python.png
    :scale: 100 % 

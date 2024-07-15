@@ -1,4 +1,6 @@
-sphinx==7.2.6
-sphinxcontrib-tikz==0.4.16
+sphinx==7.3.7
+sphinxcontrib-tikz==0.4.20
+sphinxcontrib-spelling==8.0.0
+docutils==0.21.2
 patreon==0.5.0
 imageio==2.11.0

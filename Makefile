@@ -52,6 +52,10 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 
+.PHONY: spelling
+spelling:
+	$(SPHINXBUILD) -b spelling . _spelling
+
 .PHONY: html
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
@@ -64,7 +68,6 @@ html:
 	@echo changing search button text
 	sed -i 's/value="Go"/value="Search"/g' $(BUILDDIR)/*/*.html
 
-#make sure you install sphinxcontrib-tikz python module and pdf2svg application
 .PHONY: html-es
 html-es:
 	$(SPHINXBUILD) -b html -D project="PySDR: Guia de uso para SDR/DSP con Python"        -D exclude_patterns=_build,index.rst,content/*,index-nl.rst,content-nl/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/* -D master_doc=index-es $(EXTENSIONS) . $(BUILDDIR)/es/

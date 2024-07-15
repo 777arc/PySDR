@@ -94,7 +94,7 @@ Because the HB100 is low-cost and uses cheap RF components, its transmit frequen
  cd ~/pyadi-iio/examples/phaser
  python phaser_find_hb100.py
 
-It should create a file called hb100_freq_val.pkl in the same directory.  This file contains the HB100 transmit frequency in Hz (pickled, so not viewable in plaintext) which we will use in the next step.
+It should create a file called :code:`hb100_freq_val.pkl` in the same directory.  This file contains the HB100 transmit frequency in Hz (pickled, so not viewable in plaintext) which we will use in the next step.
 
 ************************
 Calibration
@@ -395,7 +395,7 @@ Invented in 1943 by Robert Page at the Naval Research Laboratory (NRL), the basi
    :target: ../_images/monopulse.svg
    :alt: Monopulse beam diagram showing two beams and the sum beam
 
-We then take both the sum and difference (a.k.a. delta) of these two beams digitally, which means we must use two digital channels of the Phaser, making this a hybrid array approach (although you could certainly do the sum and difference in analog with custom hardware).  The sum beam will equate to a beam centered at the current angle of arrival estimate, as shown above, which means this beam can be used for demod/decoding the signal of interest.  The delta beam, as we will call it, is harder to visualize, but it will have a null at the angle of arrival estimate.  We can use the ratio between the sum beam and delta beam (refered to as the error) to perform our tracking.  This process is best explained with a short Python snippet; recall that the :code:`rx()` function returns a batch of samples from both channels, so in the code below :code:`data[0]` is the first channel of the Pluto (first set of four Phaser elements) and :code:`data[1]` is the second channel (second set of four elements).  In order to create two beams, we will steer each of the two sets separately.  We can calculate the sum, delta, and error as follows:
+We then take both the sum and difference (a.k.a. delta) of these two beams digitally, which means we must use two digital channels of the Phaser, making this a hybrid array approach (although you could certainly do the sum and difference in analog with custom hardware).  The sum beam will equate to a beam centered at the current angle of arrival estimate, as shown above, which means this beam can be used for demodulation/decoding the signal of interest.  The delta beam, as we will call it, is harder to visualize, but it will have a null at the angle of arrival estimate.  We can use the ratio between the sum beam and delta beam (referred to as the error) to perform our tracking.  This process is best explained with a short Python snippet; recall that the :code:`rx()` function returns a batch of samples from both channels, so in the code below :code:`data[0]` is the first channel of the Pluto (first set of four Phaser elements) and :code:`data[1]` is the second channel (second set of four elements).  In order to create two beams, we will steer each of the two sets separately.  We can calculate the sum, delta, and error as follows:
 
 .. code-block:: python
 

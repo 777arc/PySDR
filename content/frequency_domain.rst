@@ -319,7 +319,7 @@ If we plot :code:`s` it looks like:
    :scale: 70 % 
    :align: center 
 
-Next let's use Numpy's FFT function:
+Next let's use NumPy's FFT function:
 
 .. code-block:: python
 
@@ -352,14 +352,14 @@ Right now we aren't providing any x-axis to the plots, it's just the index of th
    :target: ../_images/fft-python3.svg
    :alt: Arrangement of the output of an FFT before doing an FFT shift
    
-But we want 0 Hz (DC) in the center and negative freqs to the left (that's just how we like to visualize things).  So any time we do an FFT we need to perform an "FFT shift", which is just a simple array rearrangement operation, kind of like a circular shift but more of a "put this here and that there".  The diagram below fully defines what the FFT shift operation does:
+But we want 0 Hz (DC) in the center and negative frequencies to the left (that's just how we like to visualize things).  So any time we do an FFT we need to perform an "FFT shift", which is just a simple array rearrangement operation, kind of like a circular shift but more of a "put this here and that there".  The diagram below fully defines what the FFT shift operation does:
 
 .. image:: ../_images/fft-python4.svg
    :align: center
    :target: ../_images/fft-python4.svg
    :alt: Reference diagram of the FFT shift function, showing positive and negative frequencies and DC
 
-For our convenience, Numpy has an FFT shift function, :code:`np.fft.fftshift()`.  Replace the np.fft.fft() line with:
+For our convenience, NumPy has an FFT shift function, :code:`np.fft.fftshift()`.  Replace the np.fft.fft() line with:
 
 .. code-block:: python
 
@@ -434,7 +434,7 @@ A spectrogram is the plot that shows frequency over time.  It is simply a bunch 
    :target: ../_images/spectrogram_diagram.svg
    :alt: Spectrogram (a.k.a. waterfall) diagram showing how FFT slices are arrange/stacked to form a time-frequency plot
 
-Because a spectrogram involves plotting 2D data, it's effectively a 3D plot, so we have to use a colormap to represent the FFT magntiudes, which are the "values" we want to plot.  Here is an example of a spectrogram, with frequency on the horizontal/x-axis and time on the vertical/y-axis.  Blue represents the lowest energy and red is the highest. We can see that there is a strong spike at DC (0 Hz) in the center with a varying signal around it.  Blue represents our noise floor.
+Because a spectrogram involves plotting 2D data, it's effectively a 3D plot, so we have to use a colormap to represent the FFT magnitudes, which are the "values" we want to plot.  Here is an example of a spectrogram, with frequency on the horizontal/x-axis and time on the vertical/y-axis.  Blue represents the lowest energy and red is the highest. We can see that there is a strong spike at DC (0 Hz) in the center with a varying signal around it.  Blue represents our noise floor.
 
 .. image:: ../_images/waterfall.png
    :scale: 120 % 

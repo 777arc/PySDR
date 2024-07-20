@@ -5,16 +5,18 @@ import numpy as np
 import time
 import adi
 
+# SDR thread is using 18% with old method
+
 # Defaults
-fft_size = 1024 # determines buffer size
+fft_size = 4096 # determines buffer size
 num_rows = 200
-center_freq = 100e6
-sample_rate = 10e6
+center_freq = 2400e6
+sample_rate = 20e6
 time_plot_samples = 500
-gain = 65 # 0 to 73 dB. int
+gain = 20 #65 # 0 to 73 dB. int
 
 # Init SDR
-sdr = adi.Pluto("ip:192.168.1.174")
+sdr = adi.Pluto("ip:192.168.1.233")
 sdr.rx_lo = int(center_freq)
 sdr.rx_rf_bandwidth = int(2*sample_rate)
 sdr.rx_buffer_size = int(fft_size)
@@ -93,6 +95,7 @@ class MainWindow(QMainWindow):
 
         # Initialize worker and thread
         self.sdr_thread = QThread()
+        self.sdr_thread.setObjectName('SDR_Thread') # so we can see it in htop, note you have to hit F2 -> Display options -> Show custom thread names
         self.worker = SDRWorker()
         self.worker.moveToThread(self.sdr_thread)
 

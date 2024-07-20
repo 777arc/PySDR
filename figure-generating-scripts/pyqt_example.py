@@ -12,8 +12,8 @@ import signal
 fft_size = 4096 # determines buffer size
 num_rows = 200
 center_freq = 2400e6
-sample_rates = [20, 10, 5, 2.5, 1] # MHz
-sample_rate = sample_rates[0] * 1e6
+sample_rates = [56, 40, 20, 10, 5, 2, 1] # MHz
+sample_rate = sample_rates[2] * 1e6
 time_plot_samples = 500
 gain = 50 # 0 to 73 dB. int
 
@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
         auto_range_button = QPushButton('Auto Range')
         auto_range_button.clicked.connect(lambda : time_plot.autoRange()) # lambda just means its an unnamed function
         time_plot_auto_range_layout.addWidget(auto_range_button)
-        auto_range_button2 = QPushButton('-1 to +1')
+        auto_range_button2 = QPushButton('-1 to +1\n(ADC limits)')
         auto_range_button2.clicked.connect(lambda : time_plot.setYRange(-1.1, 1.1))
         time_plot_auto_range_layout.addWidget(auto_range_button2)
 
@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
         waterfall_layout.addWidget(colorbar)
 
         # Waterfall auto range button
-        auto_range_button = QPushButton('Auto Range')
+        auto_range_button = QPushButton('Auto Range\n(-2σ to +2σ)')
         def update_colormap():
             imageitem.setLevels((self.spectrogram_min, self.spectrogram_max))
             colorbar.setLevels((self.spectrogram_min, self.spectrogram_max))
@@ -186,6 +186,7 @@ class MainWindow(QMainWindow):
         # Sample rate dropdown using QComboBox
         sample_rate_combobox = QComboBox()
         sample_rate_combobox.addItems([str(x) + ' MHz' for x in sample_rates])
+        sample_rate_combobox.setCurrentIndex(2) # should match the default at the top
         sample_rate_combobox.currentIndexChanged.connect(worker.update_sample_rate)
         sample_rate_label = QLabel()
         def update_sample_rate_label(val):

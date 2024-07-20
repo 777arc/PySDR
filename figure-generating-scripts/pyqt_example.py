@@ -4,6 +4,7 @@ import pyqtgraph as pg # tested with pyqtgraph==0.13.7
 import numpy as np
 import time
 import adi
+import signal
 
 # SDR thread is using 18% with old method
 
@@ -227,6 +228,7 @@ class MainWindow(QMainWindow):
 
 app = QApplication([])
 window = MainWindow()
-window.show()  # IMPORTANT!!!!! Windows are hidden by default.
+window.show()  # IMPORTANT!!!!! Windows are hidden by default
+signal.signal(signal.SIGINT, signal.SIG_DFL) # this lets control-C actually close the app
 app.exec() # Start the event loop
 

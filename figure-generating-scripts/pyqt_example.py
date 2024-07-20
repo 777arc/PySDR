@@ -27,13 +27,12 @@ sdr.rx_hardwaregain_chan0 = gain # dB
 class SDRWorker(QObject):
     time_plot_update = pyqtSignal(np.ndarray)
     fft_plot_update = pyqtSignal(np.ndarray)
-    waterfall_plot_update = pyqtSignal(np.ndarray, bool)
+    waterfall_plot_update = pyqtSignal(np.ndarray)
     end_of_run = pyqtSignal() # happens many times a second
 
     freq = 0 # in kHz, to deal with QSlider being ints and with a max of 2 billion
-    i = num_rows - 1 # counter to reset colormap, but do it at the start
-    spectrogram = np.zeros((fft_size, num_rows))
-    PSD_avg = np.zeros(fft_size)
+    spectrogram = -50*np.ones((fft_size, num_rows))
+    PSD_avg = -50*np.ones(fft_size)
     
     # Slots
     def update_freq(self, val): # TODO: WE COULD JUST MODIFY THE SDR IN THE GUI THREAD
@@ -61,14 +60,8 @@ class SDRWorker(QObject):
     
         self.spectrogram[:] = np.roll(self.spectrogram, 1, axis=1) # shifts waterfall 1 row
         self.spectrogram[:,0] = PSD # fill last row with new fft results
+        self.waterfall_plot_update.emit(self.spectrogram)
 
-        self.i += 1
-        if self.i == num_rows:
-            self.waterfall_plot_update.emit(self.spectrogram, True)
-            self.i = 0
-        else:
-            self.waterfall_plot_update.emit(self.spectrogram, False)
-                
         #window.imageitem.translate((center_freq - sample_rate/2.0) / 1e6, 0)
         #window.imageitem.scale(sample_rate/fft_size/1e6, time_per_row)
 
@@ -112,7 +105,7 @@ class MainWindow(QMainWindow):
         self.fft_plot.setMouseEnabled(x=False, y=True)
         self.fft_plot_curve_fft = self.fft_plot.plot([]) 
         self.fft_plot.setXRange(center_freq/1e6 - sample_rate/2e6, center_freq/1e6 + sample_rate/2e6)
-        self.fft_plot.setYRange(-60, 0)
+        self.fft_plot.setYRange(-60, -40)
         layout.addWidget(self.fft_plot, 2, 0)
         
         # Layout container for waterfall related stuff
@@ -124,7 +117,7 @@ class MainWindow(QMainWindow):
         #self.waterfall.getPlotItem().getViewBox().translateBy(x=10.0)
         self.imageitem = pg.ImageItem(axisOrder='col-major') # some of these args are purely for performance
         self.imageitem.setColorMap(pg.colormap.get('viridis', source='matplotlib'))
-        self.imageitem.setLevels((-60, 0))
+        self.imageitem.setLevels((-60, -40))
         self.waterfall.addItem(self.imageitem)
         self.waterfall.setMouseEnabled(x=False, y=False)
         waterfall_layout.addWidget(self.waterfall)
@@ -195,10 +188,8 @@ class MainWindow(QMainWindow):
             self.fft_plot_curve_fft.setData(f, PSD_avg)
             self.fft_plot.setXRange(freq_slider.value()*1e3/1e6 - sample_rate/2e6, freq_slider.value()*1e3/1e6 + sample_rate/2e6)
         
-        def waterfall_plot_callback(spectrogram, reset_range):
+        def waterfall_plot_callback(spectrogram):
             self.imageitem.setImage(spectrogram, autoLevels=False) 
-            if reset_range:
-                self.fft_plot.autoRange()
             self.spectrogram_min = np.min(spectrogram)
             self.spectrogram_max = np.max(spectrogram)
 

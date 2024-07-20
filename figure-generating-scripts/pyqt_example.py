@@ -102,7 +102,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.time_plot, 1, 0)
 
         # Time plot auto range button
-        auto_range_button = QPushButton('Auto\nRange')
+        auto_range_button = QPushButton('Auto Range')
         auto_range_button.clicked.connect(lambda : self.time_plot.autoRange()) # lambda just means its an unnamed function
         layout.addWidget(auto_range_button, 1, 1)
 
@@ -115,7 +115,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.fft_plot, 2, 0)
         
         # FFT auto range button
-        auto_range_button = QPushButton('Auto\nRange')
+        auto_range_button = QPushButton('Auto Range')
         auto_range_button.clicked.connect(lambda : self.fft_plot.autoRange()) # lambda just means its an unnamed function
         layout.addWidget(auto_range_button, 2, 1)
 
@@ -142,12 +142,10 @@ class MainWindow(QMainWindow):
         waterfall_layout.addWidget(colorbar)
 
         # Waterfall auto range button
-        auto_range_button = QPushButton('Auto\nRange')
+        auto_range_button = QPushButton('Auto Range')
         def update_colormap():
-            new_min = self.spectrogram_min + 5
-            new_max = self.spectrogram_max - 5
-            self.imageitem.setLevels((new_min, new_max))
-            bar.setLevels((new_min, new_max))
+            self.imageitem.setLevels((self.spectrogram_min + 5, self.spectrogram_max - 5))
+            bar.setLevels((self.spectrogram_min + 5, self.spectrogram_max - 5))
         auto_range_button.clicked.connect(update_colormap)
         layout.addWidget(auto_range_button, 3, 1)
 
@@ -211,7 +209,7 @@ class MainWindow(QMainWindow):
         
         def waterfall_plot_callback(spectrogram):
             self.imageitem.setImage(spectrogram, autoLevels=False) 
-            self.spectrogram_min = np.min(spectrogram)
+            self.spectrogram_min = np.min(spectrogram) # save the min and max in window state
             self.spectrogram_max = np.max(spectrogram)
 
         def end_of_run_callback():

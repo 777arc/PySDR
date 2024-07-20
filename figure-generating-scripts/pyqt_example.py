@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QSize, Qt, QThread, pyqtSignal, QObject
+from PyQt6.QtCore import QSize, Qt, QThread, pyqtSignal, QObject, QTimer
 from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QSlider, QLabel, QHBoxLayout, QPushButton  # tested with PyQt6==6.7.0
 import pyqtgraph as pg # tested with pyqtgraph==0.13.7
 import numpy as np
@@ -13,7 +13,7 @@ num_rows = 200
 center_freq = 2400e6
 sample_rate = 20e6
 time_plot_samples = 500
-gain = 20 #65 # 0 to 73 dB. int
+gain = 50 # 0 to 73 dB. int
 
 # Init SDR
 sdr = adi.Pluto("ip:192.168.1.233")
@@ -28,9 +28,13 @@ class SDRWorker(QObject):
     time_plot_update = pyqtSignal(np.ndarray)
     fft_plot_update = pyqtSignal(np.ndarray)
     waterfall_plot_update = pyqtSignal(np.ndarray, bool)
+    end_of_run = pyqtSignal() # happens many times a second
 
     freq = 0 # in kHz, to deal with QSlider being ints and with a max of 2 billion
-
+    i = num_rows - 1 # counter to reset colormap, but do it at the start
+    spectrogram = np.zeros((fft_size, num_rows))
+    PSD_avg = np.zeros(fft_size)
+    
     # Slots
     def update_freq(self, val): # TODO: WE COULD JUST MODIFY THE SDR IN THE GUI THREAD
         print("Updated freq to:", val, 'kHz')
@@ -41,43 +45,37 @@ class SDRWorker(QObject):
         sdr.rx_hardwaregain_chan0 = val
 
     def run(self):
-        spectrogram = np.zeros((fft_size, num_rows))
-        PSD_avg = np.zeros(fft_size)
-        t = np.arange(time_plot_samples)/sample_rate*1e6 # in microseconds
-        i = num_rows - 1 # counter to reset colormap, but do it at the start
-        while True:
-            
-            start_t = time.time()
+        start_t = time.time()
 
-            QApplication.processEvents()
-            
-            #samples = np.random.randn(fft_size) + 0.5 +  1j*np.random.randn(fft_size) # generate some random samples
-            samples = sdr.rx() # Receive samples
-            samples = samples.astype(np.complex64) # type: ignore
-
-            self.time_plot_update.emit(samples[0:time_plot_samples]/2**11) # make it go from -1 to 1 at highest gain
-            
-            PSD = 10.0*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2/(fft_size*sample_rate))
-
-            PSD_avg = PSD_avg * 0.99 + PSD * 0.01
-            self.fft_plot_update.emit(PSD_avg)
+        QApplication.processEvents()
         
-            spectrogram[:] = np.roll(spectrogram, 1, axis=1) # shifts waterfall 1 row
-            spectrogram[:,0] = PSD # fill last row with new fft results
+        samples = sdr.rx() # Receive samples
+        samples = samples.astype(np.complex64) # type: ignore
 
-            i += 1
-            if i == num_rows:
-                self.waterfall_plot_update.emit(spectrogram, True)
-                i = 0
-            else:
-                self.waterfall_plot_update.emit(spectrogram, False)
-            
-            time.sleep(0.01) # without a tiny delay the main GUI thread gets blocked and you cant move the slider
-            
-            #window.imageitem.translate((center_freq - sample_rate/2.0) / 1e6, 0)
-            #window.imageitem.scale(sample_rate/fft_size/1e6, time_per_row)
+        self.time_plot_update.emit(samples[0:time_plot_samples]/2**11) # make it go from -1 to 1 at highest gain
+        
+        PSD = 10.0*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2/(fft_size*sample_rate))
 
-            #print("Frames per second:", 1/(time.time() - start_t))
+        self.PSD_avg = self.PSD_avg * 0.99 + PSD * 0.01
+        self.fft_plot_update.emit(self.PSD_avg)
+    
+        self.spectrogram[:] = np.roll(self.spectrogram, 1, axis=1) # shifts waterfall 1 row
+        self.spectrogram[:,0] = PSD # fill last row with new fft results
+
+        self.i += 1
+        if self.i == num_rows:
+            self.waterfall_plot_update.emit(self.spectrogram, True)
+            self.i = 0
+        else:
+            self.waterfall_plot_update.emit(self.spectrogram, False)
+                
+        #window.imageitem.translate((center_freq - sample_rate/2.0) / 1e6, 0)
+        #window.imageitem.scale(sample_rate/fft_size/1e6, time_per_row)
+
+        print("Frames per second:", 1/(time.time() - start_t))
+
+        self.end_of_run.emit() # emit the signal to keep the loop going
+
 
 
 # Subclass QMainWindow to customize your application's main window
@@ -190,21 +188,29 @@ class MainWindow(QMainWindow):
         def time_plot_callback(samples):
             self.time_plot_curve_i.setData(samples.real)
             self.time_plot_curve_q.setData(samples.imag)
+        
         def fft_plot_callback(PSD_avg):
             # TODO figure out if there's a way to just change the visual ticks instead of the actual x vals
             f = np.linspace(freq_slider.value()*1e3 - sample_rate/2.0, freq_slider.value()*1e3 + sample_rate/2.0, fft_size) / 1e6
             self.fft_plot_curve_fft.setData(f, PSD_avg)
             self.fft_plot.setXRange(freq_slider.value()*1e3/1e6 - sample_rate/2e6, freq_slider.value()*1e3/1e6 + sample_rate/2e6)
+        
         def waterfall_plot_callback(spectrogram, reset_range):
             self.imageitem.setImage(spectrogram, autoLevels=False) 
             if reset_range:
                 self.fft_plot.autoRange()
             self.spectrogram_min = np.min(spectrogram)
             self.spectrogram_max = np.max(spectrogram)
+
+        def end_of_run_callback():
+            QTimer.singleShot(0, self.worker.run) # Run worker again immediately
+        
         self.worker.time_plot_update.connect(time_plot_callback) # connect the signal to the callback
         self.worker.fft_plot_update.connect(fft_plot_callback)
         self.worker.waterfall_plot_update.connect(waterfall_plot_callback)
-        self.sdr_thread.started.connect(self.worker.run) # kicks off the worker
+        self.worker.end_of_run.connect(end_of_run_callback)
+
+        self.sdr_thread.started.connect(self.worker.run) # kicks off the worker when the thread starts
         self.sdr_thread.start()
 
 

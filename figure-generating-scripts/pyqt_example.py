@@ -1,5 +1,5 @@
 from PyQt6.QtCore import QSize, Qt, QThread, pyqtSignal, QObject, QTimer
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QSlider, QLabel, QHBoxLayout, QPushButton  # tested with PyQt6==6.7.0
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QSlider, QLabel, QHBoxLayout, QPushButton, QComboBox  # tested with PyQt6==6.7.0
 import pyqtgraph as pg # tested with pyqtgraph==0.13.7
 import numpy as np
 import time
@@ -11,13 +11,15 @@ import adi
 fft_size = 4096 # determines buffer size
 num_rows = 200
 center_freq = 2400e6
-sample_rate = 20e6
+sample_rates = [20, 10, 5, 2.5, 1] # MHz
+sample_rate = sample_rates[0] * 1e6
 time_plot_samples = 500
 gain = 50 # 0 to 73 dB. int
 
 # Init SDR
 sdr = adi.Pluto("ip:192.168.1.233")
 sdr.rx_lo = int(center_freq)
+sdr.sample_rate = int(sample_rate)
 sdr.rx_rf_bandwidth = int(2*sample_rate)
 sdr.rx_buffer_size = int(fft_size)
 sdr.gain_control_mode_chan0 = 'manual'
@@ -42,6 +44,11 @@ class SDRWorker(QObject):
     def update_gain(self, val):
         print("Updated gain to:", val, 'dB')
         sdr.rx_hardwaregain_chan0 = val
+
+    def update_sample_rate(self, val):
+        print("Updated sample rate to:", sample_rates[val], 'MHz')
+        sdr.sample_rate = int(sample_rates[val] * 1e6)
+        sdr.rx_rf_bandwidth = int(2 * sample_rates[val] * 1e6)
 
     def run(self):
         start_t = time.time()
@@ -184,6 +191,17 @@ class MainWindow(QMainWindow):
         layout.addWidget(gain_slider, 5, 0)
         layout.addWidget(gain_label, 5, 1)
 
+        # Sample rate dropdown (QComboBox)
+        sample_rate_combobox = QComboBox()
+        sample_rate_combobox.addItems([str(x) + ' MHz' for x in sample_rates])
+        sample_rate_combobox.currentIndexChanged.connect(self.worker.update_sample_rate)
+        sample_rate_label = QLabel()
+        def update_sample_rate_label(val):
+            sample_rate_label.setText("Sample Rate: " + str(sample_rates[val]) + " MHz")
+        sample_rate_combobox.currentIndexChanged.connect(update_sample_rate_label)
+        update_sample_rate_label(sample_rate_combobox.currentIndex()) # initialize the label
+        layout.addWidget(sample_rate_combobox, 6, 0)
+        layout.addWidget(sample_rate_label, 6, 1)
 
         central_widget = QWidget()
         central_widget.setLayout(layout)

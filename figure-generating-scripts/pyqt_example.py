@@ -16,7 +16,7 @@ time_plot_samples = 500
 gain = 50 # 0 to 73 dB. int
 
 # Init SDR
-sdr = adi.Pluto("ip:192.168.1.233")
+sdr = adi.Pluto("ip:192.168.1.10")
 sdr.rx_lo = int(center_freq)
 sdr.sample_rate = int(sample_rate)
 sdr.rx_rf_bandwidth = int(sample_rate*0.8) # antialiasing filter bandwidth
@@ -54,9 +54,7 @@ class SDRWorker(QObject):
     # Main loop
     def run(self):
         start_t = time.time()
-
-        QApplication.processEvents()
-        
+                
         samples = sdr.rx() # Receive samples
         samples = samples.astype(np.complex64) # type: ignore
 

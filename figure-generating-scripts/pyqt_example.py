@@ -21,7 +21,7 @@ gain = 50 # 0 to 73 dB. int
 sdr = adi.Pluto("ip:192.168.1.233")
 sdr.rx_lo = int(center_freq)
 sdr.sample_rate = int(sample_rate)
-sdr.rx_rf_bandwidth = int(2*sample_rate)
+sdr.rx_rf_bandwidth = int(sample_rate*0.8) # antialiasing filter bandwidth
 sdr.rx_buffer_size = int(fft_size)
 sdr.gain_control_mode_chan0 = 'manual'
 sdr.rx_hardwaregain_chan0 = gain # dB
@@ -51,7 +51,7 @@ class SDRWorker(QObject):
     def update_sample_rate(self, val):
         print("Updated sample rate to:", sample_rates[val], 'MHz')
         sdr.sample_rate = int(sample_rates[val] * 1e6)
-        sdr.rx_rf_bandwidth = int(2 * sample_rates[val] * 1e6)
+        sdr.rx_rf_bandwidth = int(sample_rates[val] * 1e6 * 0.8)
 
     # Main loop
     def run(self):
@@ -133,7 +133,6 @@ class MainWindow(QMainWindow):
         # Waterfall plot
         waterfall = pg.PlotWidget(labels={'left': 'Time [s]', 'bottom': 'Frequency [MHz]'})
         imageitem = pg.ImageItem(axisOrder='col-major') # this arg is purely for performance
-        imageitem.setLevels((-60, -40))
         waterfall.addItem(imageitem)
         waterfall.setMouseEnabled(x=False, y=False)
         waterfall_layout.addWidget(waterfall)
@@ -142,6 +141,7 @@ class MainWindow(QMainWindow):
         colorbar = pg.HistogramLUTWidget()
         colorbar.setImageItem(imageitem) # connects the bar to the waterfall imageitem
         colorbar.item.gradient.loadPreset('viridis') # set the color map, also sets the imageitem
+        imageitem.setLevels((-60, -40)) # needs to come after colorbar is created for some reason
         waterfall_layout.addWidget(colorbar)
 
         # Waterfall auto range button

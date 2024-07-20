@@ -183,7 +183,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(gain_slider, 5, 0)
         layout.addWidget(gain_label, 5, 1)
 
-        # Sample rate dropdown (QComboBox)
+        # Sample rate dropdown using QComboBox
         sample_rate_combobox = QComboBox()
         sample_rate_combobox.addItems([str(x) + ' MHz' for x in sample_rates])
         sample_rate_combobox.currentIndexChanged.connect(worker.update_sample_rate)
@@ -231,7 +231,6 @@ class MainWindow(QMainWindow):
 
 app = QApplication([])
 window = MainWindow()
-window.show()  # IMPORTANT!!!!! Windows are hidden by default
+window.show() # Windows are hidden by default
 signal.signal(signal.SIGINT, signal.SIG_DFL) # this lets control-C actually close the app
 app.exec() # Start the event loop
-

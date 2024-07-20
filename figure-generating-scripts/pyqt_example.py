@@ -6,8 +6,6 @@ import time
 import adi
 import signal
 
-# SDR thread is using 18% with old method
-
 # Defaults
 fft_size = 4096 # determines buffer size
 num_rows = 200

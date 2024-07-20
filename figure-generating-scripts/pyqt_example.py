@@ -99,6 +99,12 @@ class MainWindow(QMainWindow):
         self.time_plot_curve_q = self.time_plot.plot([]) 
         layout.addWidget(self.time_plot, 1, 0)
 
+        # Time plot auto range button
+        auto_range_button = QPushButton('Auto\nRange')
+        auto_range_button.setMaximumWidth(50)
+        auto_range_button.clicked.connect(lambda : self.time_plot.autoRange()) # lambda just means its an unnamed function
+        layout.addWidget(auto_range_button, 1, 1)
+
         # create fft plot
         self.fft_plot = pg.PlotWidget(labels={'left': 'PSD', 'bottom': 'Frequency [MHz]'}, enableMenu=False)
         #self.fft_plot.getPlotItem().getViewBox().setMouseMode(pg.ViewBox.RectMode)
@@ -108,6 +114,12 @@ class MainWindow(QMainWindow):
         self.fft_plot.setYRange(-60, -40)
         layout.addWidget(self.fft_plot, 2, 0)
         
+        # FFT auto range button
+        auto_range_button = QPushButton('Auto\nRange')
+        auto_range_button.setMaximumWidth(50)
+        auto_range_button.clicked.connect(lambda : self.fft_plot.autoRange()) # lambda just means its an unnamed function
+        layout.addWidget(auto_range_button, 2, 1)
+
         # Layout container for waterfall related stuff
         waterfall_layout = QHBoxLayout()
         layout.addLayout(waterfall_layout, 3, 0)
@@ -130,7 +142,7 @@ class MainWindow(QMainWindow):
         colorbar.addItem(bar)
         waterfall_layout.addWidget(colorbar)
 
-        # Auto range button
+        # Waterfall auto range button
         auto_range_button = QPushButton('Auto\nRange')
         auto_range_button.setMaximumWidth(50)
         def update_colormap():
@@ -139,7 +151,7 @@ class MainWindow(QMainWindow):
             self.imageitem.setLevels((new_min, new_max))
             bar.setLevels((new_min, new_max))
         auto_range_button.clicked.connect(update_colormap)
-        waterfall_layout.addWidget(auto_range_button)
+        layout.addWidget(auto_range_button, 3, 1)
 
         # Freq slider with label, all units in kHz
         freq_slider = QSlider(Qt.Orientation.Horizontal)

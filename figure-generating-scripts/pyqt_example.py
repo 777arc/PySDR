@@ -61,7 +61,6 @@ class SDRWorker(QObject):
         self.time_plot_update.emit(samples[0:time_plot_samples]/2**11) # make it go from -1 to 1 at highest gain
         
         PSD = 10.0*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2/(fft_size*sample_rate))
-
         self.PSD_avg = self.PSD_avg * 0.99 + PSD * 0.01
         self.fft_plot_update.emit(self.PSD_avg)
     
@@ -69,13 +68,8 @@ class SDRWorker(QObject):
         self.spectrogram[:,0] = PSD # fill last row with new fft results
         self.waterfall_plot_update.emit(self.spectrogram)
 
-        #window.imageitem.translate((center_freq - sample_rate/2.0) / 1e6, 0)
-        #window.imageitem.scale(sample_rate/fft_size/1e6, time_per_row)
-
         print("Frames per second:", 1/(time.time() - start_t))
-
         self.end_of_run.emit() # emit the signal to keep the loop going
-
 
 
 # Subclass QMainWindow to customize your application's main window
@@ -108,13 +102,11 @@ class MainWindow(QMainWindow):
 
         # Time plot auto range button
         auto_range_button = QPushButton('Auto\nRange')
-        auto_range_button.setMaximumWidth(50)
         auto_range_button.clicked.connect(lambda : self.time_plot.autoRange()) # lambda just means its an unnamed function
         layout.addWidget(auto_range_button, 1, 1)
 
         # create fft plot
         self.fft_plot = pg.PlotWidget(labels={'left': 'PSD', 'bottom': 'Frequency [MHz]'}, enableMenu=False)
-        #self.fft_plot.getPlotItem().getViewBox().setMouseMode(pg.ViewBox.RectMode)
         self.fft_plot.setMouseEnabled(x=False, y=True)
         self.fft_plot_curve_fft = self.fft_plot.plot([]) 
         self.fft_plot.setXRange(center_freq/1e6 - sample_rate/2e6, center_freq/1e6 + sample_rate/2e6)
@@ -123,7 +115,6 @@ class MainWindow(QMainWindow):
         
         # FFT auto range button
         auto_range_button = QPushButton('Auto\nRange')
-        auto_range_button.setMaximumWidth(50)
         auto_range_button.clicked.connect(lambda : self.fft_plot.autoRange()) # lambda just means its an unnamed function
         layout.addWidget(auto_range_button, 2, 1)
 
@@ -151,7 +142,6 @@ class MainWindow(QMainWindow):
 
         # Waterfall auto range button
         auto_range_button = QPushButton('Auto\nRange')
-        auto_range_button.setMaximumWidth(50)
         def update_colormap():
             new_min = self.spectrogram_min + 5
             new_max = self.spectrogram_max - 5

@@ -28,16 +28,18 @@ sdr.rx_hardwaregain_chan0 = gain # dB
 
 
 class SDRWorker(QObject):
+    # PyQt Signals
     time_plot_update = pyqtSignal(np.ndarray)
     freq_plot_update = pyqtSignal(np.ndarray)
     waterfall_plot_update = pyqtSignal(np.ndarray)
     end_of_run = pyqtSignal() # happens many times a second
 
+    # State
     freq = 0 # in kHz, to deal with QSlider being ints and with a max of 2 billion
     spectrogram = -50*np.ones((fft_size, num_rows))
     PSD_avg = -50*np.ones(fft_size)
     
-    # Slots
+    # PyQt Slots
     def update_freq(self, val): # TODO: WE COULD JUST MODIFY THE SDR IN THE GUI THREAD
         print("Updated freq to:", val, 'kHz')
         sdr.rx_lo = int(val*1e3)
@@ -51,6 +53,7 @@ class SDRWorker(QObject):
         sdr.sample_rate = int(sample_rates[val] * 1e6)
         sdr.rx_rf_bandwidth = int(2 * sample_rates[val] * 1e6)
 
+    # Main loop
     def run(self):
         start_t = time.time()
 
@@ -84,7 +87,7 @@ class MainWindow(QMainWindow):
         self.spectrogram_min = 0
         self.spectrogram_max = 0
 
-        layout = QGridLayout()
+        layout = QGridLayout() # overall layout
 
         # Initialize worker and thread
         self.sdr_thread = QThread()
@@ -93,7 +96,7 @@ class MainWindow(QMainWindow):
         worker.moveToThread(self.sdr_thread)
 
         # Time plot
-        time_plot = pg.PlotWidget(labels={'left': 'Amplitude', 'bottom': 'Time [microseconds]'}, enableMenu=False)
+        time_plot = pg.PlotWidget(labels={'left': 'Amplitude', 'bottom': 'Time [microseconds]'})
         time_plot.setMouseEnabled(x=False, y=True)
         time_plot.setYRange(-1.1, 1.1)
         time_plot_curve_i = time_plot.plot([]) 
@@ -106,7 +109,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(auto_range_button, 1, 1)
 
         # Freq plot
-        freq_plot = pg.PlotWidget(labels={'left': 'PSD', 'bottom': 'Frequency [MHz]'}, enableMenu=False)
+        freq_plot = pg.PlotWidget(labels={'left': 'PSD', 'bottom': 'Frequency [MHz]'})
         freq_plot.setMouseEnabled(x=False, y=True)
         freq_plot_curve = freq_plot.plot([]) 
         freq_plot.setXRange(center_freq/1e6 - sample_rate/2e6, center_freq/1e6 + sample_rate/2e6)
@@ -123,7 +126,7 @@ class MainWindow(QMainWindow):
         layout.addLayout(waterfall_layout, 3, 0)
 
         # Waterfall plot
-        waterfall = pg.PlotWidget(labels={'left': 'Time [s]', 'bottom': 'Frequency [MHz]'}, enableMenu=False)
+        waterfall = pg.PlotWidget(labels={'left': 'Time [s]', 'bottom': 'Frequency [MHz]'})
         imageitem = pg.ImageItem(axisOrder='col-major') # this arg is purely for performance
         imageitem.setColorMap(pg.colormap.get('viridis', source='matplotlib'))
         imageitem.setLevels((-60, -40))

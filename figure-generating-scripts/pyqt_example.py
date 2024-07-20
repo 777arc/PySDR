@@ -4,7 +4,7 @@ import pyqtgraph as pg # tested with pyqtgraph==0.13.7
 import numpy as np
 import time
 import adi
-import signal
+import signal # lets control-C actually close the app
 
 # Defaults
 fft_size = 4096 # determines buffer size

@@ -1,5 +1,5 @@
 from PyQt6.QtCore import QSize, Qt, QThread, pyqtSignal, QObject, QTimer
-from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QSlider, QLabel, QHBoxLayout, QPushButton, QComboBox  # tested with PyQt6==6.7.0
+from PyQt6.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QSlider, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox  # tested with PyQt6==6.7.0
 import pyqtgraph as pg # tested with pyqtgraph==0.13.7
 import numpy as np
 import time
@@ -103,10 +103,15 @@ class MainWindow(QMainWindow):
         time_plot_curve_q = time_plot.plot([]) 
         layout.addWidget(time_plot, 1, 0)
 
-        # Time plot auto range button
+        # Time plot auto range buttons
+        time_plot_auto_range_layout = QVBoxLayout()
+        layout.addLayout(time_plot_auto_range_layout, 1, 1)
         auto_range_button = QPushButton('Auto Range')
         auto_range_button.clicked.connect(lambda : time_plot.autoRange()) # lambda just means its an unnamed function
-        layout.addWidget(auto_range_button, 1, 1)
+        time_plot_auto_range_layout.addWidget(auto_range_button)
+        auto_range_button2 = QPushButton('-1 to +1')
+        auto_range_button2.clicked.connect(lambda : time_plot.setYRange(-1.1, 1.1))
+        time_plot_auto_range_layout.addWidget(auto_range_button2)
 
         # Freq plot
         freq_plot = pg.PlotWidget(labels={'left': 'PSD', 'bottom': 'Frequency [MHz]'})
@@ -128,25 +133,22 @@ class MainWindow(QMainWindow):
         # Waterfall plot
         waterfall = pg.PlotWidget(labels={'left': 'Time [s]', 'bottom': 'Frequency [MHz]'})
         imageitem = pg.ImageItem(axisOrder='col-major') # this arg is purely for performance
-        imageitem.setColorMap(pg.colormap.get('viridis', source='matplotlib'))
         imageitem.setLevels((-60, -40))
         waterfall.addItem(imageitem)
         waterfall.setMouseEnabled(x=False, y=False)
         waterfall_layout.addWidget(waterfall)
 
         # Colorbar for waterfall
-        colorbar = pg.GraphicsLayoutWidget() # the bar needs a widget to be contained in
-        colorbar.setMaximumWidth(80)
-        bar = pg.ColorBarItem(colorMap=pg.colormap.get('viridis', source='matplotlib'), width=40)
-        bar.setImageItem(imageitem)
-        colorbar.addItem(bar)
+        colorbar = pg.HistogramLUTWidget()
+        colorbar.setImageItem(imageitem) # connects the bar to the waterfall imageitem
+        colorbar.item.gradient.loadPreset('viridis') # set the color map, also sets the imageitem
         waterfall_layout.addWidget(colorbar)
 
         # Waterfall auto range button
         auto_range_button = QPushButton('Auto Range')
         def update_colormap():
-            imageitem.setLevels((self.spectrogram_min + 5, self.spectrogram_max - 5))
-            bar.setLevels((self.spectrogram_min + 5, self.spectrogram_max - 5))
+            imageitem.setLevels((self.spectrogram_min, self.spectrogram_max))
+            colorbar.setLevels((self.spectrogram_min, self.spectrogram_max))
         auto_range_button.clicked.connect(update_colormap)
         layout.addWidget(auto_range_button, 3, 1)
 
@@ -209,9 +211,11 @@ class MainWindow(QMainWindow):
             freq_plot.setXRange(freq_slider.value()*1e3/1e6 - sample_rate/2e6, freq_slider.value()*1e3/1e6 + sample_rate/2e6)
         
         def waterfall_plot_callback(spectrogram):
-            imageitem.setImage(spectrogram, autoLevels=False) 
-            self.spectrogram_min = np.min(spectrogram) # save the min and max in window state
-            self.spectrogram_max = np.max(spectrogram)
+            imageitem.setImage(spectrogram, autoLevels=False)
+            sigma = np.std(spectrogram)
+            mean = np.mean(spectrogram) 
+            self.spectrogram_min = mean - 2*sigma # save to window state
+            self.spectrogram_max = mean + 2*sigma
 
         def end_of_run_callback():
             QTimer.singleShot(0, worker.run) # Run worker again immediately

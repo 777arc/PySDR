@@ -4,7 +4,7 @@
 数字调制
 ###################
 
-在本章中，我们将讨论如何使用数字调制（Digital Modulation）和无线符号（Wireless Symbols）去 *实际传输数据* ！
+在本章中，我们将学习使用数字调制（Digital Modulation）和无线符号（Wireless Symbols）去 *实际传输数据* ！
 我们将使用 ASK、PSK、QAM、FSK 等调制方案去设计一些能传达 “信息” 的无线信号，例如 1 和 0。
 我们还将讨论 IQ 图和星座图（Constellation），并以一个 Python 示例收尾本章。
 

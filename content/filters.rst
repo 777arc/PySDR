@@ -560,6 +560,20 @@ We can see that the bandpass portion is 3 dB lower than the lowpass portion:
 
 As an aside, there is one more obscure option for applying the filter to a signal, called :code:`scipy.signal.filtfilt`, that performs "zero-phase filtering", which helps preserve features in a filtered time waveform exactly where they occur in the unfiltered signal.  It does this by applying the filter taps twice, first in the forward direction and then in reverse.  So the frequency response is going to be a squared version of what you would normally get.  For more information see https://www.mathworks.com/help/signal/ref/filtfilt.html or https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html.
 
+Stateful Filtering
+##################
+
+If you are creating a realtime application and need to call the filtering function on subsequent blocks of samples, you will benefit from your filter being stateful, meaning you provide each call initial conditions that are pulled from the output of the previous call to the filter.  This gets rid of transients that occur when a signal starts and stops (after all, the samples you are feeding in during subsequent blocks are contiguous, assuming your application is able to keep up).  The state must be saved in between calls, and it also must be initialized at the very start of your code for the sake of the first filter call.  Luckily, SciPy includes :code:`lfilter_zi` which construct initial conditions for lfilter.  Below shows an example of processing blocks of contiguous samples using stateful filtering:
+
+.. code-block:: python
+
+    b = taps
+    a = 1 # for FIR, but non-1 for IIR
+    zi = lfilter_zi(b, a) # calc initial conditions
+    while True:
+        samples = sdr.read_samples(num_samples) # Replace with your SDR's receive samples function
+        samples_filtered, zi = lfilter(b, a, samples, zi=zi) # apply filter
+
 3rd Party Tools
 #######################
 

@@ -8,9 +8,9 @@ import signal # lets control-C actually close the app
 # Defaults
 fft_size = 4096 # determines buffer size
 num_rows = 200
-center_freq = 2400e6
-sample_rates = [56, 40, 20, 10, 5, 2, 1] # MHz
-sample_rate = sample_rates[2] * 1e6
+center_freq = 14.2e6
+sample_rates = [56, 40, 20, 10, 5, 2, 1, 0.5] # MHz
+sample_rate = sample_rates[7] * 1e6
 time_plot_samples = 500
 gain = 50 # 0 to 73 dB. int
 
@@ -28,7 +28,8 @@ if sdr_type == "pluto":
     sdr.rx_hardwaregain_chan0 = gain # dB
 elif sdr_type == "usrp":
     import uhd
-    usrp = uhd.usrp.MultiUSRP(args="addr=192.168.1.10")
+    #usrp = uhd.usrp.MultiUSRP(args="addr=192.168.1.10")
+    usrp = uhd.usrp.MultiUSRP(args="addr=192.168.1.201")
     usrp.set_rx_rate(sample_rate, 0)
     usrp.set_rx_freq(uhd.libpyuhd.types.tune_request(center_freq), 0)
     usrp.set_rx_gain(gain, 0)
@@ -192,7 +193,7 @@ class MainWindow(QMainWindow):
         auto_range_button = QPushButton('Auto Range\n(-2σ to +2σ)')
         def update_colormap():
             imageitem.setLevels((self.spectrogram_min, self.spectrogram_max))
-            colorbar.setLevels((self.spectrogram_min, self.spectrogram_max))
+            colorbar.setLevels(self.spectrogram_min, self.spectrogram_max)
         auto_range_button.clicked.connect(update_colormap)
         layout.addWidget(auto_range_button, 3, 1)
 

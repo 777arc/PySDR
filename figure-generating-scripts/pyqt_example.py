@@ -14,8 +14,10 @@ sample_rate = sample_rates[2] * 1e6
 time_plot_samples = 500
 gain = 50 # 0 to 73 dB. int
 
+sdr_type = "sim" # or "usrp" or "pluto"
+
 # Init SDR
-if False:
+if sdr_type == "pluto":
     import adi
     sdr = adi.Pluto("ip:192.168.1.10")
     sdr.rx_lo = int(center_freq)
@@ -24,7 +26,7 @@ if False:
     sdr.rx_buffer_size = int(fft_size)
     sdr.gain_control_mode_chan0 = 'manual'
     sdr.rx_hardwaregain_chan0 = gain # dB
-else:
+elif sdr_type == "usrp":
     import uhd
     usrp = uhd.usrp.MultiUSRP(args="addr=192.168.1.10")
     usrp.set_rx_rate(sample_rate, 0)
@@ -48,49 +50,64 @@ else:
             streamer.recv(recv_buffer, metadata)
 
 class SDRWorker(QObject):
+    def __init__(self):
+        super().__init__()
+        self.gain = gain
+        self.sample_rate = sample_rate
+        self.freq = 0 # in kHz, to deal with QSlider being ints and with a max of 2 billion
+        self.spectrogram = -50*np.ones((fft_size, num_rows))
+        self.PSD_avg = -50*np.ones(fft_size)
+
     # PyQt Signals
     time_plot_update = pyqtSignal(np.ndarray)
     freq_plot_update = pyqtSignal(np.ndarray)
     waterfall_plot_update = pyqtSignal(np.ndarray)
     end_of_run = pyqtSignal() # happens many times a second
 
-    # State
-    freq = 0 # in kHz, to deal with QSlider being ints and with a max of 2 billion
-    spectrogram = -50*np.ones((fft_size, num_rows))
-    PSD_avg = -50*np.ones(fft_size)
-    
     # PyQt Slots
     def update_freq(self, val): # TODO: WE COULD JUST MODIFY THE SDR IN THE GUI THREAD
         print("Updated freq to:", val, 'kHz')
-        #sdr.rx_lo = int(val*1e3)
-        usrp.set_rx_freq(uhd.libpyuhd.types.tune_request(val*1e3), 0)
-        #flush_buffer()
+        if sdr_type == "pluto":
+            sdr.rx_lo = int(val*1e3)
+        elif sdr_type == "usrp":
+            usrp.set_rx_freq(uhd.libpyuhd.types.tune_request(val*1e3), 0)
+            flush_buffer()
     
     def update_gain(self, val):
         print("Updated gain to:", val, 'dB')
-        #sdr.rx_hardwaregain_chan0 = val
-        usrp.set_rx_gain(val, 0)
-        flush_buffer()
+        self.gain = val
+        if sdr_type == "pluto":
+            sdr.rx_hardwaregain_chan0 = val
+        elif sdr_type == "usrp":
+            usrp.set_rx_gain(val, 0)
+            flush_buffer()
 
     def update_sample_rate(self, val):
         print("Updated sample rate to:", sample_rates[val], 'MHz')
-        #sdr.sample_rate = int(sample_rates[val] * 1e6)
-        #sdr.rx_rf_bandwidth = int(sample_rates[val] * 1e6 * 0.8)
-        usrp.set_rx_rate(sample_rates[val] * 1e6, 0)
-        flush_buffer()
+        if sdr_type == "pluto":
+            sdr.sample_rate = int(sample_rates[val] * 1e6)
+            sdr.rx_rf_bandwidth = int(sample_rates[val] * 1e6 * 0.8)
+        elif sdr_type == "usrp":
+            usrp.set_rx_rate(sample_rates[val] * 1e6, 0)
+            flush_buffer()
 
     # Main loop
     def run(self):
         start_t = time.time()
                 
-        #samples = sdr.rx() # Receive samples
-        streamer.recv(recv_buffer, metadata)
-        samples = recv_buffer[0] # will be np.complex64
+        if sdr_type == "pluto":
+            samples = sdr.rx()/2**11 # Receive samples
+        elif sdr_type == "usrp":
+            streamer.recv(recv_buffer, metadata)
+            samples = recv_buffer[0] # will be np.complex64
+        elif sdr_type == "sim":
+            tone = np.exp(2j*np.pi*self.sample_rate*0.1*np.arange(fft_size)/self.sample_rate)
+            noise = np.random.randn(fft_size) + 1j*np.random.randn(fft_size)
+            samples = self.gain*tone*0.02 + 0.1*noise
+            samples = np.clip(samples, -1, 1)
 
-        #self.time_plot_update.emit(samples[0:time_plot_samples]/2**11) # make it go from -1 to 1 at highest gain
         self.time_plot_update.emit(samples[0:time_plot_samples])
         
-        #PSD = 10.0*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2/(fft_size*sample_rate))
         PSD = 10.0*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2/fft_size)
         self.PSD_avg = self.PSD_avg * 0.99 + PSD * 0.01
         self.freq_plot_update.emit(self.PSD_avg)
@@ -145,7 +162,7 @@ class MainWindow(QMainWindow):
         freq_plot.setMouseEnabled(x=False, y=True)
         freq_plot_curve = freq_plot.plot([]) 
         freq_plot.setXRange(center_freq/1e6 - sample_rate/2e6, center_freq/1e6 + sample_rate/2e6)
-        freq_plot.setYRange(-60, -20)
+        freq_plot.setYRange(-30, 20)
         layout.addWidget(freq_plot, 2, 0)
         
         # Freq auto range button
@@ -168,7 +185,7 @@ class MainWindow(QMainWindow):
         colorbar = pg.HistogramLUTWidget()
         colorbar.setImageItem(imageitem) # connects the bar to the waterfall imageitem
         colorbar.item.gradient.loadPreset('viridis') # set the color map, also sets the imageitem
-        imageitem.setLevels((-60, -20)) # needs to come after colorbar is created for some reason
+        imageitem.setLevels((-30, 20)) # needs to come after colorbar is created for some reason
         waterfall_layout.addWidget(colorbar)
 
         # Waterfall auto range button
@@ -234,9 +251,9 @@ class MainWindow(QMainWindow):
         
         def freq_plot_callback(PSD_avg):
             # TODO figure out if there's a way to just change the visual ticks instead of the actual x vals
-            f = np.linspace(freq_slider.value()*1e3 - sample_rate/2.0, freq_slider.value()*1e3 + sample_rate/2.0, fft_size) / 1e6
+            f = np.linspace(freq_slider.value()*1e3 - worker.sample_rate/2.0, freq_slider.value()*1e3 + worker.sample_rate/2.0, fft_size) / 1e6
             freq_plot_curve.setData(f, PSD_avg)
-            freq_plot.setXRange(freq_slider.value()*1e3/1e6 - sample_rate/2e6, freq_slider.value()*1e3/1e6 + sample_rate/2e6)
+            freq_plot.setXRange(freq_slider.value()*1e3/1e6 - worker.sample_rate/2e6, freq_slider.value()*1e3/1e6 + worker.sample_rate/2e6)
         
         def waterfall_plot_callback(spectrogram):
             imageitem.setImage(spectrogram, autoLevels=False)
@@ -263,5 +280,6 @@ window.show() # Windows are hidden by default
 signal.signal(signal.SIGINT, signal.SIG_DFL) # this lets control-C actually close the app
 app.exec() # Start the event loop
 
-stream_cmd = uhd.types.StreamCMD(uhd.types.StreamMode.stop_cont)
-streamer.issue_stream_cmd(stream_cmd)
+if sdr_type == "usrp":
+    stream_cmd = uhd.types.StreamCMD(uhd.types.StreamMode.stop_cont)
+    streamer.issue_stream_cmd(stream_cmd)

@@ -9,8 +9,7 @@ import pyqtgraph as pg # tested with pyqtgraph==0.13.7
 
 n_data = 1024
 
-
-if False:
+if True:
     class MplCanvas(FigureCanvas):
         def __init__(self):
             fig = Figure(figsize=(13, 8), dpi=100)

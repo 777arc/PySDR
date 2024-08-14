@@ -28,4 +28,5 @@ by :ref:`Dr. Marc Lichtman<author-chapter>`
    content/doa
    content/phaser
    content/cyclostationary
+   content/pyqt
    content/about_author

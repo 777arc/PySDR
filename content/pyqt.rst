@@ -354,3 +354,102 @@ If you have never used a lambda function before, this might seem foreign, and yo
 PyQtGraph's PlotWidget
 ***********************
 
+PyQtGraph's :code:`PlotWidget` is a PyQt widget used to produce 1D plots, similar to matplotlib's plt.plot(x,y).  We will be using it for the time and frequency (PSD) domain plots, although it is also good for IQ plots (which our spectrum analyzer does not contain).  For those curious, PlotWidget is a subclass of PyQt's `QGraphicsView <https://doc.qt.io/qtforpython-5/PySide2/QtWidgets/QGraphicsView.html>`_ which is a widget for displaying the contents of a `QGraphicsScene <https://doc.qt.io/qtforpython-5/PySide2/QtWidgets/QGraphicsScene.html#PySide2.QtWidgets.PySide2.QtWidgets.QGraphicsScene>`_, which is a surface for managing a large number of 2D graphical items in Qt.  But the important thing to know about PlotWidget is that it is simply a widget containing a single `PlotItem <https://pyqtgraph.readthedocs.io/en/latest/api_reference/graphicsItems/plotitem.html#pyqtgraph.PlotItem>`_, so from a documentation perspective you're better off just refering to the PlotItem docs: `<https://pyqtgraph.readthedocs.io/en/latest/api_reference/graphicsItems/plotitem.html>`_.  A PlotItem contains a ViewBox for displaying the data we want to plot, as well as AxisItems and labels for displaying the axes and title, as you may expect.
+
+The simplest example of using a PlotWidget is as follows (which must be added inside of the :code:`MainWindow`'s :code:`__init__`):
+
+.. code-block:: python
+
+ import pyqtgraph as pg
+ plotWidget = pg.plot(title="My Title")
+ plotWidget.plot(x, y)
+
+where x and y are typically numpy arrays just like with matplotlib's plt.plot().  However, this represents a static plot where the data never changes.  For our spectrum analyzer we want to update the data inside of our worker thread, so when we initialize our plot we don't even need to pass it any data yet, we just have to set it up.  Here is how we initialize the Time Domain plot in our spectrum analyzer app:
+
+.. code-block:: python
+
+    # Time plot
+    time_plot = pg.PlotWidget(labels={'left': 'Amplitude', 'bottom': 'Time [microseconds]'})
+    time_plot.setMouseEnabled(x=False, y=True)
+    time_plot.setYRange(-1.1, 1.1)
+    time_plot_curve_i = time_plot.plot([]) 
+    time_plot_curve_q = time_plot.plot([]) 
+    layout.addWidget(time_plot, 1, 0)
+
+You can see we are creating two different plots/curves, one for I and one for Q.  The rest of the code should be self-explanatory.  To be able to update the plot, we need to create a slot (i.e., callback function) within the :code:`MainWindow`'s :code:`__init__`:
+
+.. code-block:: python
+
+    def time_plot_callback(samples):
+        time_plot_curve_i.setData(samples.real)
+        time_plot_curve_q.setData(samples.imag)
+
+We will connect this slot to the worker thread's signal that is emitted when new samples are available, as shown later.  
+
+The final thing we will do in the :code:`MainWindow`'s :code:`__init__` is to add a couple buttons to the right of the plot that will trigger an autorange of the plot.  One will use the current min/max, and another will set the range to -1.1 to 1.1 (which is the ADC limits of many SDRs, plus a 10% margin).  We will create an inner layout, specifically QVBoxLayout, to vertically stack these two buttons.  Here is the code to add the buttons:
+
+.. code-block:: python
+
+    # Time plot auto range buttons
+    time_plot_auto_range_layout = QVBoxLayout()
+    layout.addLayout(time_plot_auto_range_layout, 1, 1)
+    auto_range_button = QPushButton('Auto Range')
+    auto_range_button.clicked.connect(lambda : time_plot.autoRange()) # lambda just means its an unnamed function
+    time_plot_auto_range_layout.addWidget(auto_range_button)
+    auto_range_button2 = QPushButton('-1 to +1\n(ADC limits)')
+    auto_range_button2.clicked.connect(lambda : time_plot.setYRange(-1.1, 1.1))
+    time_plot_auto_range_layout.addWidget(auto_range_button2)
+
+And what it ultimately looks like:
+
+.. image:: ../_images/pyqt_time_plot.png
+   :scale: 100 % 
+   :align: center
+   :alt: PyQtGraph Time Plot
+
+We will use a similar pattern for the frequency domain (PSD) plot.
+
+*********************
+PyQtGraph's ImageItem
+*********************
+
+A spectrum analyzer is not complete without a waterfall (a.k.a. realtime spectrogram), and for that we will use PyQtGraph's ImageItem, which renders images with 1, 3 or 4 "channels".  One channel just means you give it a 2D array of floats or ints, which then uses a lookup table (LUT) to apply a colormap and ultimately create the image.  Alternatively, you can give it RGB (3 channels) or RGBA (4 channels).  We will calculate our spectrogram as a 2D numpy array of floats, and pass it to the ImageItem directly.  We will pick a colormap, and even make use of the built-in functionality for showing a graphical LUT that can display our data's value distribution and how the colormap is applied.
+
+The actual initalization of the waterfall plot is fairly straightforward, we use a PlotWidget as the container (so that we can still have our x and y axis displayed) and then add an ImageItem to it:
+
+.. code-block:: python
+
+    # Waterfall plot
+    waterfall = pg.PlotWidget(labels={'left': 'Time [s]', 'bottom': 'Frequency [MHz]'})
+    imageitem = pg.ImageItem(axisOrder='col-major') # this arg is purely for performance
+    waterfall.addItem(imageitem)
+    waterfall.setMouseEnabled(x=False, y=False)
+    waterfall_layout.addWidget(waterfall)
+
+The slot/callback associated with updating the waterfall data, which goes in :code:`MainWindow`'s :code:`__init__`, is as follows:
+
+.. code-block:: python
+
+    def waterfall_plot_callback(spectrogram):
+        imageitem.setImage(spectrogram, autoLevels=False)
+        sigma = np.std(spectrogram)
+        mean = np.mean(spectrogram) 
+        self.spectrogram_min = mean - 2*sigma # save to window state
+        self.spectrogram_max = mean + 2*sigma
+
+Where spectrogram will be a 2D numpy array of floats.  In addition to setting the image data, we will calculate a min and max for the colormap, based on the mean and variance of the data, which we will use later.  The last part of the GUI code for the spectrogram is creating the colorbar, which also sets the colormap used:
+
+.. code-block:: python
+
+    # Colorbar for waterfall
+    colorbar = pg.HistogramLUTWidget()
+    colorbar.setImageItem(imageitem) # connects the bar to the waterfall imageitem
+    colorbar.item.gradient.loadPreset('viridis') # set the color map, also sets the imageitem
+    imageitem.setLevels((-30, 20)) # needs to come after colorbar is created for some reason
+    waterfall_layout.addWidget(colorbar)
+
+The second line is important, it is what ultimately connects this colorbar to the ImageItem.  This code is also where we choose the colormap, and set the starting levels (-30 dB to +20 dB in our case).  Within the worker thread code you will see how the spectrogram 2D array is calculated/stored.
+
+***********************
+Worker Thread
+***********************

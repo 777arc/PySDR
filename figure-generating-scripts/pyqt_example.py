@@ -105,7 +105,9 @@ class SDRWorker(QObject):
             tone = np.exp(2j*np.pi*self.sample_rate*0.1*np.arange(fft_size)/self.sample_rate)
             noise = np.random.randn(fft_size) + 1j*np.random.randn(fft_size)
             samples = self.gain*tone*0.02 + 0.1*noise
-            samples = np.clip(samples, -1, 1)
+            # Truncate to -1 to +1 to simulate ADC bit limits
+            np.clip(samples.real, -1, 1, out=samples.real)
+            np.clip(samples.imag, -1, 1, out=samples.imag)
 
         self.time_plot_update.emit(samples[0:time_plot_samples])
         

@@ -322,3 +322,35 @@ For our spectrum analyzer application we will be using QComboBox to select the s
 
 The only real difference between this and the slider is the :code:`addItems()` where you give it the list of strings to use as options, and :code:`setCurrentIndex()` which sets the starting value.
 
+****************
+Lambda Functions
+****************
+
+Recall in the above code where we did:
+
+.. code-block:: python
+
+    def update_sample_rate_label(val):
+        sample_rate_label.setText("Sample Rate: " + str(sample_rates[val]) + " MHz")
+    sample_rate_combobox.currentIndexChanged.connect(update_sample_rate_label)
+
+We are creating a function that has only a single line of code inside of it, then passing that function (functions are objects too!) to :code:`connect()`.  To simplify things, let's rewrite this code pattern using basic Python:
+
+.. code-block:: python
+
+    def my_function(x):
+        print(x)
+    y.call_that_takes_in_function_obj(my_function)
+
+In this situation, we have a function that only has one line of code inside of it, and we only reference that function once; when we are setting the :code:`connect` callback.  In these situations we can use a lambda function, which is a way to define a function in a single line.  Here is the above code rewritten using a lambda function:
+
+.. code-block:: python
+
+    y.call_that_takes_in_function_obj(lambda x: print(x))
+
+If you have never used a lambda function before, this might seem foreign, and you certainly don't need to use them, but it gets rid of two lines of code and makes the code more concise.  The way it works is, the temporary argument name comes from after "lambda", and then everything after the colon is the code that will operate on that variable.  It supports multiple arguments as well, using commas, or even no arguments by using :code:`lambda : <code>`.  As an exercise, try rewriting the :code:`update_sample_rate_label` function above using a lambda function.
+
+***********************
+PyQtGraph's PlotWidget
+***********************
+

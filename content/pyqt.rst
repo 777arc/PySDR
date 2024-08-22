@@ -266,11 +266,59 @@ For our spectrum analyzer we will use the :code:`QGridLayout` for the overall la
 QPushButton
 ************
 
+The first actual widget we will cover is the QPushButton, which is a simple button that can be clicked.  We have already seen how to create a QPushButton and connect its :code:`clicked` signal to a callback function.  The QPushButton has a few other signals, including :code:`pressed`, :code:`released`, and :code:`toggled`.  The :code:`toggled` signal is emitted when the button is checked or unchecked, and is useful for creating toggle buttons.  The QPushButton also has a few properties, including :code:`text`, :code:`icon`, and :code:`checkable`.  The QPushButton also has a method called :code:`click()` which simulates a click on the button.  For our SDR spectrum analyzer application we will be using buttons to trigger an autorange for plots, using the current data to calculate the y limits.  Because we have already used the QPushButton, we won't go into more detail here, but you can find more information in the `QPushButton documentation <https://doc.qt.io/qtforpython/PySide6/QtWidgets/QPushButton.html>`_.
+
 ************
 QSlider
 ************
 
+The QSlider is a widget that allows the user to select a value from a range of values.  The QSlider has a few properties, including :code:`minimum`, :code:`maximum`, :code:`value`, and :code:`orientation`.  The QSlider also has a few signals, including :code:`valueChanged`, :code:`sliderPressed`, and :code:`sliderReleased`.  The QSlider also has a method called :code:`setValue()` which sets the value of the slider, we will be using this a lot.  The documentation page for `QSlider is here <https://doc.qt.io/qtforpython/PySide6/QtWidgets/QSlider.html>`_.
+
+For our spectrum analyzer application we will be using QSliders to adjust the center frequency and gain of the SDR.  Here is the snippet from the final application code that creates the gain slider:
+
+.. code-block:: python
+
+    # Gain slider with label
+    gain_slider = QSlider(Qt.Orientation.Horizontal)
+    gain_slider.setRange(0, 73) # min and max, inclusive. interval is always 1
+    gain_slider.setValue(50) # initial value
+    gain_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+    gain_slider.setTickInterval(2) # for visual purposes only
+    gain_slider.sliderMoved.connect(worker.update_gain)
+    gain_label = QLabel()
+    def update_gain_label(val):
+        gain_label.setText("Gain: " + str(val))
+    gain_slider.sliderMoved.connect(update_gain_label)
+    update_gain_label(gain_slider.value()) # initialize the label
+    layout.addWidget(gain_slider, 5, 0)
+    layout.addWidget(gain_label, 5, 1)
+
+One very important thing to know about QSlider is it uses integers, so by setting the range from 0 to 73 we are allowing the slider to choose integer values between those numbers (inclusive of start and end).  The :code:`setTickInterval(2)` is purely a visual thing.  It is for this reason that we will use kHz as the units for the frequency slider, so that we can have granularity down to the 1 kHz.
+
+Halfway into the code above you'll notice we create a :code:`QLabel`, which is just a text label for display purposes, but in order for it to display the current value of the slider we must create a slot (i.e., callback function) that updates the label.  We connect this callback function to the :code:`sliderMoved` signal, which is automatically emitted whenever the slider is moved.  We also call the callback function once to initialize the label with the current value of the slider (50 in our case).  We also have to connect the :code:`sliderMoved` signal to a slot that lives within the worker thread, which will update the gain of the SDR (remember, we don't like to manage the SDR or do DSP in the main GUI thread). The callback function that defines this slot will be discussed later.
+
 ************
 QComboBox
 ************
+
+The QComboBox is a dropdown-style widget that allows the user to select an item from a list of items.  The QComboBox has a few properties, including :code:`currentText`, :code:`currentIndex`, and :code:`count`.  The QComboBox also has a few signals, including :code:`currentTextChanged`, :code:`currentIndexChanged`, and :code:`activated`.  The QComboBox also has a method called :code:`addItem()` which adds an item to the list, and :code:`insertItem()` which inserts an item at a specific index, although we will not be using them in our spectrum analyzer example.  The documentation page for `QComboBox is here <https://doc.qt.io/qtforpython/PySide6/QtWidgets/QComboBox.html>`_.
+
+For our spectrum analyzer application we will be using QComboBox to select the sample rate from a list we predefine.  At the beginning of our code we define the possible sample rates using :code:`sample_rates = [56, 40, 20, 10, 5, 2, 1, 0.5]`.  Within the :code:`MainWindow`'s :code:`__init__` we create the QComboBox as follows:
+
+.. code-block:: python
+
+    # Sample rate dropdown using QComboBox
+    sample_rate_combobox = QComboBox()
+    sample_rate_combobox.addItems([str(x) + ' MHz' for x in sample_rates])
+    sample_rate_combobox.setCurrentIndex(0) # must give it the index, not string
+    sample_rate_combobox.currentIndexChanged.connect(worker.update_sample_rate)
+    sample_rate_label = QLabel()
+    def update_sample_rate_label(val):
+        sample_rate_label.setText("Sample Rate: " + str(sample_rates[val]) + " MHz")
+    sample_rate_combobox.currentIndexChanged.connect(update_sample_rate_label)
+    update_sample_rate_label(sample_rate_combobox.currentIndex()) # initialize the label
+    layout.addWidget(sample_rate_combobox, 6, 0)
+    layout.addWidget(sample_rate_label, 6, 1)
+
+The only real difference between this and the slider is the :code:`addItems()` where you give it the list of strings to use as options, and :code:`setCurrentIndex()` which sets the starting value.
 

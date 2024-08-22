@@ -220,7 +220,47 @@ You can see how it's relatively straightforward to set up a plot, and the result
 Layouts
 *******
 
-In the above examples, we used :code:`self.setCentralWidget()` to set the main widget of the window.  This is a simple way to set the main widget, but it doesn't allow for more complex layouts.  For more complex layouts, we can use layouts, which are a way to arrange widgets in a window.  There are several types of layouts, including :code:`QHBoxLayout`, :code:`QVBoxLayout`, :code:`QGridLayout`, and :code:`QFormLayout`.  The :code:`QHBoxLayout` and :code:`QVBoxLayout` arrange widgets horizontally and vertically, respectively.  The :code:`QGridLayout` arranges widgets in a grid, and the :code:`QFormLayout` arranges widgets in a two-column layout, with labels in the first column and input widgets in the second column.  For our spectrum analyzer we will use the :code:`QGridLayout` for the overall layout, but we will also be adding :code:`QHBoxLayout` to stack widgets horizontally within a space in the grid.
+In the above examples, we used :code:`self.setCentralWidget()` to set the main widget of the window.  This is a simple way to set the main widget, but it doesn't allow for more complex layouts.  For more complex layouts, we can use layouts, which are a way to arrange widgets in a window.  There are several types of layouts, including :code:`QHBoxLayout`, :code:`QVBoxLayout`, :code:`QGridLayout`, and :code:`QFormLayout`.  The :code:`QHBoxLayout` and :code:`QVBoxLayout` arrange widgets horizontally and vertically, respectively.  The :code:`QGridLayout` arranges widgets in a grid, and the :code:`QFormLayout` arranges widgets in a two-column layout, with labels in the first column and input widgets in the second column.
+
+To create a new layout and add widgets to it, try adding the following inside your :code:`MainWindow`'s :code:`__init__`:
+
+.. code-block:: python
+
+    layout = QHBoxLayout()
+    layout.addWidget(QPushButton("Left-Most"))
+    layout.addWidget(QPushButton("Center"), 1)
+    layout.addWidget(QPushButton("Right-Most"), 2)
+    self.setLayout(layout)
+
+In this example we are stacking the widgets horizontally, but by swapping :code:`QHBoxLayout` for :code:`QVBoxLayout` we can stack them vertically instead.  The :code:`addWidget` function is used to add widgets to the layout, and the optional second argument is a stretch factor that determines how much space the widget should take up relative to the other widgets in the layout.  
+
+:code:`QGridLayout` has extra parameters because you must specify the row and column of the widget, and you can optionally specify how many rows and columns the widget should span (default is 1 and 1).  Here is an example of a :code:`QGridLayout`:
+
+.. code-block:: python
+
+    layout = QGridLayout()
+    layout.addWidget(QPushButton("Button at (0, 0)"), 0, 0)
+    layout.addWidget(QPushButton("Button at (0, 1)"), 0, 1)
+    layout.addWidget(QPushButton("Button at (0, 2)"), 0, 2)
+    layout.addWidget(QPushButton("Button at (1, 0)"), 1, 0)
+    layout.addWidget(QPushButton("Button at (1, 1)"), 1, 1)
+    layout.addWidget(QPushButton("Button at (1, 2)"), 1, 2)
+    layout.addWidget(QPushButton("Button at (2, 0) spanning 2 columns"), 2, 0, 1, 2)
+    self.setLayout(layout)
+
+.. image:: ../_images/qt_layouts.svg
+   :align: center 
+   :target: ../_images/qt_layouts.svg
+   :alt: Qt Layouts showing examples of QHBoxLayout, QVBoxLayout, and QGridLayout
+
+For our spectrum analyzer we will use the :code:`QGridLayout` for the overall layout, but we will also be adding :code:`QHBoxLayout` to stack widgets horizontally within a space in the grid.  You can nest layouts simply by create a new layout and adding it to the top-level (or parent) layout, e.g.:
+
+.. code-block:: python
+
+    layout = QGridLayout()
+    self.setLayout(layout)
+    inner_layout = QHBoxLayout()
+    layout.addLayout(inner_layout)
 
 ************
 QPushButton

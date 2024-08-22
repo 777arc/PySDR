@@ -8,9 +8,9 @@ import signal # lets control-C actually close the app
 # Defaults
 fft_size = 4096 # determines buffer size
 num_rows = 200
-center_freq = 14.2e6
+center_freq = 750e6
 sample_rates = [56, 40, 20, 10, 5, 2, 1, 0.5] # MHz
-sample_rate = sample_rates[7] * 1e6
+sample_rate = sample_rates[0] * 1e6
 time_plot_samples = 500
 gain = 50 # 0 to 73 dB. int
 
@@ -233,7 +233,7 @@ class MainWindow(QMainWindow):
         # Sample rate dropdown using QComboBox
         sample_rate_combobox = QComboBox()
         sample_rate_combobox.addItems([str(x) + ' MHz' for x in sample_rates])
-        sample_rate_combobox.setCurrentIndex(2) # should match the default at the top
+        sample_rate_combobox.setCurrentIndex(0) # should match the default at the top
         sample_rate_combobox.currentIndexChanged.connect(worker.update_sample_rate)
         sample_rate_label = QLabel()
         def update_sample_rate_label(val):

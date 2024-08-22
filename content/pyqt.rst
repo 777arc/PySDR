@@ -419,7 +419,7 @@ The final thing we will do in the :code:`MainWindow`'s :code:`__init__` is to ad
 And what it ultimately looks like:
 
 .. image:: ../_images/pyqt_time_plot.png
-   :scale: 100 % 
+   :scale: 50 % 
    :align: center
    :alt: PyQtGraph Time Plot
 
@@ -467,7 +467,7 @@ Where spectrogram will be a 2D numpy array of floats.  In addition to setting th
 The second line is important, it is what ultimately connects this colorbar to the ImageItem.  This code is also where we choose the colormap, and set the starting levels (-30 dB to +20 dB in our case).  Within the worker thread code you will see how the spectrogram 2D array is calculated/stored.  Below is a screenshot of this part of the GUI, showing the incredible built-in functionality of the colorbar and LUT display, note that the sideways bell-shaped curve is the distribution of spectrogram values, which is very useful to see.
 
 .. image:: ../_images/pyqt_spectrogram.png
-   :scale: 100 % 
+   :scale: 50 % 
    :align: center
    :alt: PyQtGraph Spectrogram and colorbar
 

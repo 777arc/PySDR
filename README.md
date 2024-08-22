@@ -16,10 +16,9 @@ For testing changes to the textbook locally, you can build using the following s
 
 ### Ubuntu/Debian
 
+Look at `.github/workflows/build-and-deploy.yml` and run the apt/pip installs, then:
+
 ```bash
-sudo apt update
-sudo apt install -y texlive-latex-extra pdf2svg
-pip install -r requirements.txt
 make html
 make html-fr
 make html-nl

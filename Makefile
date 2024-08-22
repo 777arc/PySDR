@@ -59,6 +59,7 @@ spelling:
 .PHONY: html
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
+	$(SPHINXBUILD) -b spelling . _spelling
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 	@echo replacing title of index page
@@ -68,7 +69,6 @@ html:
 	@echo changing search button text
 	sed -i 's/value="Go"/value="Search"/g' $(BUILDDIR)/*/*.html
 
-#make sure you install sphinxcontrib-tikz python module and pdf2svg application
 .PHONY: html-es
 html-es:
 	$(SPHINXBUILD) -b html -D project="PySDR: Guia de uso para SDR/DSP con Python"        -D exclude_patterns=_build,index.rst,content/*,index-nl.rst,content-nl/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/* -D master_doc=index-es $(EXTENSIONS) . $(BUILDDIR)/es/

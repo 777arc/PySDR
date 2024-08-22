@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@v4.1.7
 
       - name: apt installs
-        run: sudo apt update && sudo apt install -y texlive-latex-extra pdf2svg
+        run: sudo apt update && sudo apt install -y texlive-latex-extra texlive-lang-cyrillic ghostscript
 
       - uses: actions/setup-python@v5.1.0
         with:

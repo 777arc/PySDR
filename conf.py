@@ -329,30 +329,17 @@ html_show_sourcelink = False
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'textbookdoc'
 
-# -- Options for LaTeX output ---------------------------------------------
-tikz_latex_preamble = r'\usepackage{circuitikz}'
+# -- Options for LaTeX output, russian is needed for the ukrainian version to work
+tikz_latex_preamble = r'''
+\usepackage{circuitikz}
+\usepackage[russian]{babel}
+'''
 #imgmath_latex_preamble = r'\usepackage{siunitx}'
 
 
-latex_elements = {
-#    'extrapackages': r'\usepackage{siunitx}',
-#    'passoptionstopackages': r'\PassOptionsToPackage{svgnames}{xcolor}',
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+latex_elements = {}
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
-
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
-
-# Latex figure (float) alignment
-#'figure_align': 'htbp',
-}
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
+# Grouping the document tree into LaTeX files. List of tuples (source start file, target name, title, author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'textbook.tex', u'textbook Documentation',
      u'Marc Lichtman', 'manual'),
@@ -421,3 +408,6 @@ rst_prolog = """
 .. default-role::
 
 """
+
+# Normally tikz uses pdf2svg but this was needed to get ukraining characters to work
+tikz_proc_suite = 'GhostScript'

@@ -10,11 +10,27 @@ In this chapter we learn how to create real-time graphical user interfaces (GUIs
 Introduction
 ****************
 
-Qt (pronounced "cute") is a framework for creating GUI applications that can run on Linux, Windows, macOS, and even Android.  It is a very powerful framework that is used in many commercial applications, and is written in C++ for maximum performance.  PyQt is the Python bindings for Qt, providing a way to create GUI applications in Python, while harnessing the performance of an efficient C++ based framework.  In this chapter we will learn how to use PyQt to create a real-time spectrum analyzer that can be used with an SDR (or with a simulated signal).  The spectrum analyzer will have time, frequency, and spectrogram/waterfall graphics, as well as input widgets for adjusting the various SDR parameters.  We use `PyQtGraph <https://www.pyqtgraph.org/>`_, which is a separate library built on top of PyQt, to perform plotting.  On the input side, we use sliders, combo-box, and push-buttons.  The example supports the PlutoSDR, USRP, or simulation-only mode.  Even though the example code uses PyQt6, every single line is identical to PyQt5 (besides the :code:`import`), very little changed between the two versions from an API perspective.  By the end of this chapter you will have gained familiarity with the building blocks used to create your own custom interactive SDR application!
+Qt (pronounced "cute") is a framework for creating GUI applications that can run on Linux, Windows, macOS, and even Android.  It is a very powerful framework that is used in many commercial applications, and is written in C++ for maximum performance.  PyQt is the Python bindings for Qt, providing a way to create GUI applications in Python, while harnessing the performance of an efficient C++ based framework.  In this chapter we will learn how to use PyQt to create a real-time spectrum analyzer that can be used with an SDR (or with a simulated signal).  The spectrum analyzer will have time, frequency, and spectrogram/waterfall graphics, as well as input widgets for adjusting the various SDR parameters.  We use `PyQtGraph <https://www.pyqtgraph.org/>`_, which is a separate library built on top of PyQt, to perform plotting.  On the input side, we use sliders, combo-box, and push-buttons.  The example supports the PlutoSDR, USRP, or simulation-only mode.  Even though the example code uses PyQt6, every single line is identical to PyQt5 (besides the :code:`import`), very little changed between the two versions from an API perspective.  Naturally, this chapter is extremely Python code heavy, as we explain through examples.  By the end of this chapter you will have gained familiarity with the building blocks used to create your own custom interactive SDR application!
 
 ****************
 Qt Overview
 ****************
+
+Qt is a very large framework, and we will only be scratching the surface of what it can do.  However, there are a few key concepts that are important to understand when working with Qt/PyQt:
+
+- **Widgets**: Widgets are the building blocks of a Qt application, and are used to create the GUI.  There are many different types of widgets, including buttons, sliders, labels, and plots.  Widgets can be arranged in layouts, which determine how they are positioned on the screen.
+
+- **Layouts**: Layouts are used to arrange widgets in a window.  There are several types of layouts, including horizontal, vertical, grid, and form layouts.  Layouts are used to create complex GUIs that are responsive to changes in window size.
+
+- **Signals and Slots**: Signals and slots are a way to communicate between different parts of a Qt application.  A signal is emitted by an object when a particular event occurs, and is connected to a slot, which is a callback function that is called when the signal is emitted.  Signals and slots are used to create an event-driven structure in a Qt application, and keep the GUI responsive.
+
+- **Stylesheets**: Stylesheets are used to customize the appearance of widgets in a Qt application.  Stylesheets are written in a CSS-like language, and can be used to change the color, font, and size of widgets.
+
+- **Graphics**: Qt has a powerful graphics framework that can be used to create custom graphics in a Qt application.  The graphics framework includes classes for drawing lines, rectangles, ellipses, and text, as well as classes for handling mouse and keyboard events.
+
+- **Multithreading**: Qt has built-in support for multithreading, and provides classes for creating worker threads that run in the background.  Multithreading is used to run long-running operations in a Qt application without blocking the main GUI thread.
+
+- **OpenGL**: Qt has built-in support for OpenGL, and provides classes for creating 3D graphics in a Qt application.  OpenGL is used to create applications that require high-performance 3D graphics.  In this chapter we will only be focusing on 2D applications.
 
 *************************
 Basic Application Layout

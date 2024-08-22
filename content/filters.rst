@@ -394,7 +394,7 @@ In this above expression, :math:`g(t)` is the signal or input that is flipped an
 Filter Implementation
 *************************
 
-We aren't going to dive too deeply into the implementation of filters. Rather, I focus on filter design (you can find ready-to-use implementations in any programming language anyway).  For now, here is one take-away:  to filter a signal with an FIR filter, you simply convolve the impulse response (the array of taps) with the input signal.  (Don't worry, a later section explains convolution.) In the discrete world we use a discrete convolution (example below).  The triangles labeled as b's are the taps.  In the flowchart, the squares labeled :math:`z^{-1}` above the triangles signify to delay by one time step.
+We aren't going to dive too deeply into the implementation of filters. Rather, I focus on filter design (you can find ready-to-use implementations in any programming language anyway).  For now, here is one take-away:  to filter a signal with an FIR filter, you simply convolve the impulse response (the array of taps) with the input signal. In the discrete world we use a discrete convolution (example below).  The triangles labeled as b's are the taps.  In the flowchart, the squares labeled :math:`z^{-1}` above the triangles signify to delay by one time step.
 
 .. image:: ../_images/discrete_convolution.png
    :scale: 80 % 
@@ -635,7 +635,7 @@ It's not symmetrical around 0 Hz.
 
    </details>
 
-Our end goal is to find the taps of this filter so we can actually use it.  How do we get the taps, given the frequency response?  Well, how do we convert from the frequency domain back to the time domain?  Inverse FFT (IFFT)!  Recall that the IFFT function is almost exactly the same as the FFT function.  We also need to IFFTshift our desired frequency response before the IFFT, and then we need yet another IFFshift after the IFFT (no, they don't cancel themselves out, you can try).  This process might seem confusing. Just remember that you always should FFTshift after an FFT and IFFshift after an IFFT.
+Our end goal is to find the taps of this filter so we can actually use it.  How do we get the taps, given the frequency response?  Well, how do we convert from the frequency domain back to the time domain?  Inverse FFT (IFFT)!  Recall that the IFFT function is almost exactly the same as the FFT function.  We also need to IFFTshift our desired frequency response before the IFFT, and then we need yet another IFFTshift after the IFFT (no, they don't cancel themselves out, you can try).  This process might seem confusing. Just remember that you always should FFTshift after an FFT and IFFTshift after an IFFT.
 
 .. code-block:: python
 

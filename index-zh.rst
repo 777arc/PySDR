@@ -14,6 +14,7 @@ PySDR：使用 Python 玩转 SDR 和 DSP
    content-zh/digital_modulation
    content-zh/usrp
    content-zh/noise
+   content-zh/filters
    content-zh/link_budgets
    content-zh/iq_files
    content-zh/multipath_fading

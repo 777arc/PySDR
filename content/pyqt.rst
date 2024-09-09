@@ -1,4 +1,4 @@
-.. _freq-domain-chapter:
+.. _pyqt-chapter:
 
 ##########################
 Real-Time GUIs with PyQt

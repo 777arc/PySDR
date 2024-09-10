@@ -225,7 +225,7 @@ Y aunque todavía no hemos entrado en el diseño del filtro, aquí está el cód
     sample_rate = 32000 # Hz
 
     # create our low pass filter
-    h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2)
+    h = signal.firwin(num_taps, cut_off, fs=sample_rate)
 
     # plot the impulse response
     plt.plot(h, '.-')

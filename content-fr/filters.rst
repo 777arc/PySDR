@@ -162,7 +162,7 @@ Et même si nous n'avons pas encore abordé la conception des filtres, voici le 
     sample_rate = 32000 # Hz
 
     # créer notre filtre passe-bas
-    h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2)
+    h = signal.firwin(num_taps, cut_off, fs=sample_rate)
 
     # tracer la réponse impulsionnelle
     plt.plot(h, '.-')

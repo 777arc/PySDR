@@ -21,8 +21,6 @@ jobs:
 
       - name: Build English
         run: make html
-        env:
-          CREATOR_ID: ${{ secrets.CREATOR_ID }}
 
       - name: Check for spelling errors
         id: check_files

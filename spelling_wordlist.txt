@@ -275,7 +275,12 @@ Tarik
 Benaddi
 λ
 π
+PyQt
 IIO
 bashrc
 Plutos
 lfilter
+dropdown
+multithreading
+DSP
+Lichtman

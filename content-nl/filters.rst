@@ -221,7 +221,7 @@ Ook al hebben we nog niets geleerd over filterontwerp, hieronder kun je de code 
     sample_rate = 32000 # Hz
 
     # laag-doorlaatfilter
-    h = signal.firwin(num_taps, cut_off, nyq=sample_rate/2)
+    h = signal.firwin(num_taps, cut_off, fs=sample_rate)
 
     # impulsrespons weergeven
     plt.plot(h, '.-')

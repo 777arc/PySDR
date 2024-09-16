@@ -134,7 +134,7 @@ SigMF y Anotación de archivos IQ
 
 Dado que el archivo IQ en sí no tiene ningún metadato asociado, es común tener un segundo archivo que contenga información sobre la señal, con el mismo nombre de archivo pero con .txt u otra extensión de archivo. Esto debe incluir, como mínimo, la frecuencia de muestreo utilizada para recopilar la señal y la frecuencia a la que se sintonizó el SDR. Después de analizar la señal, el archivo de metadatos podría incluir información sobre rangos de muestra de características interesantes, como ráfagas de energía. El índice de muestra es simplemente un número entero que comienza en 0 e incrementa cada muestra compleja. Si supiera que hay energía desde la muestra 492342 a la 528492, entonces podría leer el archivo y extraer esa parte de la matriz: :code:`samples[492342:528493]`.
 
-Afortunadamente, ahora existe un estándar abierto que especifica un formato de metadatos utilizado para describir grabaciones de señales, conocido como `SigMF <https://github.com/gnuradio/SigMF>`_.  Al utilizar un estándar abierto como SigMF, varias partes pueden compartir grabaciones de RF más fácilmente y utilizar diferentes herramientas para operar en los mismos conjuntos de datos, como `IQEngine <https://iqengine.org/sigmf>`_.  También evita el "bitrot" de conjuntos de datos de RF donde los detalles de la captura se pierden con el tiempo debido a que los detalles de la grabación no se ubican con la grabación misma.
+Afortunadamente, ahora existe un estándar abierto que especifica un formato de metadatos utilizado para describir grabaciones de señales, conocido como `SigMF <https://github.com/sigmf/SigMF>`_.  Al utilizar un estándar abierto como SigMF, varias partes pueden compartir grabaciones de RF más fácilmente y utilizar diferentes herramientas para operar en los mismos conjuntos de datos, como `IQEngine <https://iqengine.org/sigmf>`_.  También evita el "bitrot" de conjuntos de datos de RF donde los detalles de la captura se pierden con el tiempo debido a que los detalles de la grabación no se ubican con la grabación misma.
 
 La forma más sencilla (y mínima) de utilizar el estándar SigMF para describir un archivo IQ binario que haya creado es cambiar el nombre del archivo .iq a .sigmf-data y crear un nuevo archivo con el mismo nombre pero con la extensión .sigmf-meta. y asegúrese de que el campo de tipo de datos en el metaarchivo coincida con el formato binario de su archivo de datos. Este metaarchivo es un archivo de texto sin formato lleno de json, por lo que simplemente puede abrirlo con un editor de texto y completarlo manualmente (más adelante discutiremos cómo hacerlo mediante programación). A continuación se muestra un archivo .sigmf-meta de ejemplo que puede utilizar como plantilla:
 
@@ -165,10 +165,7 @@ Si está capturando su grabación de RF desde Python, por ejemplo, utilizando la
 
 .. code-block:: bash
 
- cd ~
- git clone https://github.com/gnuradio/SigMF.git
- cd SigMF
- sudo pip install .
+ pip install sigmf
 
 El código Python para escribir el archivo .sigmf-meta para el ejemplo del comienzo de este capítulo, donde guardamos bpsk_in_noise.iq, se muestra a continuación:
 
@@ -224,7 +221,7 @@ Para leer una grabación SigMF en Python, utilice el siguiente código. En este 
  sample_count = signal.sample_count
  signal_duration = sample_count / sample_rate
 
-Para más detalles consulte `the SigMF documentation <https://github.com/gnuradio/SigMF>`_.
+Para más detalles consulte `the SigMF Python documentation <https://github.com/sigmf/sigmf-python>`_.
 
 Una pequeña ventaja para quienes hayan leído hasta aquí; El logotipo de SigMF en realidad se almacena como una grabación de SigMF y cuando la señal se traza como una constelación (gráfico IQ) a lo largo del tiempo, produce la siguiente animación:
 
@@ -233,7 +230,7 @@ Una pequeña ventaja para quienes hayan leído hasta aquí; El logotipo de SigMF
    :align: center
    :alt: The SigMF logo animation
 
-El código Python utilizado para leer el archivo del logotipo (ubicado `aqui <https://github.com/gnuradio/SigMF/tree/master/logo>`_) y produzca el gif animado que se muestra a continuación, para aquellos curiosos:
+El código Python utilizado para leer el archivo del logotipo (ubicado `aqui <https://github.com/sigmf/SigMF/tree/main/logo>`_) y produzca el gif animado que se muestra a continuación, para aquellos curiosos:
 
 .. code-block:: python
 

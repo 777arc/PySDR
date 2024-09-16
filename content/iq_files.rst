@@ -163,7 +163,7 @@ SigMF and Annotating IQ Files
 
 Since the IQ file itself doesn't have any metadata associated with it, it's common to have a 2nd file, containing information about the signal, with the same filename but a .txt or other file extension.  This should at a minimum include the sample rate used to collect the signal, and the frequency to which the SDR was tuned.  After analyzing the signal, the metadata file could include information about sample ranges of interesting features, such as bursts of energy.  The sample index is simply an integer that starts at 0 and increments every complex sample.  If you knew that there was energy from sample 492342 to 528492, then you could read in the file and pull out that portion of the array: :code:`samples[492342:528493]`.
 
-Luckily, there is now an open standard that specifies a metadata format used to describe signal recordings, known as `SigMF <https://github.com/gnuradio/SigMF>`_.  By using an open standard like SigMF, multiple parties can share RF recordings more easily, and use different tools to operate on the same datasets, such as `IQEngine <https://iqengine.org/sigmf>`_.  It also prevents "bitrot" of RF datasets where details of the capture are lost over time due to details of the recording not being collocated with the recording itself.  
+Luckily, there is now an open standard that specifies a metadata format used to describe signal recordings, known as `SigMF <https://github.com/sigmf/SigMF>`_.  By using an open standard like SigMF, multiple parties can share RF recordings more easily, and use different tools to operate on the same datasets, such as `IQEngine <https://iqengine.org/sigmf>`_.  It also prevents "bitrot" of RF datasets where details of the capture are lost over time due to details of the recording not being collocated with the recording itself.  
 
 The most simple (and minimal) way to use the SigMF standard to describe a binary IQ file you have created is to rename the .iq file to .sigmf-data and create a new file with the same name but .sigmf-meta extension, and make sure the datatype field in the meta file matches the binary format of your data file.  This meta file is a plaintext file filled with json, so you can simply open it with a text editor and fill it out manually (later we will discuss doing this programmatically).  Here is an example .sigmf-meta file you can use as a template:
 
@@ -194,10 +194,7 @@ If you are capturing your RF recording from within Python, e.g., using the Pytho
 
 .. code-block:: bash
 
- cd ~
- git clone https://github.com/gnuradio/SigMF.git
- cd SigMF
- sudo pip install .
+ pip install sigmf
 
 The Python code to write the .sigmf-meta file for the example towards the beginning of this chapter, where we saved :code:`qpsk_in_noise.iq`, is shown below:
 
@@ -253,7 +250,7 @@ To read in a SigMF recording into Python, use the following code.  In this examp
  sample_count = signal.sample_count
  signal_duration = sample_count / sample_rate
 
-For more details reference `the SigMF documentation <https://github.com/gnuradio/SigMF>`_.
+For more details reference `the SigMF Python documentation <https://github.com/sigmf/sigmf-python>`_.
 
 A little bonus for those who read this far; the SigMF logo is actually stored as a SigMF recording itself, and when the signal is plotted as a constellation (IQ plot) over time, it produces the following animation:
 
@@ -262,7 +259,7 @@ A little bonus for those who read this far; the SigMF logo is actually stored as
    :align: center
    :alt: The SigMF logo animation
 
-The Python code used to read in the logo file (located `here <https://github.com/gnuradio/SigMF/tree/master/logo>`_) and produce the animated GIF above is shown below, for those curious:
+The Python code used to read in the logo file (located `here <https://github.com/sigmf/SigMF/tree/main/logo>`_) and produce the animated GIF above is shown below, for those curious:
 
 .. code-block:: python
 

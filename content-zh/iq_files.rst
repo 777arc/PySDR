@@ -195,7 +195,7 @@ SigMF 与 IQ 文件标注
 索引是一个从 0 递增的整数，唯一对应到一个位置上递增的采样点（即一个复数）。
 比如，假设你知道从第 492342 个样本点到第 528492 个样本点之间有能量，那么你可以读取文件后直接提取对应数组：:code:`samples[492342:528493]`。
 
-幸运的是，目前已经有了针对信号记录的元数据格式的开放标准，称为 `SigMF <https://github.com/gnuradio/SigMF>`_ 。
+幸运的是，目前已经有了针对信号记录的元数据格式的开放标准，称为 `SigMF <https://github.com/sigmf/SigMF>`_ 。
 通过使用 SigMF 这样的开放标准，多方可以更轻松地共享 RF 记录，并使用不同的工具来操作相同的数据集，例如 `IQEngine <https://iqengine.org/sigmf>`_ 。
 它还可以防止 RF 数据集的 “位腐烂（Bitrot）”：随着时间的推移，由于一些细节没有与记录本身放在一起，这些细节就因为遗忘而丢失掉了，只能重新花力气和时间分析。
 
@@ -238,10 +238,7 @@ SigMF 与 IQ 文件标注
 
 .. code-block:: bash
 
- cd ~
- git clone https://github.com/gnuradio/SigMF.git
- cd SigMF
- sudo pip install .
+ pip install sigmf
 
 借助这个包，为本章开头部分的例子（当时，我们把信号保存在了 :code:`qpsk_in_noise.iq` 文件中）编写 :code:`.sigmf-meta` 文件的 Python 代码如下：
 
@@ -298,7 +295,7 @@ SigMF 与 IQ 文件标注
  sample_count = signal.sample_count
  signal_duration = sample_count / sample_rate
 
-更多细节请参考 `SigMF 官方文档 <https://github.com/gnuradio/SigMF>`_.
+更多细节请参考 `SigMF Python 官方文档 <https://github.com/sigmf/sigmf-python>`_.
 
 谢谢你阅读到这，给你一个小彩蛋：SigMF 的 Logo 实际上是以 SigMF 文件存储的，当该信号的星座图（IQ 图）随时间变化时，它将产生以下动画：
 
@@ -307,7 +304,7 @@ SigMF 与 IQ 文件标注
    :align: center
    :alt: The SigMF logo animation
 
-如果你好奇的话，可以自己试试用下面这段 Python 代码读取它们的 `Logo 文件  <https://github.com/gnuradio/SigMF/tree/master/logo>`_ 并生成以上的动画。
+如果你好奇的话，可以自己试试用下面这段 Python 代码读取它们的 `Logo 文件  <https://github.com/sigmf/SigMF/tree/main/logo>`_ 并生成以上的动画。
 
 .. code-block:: python
 

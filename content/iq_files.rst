@@ -200,8 +200,10 @@ The Python code to write the .sigmf-meta file for the example towards the beginn
 
 .. code-block:: python
 
- import numpy as np
  import datetime as dt
+
+ import numpy as np
+ import sigmf
  from sigmf import SigMFFile
  
  # <code from example>
@@ -211,7 +213,7 @@ The Python code to write the .sigmf-meta file for the example towards the beginn
  
  # create the metadata
  meta = SigMFFile(
-     data_file='example.sigmf-data', # extension is optional
+     data_file='qpsk_in_noise.sigmf-data', # extension is optional
      global_info = {
          SigMFFile.DATATYPE_KEY: 'cf32_le',
          SigMFFile.SAMPLE_RATE_KEY: 8000000,
@@ -224,7 +226,7 @@ The Python code to write the .sigmf-meta file for the example towards the beginn
  # create a capture key at time index 0
  meta.add_capture(0, metadata={
      SigMFFile.FREQUENCY_KEY: 915000000,
-     SigMFFile.DATETIME_KEY: dt.datetime.utcnow().isoformat()+'Z',
+     SigMFFile.DATETIME_KEY: dt.datetime.now(dt.timezone.utc).isoformat(),
  })
  
  # check for mistakes and write to disk
@@ -263,9 +265,12 @@ The Python code used to read in the logo file (located `here <https://github.com
 
 .. code-block:: python
 
+ from pathlib import Path
+ from tempfile import TemporaryDirectory
+
  import numpy as np
  import matplotlib.pyplot as plt
- import imageio
+ import imageio.v3 as iio
  from sigmf import SigMFFile, sigmffile
  
  # Load a dataset
@@ -279,26 +284,28 @@ The Python code used to read in the logo file (located `here <https://github.com
  sample_count = len(samples)
  samples_per_frame = 5000
  num_frames = int(sample_count/samples_per_frame)
- filenames = []
- for i in range(num_frames):
-     print("frame", i, "out of", num_frames)
-     # Plot the frame
-     fig, ax = plt.subplots(figsize=(5, 5))
-     samples_frame = samples[i*samples_per_frame:(i+1)*samples_per_frame]
-     ax.plot(np.real(samples_frame), np.imag(samples_frame), color="cyan", marker=".", linestyle="None", markersize=1)
-     ax.axis([-0.35,0.35,-0.35,0.35]) # keep axis constant
-     ax.set_facecolor('black') # background color
-     
-     # Save the plot to a file
-     filename = '/tmp/sigmf_logo_' + str(i) + '.png'
-     fig.savefig(filename, bbox_inches='tight')
-     filenames.append(filename)
- 
- # Create animated gif
- images = []
- for filename in filenames:
-     images.append(imageio.imread(filename))
- imageio.mimsave('/tmp/sigmf_logo.gif', images, fps=20)
+
+ with TemporaryDirectory() as temp_dir:
+    filenames = []
+    output_dir = Path(temp_dir)
+    for i in range(num_frames):
+        print(f"frame {i} out of {num_frames}")
+        # Plot the frame
+        fig, ax = plt.subplots(figsize=(5, 5))
+        samples_frame = samples[i*samples_per_frame:(i+1)*samples_per_frame]
+        ax.plot(np.real(samples_frame), np.imag(samples_frame), color="cyan", marker=".", linestyle="None", markersize=1)
+        ax.axis([-0.35,0.35,-0.35,0.35])  # keep axis constant
+        ax.set_facecolor('black')  # background color
+        
+        # Save the plot to a file
+        filename = output_dir.joinpath(f"sigmf_logo_{i}.png")
+        fig.savefig(filename, bbox_inches='tight')
+        plt.close()
+        filenames.append(filename)
+    
+    # Create animated gif
+    images = [iio.imread(f) for f in filenames]
+    iio.imwrite('sigmf_logo.gif', images, fps=20)
 
 **************************************
 SigMF Collection for Array Recordings

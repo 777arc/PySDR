@@ -244,8 +244,10 @@ SigMF 与 IQ 文件标注
 
 .. code-block:: python
 
- import numpy as np
  import datetime as dt
+
+ import numpy as np
+ import sigmf
  from sigmf import SigMFFile
 
  # <来源于上文示例代码>
@@ -255,12 +257,12 @@ SigMF 与 IQ 文件标注
 
  # 创建元数据
  meta = SigMFFile(
-     data_file='example.sigmf-data', # 这个后缀可以自定义
+     data_file='qpsk_in_noise.sigmf-data', # extension is optional
      global_info = {
          SigMFFile.DATATYPE_KEY: 'cf32_le',
          SigMFFile.SAMPLE_RATE_KEY: 8000000,
          SigMFFile.AUTHOR_KEY: 'Your name and/or email',
-         SigMFFile.DESCRIPTION_KEY: 'Simulation of qpsk with noise',
+         SigMFFile.DESCRIPTION_KEY: 'Simulation of BPSK with noise',
          SigMFFile.VERSION_KEY: sigmf.__version__,
      }
  )
@@ -268,7 +270,7 @@ SigMF 与 IQ 文件标注
  # 在索引 0 号位记录一个标记信息
  meta.add_capture(0, metadata={
      SigMFFile.FREQUENCY_KEY: 915000000,
-     SigMFFile.DATETIME_KEY: dt.datetime.utcnow().isoformat()+'Z',
+     SigMFFile.DATETIME_KEY: dt.datetime.now(dt.timezone.utc).isoformat(),
  })
 
  # 检查错误后保存文件
@@ -308,9 +310,12 @@ SigMF 与 IQ 文件标注
 
 .. code-block:: python
 
+ from pathlib import Path
+ from tempfile import TemporaryDirectory
+
  import numpy as np
  import matplotlib.pyplot as plt
- import imageio
+ import imageio.v3 as iio
  from sigmf import SigMFFile, sigmffile
 
  # 装载数据集
@@ -324,26 +329,28 @@ SigMF 与 IQ 文件标注
  sample_count = len(samples)
  samples_per_frame = 5000
  num_frames = int(sample_count/samples_per_frame)
- filenames = []
- for i in range(num_frames):
-     print("frame", i, "out of", num_frames)
-     # 生成每一帧
-     fig, ax = plt.subplots(figsize=(5, 5))
-     samples_frame = samples[i*samples_per_frame:(i+1)*samples_per_frame]
-     ax.plot(np.real(samples_frame), np.imag(samples_frame), color="cyan", marker=".", linestyle="None", markersize=1)
-     ax.axis([-0.35,0.35,-0.35,0.35]) # 固定坐标轴和坐标点
-     ax.set_facecolor('black') # 背景颜色
 
-     # 将帧保存到文件中
-     filename = '/tmp/sigmf_logo_' + str(i) + '.png'
-     fig.savefig(filename, bbox_inches='tight')
-     filenames.append(filename)
-
- # 创建 gif 图
- images = []
- for filename in filenames:
-     images.append(imageio.imread(filename))
- imageio.mimsave('/tmp/sigmf_logo.gif', images, fps=20
+ with TemporaryDirectory() as temp_dir:
+    filenames = []
+    output_dir = Path(temp_dir)
+    for i in range(num_frames):
+        print(f"frame {i} out of {num_frames}")
+        # 生成每一帧
+        fig, ax = plt.subplots(figsize=(5, 5))
+        samples_frame = samples[i*samples_per_frame:(i+1)*samples_per_frame]
+        ax.plot(np.real(samples_frame), np.imag(samples_frame), color="cyan", marker=".", linestyle="None", markersize=1)
+        ax.axis([-0.35,0.35,-0.35,0.35])  # 固定坐标轴和坐标点
+        ax.set_facecolor('black') # 背景颜色
+        
+        # 将帧保存到文件中
+        filename = output_dir.joinpath(f"sigmf_logo_{i}.png")
+        fig.savefig(filename, bbox_inches='tight')
+        plt.close()
+        filenames.append(filename)
+    
+    # 创建 gif 图
+    images = [iio.imread(f) for f in filenames]
+    iio.imwrite('sigmf_logo.gif', images, fps=20)
 
 **************************************
 面向阵列记录的 SigMF Collection

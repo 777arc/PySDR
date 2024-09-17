@@ -16,6 +16,7 @@ by :ref:`Dr. Marc Lichtman<author-chapter>`
    content/usrp
    content/bladerf
    content/rtlsdr
+   content/hackrf
    content/noise
    content/filters
    content/link_budgets

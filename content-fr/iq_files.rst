@@ -129,7 +129,7 @@ SigMF et l'annotation des fichiers IQ
 
 Comme le fichier IQ lui-même n'est associé à aucune métadonnée, il est courant d'avoir un second fichier contenant des informations sur le signal, portant le même nom de fichier mais une extension .txt ou autre.  Ces informations devraient au minimum inclure la fréquence d'échantillonnage utilisée pour collecter le signal, et la fréquence sur laquelle le SDR était accordé.  Après l'analyse du signal, le fichier de métadonnées peut inclure des informations sur les plages d'échantillonnage des caractéristiques intéressantes, telles que les rafales d'énergie.  L'index d'échantillon est simplement un nombre entier qui commence à 0 et s'incrémente à chaque échantillon complexe.  Si vous savez qu'il y a de l'énergie entre les échantillons 492342 et 528492, vous pouvez lire le fichier et extraire cette partie du tableau : :code:`samples[492342:528493]`.
 
-Heureusement, il existe désormais une norme ouverte qui spécifie un format de métadonnées utilisé pour décrire les enregistrements de signaux, connue sous le nom de `SigMF <https://github.com/gnuradio/SigMF>`_.  En utilisant une norme ouverte comme SigMF, de multiples parties peuvent partager des enregistrements RF plus facilement, et utiliser différents outils pour opérer sur les mêmes ensembles de données.  Cela permet également d'éviter le "bitrot" des ensembles de données RF où les détails de la capture sont perdus au fil du temps en raison de détails de l'enregistrement qui ne sont pas colocalisés avec l'enregistrement lui-même.
+Heureusement, il existe désormais une norme ouverte qui spécifie un format de métadonnées utilisé pour décrire les enregistrements de signaux, connue sous le nom de `SigMF <https://github.com/sigmf/SigMF>`_.  En utilisant une norme ouverte comme SigMF, de multiples parties peuvent partager des enregistrements RF plus facilement, et utiliser différents outils pour opérer sur les mêmes ensembles de données.  Cela permet également d'éviter le "bitrot" des ensembles de données RF où les détails de la capture sont perdus au fil du temps en raison de détails de l'enregistrement qui ne sont pas colocalisés avec l'enregistrement lui-même.
 La façon la plus simple (et minimale) d'utiliser le standard SigMF pour décrire un fichier IQ binaire que vous avez créé est de renommer le fichier .iq en .sigmf-data et de créer un nouveau fichier avec le même nom mais l'extension .sigmf-meta, et de s'assurer que le champ datatype dans le méta-fichier correspond au format binaire de votre fichier de données.  Ce fichier méta est un fichier en texte clair rempli de json, vous pouvez donc simplement l'ouvrir avec un éditeur de texte et le remplir manuellement (nous verrons plus tard comment le faire de manière automatique).  Voici un exemple de fichier .sigmf-meta que vous pouvez utiliser comme modèle :
 
 .. code-block::
@@ -159,17 +159,16 @@ Si vous capturez votre enregistrement RF à partir de Python, par exemple en uti
 
 .. code-block:: bash
 
- cd ~
- git clone https://github.com/gnuradio/SigMF.git
- cd SigMF
- sudo pip install .
+ pip install sigmf
 
 Le code Python permettant d'écrire le fichier .sigmf-meta pour l'exemple du début de ce chapitre, où nous avons enregistré bpsk_in_noise.iq, est présenté ci-dessous :
 
 .. code-block:: python
 
- import numpy as np
  import datetime as dt
+
+ import numpy as np
+ import sigmf
  from sigmf import SigMFFile
  
  # <code pour exemple>
@@ -179,7 +178,7 @@ Le code Python permettant d'écrire le fichier .sigmf-meta pour l'exemple du dé
  
  # crérer les metadata
  meta = SigMFFile(
-     data_file='example.sigmf-data', # extension optionalle
+     data_file='bpsk_in_noise.sigmf-data', # extension optionalle
      global_info = {
          SigMFFile.DATATYPE_KEY: 'cf32_le',
          SigMFFile.SAMPLE_RATE_KEY: 8000000,
@@ -192,7 +191,7 @@ Le code Python permettant d'écrire le fichier .sigmf-meta pour l'exemple du dé
  # créer une clé de capture à l'index temporel 0
  meta.add_capture(0, metadata={
      SigMFFile.FREQUENCY_KEY: 915000000,
-     SigMFFile.DATETIME_KEY: dt.datetime.utcnow().isoformat()+'Z',
+     SigMFFile.DATETIME_KEY: dt.datetime.now(dt.timezone.utc).isoformat(),
  })
  
  # vérifier les erreurs et écrire sur le disque
@@ -218,7 +217,7 @@ Pour lire un enregistrement SigMF dans Python, utilisez le code suivant.  Dans c
  sample_count = signal.sample_count
  signal_duration = sample_count / sample_rate
 
-Pour plus de détails, voir la référence `the SigMF documentation <https://github.com/gnuradio/SigMF>`_.
+Pour plus de détails, voir la référence `the SigMF Python documentation <https://github.com/sigmf/sigmf-python>`_.
 
 Un petit bonus pour ceux qui ont lu jusqu'ici: le logo SigMF est en fait stocké comme un enregistrement SigMF lui-même, et quand le signal est tracé comme une constellation (IQ plot) dans le temps, il produit l'animation suivante :
 
@@ -226,13 +225,16 @@ Un petit bonus pour ceux qui ont lu jusqu'ici: le logo SigMF est en fait stocké
    :scale: 100 %   
    :align: center
 
-Le code Python utilisé pour lire le fichier du logo (situé `ici <https://github.com/gnuradio/SigMF/tree/master/logo>`_) et produire le gif animé ci-dessus est présenté ci-dessous, pour les curieux :
+Le code Python utilisé pour lire le fichier du logo (situé `ici <https://github.com/sigmf/SigMF/tree/main/logo>`_) et produire le gif animé ci-dessus est présenté ci-dessous, pour les curieux :
 
 .. code-block:: python
 
+ from pathlib import Path
+ from tempfile import TemporaryDirectory
+
  import numpy as np
  import matplotlib.pyplot as plt
- import imageio
+ import imageio.v3 as iio
  from sigmf import SigMFFile, sigmffile
  
  # charger les données
@@ -246,26 +248,28 @@ Le code Python utilisé pour lire le fichier du logo (situé `ici <https://githu
  sample_count = len(samples)
  samples_per_frame = 5000
  num_frames = int(sample_count/samples_per_frame)
- filenames = []
- for i in range(num_frames):
-     print("frame", i, "out of", num_frames)
-     # tracer le cadre
-     fig, ax = plt.subplots(figsize=(5, 5))
-     samples_frame = samples[i*samples_per_frame:(i+1)*samples_per_frame]
-     ax.plot(np.real(samples_frame), np.imag(samples_frame), color="cyan", marker=".", linestyle="None", markersize=1)
-     ax.axis([-0.35,0.35,-0.35,0.35]) # garder les axes existants
-     ax.set_facecolor('black') # couleur d'arrière plan
-     
-     # Enregister la figure dans un fichier
-     filename = '/tmp/sigmf_logo_' + str(i) + '.png'
-     fig.savefig(filename, bbox_inches='tight')
-     filenames.append(filename)
- 
- # Créer un gif animé
- images = []
- for filename in filenames:
-     images.append(imageio.imread(filename))
- imageio.mimsave('/tmp/sigmf_logo.gif', images, fps=20)
+
+ with TemporaryDirectory() as temp_dir:
+    filenames = []
+    output_dir = Path(temp_dir)
+    for i in range(num_frames):
+        print(f"frame {i} out of {num_frames}")
+        # tracer le cadre
+        fig, ax = plt.subplots(figsize=(5, 5))
+        samples_frame = samples[i*samples_per_frame:(i+1)*samples_per_frame]
+        ax.plot(np.real(samples_frame), np.imag(samples_frame), color="cyan", marker=".", linestyle="None", markersize=1)
+        ax.axis([-0.35,0.35,-0.35,0.35])  # garder les axes existants
+        ax.set_facecolor('black')  # couleur d'arrière plan
+        
+        # Enregister la figure dans un fichier
+        filename = output_dir.joinpath(f"sigmf_logo_{i}.png")
+        fig.savefig(filename, bbox_inches='tight')
+        plt.close()
+        filenames.append(filename)
+    
+    # Créer un gif animé
+    images = [iio.imread(f) for f in filenames]
+    iio.imwrite('sigmf_logo.gif', images, fps=20)
 
 
 

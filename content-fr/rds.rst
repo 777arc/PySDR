@@ -426,7 +426,7 @@ Notez que vous n'avez **pas** besoin de parcourir tout ce code, ou une partie de
              if block_number == 0 and good_block:
                  group_assembly_started = True
                  group_good_blocks_counter = 1
-                 bytes = bytearray(8) # 8 octets remplis de 0
+                 group = bytearray(8) # 8 octets remplis de 0
              if group_assembly_started:
                  if not good_block:
                      group_assembly_started = False
@@ -434,13 +434,13 @@ Notez que vous n'avez **pas** besoin de parcourir tout ce code, ou une partie de
                      # octets de données brutes, tels que reçus du RDS. 8 octets d'information, suivis de 4 caractères de décalage RDS : ABCD/ABcD/EEEE (aux Etats-Unis) que nous laissons de côté ici.
                      # Mots d'information RDS
                      # le numéro de bloc est soit 0,1,2,3 donc c'est comme ça qu'on remplit les 8 octets
-                     bytes[block_number*2] = (dataword >> 8) & 255
-                     bytes[block_number*2+1] = dataword & 255
+                     group[block_number*2] = (dataword >> 8) & 255
+                     group[block_number*2+1] = dataword & 255
                      group_good_blocks_counter += 1
                      #print('group_good_blocks_counter:', group_good_blocks_counter)
                  if group_good_blocks_counter == 5:
-                     #print(bytes)
-                     bytes_out.append(bytes) # liste de listes d'octets de longueur 8
+                     #print(group)
+                     bytes_out.append(group) # liste de listes d'octets de longueur 8
              block_bit_counter = 0
              block_number = (block_number + 1) % 4
              blocks_counter += 1
@@ -564,11 +564,11 @@ Pour ceux qui veulent apprendre comment ce code fonctionne, je vais fournir quel
  radiotext_AB_flag = 0
  radiotext = [' ']*65
  first_time = True
- for bytes in bytes_out:
-     group_0 = bytes[1] | (bytes[0] << 8)
-     group_1 = bytes[3] | (bytes[2] << 8)
-     group_2 = bytes[5] | (bytes[4] << 8)
-     group_3 = bytes[7] | (bytes[6] << 8)
+ for group in bytes_out:
+     group_0 = group[1] | (group[0] << 8)
+     group_1 = group[3] | (group[2] << 8)
+     group_2 = group[5] | (group[4] << 8)
+     group_3 = group[7] | (group[6] << 8)
       
      group_type = (group_1 >> 12) & 0xf # voici ce que chacun signifie, par exemple RT est radiotexte qui est le seul que nous décodons ici : ["BASIC", "PIN/SL", "RT", "AID", "CT", "TDC", "IH", "RP", "TMC", "EWS", "___", "___", "___", "___", "EON", "___"]
      AB = (group_1 >> 11 ) & 0x1 # b si 1, a si 0
@@ -841,7 +841,7 @@ Vous l'avez fait! Ci-dessous se trouve tout le code ci-dessus, concaténé, il d
              if block_number == 0 and good_block:
                  group_assembly_started = True
                  group_good_blocks_counter = 1
-                 bytes = bytearray(8) # 8 octets remplis de 0
+                 group = bytearray(8) # 8 octets remplis de 0
              if group_assembly_started:
                  if not good_block:
                      group_assembly_started = False
@@ -849,13 +849,13 @@ Vous l'avez fait! Ci-dessous se trouve tout le code ci-dessus, concaténé, il d
                      # octets de données brutes, tels que reçus du RDS. 8 octets d'information, suivis de 4 caractères de décalage RDS : ABCD/ABcD/EEEE (aux Etats-Unis) que nous laissons de côté ici.
                      # Mots d'information RDS
                      # le numéro de bloc est soit 0,1,2,3 donc c'est comme ça qu'on remplit les 8 octets
-                     bytes[block_number*2] = (dataword >> 8) & 255
-                     bytes[block_number*2+1] = dataword & 255
+                     group[block_number*2] = (dataword >> 8) & 255
+                     group[block_number*2+1] = dataword & 255
                      group_good_blocks_counter += 1
                      #print('group_good_blocks_counter:', group_good_blocks_counter)
                  if group_good_blocks_counter == 5:
-                     #print(bytes)
-                     bytes_out.append(bytes) # liste de listes d'octets de longueur 8
+                     #print(group)
+                     bytes_out.append(group) # liste de listes d'octets de longueur 8
              block_bit_counter = 0
              block_number = (block_number + 1) % 4
              blocks_counter += 1
@@ -930,11 +930,11 @@ Vous l'avez fait! Ci-dessous se trouve tout le code ci-dessus, concaténé, il d
  radiotext_AB_flag = 0
  radiotext = [' ']*65
  first_time = True
- for bytes in bytes_out:
-     group_0 = bytes[1] | (bytes[0] << 8)
-     group_1 = bytes[3] | (bytes[2] << 8)
-     group_2 = bytes[5] | (bytes[4] << 8)
-     group_3 = bytes[7] | (bytes[6] << 8)
+ for group in bytes_out:
+     group_0 = group[1] | (group[0] << 8)
+     group_1 = group[3] | (group[2] << 8)
+     group_2 = group[5] | (group[4] << 8)
+     group_3 = group[7] | (group[6] << 8)
       
      group_type = (group_1 >> 12) & 0xf # voici ce que chacun signifie, par exemple RT est radiotexte qui est le seul que nous décodons ici : ["BASIC", "PIN/SL", "RT", "AID", "CT", "TDC", "IH", "RP", "TMC", "EWS", "___", "___", "___", "___", "EON", "___"]
      AB = (group_1 >> 11 ) & 0x1 # b si 1, a si 0

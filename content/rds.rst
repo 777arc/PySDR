@@ -412,7 +412,7 @@ Note, you **do not** need to go through all of this code, or any of it, especial
              if block_number == 0 and good_block:
                  group_assembly_started = True
                  group_good_blocks_counter = 1
-                 bytes = bytearray(8) # 8 bytes filled with 0s
+                 group = bytearray(8) # 8 bytes filled with 0s
              if group_assembly_started:
                  if not good_block:
                      group_assembly_started = False
@@ -420,13 +420,13 @@ Note, you **do not** need to go through all of this code, or any of it, especial
                      # raw data bytes, as received from RDS. 8 info bytes, followed by 4 RDS offset chars: ABCD/ABcD/EEEE (in US) which we leave out here
                      # RDS information words
                      # block_number is either 0,1,2,3 so this is how we fill out the 8 bytes
-                     bytes[block_number*2] = (dataword >> 8) & 255
-                     bytes[block_number*2+1] = dataword & 255
+                     group[block_number*2] = (dataword >> 8) & 255
+                     group[block_number*2+1] = dataword & 255
                      group_good_blocks_counter += 1
                      #print('group_good_blocks_counter:', group_good_blocks_counter)
                  if group_good_blocks_counter == 5:
-                     #print(bytes)
-                     bytes_out.append(bytes) # list of len-8 lists of bytes
+                     #print(group)
+                     bytes_out.append(group) # list of len-8 lists of bytes
              block_bit_counter = 0
              block_number = (block_number + 1) % 4
              blocks_counter += 1
@@ -550,11 +550,11 @@ For those who want to learn how this code works, I'll provide some added informa
  radiotext_AB_flag = 0
  radiotext = [' ']*65
  first_time = True
- for bytes in bytes_out:
-     group_0 = bytes[1] | (bytes[0] << 8)
-     group_1 = bytes[3] | (bytes[2] << 8)
-     group_2 = bytes[5] | (bytes[4] << 8)
-     group_3 = bytes[7] | (bytes[6] << 8)
+ for group in bytes_out:
+     group_0 = group[1] | (group[0] << 8)
+     group_1 = group[3] | (group[2] << 8)
+     group_2 = group[5] | (group[4] << 8)
+     group_3 = group[7] | (group[6] << 8)
       
      group_type = (group_1 >> 12) & 0xf # here is what each one means, e.g. RT is radiotext which is the only one we decode here: ["BASIC", "PIN/SL", "RT", "AID", "CT", "TDC", "IH", "RP", "TMC", "EWS", "___", "___", "___", "___", "EON", "___"]
      AB = (group_1 >> 11 ) & 0x1 # b if 1, a if 0
@@ -826,7 +826,7 @@ You did it!  Below is all of the code above, concatenated, it should work with t
              if block_number == 0 and good_block:
                  group_assembly_started = True
                  group_good_blocks_counter = 1
-                 bytes = bytearray(8) # 8 bytes filled with 0s
+                 group = bytearray(8) # 8 bytes filled with 0s
              if group_assembly_started:
                  if not good_block:
                      group_assembly_started = False
@@ -834,13 +834,13 @@ You did it!  Below is all of the code above, concatenated, it should work with t
                      # raw data bytes, as received from RDS. 8 info bytes, followed by 4 RDS offset chars: ABCD/ABcD/EEEE (in US) which we leave out here
                      # RDS information words
                      # block_number is either 0,1,2,3 so this is how we fill out the 8 bytes
-                     bytes[block_number*2] = (dataword >> 8) & 255
-                     bytes[block_number*2+1] = dataword & 255
+                     group[block_number*2] = (dataword >> 8) & 255
+                     group[block_number*2+1] = dataword & 255
                      group_good_blocks_counter += 1
                      #print('group_good_blocks_counter:', group_good_blocks_counter)
                  if group_good_blocks_counter == 5:
-                     #print(bytes)
-                     bytes_out.append(bytes) # list of len-8 lists of bytes
+                     #print(group)
+                     bytes_out.append(group) # list of len-8 lists of bytes
              block_bit_counter = 0
              block_number = (block_number + 1) % 4
              blocks_counter += 1
@@ -915,11 +915,11 @@ You did it!  Below is all of the code above, concatenated, it should work with t
  radiotext_AB_flag = 0
  radiotext = [' ']*65
  first_time = True
- for bytes in bytes_out:
-     group_0 = bytes[1] | (bytes[0] << 8)
-     group_1 = bytes[3] | (bytes[2] << 8)
-     group_2 = bytes[5] | (bytes[4] << 8)
-     group_3 = bytes[7] | (bytes[6] << 8)
+ for group in bytes_out:
+     group_0 = group[1] | (group[0] << 8)
+     group_1 = group[3] | (group[2] << 8)
+     group_2 = group[5] | (group[4] << 8)
+     group_3 = group[7] | (group[6] << 8)
       
      group_type = (group_1 >> 12) & 0xf # here is what each one means, e.g. RT is radiotext which is the only one we decode here: ["BASIC", "PIN/SL", "RT", "AID", "CT", "TDC", "IH", "RP", "TMC", "EWS", "___", "___", "___", "___", "EON", "___"]
      AB = (group_1 >> 11 ) & 0x1 # b if 1, a if 0

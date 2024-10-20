@@ -284,3 +284,7 @@ dropdown
 multithreading
 DSP
 Lichtman
+hackable
+microcontroller
+VCO
+SoC

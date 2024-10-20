@@ -1,55 +1,126 @@
-from python_hackrf import pyhackrf # type: ignore
-import numpy as np
+from python_hackrf import pyhackrf  # type: ignore
 import matplotlib.pyplot as plt
+import numpy as np
 import time
+
+# Testing the hackrf_transfer output (doesnt involve using hackrf python API)
+if False:
+    center_freq = 100e6
+    sample_rate = 10e6
+    samples = np.fromfile('out.iq', dtype=np.int8)
+    samples = samples[::2] + 1j * samples[1::2]
+    print(len(samples))
+    print(samples[0:10])
+    print(np.max(samples))
+
+    fft_size = 2048
+    num_rows = len(samples) // fft_size
+    spectrogram = np.zeros((num_rows, fft_size))
+    for i in range(num_rows):
+        spectrogram[i, :] = 10 * np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples[i * fft_size:(i+1) * fft_size]))) ** 2)
+    extent = [(center_freq + sample_rate / -2) / 1e6, (center_freq + sample_rate / 2) / 1e6, len(samples) / sample_rate, 0]
+
+    plt.figure(0)
+    plt.imshow(spectrogram, aspect='auto', extent=extent)
+    plt.xlabel("Frequency [MHz]")
+    plt.ylabel("Time [s]")
+
+    plt.figure(1)
+    plt.plot(np.real(samples[0:10000]))
+    plt.plot(np.imag(samples[0:10000]))
+    plt.xlabel("Samples")
+    plt.ylabel("Amplitude")
+    plt.legend(["Real", "Imaginary"])
+
+    plt.show()
+    exit()
+
+# Testing that the python bindings installed
+if False:
+    from python_hackrf import pyhackrf  # type: ignore
+    pyhackrf.pyhackrf_init()
+    sdr = pyhackrf.pyhackrf_open()
+    sdr.pyhackrf_set_sample_rate(10e6)
+    sdr.pyhackrf_set_antenna_enable(False)
+    sdr.pyhackrf_set_freq(100e6)
+    sdr.pyhackrf_set_amp_enable(False)
+    sdr.pyhackrf_set_lna_gain(30) # LNA gain - 0 to 40 dB in 8 dB steps
+    sdr.pyhackrf_set_vga_gain(50) # VGA gain - 0 to 62 dB in 2 dB steps
+    sdr.pyhackrf_close()
+
+
+# These settings should match the hackrf_transfer example used in the textbook, and the resulting waterfall should look about the same
+recording_time = 1  # seconds
+center_freq = 100e6  # Hz
+sample_rate = 10e6
+baseband_filter = 7.5e6
+lna_gain = 30 # 0 to 40 dB in 8 dB steps
+vga_gain = 50 # 0 to 62 dB in 2 dB steps
+
 
 pyhackrf.pyhackrf_init()
 sdr = pyhackrf.pyhackrf_open()
-#print(sdr.pyhackrf_get_clkin_status()) # can be used to check if you are feeding it a 10 MHz clock
-buffer_size = sdr.pyhackrf_get_transfer_buffer_size()
-print("buffer_size:", buffer_size) # this is how many samples you'll get with each call to rx_callback
 
-sdr.pyhackrf_set_sample_rate(1e6)
-sdr.pyhackrf_set_baseband_filter_bandwidth(1e6)
-sdr.pyhackrf_set_antenna_enable(False) # not sure what this does
+allowed_baseband_filter = pyhackrf.pyhackrf_compute_baseband_filter_bw_round_down_lt(baseband_filter) # calculate the supported bandwidth relative to the desired one
+allowed_lna_gain = round(max(0, min(40, lna_gain)) / 8) * 8
+allowed_vga_gain = round(max(0, min(62, vga_gain)) / 2) * 2
 
-sdr.pyhackrf_set_freq(100e6)
-sdr.pyhackrf_set_amp_enable(False)
-sdr.pyhackrf_set_lna_gain(30) # LNA gain- 0 to 40 dB in 8 dB steps
-sdr.pyhackrf_set_vga_gain(30) # bandband gain- 0 to 62 dB in 2 dB steps
+sdr.pyhackrf_set_sample_rate(sample_rate)
+sdr.pyhackrf_set_baseband_filter_bandwidth(allowed_baseband_filter)
+sdr.pyhackrf_set_antenna_enable(False)  # It seems this setting enables or disables power supply to the antenna port. False by default. the firmware auto-disables this after returning to IDLE mode
 
-#sdr.pyhackrf_set_txvga_gain(0)
+sdr.pyhackrf_set_freq(center_freq)
+sdr.pyhackrf_set_amp_enable(False)  # False by default
+sdr.pyhackrf_set_lna_gain(allowed_lna_gain)  # LNA gain - 0 to 40 dB in 8 dB steps
+sdr.pyhackrf_set_vga_gain(allowed_vga_gain)  # VGA gain - 0 to 62 dB in 2 dB steps
 
+print(f'center_freq: {center_freq} sample_rate: {sample_rate} baseband_filter: {allowed_baseband_filter} lna_gain: {allowed_lna_gain} vga_gain: {allowed_vga_gain}')
 
-samples = np.zeros(buffer_size, dtype=np.uint8)
+num_samples = int(recording_time * sample_rate)
+samples = np.zeros(num_samples, dtype=np.complex64)
+last_idx = 0
 
-def rx_callback(buffer, buffer_length, valid_length): # this callback function always needs to have these three args
-    global samples
-    # each call, buffer will be a 1D numpy array filled with np.uint8 (valid_length of them)
-    if True:
-        samples = buffer[0:valid_length] - 127.5
-    else:
-        samples = buffer[0:valid_length].astype(np.complex64)
-        samples -= 127.5
-        samples /= 127.5 # scale to -1 to 1
-        samples = samples[::2] + 1j * samples[1::2]
-    print(len(samples), valid_length//2)
-    print(samples[0:4])
-    print(np.max(samples))
-    print()
-    return 0 # return 0 if it wants to be called again, anything else will stop rx_callback from being called again
+def rx_callback(buffer, buffer_length, valid_length):  # this callback function always needs to have these three args
+    global samples, last_idx
+
+    accepted = valid_length // 2
+    accepted_samples = buffer[:valid_length].astype(np.int8) # -128 to 127
+    accepted_samples = accepted_samples[0::2] + 1j * accepted_samples[1::2]  # Convert to complex type (de-interleave the IQ)
+    accepted_samples /= 128 # -1 to +1
+    samples[last_idx: last_idx + accepted] = accepted_samples
+
+    last_idx += accepted
+
+    return 0
+
+samples = samples[100000:] # get rid of the first 100k samples just to be safe, due to transients
 
 sdr.set_rx_callback(rx_callback)
-
-print(sdr.pyhackrf_is_streaming())
 sdr.pyhackrf_start_rx()
-print(sdr.pyhackrf_is_streaming())
+print('is_streaming', sdr.pyhackrf_is_streaming())
 
-time.sleep(3)
+time.sleep(recording_time)
 
 sdr.pyhackrf_stop_rx()
-
 sdr.pyhackrf_close()
 
-plt.plot(samples.real)
+fft_size = 2048
+num_rows = len(samples) // fft_size
+spectrogram = np.zeros((num_rows, fft_size))
+for i in range(num_rows):
+    spectrogram[i, :] = 10 * np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples[i * fft_size:(i+1) * fft_size]))) ** 2)
+extent = [(center_freq + sample_rate / -2) / 1e6, (center_freq + sample_rate / 2) / 1e6, len(samples) / sample_rate, 0]
+
+plt.figure(0)
+plt.imshow(spectrogram, aspect='auto', extent=extent) # type: ignore
+plt.xlabel("Frequency [MHz]")
+plt.ylabel("Time [s]")
+
+plt.figure(1)
+plt.plot(np.real(samples[0:10000]))
+plt.plot(np.imag(samples[0:10000]))
+plt.xlabel("Samples")
+plt.ylabel("Amplitude")
+plt.legend(["Real", "Imaginary"])
+
 plt.show()

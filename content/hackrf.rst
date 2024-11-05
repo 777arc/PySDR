@@ -64,7 +64,7 @@ After installing :code:`hackrf` you will be able to run the following utilities:
 * :code:`hackrf_spiflash` - A tool to write new firmware to HackRF. See: Updating Firmware.
 * :code:`hackrf_debug` - Read and write registers and other low-level configuration for debugging.
 
-If you are using Ubuntu through WSL, on the Windows side you will need to forward the bladeRF USB device to WSL, first by installing the latest `usbipd utility msi <https://github.com/dorssel/usbipd-win/releases>`_ (this guide assumes you have usbipd-win 4.0.0 or higher), then opening PowerShell in administrator mode and running:
+If you are using Ubuntu through WSL, on the Windows side you will need to forward the HackRF USB device to WSL, first by installing the latest `usbipd utility msi <https://github.com/dorssel/usbipd-win/releases>`_ (this guide assumes you have usbipd-win 4.0.0 or higher), then opening PowerShell in administrator mode and running:
 
 .. code-block:: bash
 

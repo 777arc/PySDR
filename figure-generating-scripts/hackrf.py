@@ -47,6 +47,8 @@ if False:
     sdr.pyhackrf_set_lna_gain(30) # LNA gain - 0 to 40 dB in 8 dB steps
     sdr.pyhackrf_set_vga_gain(50) # VGA gain - 0 to 62 dB in 2 dB steps
     sdr.pyhackrf_close()
+    
+    exit()
 
 
 # These settings should match the hackrf_transfer example used in the textbook, and the resulting waterfall should look about the same
@@ -80,7 +82,7 @@ num_samples = int(recording_time * sample_rate)
 samples = np.zeros(num_samples, dtype=np.complex64)
 last_idx = 0
 
-def rx_callback(buffer, buffer_length, valid_length):  # this callback function always needs to have these three args
+def rx_callback(device, buffer, buffer_length, valid_length):  # this callback function always needs to have these four args
     global samples, last_idx
 
     accepted = valid_length // 2

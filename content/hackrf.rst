@@ -120,7 +120,7 @@ If your max is 127 (which means you saturated the ADC) then lower the two gain v
 Installing the Python API
 #########################
 
-Lastly, we must install the HackRF One `Python bindings <https://github.com/GvozdevLeonid/python_hackrf>`_, maintained by `GvozdevLeonid <https://github.com/GvozdevLeonid>`_.  This was tested to work in Ubuntu 22.04 on 10/19/2024.
+Lastly, we must install the HackRF One `Python bindings <https://github.com/GvozdevLeonid/python_hackrf>`_, maintained by `GvozdevLeonid <https://github.com/GvozdevLeonid>`_.  This was tested to work in Ubuntu 22.04 on 11/04/2024 using the latest main branch.
 
 .. code-block:: bash
 
@@ -220,7 +220,7 @@ After running the code below, if in your time plot, the samples are reaching the
     samples = np.zeros(num_samples, dtype=np.complex64)
     last_idx = 0
 
-    def rx_callback(buffer, buffer_length, valid_length):  # this callback function always needs to have these three args
+    def rx_callback(device, buffer, buffer_length, valid_length):  # this callback function always needs to have these four args
         global samples, last_idx
 
         accepted = valid_length // 2

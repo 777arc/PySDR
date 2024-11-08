@@ -125,13 +125,7 @@ Lastly, we must install the HackRF One `Python bindings <https://github.com/Gvoz
 .. code-block:: bash
 
     sudo apt install libusb-1.0-0-dev
-    cd ~
-    git clone https://github.com/GvozdevLeonid/python_hackrf.git
-    cd python_hackrf
-    export LDFLAGS="-L/usr/lib/x86_64-linux-gnu -L/usr/local/lib"
-    export CFLAGS="-I/usr/include/libusb-1.0 -I/usr/local/include/libhackrf"
-    python setup.py build_ext --inplace
-    pip install -e .
+    pip install python_hackrf==1.2.1
 
 We can test the above install by running the following code, if there are no errors (there will also be no output) then everything should be good to go!
 
@@ -202,8 +196,6 @@ After running the code below, if in your time plot, the samples are reaching the
     sdr = pyhackrf.pyhackrf_open()
 
     allowed_baseband_filter = pyhackrf.pyhackrf_compute_baseband_filter_bw_round_down_lt(baseband_filter) # calculate the supported bandwidth relative to the desired one
-    allowed_lna_gain = round(max(0, min(40, lna_gain)) / 8) * 8
-    allowed_vga_gain = round(max(0, min(62, vga_gain)) / 2) * 2
 
     sdr.pyhackrf_set_sample_rate(sample_rate)
     sdr.pyhackrf_set_baseband_filter_bandwidth(allowed_baseband_filter)
@@ -211,10 +203,10 @@ After running the code below, if in your time plot, the samples are reaching the
 
     sdr.pyhackrf_set_freq(center_freq)
     sdr.pyhackrf_set_amp_enable(False)  # False by default
-    sdr.pyhackrf_set_lna_gain(allowed_lna_gain)  # LNA gain - 0 to 40 dB in 8 dB steps
-    sdr.pyhackrf_set_vga_gain(allowed_vga_gain)  # VGA gain - 0 to 62 dB in 2 dB steps
+    sdr.pyhackrf_set_lna_gain(lna_gain)  # LNA gain - 0 to 40 dB in 8 dB steps
+    sdr.pyhackrf_set_vga_gain(vga_gain)  # VGA gain - 0 to 62 dB in 2 dB steps
 
-    print(f'center_freq: {center_freq} sample_rate: {sample_rate} baseband_filter: {allowed_baseband_filter} lna_gain: {allowed_lna_gain} vga_gain: {allowed_vga_gain}')
+    print(f'center_freq: {center_freq} sample_rate: {sample_rate} baseband_filter: {allowed_baseband_filter}')
 
     num_samples = int(recording_time * sample_rate)
     samples = np.zeros(num_samples, dtype=np.complex64)

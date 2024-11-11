@@ -26,6 +26,7 @@ if creator_id:
         # Manual substitutions to make it look nicer
         full_name = full_name.replace("Jon Kraft, Analog Devices", "Jon Kraft")
         full_name = full_name.replace("vince baker", "Vince Baker")
+        full_name = full_name.replace("meh", "MH")
         if full_name == "Дмитрий Ступаков":
             continue
         if full_name == "Al Grant":

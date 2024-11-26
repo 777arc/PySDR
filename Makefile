@@ -68,6 +68,7 @@ html:
 	sed -i -E "s/<title>[0-9]{1,2}\. /<title>/g" $(BUILDDIR)/content/*
 	@echo changing search button text
 	sed -i 's/value="Go"/value="Search"/g' $(BUILDDIR)/*/*.html
+	@echo file://wsl.localhost/Ubuntu-22.04-New/home/marc/PySDR/_build/index.html
 
 .PHONY: html-es
 html-es:

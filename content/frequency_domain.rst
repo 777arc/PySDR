@@ -315,8 +315,8 @@ First we need to create a signal in the time domain.  Feel free to follow along 
 
 If we plot :code:`s` it looks like:
 
-.. image:: ../_images/fft-python1.png
-   :scale: 70 % 
+.. image:: ../_images/fft-python1.svg
+   :target: ../_images/fft-python1.svg
    :align: center 
 
 Next let's use NumPy's FFT function:
@@ -341,9 +341,9 @@ Hint: regardless of what you’re doing, if you ever run into complex numbers, t
  plt.plot(t,S_mag,'.-')
  plt.plot(t,S_phase,'.-')
 
-.. image:: ../_images/fft-python2.png
-   :scale: 80 % 
-   :align: center 
+.. image:: ../_images/fft-python2.svg
+   :target: ../_images/fft-python2.svg
+   :align: center
 
 Right now we aren't providing any x-axis to the plots, it's just the index of the array (counting up from 0).  Due to mathematical reasons, the output of the FFT has the following format:
 
@@ -387,9 +387,10 @@ We also need to figure out the x-axis values/label.  Recall that we used a sampl
  plt.plot(f, S_phase,'.-')
  plt.show()
 
-.. image:: ../_images/fft-python5.png
-   :scale: 80 % 
-   :align: center 
+.. image:: ../_images/fft-python5.svg
+   :target: ../_images/fft-python5.svg
+   :align: center
+
 
 Note that we see our spike at 0.15 Hz, which is the frequency we used when creating the sine wave. So that means our FFT worked!  If we did not know the code used to generate that sine wave, but we were just given the list of samples, we could use the FFT to determine the frequency. The reason why we see a spike also at -0.15 Hz has to do with the fact it was a real signal, not complex, and we will get deeper into that later. 
 

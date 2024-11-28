@@ -313,7 +313,28 @@ On the frequency sync side there's not much else to do; the LO used in the USRP'
 If it seems like it's not working, but is not throwing any errors, try changing that 3.0 number from anything between 1.0 and 5.0.  You can also check the metadata after the call to recv(), simply check :code:`if metadata.error_code != uhd.types.RXMetadataErrorCode.none:`.  
      
 For debugging sake, you can verify the 10 MHz signal is showing up to the USRP by checking the return of :code:`usrp.get_mboard_sensor("ref_locked", 0)`.  If the PPS signal isn't showing up, you'll know it because the first while loop in the code above will never finish.
-     
-     
-     
-     
+
+****
+GPIO
+****
+
+Most USRPs contain a GPIO header.  On the B200/B210 it is the J504 header, while on the X310 it is on the front.
+
+First, defining some of the terms Ettus uses.  **CTRL** sets whether the pin is controlled by ATR (automatic), or by manual control only (1 for ATR, 0 for manual).  **DDR** (Data Direction Register) defines whether or not a GPIO is an output (0) or an input (1).  **OUT** is used to manually set the value of a pin (only to be used in manual CTRL mode).
+
+Example using GPIO as output for the X310's front "AUX I/O" connector, see `this doc <https://files.ettus.com/manual/page_gpio_api.html>`_ for more info. 
+
+.. code-block:: python
+
+  import uhd
+  import time
+  usrp = uhd.usrp.MultiUSRP()
+  usrp.set_gpio_attr('FP0A', 'CTRL', 0x000, 0xFFF)
+  usrp.set_gpio_attr('FP0A', 'DDR', 0xFFF, 0xFFF)
+  for i in range(10):
+      print("Off")
+      usrp.set_gpio_attr('FP0A', 'OUT', 0x000, 0xFFF)
+      time.sleep(1)
+      print("On")
+      usrp.set_gpio_attr('FP0A', 'OUT', 0xFFF, 0xFFF)
+      time.sleep(1)

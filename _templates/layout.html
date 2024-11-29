@@ -1,5 +1,15 @@
 {%- extends "basic/layout.html" %}
 
+<!-- this block modifies the html titles to use a pipe and edits the title of the root page -->
+{%- set customtitlesuffix = " | "|safe + docstitle|e %}
+{%- block htmltitle %}
+  {% if "no title" in title %}
+    <title>{{ docstitle }}</title>
+  {% else %}
+    <title>{{ title|striptags|e }}{{ customtitlesuffix }}</title>
+  {% endif %}
+{%- endblock %}
+
 {% block extrahead %}
 
 {{ super() }}

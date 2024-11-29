@@ -56,6 +56,10 @@ clean:
 spelling:
 	$(SPHINXBUILD) -b spelling . _spelling
 
+.PHONY: fast-html
+fast-html:
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
+
 .PHONY: html
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
@@ -140,15 +144,6 @@ qthelp:
 	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/textbook.qhcp"
 	@echo "To view the help file:"
 	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/textbook.qhc"
-
-.PHONY: applehelp
-applehelp:
-	$(SPHINXBUILD) -b applehelp $(ALLSPHINXOPTS) $(BUILDDIR)/applehelp
-	@echo
-	@echo "Build finished. The help book is in $(BUILDDIR)/applehelp."
-	@echo "N.B. You won't be able to view it unless you put it in" \
-	      "~/Library/Documentation/Help or install it in your application" \
-	      "bundle."
 
 .PHONY: devhelp
 devhelp:

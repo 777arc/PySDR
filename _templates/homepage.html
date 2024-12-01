@@ -46,4 +46,58 @@
 </h4>
 <br />
 
-DEMO
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-streaming/2.0.0/chartjs-plugin-streaming.js"></script>
+
+<div style="width: 500px; height: 300px">
+    <canvas id="noiseChart"></canvas>
+</div>
+
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', (event) => {
+    const ctx = document.getElementById('noiseChart').getContext('2d');
+    const data = {
+        labels: [],
+        datasets: [{
+            label: 'Noise Level',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            data: [],
+        }]
+    };
+
+    const config = {
+        type: 'line',
+        data: data,
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'realtime',
+                    realtime: {
+                        duration: 20000,
+                        refresh: 1000,
+                        delay: 1000,
+                        onRefresh: function (chart) {
+                            chart.data.labels.push(Date.now());
+                            chart.data.datasets.forEach(function (dataset) {
+                                dataset.data.push(Math.random() * 100);
+                            });
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: 100
+                }
+            }
+        }
+    };
+
+    const noiseChart = new Chart(ctx, config);
+});
+</script>
+
+<br />

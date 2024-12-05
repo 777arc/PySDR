@@ -41,10 +41,12 @@
   <label>[dB] - Noise Amplitude</label>
 </div>
 <div>
-  <canvas width="2048" height="800" id="freq_plot" style="width: 512px; height: 200px; border: 1px solid black"></canvas>
+  <canvas width="2048" height="800" id="freq_plot" style="width: 512px; height: 200px; border: 0px"></canvas>
 </div>
+<br />
+<br />
 <div>
-  <canvas width="2048" height="800" id="time_plot" style="width: 512px; height: 200px; border: 1px solid black"></canvas>
+  <canvas width="2048" height="800" id="time_plot" style="width: 512px; height: 200px; border: 0px"></canvas>
 </div>
 
 <!-- <script>homepage_app()</script> -->
@@ -105,6 +107,7 @@
 
     ctx.setTransform(1, 0, 0, 1, 0, 0); // resets transform
     ctx.fillStyle = "white";
+    ctx.lineWidth = 1;
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.translate(0, 400); // move half of canvas height so y=0 in middle
     ctx.beginPath();
@@ -114,6 +117,30 @@
       ctx.lineTo(i * 2, Math.floor(-7 * signal_fft_mag_shifted_dB[i] + 200)); // -1* to flip y-axis
     }
     ctx.stroke();
+
+    // Freq axis
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // resets transform
+    ctx.beginPath();
+    ctx.strokeStyle = "black";
+    ctx.moveTo(0, ctx.canvas.height - 60);
+    ctx.lineTo(ctx.canvas.width, ctx.canvas.height - 60);
+    ctx.stroke();
+
+    // Freq ticks and labels
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // resets transform
+    ctx.beginPath();
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 3;
+    ctx.font = "36px Arial";
+    ctx.fillStyle = "black";
+    for (let i = 0; i < 11; i++) {
+      ctx.moveTo(ctx.canvas.width / 10 * i, ctx.canvas.height - 80);
+      ctx.lineTo(ctx.canvas.width / 10 * i, ctx.canvas.height - 60);
+      ctx.fillText(Math.round((i - 5)*0.1*100)/100, (ctx.canvas.width / 10 * i - 0)*0.975, ctx.canvas.height - 5);
+    }
+    ctx.fillText("Hz", ctx.canvas.width / 2 + 5, ctx.canvas.height - 5);
+    ctx.stroke();
+
 
     // Plot time
     const canvas_time = document.getElementById("time_plot");

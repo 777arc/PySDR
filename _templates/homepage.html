@@ -59,7 +59,7 @@
 
     // complex AWGN
     let noise_ampl_dB = document.getElementById("noise_ampl_dB").value;
-    document.getElementById("noise_value").innerHTML = noise_ampl_dB;
+    document.getElementById("noise_value").innerHTML = noise_ampl_dB - 30;
     let noise_ampl = Math.pow(10, noise_ampl_dB / 10);
     for (let i = 0; i < N; i++) {
       x[i * 2] = noise_ampl * Math.sqrt(-2.0 * Math.log(Math.random())) * Math.cos(2.0 * Math.PI * Math.random());

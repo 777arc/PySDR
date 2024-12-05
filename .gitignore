@@ -23,6 +23,7 @@ distribute-*
 env/
 build/
 _build/
+OLD_build/
 dist/
 Sphinx.egg-info/
 doc/_build/

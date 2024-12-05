@@ -266,7 +266,8 @@ html_css_files = ['custom.css',]
 html_js_files = [
     'js/beamforming_slider_app.js',
     'js/FFT.js',
-    'js/cyclostationary_app.js'
+    'js/cyclostationary_app.js',
+    'js/homepage_app.js'
 ]
 
 # Add any extra paths that contain custom files (such as robots.txt or

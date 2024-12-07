@@ -4,7 +4,7 @@
 Het Frequentiedomein
 #####################
 
-Dit hoofdstuk introduceert het frequentiedomein en behandelt de Fourierreeks, Fouriertransformatie, Fourier eigenschappen, FFT, vensterfuncties en spectrogrammen, door gebruik te maken van Python voorbeelden.
+Dit hoofdstuk introduceert het frequentiedomein en behandelt de Fourierreeks, Fouriertransformatie, Fouriereigenschappen, FFT, vensterfuncties en spectrogrammen, door gebruik te maken van Python voorbeelden.
 
 Een van de coolste gevolgen van het leren over DSP en draadloze communicatie is dat je ook leert te denken in het frequentiedomein. De ervaring met het werken in het frequentiedomein is voor de meeste mensen gelimiteerd tot het aanpassen van de bas/mid/treble knoppen op het audiosysteem van een auto. De ervaring met het *zien* van het frequentiedomein is voor de meeste mensen  gelimiteerd tot het zien van een audio equalizer, zoals deze clip:
 
@@ -192,7 +192,7 @@ Deze eigenschap is waarschijnlijk het makkelijkst om te begrijpen. Als we twee t
 Dit vertelt ons ook dat als we enig signaal vermenigvuldigen met een factor, het signaal in het frequentiedomein met dezelfde factor zal groeien/krimpen. 
 Het nut van deze eigenschap zal duidelijker worden wanneer we meerdere signalen gaan optellen.
 
-1. Frequentieverschuiving:
+2. Frequentieverschuiving:
 
 .. math::
    e^{2 \pi j f_0 t}x(t) \leftrightarrow X(f-f_0)
@@ -214,7 +214,7 @@ Hier is nog een manier om deze eigenschap te laten zien:
    :align: center
    :alt: Visualization of a frequency shift by multiplying by a sine wave or sinusoid
      
-1. Vermenigvuldigen in de tijd
+3. Vermenigvuldigen in de tijd
 
 .. math::
    x(at) \leftrightarrow X\left(\frac{f}{a}\right)
@@ -235,7 +235,7 @@ Als tijd-frequentie vermenigvuldiging recht evenredig zou zijn in plaats van omg
 Diegenen die met deze eigenschap bekend zijn, valt het misschien op dat er een factor mist; deze is weggelaten voor de eenvoud.
 Praktisch gezien heeft deze factor geen invloed.
 
-1. Convolutie in de tijd
+4. Convolutie in de tijd
 
 .. math::
    \int x(\tau) y(t-\tau) d\tau  \leftrightarrow X(f)Y(f)
@@ -352,12 +352,15 @@ Dit wordt logischer wanneer we meer over samplen leren en ervaring opdoen met on
 **********************************
 Volgorde in de tijd maakt niet uit
 **********************************
-Nog een laatste eigenschap voordat we naar het gebruik van de FFT gaan. 
-De FFT "mixt" soort van het ingangssignaal naar de uitgang, wat een andere schaal en eenheid heeft. 
+Recall that an FFT is performed on many samples at once, i.e., you can't observe the frequency domain of a single instance in time (one sample); it needs a span of time to operate on (many samples).
+Een FFT wordt uitgevoerd op vele samples tegelijk, d.w.z., je kunt het frequentiedomein van een enkele tijdsinstantie (één sample) niet observeren; het heeft tijd nodig om te kunnen werken (vele samples).
+Eigenlijk "mixt" de FFT het ingangssignaal door elkaar om tot een uitgang te komen, wat een andere schaal en eenheid heeft. 
 We zitten namelijk niet langer in het tijddomein. 
-Een goede manier om dit te onthouden is om te beseffen dat de volgorde waarin dingen in het tijddomein gebeuren geen invloed heeft op hoe het frequentiedomein er uit ziet. 
-D.w.z., de FFT van het volgende signaal zal dezelfde twee pieken laten zien, want het signaal bestaat gewoon uit twee sinussen met verschillende frequenties. 
+Een goede manier om de verschillen tussen de domeinen eigen te maken, is om te beseffen dat de volgorde waarin dingen in het tijddomein gebeuren, geen invloed heeft op hoe het frequentiedomein er uit ziet. 
+D.w.z., een **enkele** FFT van de onderstaande signalen zal dezelfde twee pieken laten zien, want het signaal bestaat gewoon uit twee sinussen met verschillende frequenties. 
 Het feit dat er twee frequenties zijn, verandert niet wanneer we de volgorde van de sinussen omdraaien.
+Dit gaat er dan van uit dat beide sinussen binnen de samples vallen die we in de FFT stoppen.
+Als je de FFT-grootte verkleint, en meerdere FFT's uitvoert (zoals bij de spectrogrammen), dan zou je weer onderscheid kunnen maken tussen de twee sinussen.
 
 .. image:: ../_images/fft_signal_order.png
    :scale: 50 % 
@@ -387,7 +390,7 @@ Als we :code:`s` plotten lijkt dit op:
    :scale: 70 % 
    :align: center 
 
-Laten we nu Numpy's FFT-functie gebruiken:
+Laten we nu NumPy's FFT-functie gebruiken:
 
 .. code-block:: python
 
@@ -428,7 +431,7 @@ Het diagram hieronder laat zien wat deze FFT-shift doet:
    :align: center
    :alt: Reference diagram of the FFT shift function, showing positive and negative frequencies and DC
 
-Voor ons gemak heeft Numpy een FFT-shift functie :code:`np.fft.fftshift()`.  Vervang de np.fft.fft() regel met:
+Voor ons gemak heeft NumPy een FFT-shift functie :code:`np.fft.fftshift()`.  Vervang de np.fft.fft() regel met:
 
 .. code-block:: python
 

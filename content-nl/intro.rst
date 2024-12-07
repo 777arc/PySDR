@@ -11,10 +11,12 @@ Doel en doelgroep
 Als eerste een paar belangrijke termen:
 
 **Software-Defined Radio (SDR):**
-    Nederlands: software gedefinieerde radio. Een radio dat software gebruikt om signaalbewerkingen uit te voeren die normaal in hardware worden gedaan.
+    Als *concept* verwijst het naar het gebruik van software om signaalbewerkingen voor radio/RF toepassingen uit te voeren die normaal in hardware worden gedaan. Deze software kan worden uitgevoerd op een algemene computer (CPU), FPGA of zelfs een GPU, en kan worden gebruikt voor real-time toepassingen of offline bewerking van opgenomen signalen. Alternatieve termen zijn "software radio" en "digitale radiosignaalbewerking".
+
+    Als *ding* (bijv. "een SDR") verwijst het meestal naar een apparaat waar je een antenne op aan kunt sluiten en RF-signalen mee kunt ontvangen waarbij de gedigitaliseerde RF-samples naar een computer worden gestuurd voor bewerking of opname (bijv. via USB, Ethernet, PCI). Veel SDR's hebben ook zendmogelijkheden, waardoor de computer samples naar de SDR kan sturen die vervolgens het signaal op een gespecificeerde radiofrequentie uitzendt. Sommige SDR's bevatten een ingebouwde computer.
   
 **Digital signal Processing (DSP):**
-    Nederlands: digitale signaalbewerking. Op een digitale manier signalen bewerken, in ons geval RF-signalen.
+    Op een digitale manier signalen bewerken, in ons geval RF-signalen.
 
 Dit boek dient als een praktische introductie op de gebieden van DSP, SDR en draadloze communicatie. Het is ontworpen voor iemand die:
 
@@ -72,9 +74,10 @@ Bedankt aan iedereen die dit boek heeft gelezen en van feedback heeft voorzien, 
 - Deidre Stuffer
 - Tarik Benaddi voor het `vertalen van PySDR naar het Frans <https://pysdr.org/fr/index-fr.html>`_
 - Daniel Versluis voor het `vertalen van PySDR naar het Nederlands <https://pysdr.org/nl/index-nl.html>`_
-- `mrbloom <https://github.com/mrbloom>`_ voor `vertalen van PySDR naar het Ukraiens <https://pysdr.org/ukraine/index-ukraine.html>`_
-- `Yimin Zhao <https://github.com/doctormin>`_ voor `vertalen van PySDR naar het Chinees <https://pysdr.org/zh/index-zh.html>`_
-  
+- `mrbloom <https://github.com/mrbloom>`_ voor het `vertalen van PySDR naar het Ukraiens <https://pysdr.org/ukraine/index-ukraine.html>`_
+- `Yimin Zhao <https://github.com/doctormin>`_ voor het `vertalen van PySDR naar het Chinees <https://pysdr.org/zh/index-zh.html>`_
+- `Eduardo Chancay <https://github.com/edulchan>`_ voor het `vertalen van PySDR naar het Spaans <https://pysdr.org/es/index-es.html>`_
+
 **********************
 Nederlandse vertaling
 **********************

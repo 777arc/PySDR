@@ -106,11 +106,12 @@ Het wordt een raised-cosine filter genoemd omdat bij een :math:`\beta=1` het fre
 De impulsresponsie van het filter kun je beschrijven met:
 
 .. math::
- h(t) = \frac{1}{T} \mathrm{sinc}\left( \frac{t}{T} \right) \frac{\cos\left(\frac{\pi\beta t}{T}\right)}{1 - \left( \frac{2 \beta t}{T}   \right)^2}
+ h(t) = \mathrm{sinc}\left( \frac{t}{T} \right) \frac{\cos\left(\frac{\pi\beta t}{T}\right)}{1 - \left( \frac{2 \beta t}{T}   \right)^2}
 
 Je kunt `hier <https://en.wikipedia.org/wiki/Sinc_function>`_ meer lezen over de :math:`\mathrm{sinc}()` functie.
+Op andere plekken vind je misschien de vergelijking met een :math:`\frac{1}{T}` ervoor; dit zorgt ervoor dat het filter een versterking heeft zodat het uitgangssignaal dezelfde amplitude heeft als het ingangssignaal (dit is over het algemeen een gewoonte bij het ontwerpen van filters). Maar, omdat we het op een pulstrein van symbolen (bijv. 1'en en -1'en) toepassen en we niet willen dat de amplitude van die symbolen na de pulsvorming verandert, laten we dus die deling achterwege. Dit zal duidelijker worden wanneer we in het Pythonvoorbeeld duiken en de uitkomst weergeven.
 
-Dit is het raised-cosine filter. Die gaan we echter in tweeën splitsen en dan krijgen we het Root Raised Cosine (RRC) filter!
+Onthoud dat we dit filter egaal opsplitsen tussen Tx en Rx. Dan nu het Root Raised Cosine (RRC) filter!
 
 Root Raised-Cosine Filter
 #########################

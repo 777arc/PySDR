@@ -1,4 +1,4 @@
-function homepage_app() {
+function homepage_app(labels={"frequency": "Frequency", "time": "Time"}) {
   function createSignal(N) {
     const x = new Array(N * 2);
 
@@ -80,7 +80,7 @@ function homepage_app() {
       ctx.fillText(Math.round((i - 5) * 0.1 * 100) / 100, ((ctx.canvas.width / 10) * i - 0) * 0.975, ctx.canvas.height - 35);
     }
     ctx.fillText("Hz", ctx.canvas.width / 2 + 5, ctx.canvas.height - 35);
-    ctx.fillText("Frequency", ctx.canvas.width / 2 - 70, ctx.canvas.height - 7);
+    ctx.fillText(labels["frequency"], ctx.canvas.width / 2 - 70, ctx.canvas.height - 7);
     ctx.stroke();
 
     // Freq y-axis ticks and labels
@@ -135,7 +135,7 @@ function homepage_app() {
       ctx_time.lineTo((ctx_time.canvas.width / 10) * i, ctx_time.canvas.height - 60);
       //ctx_time.fillText(Math.round(i* 0.1 * 100) / 100, ((ctx_time.canvas.width / 10) * i - 0) * 0.98, ctx_time.canvas.height - 5);
     }
-    ctx_time.fillText("Time", ctx_time.canvas.width / 2, ctx_time.canvas.height - 5);
+    ctx_time.fillText(labels["time"], ctx_time.canvas.width / 2, ctx_time.canvas.height - 5);
     ctx_time.stroke();
 
     // Time y-axis ticks and labels

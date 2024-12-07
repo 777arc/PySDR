@@ -307,8 +307,8 @@ Fijne Frequentiesynchronisatie uitvoeren
  phase = 0
  freq = 0
  # deze parameters maken de regelaar sneller of langzamer (of instabiel)
- alpha = 100
- beta = 0.23
+ alpha = 8.0
+ beta = 0.02
  out = np.zeros(N, dtype=np.complex64)
  freq_log = []
  for i in range(N):
@@ -738,7 +738,7 @@ Mocht je de code moeten tweaken om het werkend te krijgen met jouw opname of SDR
  import matplotlib.pyplot as plt
  
  # Read in signal
- x = np.fromfile('/home/versd/Downloads/fm_1027mhz_250ksps', dtype=complex64)
+ x = np.fromfile('/jouw/pad/fm_1027mhz_250ksps', dtype=complex64)
  sample_rate = 250e3
  center_freq = 102.7e6
 
@@ -796,8 +796,8 @@ Mocht je de code moeten tweaken om het werkend te krijgen met jouw opname of SDR
  phase = 0
  freq = 0
  # deze parameters maken de regelaar sneller of langzamer (of instabiel)
- alpha = 100
- beta = 0.23
+ alpha = 8
+ beta = 0.02
  out = np.zeros(N, dtype=np.complex64)
  freq_log = []
  for i in range(N):

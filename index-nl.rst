@@ -1,8 +1,10 @@
-==========================================================================
-PySDR: Een handleiding voor SDRs en digitale signaalbewerking met Python
-==========================================================================
+.. raw:: html
+   :file: _templates/homepage_nl.html
 
-door :ref:`Dr. Marc Lichtman<author-chapter>`
+.. raw:: html
+
+   <details>
+   <summary><h4 style="display: inline;">Klap de volledige inhoudsopgave uit</h4></summary>
 
 .. toctree::
    :maxdepth: 2

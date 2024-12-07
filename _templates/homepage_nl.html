@@ -1,0 +1,59 @@
+<h1 style="text-align: center">PySDR: Een handleiding voor SDRs en digitale signaalbewerking met Python</h1>
+
+<p style="text-align: center">
+  door
+  <a class="reference internal" href="content/about_author.html#author-chapter">
+    <span class="std std-ref">Dr. Marc Lichtman</span>
+  </a>
+  -
+  <a class="reference external" href="mailto:pysdr&#37;&#52;&#48;vt&#46;edu" rel="noopener noreferrer" target="_blank">
+    pysdr<span>&#64;</span>vt<span>&#46;</span>edu
+  </a>
+</p>
+
+<h4 style="line-height: 1.4">
+  Welkom bij PySDR, een gratis online boek (geen Python-bibliotheek!) dat met een een overvloed aan diagrammen, animaties en Python-codevoorbeelden een zachte introductie biedt tot draadloze communicatie en software-gedefinieerde-radio (SDR). Van FFT's tot filters tot digitale modulatie tot ontvangen en verzenden via SDR's in Python, PySDR heeft het allemaal!
+</h4>
+
+<h4 style="line-height: 1.4">
+  Het doel van PySDR is om de toegankelijkheid van onderwerpen die traditioneel met zware wiskunde in een aantal universiteiten worden behandeld, te vergroten. Alle inhoud die wordt gebruikt om PySDR te genereren, is open source en kun je 
+  <a class="reference external" href="https://github.com/777arc/PySDR" rel="noopener noreferrer" target="_blank">hier</a> vinden.
+</h4>
+
+<h4>
+  Zie
+  <a class="reference internal" href="content-nl/intro.html#intro-chapter"><span class="std std-ref">Hoofdstuk 1: Introductie</span></a>
+  voor het doel en de doelgroep van het boek.
+</h4>
+
+<h4>
+  Probeer eens te spelen met de onderstaande simulatie als voorproefje op RF signaalverwerking. De simulatie laat het frequentie- en tijdsdomein van een signaal zien dat bestaat uit een toon en witte Gaussische ruis.
+</h4>
+
+<div>
+  <input type="range" min="-0.4" max="0.4" step="0.0001" value="0.01" class="slider" id="freq" style="width:50%;"/>
+  <span id="freq_value"></span>
+  <label>[Hz] - Toonfrequentie</label>
+</div>
+<div>
+  <input type="range" min="-20" max="10" step="0.1" value="0" class="slider" id="noise_ampl_dB" style="width:50%;"/>
+  <span id="noise_value"></span>
+  <label>[dB] - Ruisamplitude</label>
+</div>
+<div>
+  <canvas width="2048" height="800" id="freq_plot" style="width: 66%; min-width: 512px; border: 0px; image-rendering: auto"></canvas>
+</div>
+<br />
+<br />
+<div>
+  <canvas width="2048" height="800" id="time_plot" style="width: 66%; min-width: 512px;  border: 0px; image-rendering: auto"></canvas>
+</div>
+
+<script>
+  const nl_labels = { "frequency"   : "Frequentie", 
+                      "time"        : "Tijd"
+                    };
+  homepage_app(nl_labels);
+</script>
+
+<br />

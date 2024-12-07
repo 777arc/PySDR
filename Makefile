@@ -85,6 +85,11 @@ html-nl:
 	$(SPHINXBUILD) -b html -D project="PySDR: Een handleiding voor SDR en DSP met Python" -D exclude_patterns=_build,index.rst,content/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/*,index-es.rst,content-es/* -D master_doc=index-nl $(EXTENSIONS) . $(BUILDDIR)/nl/
 	@echo
 	@echo "Dutch Build finished. The HTML pages are in $(BUILDDIR)/nl/html."
+	@echo translating title of index and content pages
+	sed -i 's/PySDR: A Guide to SDR and DSP using Python/PySDR: Een handleiding voor SDR en DSP met Python/g' $(BUILDDIR)/nl/index-nl.html
+	sed -i 's/PySDR: A Guide to SDR and DSP using Python/PySDR: Een handleiding voor SDR en DSP met Python/g' $(BUILDDIR)/nl/content-nl/*.html
+	@echo removing chapter number from titles of each page
+	sed -i -E "s/<title>[0-9]{1,2}\. /<title>/g" $(BUILDDIR)/nl/content-nl/*
 
 .PHONY: html-fr
 html-fr:

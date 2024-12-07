@@ -190,7 +190,7 @@ We kunnen dit zelf bewijzen door in Python wat ruis te genereren en daarna de FF
  plt.plot(np.real(X), '.-') #reeele deel ipv lengte/modulus
  plt.show()
 
-We merken op dat de randn() functie standaard een gemiddelde heeft van 0 en variantie van 1. Beide figuren zullen er ongeveer zo uitzien:
+We merken op dat de :code:`randn()` functie standaard een gemiddelde heeft van 0 en variantie van 1. Beide figuren zullen er ongeveer zo uitzien:
 
 .. image:: ../_images/noise_python.png
    :scale: 100 % 

@@ -93,8 +93,6 @@ def rx_callback(device, buffer, buffer_length, valid_length):  # this callback f
 
     return 0
 
-samples = samples[100000:] # get rid of the first 100k samples just to be safe, due to transients
-
 sdr.set_rx_callback(rx_callback)
 sdr.pyhackrf_start_rx()
 print('is_streaming', sdr.pyhackrf_is_streaming())
@@ -103,6 +101,8 @@ time.sleep(recording_time)
 
 sdr.pyhackrf_stop_rx()
 sdr.pyhackrf_close()
+
+samples = samples[100000:] # get rid of the first 100k samples just to be safe, due to transients
 
 fft_size = 2048
 num_rows = len(samples) // fft_size

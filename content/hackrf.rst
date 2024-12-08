@@ -225,8 +225,6 @@ After running the code below, if in your time plot, the samples are reaching the
 
         return 0
 
-    samples = samples[100000:] # get rid of the first 100k samples just to be safe, due to transients
-
     sdr.set_rx_callback(rx_callback)
     sdr.pyhackrf_start_rx()
     print('is_streaming', sdr.pyhackrf_is_streaming())
@@ -235,6 +233,8 @@ After running the code below, if in your time plot, the samples are reaching the
 
     sdr.pyhackrf_stop_rx()
     sdr.pyhackrf_close()
+
+    samples = samples[100000:] # get rid of the first 100k samples just to be safe, due to transients
 
     fft_size = 2048
     num_rows = len(samples) // fft_size

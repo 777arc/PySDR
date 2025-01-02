@@ -11,7 +11,7 @@ Marc is ook een van de hoofdpersonen van het `GNU Radio project <https://www.gnu
 Marc leeft momenteel in de Washington DC omgeving met zijn vrouw Lindsey en hun vele katten en honden. Zijn hobby’s zijn houtbewerking, lasersnijden, de klarinet/saxofoon spelen, zeilen, tuinieren, drones bouwen/vliegen, elektrische skateboards bouwen/rijden en geavanceerd jojoën.
 
 
-Email: pysdr@vt.edu
+Email: marc@pysdr.org
 
 University of Maryland faculty pagina: `cs.umd.edu/people/sdr <https://www.cs.umd.edu/people/sdr>`_
 

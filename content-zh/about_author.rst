@@ -19,7 +19,7 @@ GNU Radio 能够实现更高级的 DSP 应用程序，而且使用 GNU Radio 开
 Marc 目前和他的妻子 Lindsey 以及他们的多只猫和狗一起住在华盛顿特区地区。
 他的爱好包括木工制作、激光切割、演奏单簧管/萨克斯风、帆船、园艺、制作/操纵无人机、制作/骑行电动滑板，以及钻研高级溜溜球技巧。
 
-邮箱: pysdr@vt.edu
+邮箱: marc@pysdr.org
 
 马里兰大学的教职页面: `cs.umd.edu/people/sdr <https://www.cs.umd.edu/people/sdr>`_
 

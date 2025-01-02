@@ -288,3 +288,4 @@ hackable
 microcontroller
 VCO
 SoC
+endian

@@ -410,7 +410,7 @@ Blue files are binary files with three components in the following order:
 
 1. 512-byte header containing file metadata
 2. Data, in our case binary IQ (ints or floats in form IQIQIQ...)
-3. Optional "Extended Header" (a.k.a. tailing bytes) containing auxiliary metadata
+3. Optional "Extended Header" (a.k.a. tailing bytes) containing auxiliary metadata, in the form of arbitrary key/value pairs
 
 Fields contained within the header are described on `this page <https://sigplot.lgsinnovations.com/html/doc/bluefile.html>`_.  Important ones for us include:
 
@@ -458,12 +458,45 @@ The Python code to read in the fields discussed above, as well as the IQ samples
     plt.plot(samples.real[::1000])
     plt.show()
 
+The "Extended Header" (a.k.a. tailing bytes), which are arbitrary key/value pairs, are described in a format specified in Section 3.3 of the `Blue File Format Specs <https://web.archive.org/web/20150413061156/http://nextmidas.techma.com/nm/nxm/sys/docs/MidasBlueFileFormat.pdf>`_.  It will often contain information like the RF frequency, gain, and receiver/SDR used. The Python code for decoding these key/value pairs is shown below, adapted from `this code <https://github.com/tkzilla/rsa_api_sandbox/blob/master/cdif_reader.py>`_:
+
+.. code-block:: python
+
+    ...
+
+    # Read in the extended header at the end of the file
+    with open(filename, 'rb') as f:
+        f.seek(filesize-extended_header_size)
+        ext_header = f.read(extended_header_size)
+        print("length of extended header", len(ext_header), '\n')
+
+    def parse_extended_header(idx):
+        next_offset = np.frombuffer(ext_header[idx:idx+4], dtype=np.int32)[0]
+        non_data_length = np.frombuffer(ext_header[idx+4:idx+6], dtype=np.int16)[0]
+        name_length = ext_header[idx+6]
+        dataStart = idx + 8
+        dataLength = dataStart + next_offset - non_data_length
+        midas_to_np = {'O' : np.uint8, 'B' : np.int8, 'I' : np.int16, 'L' : np.int32, 'X' : np.int64, 'F' : np.float32, 'D' : np.float64}
+        format_code = chr(ext_header[idx+7])
+        if format_code == 'A':
+            val = ext_header[dataStart:dataLength].decode('latin_1')
+        else:
+            val = np.frombuffer(ext_header[dataStart:dataLength], dtype=midas_to_np[format_code])[0]
+        key = ext_header[dataLength:dataLength+name_length].decode('latin_1')
+        print(key, '  ', val)
+        return idx + next_offset
+
+    next_idx = 0
+    while next_idx < extended_header_size:
+        next_idx = parse_extended_header(next_idx)
+
 As a side note, Blue files and other binary IQ formats with metadata and data within the same file are why SigMF contains a variant called Non-Conforming Datasets (NCDs) which allow binary IQ files with extra bytes at the start and/or end (used for metadata) to be forced into a SigMF type format.  For more information see the SigMF metadata fields: dataset, header_bytes, trailing_bytes.  I.e., purely from a data-reading perspective, we can treat a Blue file like a normal binary IQ file as long as we ignore the first 512 bytes and any extended header bytes at the end.
 
 External resources related to Blue files:
 
+#.  https://web.archive.org/web/20150413061156/http://nextmidas.techma.com/nm/nxm/sys/docs/MidasBlueFileFormat.pdf
 #.  https://sigplot.lgsinnovations.com/html/doc/bluefile.html
 #.  https://lgsinnovations.github.io/sigfile/bluefile.js.html
 #.  http://nextmidas.com.s3-website-us-gov-west-1.amazonaws.com/
 #.  https://web.archive.org/web/20181020012349/http://nextmidas.techma.com/nm/htdocs/usersguide/BlueFiles.html
-#.  https://web.archive.org/web/20150413061156/http://nextmidas.techma.com/nm/nxm/sys/docs/MidasBlueFileFormat.pdf
+#.  https://github.com/Geontech/XMidasBlueReader

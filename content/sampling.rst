@@ -187,7 +187,8 @@ Throughout this textbook you will become **very** familiar with how IQ samples w
 
 One last important note: the figure above shows what's happening **inside** of the SDR. We don't actually have to generate a sine wave, shift by 90, multiply or add--the SDR does that for us.  We tell the SDR what frequency we want to sample at, or what frequency we want to transmit our samples at.  On the receiver side, the SDR will provide us the IQ samples. For the transmitting side, we have to provide the SDR the IQ samples.  In terms of data type, they will either be complex ints or floats.
    
-   
+.. _downconversion-section:
+
 **************************
 Carrier and Downconversion
 **************************
@@ -220,8 +221,6 @@ to just I and Q.
 
 Let's visualize downconversion in the frequency domain:
 
-.. _downconversion-figure:
-
 .. image:: ../_images/downconversion.png
    :scale: 60% 
    :align: center
@@ -252,7 +251,8 @@ The figure in the "Receiver Side" section demonstrates how the input signal is d
 ***********************************
 Baseband and Bandpass Signals
 ***********************************
-We refer to a signal centered around 0 Hz as being at "baseband".  Conversely, "bandpass" refers to when a signal exists at some RF frequency nowhere near 0 Hz, that has been shifted up for the purpose of wireless transmission.  There is no notion of a "baseband transmission", because you can't transmit something imaginary.  A signal at baseband may be perfectly centered at 0 Hz like the right-hand portion of this figure :ref:`_downconversion-figure`. It might be *near* 0 Hz, like the two signals shown below. Those two signals are still considered baseband.   Also shown is an example bandpass signal, centered at a very high frequency denoted :math:`f_c`.
+
+We refer to a signal centered around 0 Hz as being at "baseband".  Conversely, "bandpass" refers to when a signal exists at some RF frequency nowhere near 0 Hz, that has been shifted up for the purpose of wireless transmission.  There is no notion of a "baseband transmission", because you can't transmit something imaginary.  A signal at baseband may be perfectly centered at 0 Hz like the right-hand portion of the figure in Section :ref:`downconversion-section`. It might be *near* 0 Hz, like the two signals shown below. Those two signals are still considered baseband.   Also shown is an example bandpass signal, centered at a very high frequency denoted :math:`f_c`.
 
 .. image:: ../_images/baseband_bandpass.png
    :scale: 50% 

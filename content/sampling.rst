@@ -285,7 +285,7 @@ If there is only a DC spike, and the rest of the FFT looks like noise, there is 
 
 A DC offset is a common artifact in direct conversion receivers, which is the architecture used for SDRs like the PlutoSDR, RTL-SDR, LimeSDR, and many Ettus USRPs. In direct conversion receivers, an oscillator, the LO, downconverts the signal from its actual frequency to baseband. As a result, leakage from this LO appears in the center of the observed bandwidth. LO leakage is additional energy created through the combination of frequencies. Removing this extra noise is difficult because it is close to the desired output signal. Many RF integrated circuits (RFICs) have built-in automatic DC offset removal, but it typically requires a signal to be present to work. That is why the DC spike will be very apparent when no signals are present.
 
-A quick way to handle the DC offset is to oversample the signal and off-tune it.
+A quick way to handle the DC offset is to oversample the signal and off-tune it.  This technique is called *offset tuning*.
 As an example, let's say we want to view 5 MHz of spectrum at 100 MHz.
 Instead what we can do is sample at 20 MHz at a center frequency of 95 MHz.
 

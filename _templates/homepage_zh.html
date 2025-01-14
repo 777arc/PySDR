@@ -1,0 +1,56 @@
+<h1 style="text-align: center">PySDR：使用 Python 玩转 SDR 和 DSP</h1>
+
+<p style="text-align: center">
+  by
+  <a class="reference internal" href="content-zh/about_author.html#author-chapter">
+    <span class="std std-ref">Dr. Marc Lichtman</span>
+  </a>
+  -
+  <a class="reference external" href="mailto:pysdr&#37;&#52;&#48;vt&#46;edu" rel="noopener noreferrer" target="_blank">
+    pysdr<span>&#64;</span>vt<span>&#46;</span>edu
+  </a>
+</p>
+
+<h4 style="line-height: 1.4">
+    欢迎来到 PySDR，这是一本免费的在线教科书（不是一个 Python 库！），它通过丰富的图表、动画和 Python 代码示例，提供了对无线通信和软件定义无线电（SDR）的友好介绍。从 FFT 到滤波器，再到数字调制，以及在 Python 中使用 SDR 设备进行接收和发送，PySDR 都能满足你的需求！
+</h4>
+
+<h4 style="line-height: 1.4">
+  PySDR 的目标是越过艰深的数学，用最直观易懂的方式让更多人能够接触到这些传统上只在少数大学中涉及的主题。PySDR 的所有内容都是
+  <a class="reference external" href="https://github.com/777arc/PySDR" rel="noopener noreferrer" target="_blank">开源的</a>。
+</h4>
+
+<h4>
+  请浏览
+  <a class="reference internal" href="content/intro.html#intro-chapter"><span class="std std-ref">1. 简介</span></a>
+    以了解更多关于 PySDR 的信息。
+</h4>
+
+<h4>
+  为了快速了解无线信号是什么，请尝试使用下面的模拟器，它展示了由一个正弦波和高斯噪声组成的信号的频域和时域。
+</h4>
+
+<div>
+  <input type="range" min="-0.4" max="0.4" step="0.0001" value="0.01" class="slider" id="freq" />
+  <span id="freq_value"></span>
+  <label>[Hz] - 正弦信号的频率</label>
+</div>
+<div>
+  <input type="range" min="-20" max="10" step="0.1" value="0" class="slider" id="noise_ampl_dB" />
+  <span id="noise_value"></span>
+  <label>[dB] - 噪音的幅度</label>
+</div>
+<div>
+  <canvas width="2048" height="800" id="freq_plot" style="width: 512px; height: 200px; border: 0px; image-rendering: auto"></canvas>
+</div>
+<br />
+<br />
+<div>
+  <canvas width="2048" height="800" id="time_plot" style="width: 512px; height: 200px; border: 0px; image-rendering: auto"></canvas>
+</div>
+
+<script>
+  homepage_app();
+</script>
+
+<br />

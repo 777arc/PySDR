@@ -393,8 +393,8 @@ FFT 函数的行为有点像将输入从时域上压扁然后吐出一个频域�
 
 如果我们绘制 :code:`s` ，它将看起来像这样：
 
-.. image:: ../_images/fft-python1.png
-   :scale: 70 %
+.. image:: ../_images/fft-python1.svg
+   :target: ../_images/fft-python1.svg
    :align: center
 
 接下来，让我们使用 NumPy 中的 FFT 函数：
@@ -410,8 +410,8 @@ FFT 函数的行为有点像将输入从时域上压扁然后吐出一个频域�
     S =  array([-0.01865008 +0.00000000e+00j, -0.01171553 -2.79073782e-01j,0.02526446 -8.82681208e-01j,  3.50536075 -4.71354150e+01j, -0.15045671 +1.31884375e+00j, -0.10769903 +7.10452463e-01j, -0.09435855 +5.01303240e-01j, -0.08808671 +3.92187956e-01j, -0.08454414 +3.23828386e-01j, -0.08231753 +2.76337148e-01j, -0.08081535 +2.41078885e-01j, -0.07974909 +2.13663710e-01j,...
 
 一个提示：无论你在何时何地遇到了复数，请尝试计算其幅度和相位看看能否得到一些有意义的信息。
-在大多数编程语言中，:code:`abs()` 是用来计算复数幅度的函数，而计算相位的函数各不相同，
-在 Python 中它是 :code:`np.angle()`。让我们画出来看看：
+在大多数编程语言中，:code:`abs()` 是用来计算复数幅度的函数，而计算相位的函数可能各不相同，
+在 Python 中，Numpy 提供的 :code:`np.angle()` 将返回以弧度为单位的相位。
 
 .. code-block:: python
 
@@ -421,8 +421,8 @@ FFT 函数的行为有点像将输入从时域上压扁然后吐出一个频域�
  plt.plot(t,S_mag,'.-')
  plt.plot(t,S_phase,'.-')
 
-.. image:: ../_images/fft-python2.png
-   :scale: 80 %
+.. image:: ../_images/fft-python2.svg
+   :target: ../_images/fft-python2.svg
    :align: center
 
 目前我们没有为这个图提供任何 x 轴信息，它仅仅是数组的索引（从 0 开始计数）。
@@ -474,8 +474,8 @@ FFT 函数的行为有点像将输入从时域上压扁然后吐出一个频域�
  plt.plot(f, S_phase,'.-')
  plt.show()
 
-.. image:: ../_images/fft-python5.png
-   :scale: 80 %
+.. image:: ../_images/fft-python5.svg
+   :target: ../_images/fft-python5.svg
    :align: center
 
 请注意，我们在 0.15 Hz 处看到了峰值，这正是我们在创建正弦波时使用的频率，这意味着我们的 FFT 算法有效！

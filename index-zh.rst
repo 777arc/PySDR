@@ -1,11 +1,13 @@
-==========================================
-PySDR：使用 Python 玩转 SDR 和 DSP
-==========================================
+.. raw:: html
+   :file: _templates/homepage_zh.html
 
-作者： :ref:`Dr. Marc Lichtman<author-chapter>`
+.. raw:: html
+
+   <details>
+   <summary><h4 style="display: inline;">展开目录</h4></summary>
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :numbered: 1
 
    content-zh/intro

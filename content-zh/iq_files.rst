@@ -459,3 +459,112 @@ SigMF 记录的名称不一定得是 :code:`channel-0` ， :code:`channel-1` 等
 4. （可选）与他人分享 :code:`.sigmf` 文件！
 
 最后，如果想读取其中任何数据，只需记住你不必提取 tarball 而是可以直接在其中阅读。
+
+**********************
+Midas Blue 文件格式
+**********************
+
+Blue 文件，也称为 BLUEFILES 或 Midas Files，是一种可以表示多种数据结构的文件格式，包括一维和二维数据，并被某些组织用于将原始 RF 信号记录到文件中。
+也就是说，在 RF/SDR 的背景下，Blue 文件可以被视为一种 IQ 文件格式。
+Blue 文件用于 X-Midas 信号处理框架及其衍生产品 Midas 2k（C++），NeXtMidas（Java）和 XMPy（Python）中。
+对于那些听说过 REDAWK 的人，NeXtMidas 的一部分嵌入在其中。
+一些应用程序使用文件扩展名 :code:`.blue` 生成 Blue 文件，而其他应用则使用 :code:`.cdif` ，它们的底层格式是相同的。
+
+Blue 文件是二进制文件，按以下顺序包含三个组成部分：
+
+1. 512 字节的头部（Header），包含文件的元数据；
+2. 数据，在我们的例子中是二进制 IQ（以 IQIQIQ 的形式表示的整数或浮点数）；
+3. 可选的“扩展头”（也称为尾随字节），包含辅助元数据，以任意键/值对的形式。
+
+头部中包含的字段在 `此页面 <https://sigplot.lgsinnovations.com/html/doc/bluefile.html>`_ 上有描述。对我们来说重要的有：
+
+- 字节 52：数据格式代码，两个字符。第一个字符表示是实数（S）还是复数（C）。第二个字符指定数据类型，其中 :code:`B` 是 8 位有符号整数，:code:`I` 是 16 位有符号整数，:code:`L` 是 32 位有符号整数，:code:`F` 是 32 位浮点数，:code:`D` 是 64 位浮点数。
+- 字节 8：数据表示，四个字符，其中 :code:`IEEE` 表示大端序，:code:`EEEI` 表示小端序（最常见）。
+- 字节 24：扩展头开始位置，一个 int32，以 512 字节块为单位。
+- 字节 28：扩展头大小，一个 int32，以字节表示。
+- 字节 264：采样之间的时间间隔，即 1/sample_rate，作为 float64 以秒表示。
+
+例如，:code:`CI` 相当于 SigMF 的 :code:`ci16_le` ， :code:`CF` 是 SigMF 的 :code:`cf32_le` 。
+尽管扩展头（即尾随字节）的长度和起始位置已指定，偷懒的做法是直接忽略文件的最后几千个 IQ 样本，这样就肯定能避开扩展头，从而避免读取错误的 IQ 值。
+
+读取上述字段以及 IQ 数据的 Python 代码如下：
+
+.. code-block:: python
+
+    import numpy as np
+    import os
+    import matplotlib.pyplot as plt
+
+    filename = 'yourfile.blue' # or cdif
+
+    filesize = os.path.getsize(filename)
+    print('File size', filesize, 'bytes')
+    with open(filename, 'rb') as f:
+        header = f.read(512)
+
+    # 解码头部
+    dtype = header[52:54].decode('utf-8') # eg 'CI'
+    endianness = header[8:12].decode('utf-8') # 最好是 'EEEI'！从此以后我们假设它是这样的
+    extended_header_start = int.from_bytes(header[24:28], byteorder='little') * 512 # in units of bytes
+    extended_header_size = int.from_bytes(header[28:32], byteorder='little')
+    if extended_header_size != filesize - extended_header_start:
+        print('Warning: extended header size seems wrong')
+    time_interval = np.frombuffer(header[264:272], dtype=np.float64)[0]
+    sample_rate = 1/time_interval
+    print('Sample rate', sample_rate/1e6, 'MHz')
+
+    # 读取 IQ 数据
+    if dtype == 'CI':
+        samples = np.fromfile(filename, dtype=np.int16, offset=512, count=(filesize-extended_header_size))
+        samples = samples[::2] + 1j*samples[1::2] # 转换为 IQIQIQ...
+
+    # 绘制每 1000 个数据点，确保没有错误读入非 IQ 数据部分
+    print(len(samples))
+    plt.plot(samples.real[::1000])
+    plt.show()
+
+“扩展头”（也称为尾随字节），以任意键/值对的形式描述，这些格式在 `Blue 文件格式规范 <https://web.archive.org/web/20150413061156/http://nextmidas.techma.com/nm/nxm/sys/docs/MidasBlueFileFormat.pdf>`_ 的第 3.3 节中有描述。
+它通常包含 RF 频率、增益和接收器/SDR 等信息。下面是解码这些键/值对的 Python 代码，修改自 `此代码 <https://github.com/tkzilla/rsa_api_sandbox/blob/master/cdif_reader.py>`_ ：
+
+.. code-block:: python
+
+    ...
+
+    # 读取文件末尾的扩展头
+    with open(filename, 'rb') as f:
+        f.seek(filesize-extended_header_size)
+        ext_header = f.read(extended_header_size)
+        print("length of extended header", len(ext_header), '\n')
+
+    def parse_extended_header(idx):
+        next_offset = np.frombuffer(ext_header[idx:idx+4], dtype=np.int32)[0]
+        non_data_length = np.frombuffer(ext_header[idx+4:idx+6], dtype=np.int16)[0]
+        name_length = ext_header[idx+6]
+        dataStart = idx + 8
+        dataLength = dataStart + next_offset - non_data_length
+        midas_to_np = {'O' : np.uint8, 'B' : np.int8, 'I' : np.int16, 'L' : np.int32, 'X' : np.int64, 'F' : np.float32, 'D' : np.float64}
+        format_code = chr(ext_header[idx+7])
+        if format_code == 'A':
+            val = ext_header[dataStart:dataLength].decode('latin_1')
+        else:
+            val = np.frombuffer(ext_header[dataStart:dataLength], dtype=midas_to_np[format_code])[0]
+        key = ext_header[dataLength:dataLength+name_length].decode('latin_1')
+        print(key, '  ', val)
+        return idx + next_offset
+
+    next_idx = 0
+    while next_idx < extended_header_size:
+        next_idx = parse_extended_header(next_idx)
+
+最后补充说明一点：Blue 文件和其他在同一文件中包含元数据和数据的二进制 IQ 格式是 SigMF 包含一种称为不合格数据集（Non-Conforming Datasets，NCDs）变体的原因，该变体允许在开始和/或结束处有额外字节（二进制 IQ 文件用于元数据）被强制转换为 SigMF 类型的格式。
+有关更多信息，请参阅 SigMF 元数据字段：dataset、header_bytes、trailing_bytes。
+也就是说，仅从数据读取的角度来看，我们可以将 Blue 文件视为普通的二进制 IQ 文件，只要我们忽略前 512 个字节和文件末尾的任何扩展头字节。
+
+与 Blue 文件相关的外部资源：
+
+#.  https://web.archive.org/web/20150413061156/http://nextmidas.techma.com/nm/nxm/sys/docs/MidasBlueFileFormat.pdf
+#.  https://sigplot.lgsinnovations.com/html/doc/bluefile.html
+#.  https://lgsinnovations.github.io/sigfile/bluefile.js.html
+#.  http://nextmidas.com.s3-website-us-gov-west-1.amazonaws.com/
+#.  https://web.archive.org/web/20181020012349/http://nextmidas.techma.com/nm/htdocs/usersguide/BlueFiles.html
+#.  https://github.com/Geontech/XMidasBlueReader

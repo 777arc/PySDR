@@ -315,8 +315,8 @@ First we need to create a signal in the time domain.  Feel free to follow along 
 
 If we plot :code:`s` it looks like:
 
-.. image:: ../_images/fft-python1.png
-   :scale: 70 % 
+.. image:: ../_images/fft-python1.svg
+   :target: ../_images/fft-python1.svg
    :align: center 
 
 Next let's use NumPy's FFT function:
@@ -331,7 +331,7 @@ If we look at :code:`S` we see it's an array of complex numbers:
 
     S =  array([-0.01865008 +0.00000000e+00j, -0.01171553 -2.79073782e-01j,0.02526446 -8.82681208e-01j,  3.50536075 -4.71354150e+01j, -0.15045671 +1.31884375e+00j, -0.10769903 +7.10452463e-01j, -0.09435855 +5.01303240e-01j, -0.08808671 +3.92187956e-01j, -0.08454414 +3.23828386e-01j, -0.08231753 +2.76337148e-01j, -0.08081535 +2.41078885e-01j, -0.07974909 +2.13663710e-01j,...
 
-Hint: regardless of what you’re doing, if you ever run into complex numbers, try calculating the magnitude and the phase and see if they make more sense.  Let's do exactly that, and plot the magnitude and phase.  In most languages, abs() is a function for magnitude of a complex number.  The function for phase varies, but in Python it's :code:`np.angle()`.
+Hint: regardless of what you’re doing, if you ever run into complex numbers, try calculating the magnitude and the phase and see if they make more sense.  Let's do exactly that, and plot the magnitude and phase.  In most languages, abs() is a function for magnitude of a complex number.  The function for phase varies by language, but in Python we can use NumPy's :code:`np.angle()`, which returns the phase in units of radians.
 
 .. code-block:: python
 
@@ -341,9 +341,9 @@ Hint: regardless of what you’re doing, if you ever run into complex numbers, t
  plt.plot(t,S_mag,'.-')
  plt.plot(t,S_phase,'.-')
 
-.. image:: ../_images/fft-python2.png
-   :scale: 80 % 
-   :align: center 
+.. image:: ../_images/fft-python2.svg
+   :target: ../_images/fft-python2.svg
+   :align: center
 
 Right now we aren't providing any x-axis to the plots, it's just the index of the array (counting up from 0).  Due to mathematical reasons, the output of the FFT has the following format:
 
@@ -387,9 +387,10 @@ We also need to figure out the x-axis values/label.  Recall that we used a sampl
  plt.plot(f, S_phase,'.-')
  plt.show()
 
-.. image:: ../_images/fft-python5.png
-   :scale: 80 % 
-   :align: center 
+.. image:: ../_images/fft-python5.svg
+   :target: ../_images/fft-python5.svg
+   :align: center
+
 
 Note that we see our spike at 0.15 Hz, which is the frequency we used when creating the sine wave. So that means our FFT worked!  If we did not know the code used to generate that sine wave, but we were just given the list of samples, we could use the FFT to determine the frequency. The reason why we see a spike also at -0.15 Hz has to do with the fact it was a real signal, not complex, and we will get deeper into that later. 
 

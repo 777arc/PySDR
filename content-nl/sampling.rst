@@ -445,7 +445,6 @@ Uitgang:
 Extra Leesmateriaal
 ********************
 
-#. http://rfic.eecs.berkeley.edu/~niknejad/ee242/pdf/eecs242_lect3_rxarch.pdf
-#. https://appliedacousticschalmers.github.io/scaling-of-the-dft/AES2020_eBrief/
+#. https://web.archive.org/web/20220613052830/http://rfic.eecs.berkeley.edu/~niknejad/ee242/pdf/eecs242_lect3_rxarch.pdf
 
 

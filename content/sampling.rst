@@ -187,7 +187,8 @@ Throughout this textbook you will become **very** familiar with how IQ samples w
 
 One last important note: the figure above shows what's happening **inside** of the SDR. We don't actually have to generate a sine wave, shift by 90, multiply or add--the SDR does that for us.  We tell the SDR what frequency we want to sample at, or what frequency we want to transmit our samples at.  On the receiver side, the SDR will provide us the IQ samples. For the transmitting side, we have to provide the SDR the IQ samples.  In terms of data type, they will either be complex ints or floats.
    
-   
+.. _downconversion-section:
+
 **************************
 Carrier and Downconversion
 **************************
@@ -209,7 +210,7 @@ As a simple example, let's say we transmit the IQ sample 1+0j, and then we switc
 
 It is easy to get confused between the signal we want to transmit (which typically contains many frequency components), and the frequency we transmit it on (our carrier frequency).  This will hopefully get cleared up when we cover baseband vs. bandpass signals. 
 
-Now back to sampling for a second.  Instead of receiving samples by multiplying what comes off the antenna by a cos() and sin() then recording I and Q, what if we fed the signal from the antenna into a single ADC, like in the direct sampling architecture we just discussed?  Say the carrier frequency is 2.4 GHz, like WiFi or Bluetooth.  That means we would have to sample at 4.8 GHz, as we learned.  That's extremely fast! An ADC that samples that fast costs thousands of dollars.  Instead, we "downconvert" the signal so that the signal we want to sample is centered around DC or 0 Hz. This downconversion happens before we sample.  We go from:
+Now back to sampling for a second.  Instead of receiving samples by multiplying what comes off the antenna by a cos() and sin() then recording I and Q, what if we fed the signal from the antenna straight into a single ADC?  Say the carrier frequency is 2.4 GHz, like WiFi or Bluetooth.  That means we would have to sample at 4.8 GHz, as we learned.  That's extremely fast! An ADC that samples that fast costs thousands of dollars.  Instead, we "downconvert" the signal so that the signal we want to sample is centered around DC or 0 Hz. This downconversion happens before we sample.  We go from:
 
 .. math::
   I \cos(2\pi ft)
@@ -250,16 +251,19 @@ The figure in the "Receiver Side" section demonstrates how the input signal is d
 ***********************************
 Baseband and Bandpass Signals
 ***********************************
-We refer to a signal centered around 0 Hz as being at "baseband".  Conversely, "bandpass" refers to when a signal exists at some RF frequency nowhere near 0 Hz, that has been shifted up for the purpose of wireless transmission.  There is no notion of a "baseband transmission", because you can't transmit something imaginary.  A signal at baseband may be perfectly centered at 0 Hz like the right-hand portion of the figure in the previous section. It might be *near* 0 Hz, like the two signals shown below. Those two signals are still considered baseband.   Also shown is an example bandpass signal, centered at a very high frequency denoted :math:`f_c`.
+
+We refer to a signal centered around 0 Hz as being at "baseband".  Conversely, "bandpass" refers to when a signal exists at some RF frequency nowhere near 0 Hz, that has been shifted up for the purpose of wireless transmission.  There is no notion of a "baseband transmission", because you can't transmit something imaginary.  A signal at baseband may be perfectly centered at 0 Hz like the right-hand portion of the figure in Section :ref:`downconversion-section`. It might be *near* 0 Hz, like the two signals shown below. Those two signals are still considered baseband.   Also shown is an example bandpass signal, centered at a very high frequency denoted :math:`f_c`.
 
 .. image:: ../_images/baseband_bandpass.png
    :scale: 50% 
    :align: center
    :alt: Baseband vs bandpass
 
-You may also hear the term intermediate frequency (abbreviated as IF); for now, think of IF as an intermediate conversion step within a radio between baseband and bandpass/RF.
+You may also hear the term intermediate frequency, or IF, which is an intermediate conversion step within a radio between baseband and bandpass/RF.
 
-We tend to create, record, or analyze signals at baseband because we can work at a lower sample rate (for reasons discussed in the previous subsection).  It is important to note that baseband signals are often complex signals, while signals at bandpass (e.g., signals we actually transmit over RF) are real.  Think about it: because the signal fed through an antenna must be real, you cannot directly transmit a complex/imaginary signal.  You will know a signal is definitely a complex signal if the negative frequency and positive frequency portions of the signal are not exactly the same. Complex numbers are how we represent negative frequencies after all.  In reality there are no negative frequencies; it's just the portion of the signal below the carrier frequency.
+We tend to create, record, or analyze signals at baseband because we can work at a lower sample rate (for reasons discussed in the previous subsection).  It is important to note that baseband RF signals are **complex** signals, while signals at bandpass (e.g., signals we actually transmit over RF) are **real**.  Any signal fed through an antenna must be real, as you cannot directly transmit a complex/imaginary signal.  You will know a signal is definitely a complex signal if the negative frequency and positive frequency portions of the signal are not exactly the same.  Complex numbers let us represent negative frequencies.  In reality there are no negative frequencies; it's just the portion of the signal below the carrier frequency.
+
+If we do not have any imaginary component in our signal, then we don't have any Q values (or you can think of all Q values equal to zero). This, in turn, means that we only have cosine signals without any phase shift. A sum of cosine signals without any phase shift will be symmetrical around the y-axis when plotting the frequency domain due to having the same positive and negative components.
 
 In the earlier section where we played around with the complex point 0.7 - 0.4j, that was essentially one sample in a baseband signal.  Most of the time you see complex samples (IQ samples), you are at baseband.  Signals are rarely represented or stored digitally at RF, because of the amount of data it would take, and the fact we are usually only interested in a small portion of the RF spectrum.  
 
@@ -283,7 +287,7 @@ If there is only a DC spike, and the rest of the FFT looks like noise, there is 
 
 A DC offset is a common artifact in direct conversion receivers, which is the architecture used for SDRs like the PlutoSDR, RTL-SDR, LimeSDR, and many Ettus USRPs. In direct conversion receivers, an oscillator, the LO, downconverts the signal from its actual frequency to baseband. As a result, leakage from this LO appears in the center of the observed bandwidth. LO leakage is additional energy created through the combination of frequencies. Removing this extra noise is difficult because it is close to the desired output signal. Many RF integrated circuits (RFICs) have built-in automatic DC offset removal, but it typically requires a signal to be present to work. That is why the DC spike will be very apparent when no signals are present.
 
-A quick way to handle the DC offset is to oversample the signal and off-tune it.
+A quick way to handle the DC offset is to oversample the signal and off-tune it.  This technique is called *offset tuning*.
 As an example, let's say we want to view 5 MHz of spectrum at 100 MHz.
 Instead what we can do is sample at 20 MHz at a center frequency of 95 MHz.
 

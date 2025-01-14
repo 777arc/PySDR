@@ -10,7 +10,7 @@ Marc is also one of the leads for the `GNU Radio project <https://www.gnuradio.o
 
 Marc currently lives in the DC area with his wife Lindsey and their many cats and dogs.  His hobbies include woodworking, lasercutting, playing clarinet/sax, sailing, gardening, building/flying drones, building/riding electric skateboards, and advanced yo-yoing.
 
-Email: pysdr@vt.edu
+Email: marc@pysdr.org
 
 University of Maryland faculty page: `cs.umd.edu/people/sdr <https://www.cs.umd.edu/people/sdr>`_
 

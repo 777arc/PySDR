@@ -399,3 +399,104 @@ To sum it up, the following steps should be performed when creating a new SigMF 
 4. (Optionally) Share the .sigmf file with others!
 
 Then to read in the recording, just remember you don't have to extract the tarball, you can read the files in-place.
+
+**********************
+Midas Blue File Format
+**********************
+
+Blue files, a.k.a. BLUEFILES or Midas Files, is a file format that can represent a variety of data structures, including one- and two-dimensional data, and is used within certain organizations for recording raw RF signals to file.  I.e., within the context of RF/SDR, Blue files can be thought of as an IQ file format. Blue files are used within the X-Midas signal processing framework, along with its offshoots Midas 2k (C++), NeXtMidas (Java), and XMPy (Python). For those who have heard of REDAWK, part of NeXtMidas is embedded within it. Some applications produce Blue files using the file extension :code:`.blue`, while others will use :code:`.cdif`, they are the same underlying format though.
+
+Blue files are binary files with three components in the following order:
+
+1. 512-byte header containing file metadata
+2. Data, in our case binary IQ (ints or floats in form IQIQIQ...)
+3. Optional "Extended Header" (a.k.a. tailing bytes) containing auxiliary metadata, in the form of arbitrary key/value pairs
+
+Fields contained within the header are described on `this page <https://sigplot.lgsinnovations.com/html/doc/bluefile.html>`_.  Important ones for us include:
+
+- Byte 52: Data format code, two characters.  The first character indicates whether it is real (S) or complex (C).  The second character designates the data type, where :code:`B` is a 8-bit signed integer, :code:`I` 16-bit signed integer, :code:`L` 32-bit signed integer, :code:`F` 32-bit float, :code:`D` 64-bit float.
+- Byte 8: Data representation, four characters, where :code:`IEEE` means big-endian and :code:`EEEI` means little-endian (most common)
+- Byte 24: Extended header start, an int32, in 512-byte blocks
+- Byte 28: Extended header size, an int32, represented in bytes
+- Byte 264: Time interval between samples, i.e. 1/sample_rate, as a float64 in seconds
+
+So for example, :code:`CI` is equivalent to SigMF's :code:`ci16_le`, and :code:`CF` is SigMF's :code:`cf32_le`.  Even though the extended header (i.e., tailing bytes) has its length and start position specified, the lazy approach is to just ignore the last few thousand IQ samples of the file and you'll almost certainly avoid the extended header and thus reading in garbage IQ values.
+
+The Python code to read in the fields discussed above, as well as the IQ samples, is as follows:
+
+.. code-block:: python
+
+    import numpy as np
+    import os
+    import matplotlib.pyplot as plt
+
+    filename = 'yourfile.blue' # or cdif
+
+    filesize = os.path.getsize(filename)
+    print('File size', filesize, 'bytes')
+    with open(filename, 'rb') as f:
+        header = f.read(512)
+
+    # Decode the header
+    dtype = header[52:54].decode('utf-8') # eg 'CI'
+    endianness = header[8:12].decode('utf-8') # better be 'EEEI'! we'll assume it is from this point on
+    extended_header_start = int.from_bytes(header[24:28], byteorder='little') * 512 # in units of bytes
+    extended_header_size = int.from_bytes(header[28:32], byteorder='little')
+    if extended_header_size != filesize - extended_header_start:
+        print('Warning: extended header size seems wrong')
+    time_interval = np.frombuffer(header[264:272], dtype=np.float64)[0]
+    sample_rate = 1/time_interval
+    print('Sample rate', sample_rate/1e6, 'MHz')
+
+    # Read in the IQ samples
+    if dtype == 'CI':
+        samples = np.fromfile(filename, dtype=np.int16, offset=512, count=(filesize-extended_header_size))
+        samples = samples[::2] + 1j*samples[1::2] # convert to IQIQIQ...
+
+    # Plot every 1000th sample to make sure there's no garbage
+    print(len(samples))
+    plt.plot(samples.real[::1000])
+    plt.show()
+
+The "Extended Header" (a.k.a. tailing bytes), which are arbitrary key/value pairs, are described in a format specified in Section 3.3 of the `Blue File Format Specs <https://web.archive.org/web/20150413061156/http://nextmidas.techma.com/nm/nxm/sys/docs/MidasBlueFileFormat.pdf>`_.  It will often contain information like the RF frequency, gain, and receiver/SDR used. The Python code for decoding these key/value pairs is shown below, adapted from `this code <https://github.com/tkzilla/rsa_api_sandbox/blob/master/cdif_reader.py>`_:
+
+.. code-block:: python
+
+    ...
+
+    # Read in the extended header at the end of the file
+    with open(filename, 'rb') as f:
+        f.seek(filesize-extended_header_size)
+        ext_header = f.read(extended_header_size)
+        print("length of extended header", len(ext_header), '\n')
+
+    def parse_extended_header(idx):
+        next_offset = np.frombuffer(ext_header[idx:idx+4], dtype=np.int32)[0]
+        non_data_length = np.frombuffer(ext_header[idx+4:idx+6], dtype=np.int16)[0]
+        name_length = ext_header[idx+6]
+        dataStart = idx + 8
+        dataLength = dataStart + next_offset - non_data_length
+        midas_to_np = {'O' : np.uint8, 'B' : np.int8, 'I' : np.int16, 'L' : np.int32, 'X' : np.int64, 'F' : np.float32, 'D' : np.float64}
+        format_code = chr(ext_header[idx+7])
+        if format_code == 'A':
+            val = ext_header[dataStart:dataLength].decode('latin_1')
+        else:
+            val = np.frombuffer(ext_header[dataStart:dataLength], dtype=midas_to_np[format_code])[0]
+        key = ext_header[dataLength:dataLength+name_length].decode('latin_1')
+        print(key, '  ', val)
+        return idx + next_offset
+
+    next_idx = 0
+    while next_idx < extended_header_size:
+        next_idx = parse_extended_header(next_idx)
+
+As a side note, Blue files and other binary IQ formats with metadata and data within the same file are why SigMF contains a variant called Non-Conforming Datasets (NCDs) which allow binary IQ files with extra bytes at the start and/or end (used for metadata) to be forced into a SigMF type format.  For more information see the SigMF metadata fields: dataset, header_bytes, trailing_bytes.  I.e., purely from a data-reading perspective, we can treat a Blue file like a normal binary IQ file as long as we ignore the first 512 bytes and any extended header bytes at the end.
+
+External resources related to Blue files:
+
+#.  https://web.archive.org/web/20150413061156/http://nextmidas.techma.com/nm/nxm/sys/docs/MidasBlueFileFormat.pdf
+#.  https://sigplot.lgsinnovations.com/html/doc/bluefile.html
+#.  https://lgsinnovations.github.io/sigfile/bluefile.js.html
+#.  http://nextmidas.com.s3-website-us-gov-west-1.amazonaws.com/
+#.  https://web.archive.org/web/20181020012349/http://nextmidas.techma.com/nm/htdocs/usersguide/BlueFiles.html
+#.  https://github.com/Geontech/XMidasBlueReader

@@ -10,7 +10,7 @@ Marc también es uno de los protagonistas del `GNU Radio project <https://www.gn
 
 Marc vive actualmente en el área de DC con su esposa Lindsey y sus muchos perros y gatos. Sus pasatiempos incluyen trabajar la madera, cortar con láser, tocar el clarinete y el saxo, navegar, hacer jardinería, construir o volar drones, construir o montar patinetas eléctricas y practicar yo-yo avanzado.
 
-Email: pysdr@vt.edu
+Email: marc@pysdr.org
 
 University of Maryland faculty page: `cs.umd.edu/people/sdr <https://www.cs.umd.edu/people/sdr>`_
 

@@ -323,103 +323,8 @@ Dit kan lastig zijn om te vatten want we passen het filter toe op een signaal en
 
 Maak je geen zorgen als dit stuk nog meer verwarring heeft veroorzaakt, 99% van de tijd gebruiken we alleen laagdoorlaatfilters met reële coëfficiënten.
 
-*************************
-Filterimplementatie
-*************************
-
-We zullen niet te diep in de stof van filterimplementatie duiken.
-Ik leg liever de nadruk op filterontwerp (je kunt toch bruikbare implementaties vinden voor elke taal).
-Voor nu draait het om een ding: Om een signaal met een FIR-filter te filteren voer je convolutie uit tussen de impulsrespons (de coëfficiënten) en het ingangssignaal.
-In de discrete wereld gebruiken we digitale convolutie (voorbeeld hieronder).
-
-De driehoeken met een :math:`b_x` ernaast zijn de coëfficiënten en de driehoeken met :math:`z^{-1}` geven een vertraging van 1 tijdstap aan.
-
-.. image:: ../_images/discrete_convolution.png
-   :scale: 80 % 
-   :align: center 
-   :alt: Implementation of a finite impulse response (FIR) filter with delays and taps and summations
-
-Je ziet nu misschien wel waarom de coëfficiënten in het Engels "taps" worden genoemd, dit komt voort uit hoe het filter wordt geïmplementeerd.
-
-FIR tegenover IIR
-#################
-
-Er zijn grofweg twee verschillende typen filters: FIR en IIR
-
-1. Finite impulse response (FIR)
-2. Infinite impulse response (IIR)
-
-We zullen niet diep op de theorie ingaan, maar onthoud voor nu dat FIR filters gemakkelijker te ontwerpen zijn en alles kunnen doen als er maar genoeg coëfficiënten worden gegeven.
-IIR-filters zijn efficiënter en zouden hetzelfde kunnen bereiken met minder coëfficiënten maar ook met het risico dat het filter instabiel wordt en niet goed werkt.
-Als een lijst coëfficiënten wordt gegeven, dan is dit over het algemeen voor een FIR-filter.
-Als er wordt gesproken over "polen" dan betreft het een IIR-filter.
-In dit boek zullen we het bij FIR-filters houden.
-
-Het onderstaande figuur laat het verschil zien tussen een FIR en IIR-filter. Ze hebben hetzelfde gedrag maar het FIR-filter gebruikt 50 coëfficiënten en het IIR filter maar 12. Toch hebben ze beiden ongeveer dezelfde transitiebreedte.
-
-.. image:: ../_images/FIR_IIR.png
-   :scale: 70 % 
-   :align: center 
-   :alt: Comparing finite impulse response (FIR) and infinite impulse response (IIR) filters by observing frequency response
-
-Wat je hieruit kunt leren is dat het FIR-filter veel meer computerkracht vereist dan een IIR-filter voor hetzelfde gedrag.
-
-Hieronder staan wat voorbeelden van FIR en IIR-filters die je misschien in het echt al hebt gebruikt.
-
-Wanneer je een "moving average" (voortschrijdend gemiddelde) filter over een lijst getallen toepast, dan is dat gewoon een FIR-filter met coëfficiënten van 1.  
-
-Vragen: Het is ook een laagdoorlaatfilter; waarom? Wat is het verschil tussen coëfficiënten van alleen 1'en of coëfficiënten die richting 0 vervallen?
-
-.. raw:: html
-
-   <details>
-   <summary>Antwoorden</summary>
-
-Een "moving average" filter is een laagdoorlaatfilter omdat het snelle veranderingen uitsmeert, de reden waarom mensen het willen gebruiken.
-Een reden om coëfficiënten te gebruiken die aan beide kanten richting 0 gaan is om plotselinge verandering aan de uitgang te voorkomen, zoals zou gebeuren als de ingang een tijd nul is en dan plotseling omhoog springt.
-
-.. raw:: html
-
-   </details>
-
-Voor een IIR-voorbeeld. Als je zoiets hebt gedaan:
-
-    x = x*0.99 + nieuwe_waarde*0.01
-
-Waar de 0.99 en 0.01 de snelheid aangeven waarmee de waarde verandert.
-Dit is een handige manier om een variabele te veranderen zonder de vorige waarden te onthouden.
-Dit is een laagdoorlaat IIR-filter.
-Hopelijk kun je zien waarom dit minder stabiel is. De waarden zullen nooit volledig verdwijnen!
-
-*************************
-Filterontwerptools
-*************************
-
-In de praktijk gebruiken de meeste mensen een ontwerptool of een functie om het filter te ontwerpen.
-Er zijn veel van zulk soort tools maar de studenten raad ik aan om deze gemakkelijke web app te gebruiken: http://t-filter.engineerjs.com. Het is gemaakt door Peter Isza en laat je de impuls- en frequentierespons zien. 
-Op het moment van schrijven is de tool standaard ingesteld op een laagdoorlaatfilter met een doorlaatband van 0 tot 400 Hz en een stopband van 500 Hz en hoger.
-De sample-frequentie staat ingesteld op 2 kHz, dus de maximaal "zichtbare" frequentie is 1 kHz.
-
-.. image:: ../_images/filter_designer1.png
-   :scale: 70 % 
-   :align: center 
-
-Klik op de "Design Filter" knop om de coëfficiënten te genereren en de frequentierespons te weergeven.
-
-.. image:: ../_images/filter_designer2.png
-   :scale: 70 % 
-   :align: center 
-
-Klik op de "Impulse Response" link boven de grafiek om de impulsrespons te zien, wat een weergave is van de coëfficiënten omdat dit een FIR filter betreft.
-
-.. image:: ../_images/filter_designer3.png
-   :scale: 70 % 
-   :align: center 
-
-De app kan zelfs de C broncode genereren waarmee je dit filter kunt implementeren en gebruiken.
-De app heeft geen manier om een IIR-filter te implementeren omdat deze over het algemeen veel lastiger zijn om te ontwerpen.
-
 .. _convolution_nl-section:
+
 *************************
 Convolutie
 *************************
@@ -433,7 +338,7 @@ Convolutie is een andere manier om twee signalen te combineren, maar het is comp
 Convolutie van twee signalen is alsof je ze over elkaar schuift en dan integreert.
 Het lijkt *enorm* op kruiscorrelatie, als je daar bekend mee bent.
 Het is in veel gevallen eigenlijk hetzelfde als kruiscorrelatie.
-Meestal gebruiken we het ::code::`*` symbool om convolutie aan te geven.
+Meestal gebruiken we het :code:`*` symbool om convolutie aan te geven.
 
 Ik ben overtuigd dat je convolutie het beste leert met hulp van voorbeelden.
 In dit eerste voorbeeld convolueren we twee blokgolven met elkaar.
@@ -514,9 +419,235 @@ Meestal wordt het kortere signaal gebruikt als zijnde :math:`g(t)`.
 Convolutie staat gelijk aan de kruiscorrelatie, :math:`\int f(\tau) g(t+\tau)`, in het geval dat :math:`g(t)` symmetrisch is, dus wanneer het omdraaien geen effect heeft.
 
 *************************
-Filterontwerp in Python
+Filterimplementatie
 *************************
-Nu gaan we een manier bekijken om in Python FIR-filters te ontwerpen.
+
+We zullen niet te diep in de stof van filterimplementatie duiken.
+Ik leg liever de nadruk op filterontwerp (je kunt toch bruikbare implementaties vinden voor elke taal).
+Voor nu draait het om een ding: Om een signaal met een FIR-filter te filteren voer je convolutie uit tussen de impulsrespons (de coëfficiënten) en het ingangssignaal.
+In de discrete wereld gebruiken we digitale convolutie (voorbeeld hieronder).
+
+De driehoeken met een :math:`b_x` ernaast zijn de coëfficiënten en de driehoeken met :math:`z^{-1}` geven een vertraging van 1 tijdstap aan.
+
+.. image:: ../_images/discrete_convolution.png
+   :scale: 80 % 
+   :align: center 
+   :alt: Implementation of a finite impulse response (FIR) filter with delays and taps and summations
+
+Je ziet nu misschien wel waarom de coëfficiënten in het Engels "taps" worden genoemd, dit komt voort uit hoe het filter wordt geïmplementeerd.
+
+FIR tegenover IIR
+#################
+
+Er zijn grofweg twee verschillende typen filters: FIR en IIR
+
+1. Finite impulse response (FIR)
+2. Infinite impulse response (IIR)
+
+We zullen niet diep op de theorie ingaan, maar onthoud voor nu dat FIR filters gemakkelijker te ontwerpen zijn en alles kunnen doen als er maar genoeg coëfficiënten worden gegeven.
+IIR-filters zijn efficiënter en zouden hetzelfde kunnen bereiken met minder coëfficiënten maar ook met het risico dat het filter instabiel wordt en niet goed werkt.
+Als een lijst coëfficiënten wordt gegeven, dan is dit over het algemeen voor een FIR-filter.
+Als er wordt gesproken over "polen" dan betreft het een IIR-filter.
+In dit boek zullen we het bij FIR-filters houden.
+
+Het onderstaande figuur laat het verschil zien tussen een FIR en IIR-filter. Ze hebben hetzelfde gedrag maar het FIR-filter gebruikt 50 coëfficiënten en het IIR filter maar 12. Toch hebben ze beiden ongeveer dezelfde transitiebreedte.
+
+.. image:: ../_images/FIR_IIR.png
+   :scale: 70 % 
+   :align: center 
+   :alt: Comparing finite impulse response (FIR) and infinite impulse response (IIR) filters by observing frequency response
+
+Wat je hieruit kunt leren is dat het FIR-filter veel meer computerkracht vereist dan een IIR-filter voor hetzelfde gedrag.
+
+Hieronder staan wat voorbeelden van FIR en IIR-filters die je misschien in het echt al hebt gebruikt.
+
+Wanneer je een "moving average" (voortschrijdend gemiddelde) filter over een lijst getallen toepast, dan is dat gewoon een FIR-filter met coëfficiënten van 1.  
+
+Vragen: Het is ook een laagdoorlaatfilter; waarom? Wat is het verschil tussen coëfficiënten van alleen 1'en of coëfficiënten die richting 0 vervallen?
+
+.. raw:: html
+
+   <details>
+   <summary>Antwoorden</summary>
+
+Een "moving average" filter is een laagdoorlaatfilter omdat het snelle veranderingen uitsmeert, de reden waarom mensen het willen gebruiken.
+Een reden om coëfficiënten te gebruiken die aan beide kanten richting 0 gaan is om plotselinge verandering aan de uitgang te voorkomen, zoals zou gebeuren als de ingang een tijd nul is en dan plotseling omhoog springt.
+
+.. raw:: html
+
+   </details>
+
+Voor een IIR-voorbeeld. Als je zoiets hebt gedaan:
+
+    x = x*0.99 + nieuwe_waarde*0.01
+
+Waar de 0.99 en 0.01 de snelheid aangeven waarmee de waarde verandert.
+Dit is een handige manier om een variabele te veranderen zonder de vorige waarden te onthouden.
+Dit is een laagdoorlaat IIR-filter.
+Hopelijk kun je zien waarom dit minder stabiel is. De waarden zullen nooit volledig verdwijnen!
+
+*************************
+Filterontwerp
+*************************
+
+In de praktijk gebruiken de meeste mensen een ontwerptool of een softwarefunctie (bijv. Python/SciPy) om het filter te ontwerpen.
+We zullen eerst laten zien wat mogelijk is binnen Python voordat we naar externe tools gaan kijken. Onze focus ligt op FIR filters, omdat deze het meest worden toegepast voor digitale signaalbewerking.
+
+Binnen Python
+#################
+
+Als onderdeel van het ontwerpen van een filter, dus de coëfficiënten genereren voor onze gewenste respons, moeten we het type filter kiezen (laagdoorlaat, hoogdoorlaat, banddoorlaat of bandstop), de kantelfrequentie/frequenties, het aantal coëfficiënten en optioneel de transitiebreedte.
+
+Er zijn twee manieren in SciPy die we zullen gebruiken om FIR-filters te ontwerpen, beide gebruiken de zogenaamde "raam-methode". Als eerste is er :code:`scipy.signal.firwin()` wat het meest rechttoe rechtaan is; het geeft de coëfficiënten voor een FIR-filter met een lineaire fase. De functie heeft het aantal coëfficiënten en kantelfrequentie nodig (voor laagdoorlaat/hoogdoorlaat) en twee kantelfrequenties voor banddoorlaat/bandstop. Optioneel kun je de transitiebreedte geven. Als je de samplefrequentie via :code:`fs` doorgeeft, dan zijn de eenheden van je kantelfrequentie en transitiebreedte in Hz, maar als je het niet meegeeft dan zijn de frequenties genormaliseerd (0 tot 1 Hz). Het :code:`pass_zero` argument is standaard :code:`True`, maar als je een hoogdoorlaat- of banddoorlaatfilter wilt, dan moet je het op :code:`False` zetten; het geeft aan of 0 Hz in de doorlaatband moet zitten. Het wordt aangeraden om een oneven aantal coëfficiënten te gebruiken, en 101 coëfficiënten is een goed startpunt. Laten we bijvoorbeleld een banddoorlaatfilter maken van 100 kHz tot 200 kHz met een samplefrequentie van 1 MHz:
+
+.. code-block:: python
+
+   from scipy.signal import firwin
+   sample_rate = 1e6
+   h = firwin(101, [100e3, 200e3], pass_zero=False, fs=sample_rate)
+   print(h)
+
+De andere optie is om :code:`scipy.signal.firwin2()` te gebruiken, wat flexibeler is en gebruikt kan worden om filters met een aangepaste frequentierespons te ontwerpen, omdat je een lijst van frequenties en de gewenste versterking bij elke frequentie geeft. Het vereist ook het aantal coëfficiënten en ondersteunt dezelfde :code:`fs` parameter als hierboven genoemd. Laten we als voorbeeld een filter maken met een laagdoorlaatgebied tot 100 kHz, en een apart banddoorlaatgebied van 200 kHz tot 300 kHz, maar met de helft van de versterking van het laagdoorlaatgebied, en we zullen een transitiebreedte van 10 kHz gebruiken:
+
+.. code-block:: python
+
+   from scipy.signal import firwin2
+   sample_rate = 1e6
+   freqs = [0, 100e3, 110e3, 190e3, 200e3, 300e3, 310e3, 500e3]
+   gains = [1, 1,     0,     0,     0.5,   0.5,   0,     0]
+   h2 = firwin2(101, freqs, gains, fs=sample_rate)
+   print(h2)
+
+Om het FIR filter ook echt op een signaal toe te kunnen passen zijn er verschillende opties, en ze vereisen allemaal een convolutie-operatie tussen de samples die we willen filteren en de coëfficiënten die we hierboven hebben gegenereerd: 
+
+- :code:`np.convolve`
+- :code:`scipy.signal.convolve`
+- :code:`scipy.signal.fftconvolve`
+- :code:`scipy.signal.lfilter`
+
+De bovenstaande convolutiefuncties hebben allemaal een :code:`mode` argument die de opties :code:`'full'`, :code:`'valid'`, of :code:`'same'` accepteert. Het verschil zit in de grootte van de uitvoer, omdat bij het uitvoeren van een convolutie, zoals we eerder in dit hoofdstuk hebben gezien, er aan het begin en einde overgangsverschijnselen kunnen ontstaan. De :code:`'valid'` optie bevat geen overgangsverschijnselen, maar de uitvoer zal iets kleiner zijn dan het signaal dat aan de functie is gegeven. De :code:`'same'` optie geeft een uitvoer die even groot is als het ingangssignaal, wat handig is bij het bijhouden van tijd of andere tijd-domein signaal eigenschappen. De :code:`'full'` optie bevat alle overgangsverschijnselen; het geeft de volledige convolutieresultaat.
+
+Nu gaan we alle vier convolutiefuncties op een testsignaal van witte Gausische-ruis toepassen met de filtercoefficienten die we hierboven hebben gemaakt. Let op dat :code:`lfilter` een extra argument heeft (de 2e) die altijd 1 is voor een FIR-filter.
+
+.. code-block:: python
+
+    import numpy as np
+    from scipy.signal import firwin2, convolve, fftconvolve, lfilter
+
+    # Maak een testsignaal met gauschische ruis
+    sample_rate = 1e6 # Hz
+    N = 1000 # samples to simulate
+    x = np.random.randn(N) + 1j * np.random.randn(N)
+
+    # We maken weer het fir filter zoals hierboven
+    freqs = [0, 100e3, 110e3, 190e3, 200e3, 300e3, 310e3, 500e3]
+    gains = [1, 1,     0,     0,     0.5,   0.5,   0,     0]
+    h2 = firwin2(101, freqs, gains, fs=sample_rate)
+
+    # Het filter toepassen met de verschillende convolutiemethoden
+    x_numpy = np.convolve(h2, x)
+    x_scipy = convolve(h2, x) # scipys convolve
+    x_fft_convolve = fftconvolve(h2, x)
+    x_lfilter = lfilter(h2, 1, x) # Tweede argument is altijd 1 voor een FIR-filter
+
+    # Bewijs dat ze allemaal hetzelfde resultaat geven
+    print(x_numpy[0:2])
+    print(x_scipy[0:2])
+    print(x_fft_convolve[0:2])
+    print(x_lfilter[0:2])
+
+Bovenstaande code laat zien hoe je de vier methoden kunt gebruiken, maar misschien vraag je je af welke het beste is. De onderstaande grafieken laten alle vier methoden zien voor verschillende hoevelheid coefficienten. Het werd uitgevoerd op een Intel Core i9-10900K.
+
+.. image:: ../_images/convolve_comparison_1000.svg
+   :align: center 
+   :target: ../_images/convolve_comparison_1000.svg
+
+.. image:: ../_images/convolve_comparison_100000.svg
+   :align: center 
+   :target: ../_images/convolve_comparison_100000.svg
+
+Zoals je kunt zien, schakelt :code:`scypi.signal.convolve` automatisch over naar een FFT-gebaseerde methode bij een bepaalde invoergrootte. Hoe dan ook, :code:`fftconvolve` is de duidelijke winnaar voor deze grootte van coëfficiënten en invoer, wat vrij typische groottes zijn in RF-toepassingen. Veel code binnen PySDR gebruikt :code:`np.convolve:` simpelweg omdat het een import minder is en het prestatieverschil verwaarloosbaar is voor lage datarates of niet real-time toepassingen. 
+
+Als laatste laten we dezelfde uitvoer in het frequentiedomein zien, zodat we eindelijke kunnen controleren of de firwin2-functie ook echt een filter heeft gegeven wat aan onze eisen voldoet. We beginnen met de code die ons :code:`h2` gaf:
+
+.. code-block:: python
+
+    # Simuleer een signaal van Gausische ruis
+    N = 100000 # signaallengte
+    x = np.random.randn(N) + 1j * np.random.randn(N) # complex signaal
+
+    # PSD van het ingangssignaal
+    PSD_input = 10*np.log10(np.fft.fftshift(np.abs(np.fft.fft(x))**2)/len(x))
+
+    # Filter toepassen
+    x = fftconvolve(x, h2, 'same')
+
+    # PSD van de uitgang laten zien
+    PSD_output = 10*np.log10(np.fft.fftshift(np.abs(np.fft.fft(x))**2)/len(x))
+    f = np.linspace(-sample_rate/2/1e6, sample_rate/2/1e6, len(PSD_output))
+    plt.plot(f, PSD_input, alpha=0.8)
+    plt.plot(f, PSD_output, alpha=0.8)
+    plt.xlabel('Frequency [MHz]')
+    plt.ylabel('PSD [dB]')
+    plt.axis([sample_rate/-2/1e6, sample_rate/2/1e6, -40, 20])
+    plt.legend(['Input', 'Output'], loc=1)
+    plt.grid()
+    plt.savefig('../_images/fftconvolve.svg', bbox_inches='tight')
+    plt.show()
+
+We zien dat het banddoorlaatgebied 3 dB lager ligt dan het laagdoorlaatgebied:
+
+.. image:: ../_images/fftconvolve.svg
+   :align: center 
+   :target: ../_images/fftconvolve.svg
+
+Buiten dit is er nog een obscure optie om een signaal te filteren genaamd :code:`scipy.signal.filtfilt`, wat "zero-phase filtering" uitvoert, wat helpt om kenmerken in een gefilterd tijdsignaal precies te behouden waar ze voorkomen in het ongefilterde signaal. Dit wordt gedaan door de filtercoëfficiënten twee keer toe te passen, eerst in de voorwaartse richting en dan in de omgekeerde richting. Dus de frequentierespons zal een gekwadrateerde versie zijn van wat je normaal zou krijgen. Voor meer informatie zie https://www.mathworks.com/help/signal/ref/filtfilt.html of https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html.
+
+Stateful Filtering
+##################
+
+Als je een filter real-time wilt toepassen op opvolgende blokken van samples, dan heb je een stateful filter nodig. Dit betekent dat je elke aanroep de initiële condities geeft die uit de vorige aanroep van het filter zijn gehaald. Dit verwijdert overgangsverschijnselen die optreden wanneer een signaal start en stopt (immers, de samples die je tijdens opvolgende blokken invoert zijn aaneengesloten, mits je toepassing het kan bijhouden). De toestand moet tussen aanroepen worden opgeslagen, en moet ook aan het begin van je code worden geïnitialiseerd voor de eerste filteraanroep. Gelukkig bevat SciPy :code:`lfilter_zi` dat initiële condities voor lfilter genereert. Hieronder staat een voorbeeld van het verwerken van blokken aaneengesloten samples met stateful filtering:
+
+.. code-block:: python
+
+    b = taps
+    a = 1 # voor FIR, niet-1 voor IIR
+    zi = lfilter_zi(b, a) # bereken de initiële condities
+    while True:
+        samples = sdr.read_samples(num_samples) # Vervang dit met de functie van jouw SDR
+        samples_filtered, zi = lfilter(b, a, samples, zi=zi) # filter toepassen
+
+Externe Tools
+#################
+
+Je kunt ook externe tools gebruiken om een eigen filter te ontwerpen. Voor studenten raad ik aan om deze gemakkelijke web app te gebruiken: http://t-filter.engineerjs.com. Het is gemaakt door Peter Isza en laat je de impuls- en frequentierespons zien. 
+Op het moment van schrijven is de tool standaard ingesteld op een laagdoorlaatfilter met een doorlaatband van 0 tot 400 Hz en een stopband van 500 Hz en hoger.
+De sample-frequentie staat ingesteld op 2 kHz, dus de maximaal "zichtbare" frequentie is 1 kHz.
+
+.. image:: ../_images/filter_designer1.png
+   :scale: 70 % 
+   :align: center 
+
+Klik op de "Design Filter" knop om de coëfficiënten te genereren en de frequentierespons te weergeven.
+
+.. image:: ../_images/filter_designer2.png
+   :scale: 70 % 
+   :align: center 
+
+Klik op de "Impulse Response" link boven de grafiek om de impulsrespons te zien, wat een weergave is van de coëfficiënten omdat dit een FIR filter betreft.
+
+.. image:: ../_images/filter_designer3.png
+   :scale: 70 % 
+   :align: center 
+
+De app kan zelfs de C broncode genereren waarmee je dit filter kunt implementeren en gebruiken.
+De app heeft geen manier om een IIR-filter te implementeren omdat deze over het algemeen veel lastiger zijn om te ontwerpen.
+
+
+********************************
+Willekeurige frequentieresponsie
+********************************
+Nu gaan we een manier bekijken om in Python FIR-filters te ontwerpen op basis van onze gewenste frequentieresponsie.
 Er zijn vele manieren om een filter te ontwerpen, wij zullen in het frequentiedomein starten en terugwerken naar de impulsrespons. Uiteindelijk wordt het filter ook zo beschreven (in coëfficiënten).
 
 Je begint met jouw gewenste frequentierespons in een vector plaatsen.

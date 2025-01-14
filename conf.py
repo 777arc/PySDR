@@ -26,6 +26,7 @@ if creator_id:
         # Manual substitutions to make it look nicer
         full_name = full_name.replace("Jon Kraft, Analog Devices", "Jon Kraft")
         full_name = full_name.replace("vince baker", "Vince Baker")
+        full_name = full_name.replace("meh", "MH")
         if full_name == "Дмитрий Ступаков":
             continue
         if full_name == "Al Grant":
@@ -193,7 +194,7 @@ html_sidebars = {
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {'description':'By <a href="https://pysdr.org/content/about_author.html">Dr. Marc Lichtman</a> - pysdr@vt.edu',
+html_theme_options = {'description':'By <a href="https://pysdr.org/content/about_author.html">Dr. Marc Lichtman</a> - marc@pysdr.org',
                       'logo': 'logo.svg',
                       'logo_name': True, # used if the logo doesn't contain the project name itself
                       'fixed_sidebar': True, # on smaller screens you can't see the whole sidebar, and it won't scroll
@@ -265,7 +266,8 @@ html_css_files = ['custom.css',]
 html_js_files = [
     'js/beamforming_slider_app.js',
     'js/FFT.js',
-    'js/cyclostationary_app.js'
+    'js/cyclostationary_app.js',
+    'js/homepage_app.js'
 ]
 
 # Add any extra paths that contain custom files (such as robots.txt or

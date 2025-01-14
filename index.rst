@@ -1,11 +1,13 @@
-==========================================
-PySDR: A Guide to SDR and DSP using Python
-==========================================
+.. raw:: html
+   :file: _templates/homepage.html
 
-by :ref:`Dr. Marc Lichtman<author-chapter>`
+.. raw:: html
+
+   <details>
+   <summary><h4 style="display: inline;">Expand for full table of contents</h4></summary>
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :numbered: 1
 
    content/intro
@@ -16,6 +18,7 @@ by :ref:`Dr. Marc Lichtman<author-chapter>`
    content/usrp
    content/bladerf
    content/rtlsdr
+   content/hackrf
    content/noise
    content/filters
    content/link_budgets
@@ -30,3 +33,7 @@ by :ref:`Dr. Marc Lichtman<author-chapter>`
    content/cyclostationary
    content/pyqt
    content/about_author
+
+.. raw:: html
+
+   </details>

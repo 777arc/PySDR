@@ -18,6 +18,7 @@
    content-zh/noise
    content-zh/filters
    content-zh/link_budgets
+   content-zh/channel_coding
    content-zh/iq_files
    content-zh/multipath_fading
    content-zh/about_author

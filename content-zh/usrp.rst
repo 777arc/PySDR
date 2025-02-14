@@ -324,3 +324,28 @@ Python 玩转 USRP
 如果以上代码没有按照预期运行，但是又没有报错，你可以尝试把 3.0 改为 1.0 到 5.0 之间的任意值试试。你也可以在调用 :code:`recv()` 后检查元数据，即检查 :code:`if metadata.error_code != uhd.types.RXMetadataErrorCode.none:` 。
 
 为了 Debug，你可以通过检查 :code:`usrp.get_mboard_sensor("ref_locked", 0)` 的返回值来验证 10 MHz 信号是否传递到了 USRP。而对于 PPS 信号而言，如果它没有传递到 USRP，那么上面代码中的第一个 while 循环将永远不会结束。
+
+****
+GPIO
+****
+
+大多数 USRP 都包含一个 GPIO 接头。在 B200/B210 上，它是 J504 接头，而在 X310 上则位于前面板。
+
+为了介绍 GPIO，首先我们定义一些 Ettus 的术语： **CTRL** 设置引脚是否 ATR（automatic，自动）控制（1 表示 ATR 控制，0 表示手动控制）。**DDR** （Data Direction Register， 数据方向寄存器）设置 GPIO 是输出（0）还是输入（1）。 **OUT** 用于手动设置引脚的值（仅在手动 CTRL 模式下使用）。
+
+以使用 X310 前面的 “AUX I/O” 接头作为 GPIO 输出为例，更多信息请参见 `此文档 <https://files.ettus.com/manual/page_gpio_api.html>`_ 。
+
+.. code-block:: python
+
+  import uhd
+  import time
+  usrp = uhd.usrp.MultiUSRP()
+  usrp.set_gpio_attr('FP0A', 'CTRL', 0x000, 0xFFF)
+  usrp.set_gpio_attr('FP0A', 'DDR', 0xFFF, 0xFFF)
+  for i in range(10):
+      print("Off")
+      usrp.set_gpio_attr('FP0A', 'OUT', 0x000, 0xFFF)
+      time.sleep(1)
+      print("On")
+      usrp.set_gpio_attr('FP0A', 'OUT', 0xFFF, 0xFFF)
+      time.sleep(1)

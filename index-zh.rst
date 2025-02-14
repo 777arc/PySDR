@@ -1,11 +1,13 @@
-==========================================
-PySDR：使用 Python 玩转 SDR 和 DSP
-==========================================
+.. raw:: html
+   :file: _templates/homepage_zh.html
 
-作者： :ref:`Dr. Marc Lichtman<author-chapter>`
+.. raw:: html
+
+   <details>
+   <summary><h4 style="display: inline;">展开目录</h4></summary>
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :numbered: 1
 
    content-zh/intro
@@ -16,6 +18,7 @@ PySDR：使用 Python 玩转 SDR 和 DSP
    content-zh/noise
    content-zh/filters
    content-zh/link_budgets
+   content-zh/channel_coding
    content-zh/iq_files
    content-zh/multipath_fading
    content-zh/about_author

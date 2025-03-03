@@ -1,0 +1,28 @@
+[project]
+name = "TBD"
+version = "0.0.1"
+dependencies = [
+  "numpy",
+  "matplotlib",
+  "scipy",
+  "scikit-learn",
+]
+requires-python = ">=3.8"
+authors = [
+  {name = "Marc Lichtman", email = "pysdr@vt.edu"}
+]
+maintainers = [
+  {name = "Marc Lichtman", email = "pysdr@vt.edu"}
+]
+description = "Python modules and example scripts used to genereate PySDR textbook figures, as well as starter code for users"
+readme = "README.md"
+license = {file = "LICENSE.md"}
+keywords = ["SDR", "RF", "radio", "DSP", "signals"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python"
+]
+
+[project.urls]
+Homepage = "https://pysdr.org/"
+Repository = "https://github.com/777arc/PySDR"

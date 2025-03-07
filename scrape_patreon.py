@@ -30,8 +30,8 @@ def scrape_patreon():
             if full_name == "Al Grant":
                 names.append('Al Grant <img width="15px" height="12px" src="https://pysdr.org/_static/kiwi-bird.svg">')
                 continue
-            if full_name == "Hash":
-                names.append('<a href="https://www.youtube.com/@RECESSIM" style="border-bottom: 0;" target="_blank">Hash <img width="15px" height="12px" src="https://pysdr.org/_static/hash.svg"></a>')
+            if full_name == "Hash" or full_name == "RECESSIM":
+                names.append(f'<a href="https://www.youtube.com/@RECESSIM" style="border-bottom: 0;" target="_blank">{full_name} <img width="15px" height="12px" src="https://pysdr.org/_static/hash.svg"></a>')
                 continue
             names.append(full_name) # there's also 'first_name' which might be better for a public display name
         # Patreon Supporters

@@ -2,9 +2,9 @@
 # textbook documentation build configuration file, created by sphinx-quickstart on Thu Nov 15 16:36:13 2018.
 
 from datetime import datetime
-#import sys, os
-#sys.path.append(os.path.relpath('.'))
 
+import sys, os
+sys.path.append(os.path.relpath('.')) # needed for sphinx to allow importing
 from scrape_patreon import scrape_patreon
 scrape_patreon()
 
@@ -21,7 +21,6 @@ scrape_patreon()
 extensions = [
     'sphinx.ext.imgmath',
     'sphinx.ext.autosectionlabel',
-    'scrape_patreon.py',
     #'sphinxcontrib.tikz', #added for dutch
 ]
 imgmath_image_format = 'svg' # way better looking than pngs (its vectorized after all!)

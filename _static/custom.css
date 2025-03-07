@@ -14,10 +14,6 @@ div.sphinxsidebarwrapper {
   padding-right: 0px;
 }
 
-div.sphinxsidebar a {
-  color: #444;
-}
-
 /* Remove the extra 30 pixels of margin at the top of the page */
 div.document {
   margin-top: 0px;

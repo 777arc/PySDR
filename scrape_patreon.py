@@ -1,6 +1,10 @@
 import patreon
 import os
 
+# needed by sphinx
+def setup(app):
+    return
+
 def scrape_patreon():
     creator_id = os.environ.get('CREATOR_ID') # Creator's Access Token from https://www.patreon.com/portal/registration/register-clients
     if creator_id:

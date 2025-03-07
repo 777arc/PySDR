@@ -2,10 +2,6 @@
 # textbook documentation build configuration file, created by sphinx-quickstart on Thu Nov 15 16:36:13 2018.
 
 from datetime import datetime
-import sys
-import os
-
-sys.path.insert(0, os.path.abspath('../'))
 from scrape_patreon import scrape_patreon
 scrape_patreon()
 

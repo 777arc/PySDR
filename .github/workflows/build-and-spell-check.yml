@@ -1,4 +1,4 @@
-name: Spell Check
+name: Build English and Spell Check
 
 on: [pull_request]
 

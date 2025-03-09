@@ -110,7 +110,7 @@ if True:
     f_tone = 1e6
     samples = np.exp(1j * 2 * np.pi * f_tone * t) # will be -1 to +1
     samples = samples.astype(np.complex64)
-    samples *= 32767 # scale so they can be stored as int16s
+    samples *= 2048.0 # Scale to -1 to 1 (its using 12 bit DAC)
     samples = samples.view(np.int16)
     buf = samples.tobytes() # convert our samples to bytes and use them as transmit buffer
 

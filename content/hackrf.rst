@@ -40,11 +40,12 @@ The software install process involves two steps: first we will install the main 
 Installing the HackRF Library
 #############################
 
-The following was tested to work on Ubuntu 22.04 (using commit hash 17f3943 in Sept '24):
+The following was tested to work on Ubuntu 22.04 (using commit hash 17f3943 in March '25):
 
 .. code-block:: bash
 
     git clone https://github.com/greatscottgadgets/hackrf.git
+    git checkout 17f3943
     cd hackrf/host
     mkdir build
     cd build
@@ -125,7 +126,7 @@ Lastly, we must install the HackRF One `Python bindings <https://github.com/Gvoz
 .. code-block:: bash
 
     sudo apt install libusb-1.0-0-dev
-    pip install python_hackrf==1.2.1
+    pip install python_hackrf==1.2.7
 
 We can test the above install by running the following code, if there are no errors (there will also be no output) then everything should be good to go!
 
@@ -233,6 +234,7 @@ After running the code below, if in your time plot, the samples are reaching the
 
     sdr.pyhackrf_stop_rx()
     sdr.pyhackrf_close()
+    pyhackrf.pyhackrf_exit()
 
     samples = samples[100000:] # get rid of the first 100k samples just to be safe, due to transients
 

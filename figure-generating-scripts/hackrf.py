@@ -101,6 +101,7 @@ time.sleep(recording_time)
 
 sdr.pyhackrf_stop_rx()
 sdr.pyhackrf_close()
+pyhackrf.pyhackrf_exit()
 
 samples = samples[100000:] # get rid of the first 100k samples just to be safe, due to transients
 

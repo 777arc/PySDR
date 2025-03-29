@@ -149,7 +149,7 @@ You'll know it worked if you see something like :code:`<BladeRF(<DevInfo(...)>)>
 Windows and macOS
 ###################
 
-For Windows users, see https://github.com/Nuand/bladeRF/wiki/Getting-Started%3A-Windows, and for macOS users, see https://github.com/Nuand/bladeRF/wiki/Getting-started:-Mac-OSX.
+For Windows users (who do not prefer to use WSL), see https://github.com/Nuand/bladeRF/wiki/Getting-Started%3A-Windows, and for macOS users, see https://github.com/Nuand/bladeRF/wiki/Getting-started:-Mac-OSX.
 
 ********************************
 bladeRF Python API Basics
@@ -309,7 +309,7 @@ Each vertical squiggly line is an FM radio signal.  No clue what the pulsing on 
 Transmitting Samples in Python
 ********************************
 
-The process of transmitting samples with the bladeRF is very similar to receiving.  The main difference is that we must generate the samples to transmit, and then write them to the bladeRF using the :code:`sync_tx` method which can handle our entire batch of samples at once (up to ~4B samples).  The code below shows how to transmit a simple tone, and then repeat it 30 times.  The tone is generated using numpy, and then scaled to be between -32767 and 32767, so that it can be stored as int16s.  The tone is then converted to bytes and used as the transmit buffer.  The synchronous stream API is used to transmit the samples, and the :code:`while True:` loop will continue to transmit samples until the number of repeats requested is reached.  If you want to transmit samples from a file instead, simply use :code:`samples = np.fromfile('yourfile.iq', dtype=np.int16)` (or whatever datatype they are) to read the samples, and then convert them to bytes using :code:`samples.tobytes()`.
+The process of transmitting samples with the bladeRF is very similar to receiving.  The main difference is that we must generate the samples to transmit, and then write them to the bladeRF using the :code:`sync_tx` method which can handle our entire batch of samples at once (up to ~4B samples).  The code below shows how to transmit a simple tone, and then repeat it 30 times.  The tone is generated using numpy, and then scaled to be between -2048 and 2048 to fit the 12 bit digital-to-analog converter (DAC).  The tone is then converted to bytes representing int16's and used as the transmit buffer.  The synchronous stream API is used to transmit the samples, and the :code:`while True:` loop will continue to transmit samples until the number of repeats requested is reached.  If you want to transmit samples from a file instead, simply use :code:`samples = np.fromfile('yourfile.iq', dtype=np.int16)` (or whatever datatype they are) to read the samples, and then convert them to bytes using :code:`samples.tobytes()`, although keep in mind the -2048 to 2048 range of the DAC.
 
 .. code-block:: python
 
@@ -331,7 +331,7 @@ The process of transmitting samples with the bladeRF is very similar to receivin
  f_tone = 1e6
  samples = np.exp(1j * 2 * np.pi * f_tone * t) # will be -1 to +1
  samples = samples.astype(np.complex64)
- samples *= 32767 # scale so they can be stored as int16s
+ samples *= 2048.0 # Scale to -1 to 1 (its using 12 bit DAC)
  samples = samples.view(np.int16)
  buf = samples.tobytes() # convert our samples to bytes and use them as transmit buffer
  

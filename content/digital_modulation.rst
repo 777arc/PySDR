@@ -261,9 +261,10 @@ IQ plots can't be used to show different frequencies. They show magnitude and ph
 
 As an aside, note that FM radio uses Frequency Modulation (FM) which is like an analog version of FSK.  Instead of having discrete frequencies we jump between, FM radio uses a continuous audio signal to modulate the frequency of the carrier.  Below is an example of FM and AM modulation where the "signal" at the top is the audio signal being modulated onto to the carrier.
 
-.. image:: ../_images/Carrier_Mod_AM_FM.webp
+.. image:: ../_images/am_fm_animation.gif
    :align: center
-   :target: ../_images/Carrier_Mod_AM_FM.webp
+   :scale: 75 %
+   :target: ../_images/am_fm_animation.gif
    :alt: Animation of a carrier, amplitude modulation (AM), and frequency modulation (FM) in the time domain
 
 In this textbook we are mainly concerned about digital forms of modulation.

@@ -286,6 +286,14 @@ Now, when the SDR gives us the samples, it will appear like this:
 
 Remember that we tuned the SDR to 100 MHz.  So the signal that was at about 97.5 MHz shows up at -2.5 MHz when we represent it digitally, which is technically a negative frequency.  In reality it's just a frequency lower than the center frequency.  This will make more sense when we learn more about sampling and obtain experience using our SDRs.
 
+From a mathematical perspective, negative frequencies can be seen by looking at the complex exponential function, :math:`e^{2j \pi f t}`.  If we have a negative frequency, we can see that it will be a complex sinusoid that rotates in the opposite direction.
+
+.. image:: ../_images/negative_freq_animation.gif
+   :align: center
+   :scale: 75 %
+   :target: ../_images/negative_freq_animation.gif
+   :alt: Animation of a positive and negative frequency sinusoid on the complex plane
+
 ****************************
 Order in Time Doesn't Matter
 ****************************

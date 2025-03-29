@@ -51,9 +51,9 @@ Take a moment to try to answer these questions:
 *******************
 Wireless Symbols
 *******************
-Question: Why can’t we directly transmit the Ethernet signal shown in the figure above?  There are many reasons, the biggest two being:
+Question: Why can't we directly transmit the Ethernet signal shown in the figure above?  There are many reasons, the biggest two being:
 
-1. Low frequencies require *huge* antennas, and the signal above contains frequencies down to DC (0 Hz).  We can’t transmit DC.
+1. Low frequencies require *huge* antennas, and the signal above contains frequencies down to DC (0 Hz).  We can't transmit DC.
 2. Square waves take an excessive amount of spectrum for the bits per second--recall from the :ref:`freq-domain-chapter` chapter that sharp changes in time domain use a large amount of bandwidth/spectrum:
 
 .. image:: ../_images/square-wave.svg
@@ -61,7 +61,7 @@ Question: Why can’t we directly transmit the Ethernet signal shown in the figu
    :target: ../_images/square-wave.svg
    :alt: A square wave in time and frequency domain showing the large amount of bandwidth that a square wave uses
 
-What we do for wireless signals is start with a carrier, which is just a sinusoid.  E.g., FM radio uses a carrier like 101.1 MHz or 100.3 MHz.  We modulate that carrier in some way (there are many).  For FM radio it’s an analog modulation, not digital, but it’s the same concept as digital modulation.
+What we do for wireless signals is start with a carrier, which is just a sinusoid.  E.g., FM radio uses a carrier like 101.1 MHz or 100.3 MHz.  We modulate that carrier in some way (there are many).  For FM radio it's an analog modulation, not digital, but it's the same concept as digital modulation.
 
 In what ways can we modulate the carrier?  Another way to ask the same question: what are the different properties of a sinusoid?
 
@@ -129,7 +129,7 @@ Example of BPSK (note the phase changes):
    :target: ../_images/bpsk.svg
    :alt: Simple example of binary phase shift keying (BPSK) in the time domain, showing a modulated carrier
 
-It’s not very fun to look at plots like this:
+It's not very fun to look at plots like this:
 
 .. image:: ../_images/bpsk2.svg
    :align: center
@@ -172,7 +172,7 @@ For PSK we always have N different phases, equally spaced around 360 degrees for
    :align: center
    :alt: Phase shift keying uses equally spaced constellation points on the IQ plot
 
-Question: What’s wrong with using a PSK scheme like the one in the below image?  Is it a valid PSK modulation scheme?
+Question: What's wrong with using a PSK scheme like the one in the below image?  Is it a valid PSK modulation scheme?
 
 .. image:: ../_images/weird_psk.png
    :scale: 60 %
@@ -236,21 +236,21 @@ Given the difficulty discerning modulation schemes in the time domain, we prefer
 Frequency Shift Keying (FSK)
 ****************************
 
-Last on the list is Frequency Shift Keying (FSK).  FSK is fairly simple to understand--we just shift between N frequencies where each frequency is one possible symbol.  However, because we are modulating a carrier, it’s really our carrier frequency +/- these N frequencies. E.g.. we might be at a carrier of 1.2 GHz and shift between these four frequencies:
+Last on the list is Frequency Shift Keying (FSK).  FSK is fairly simple to understand--we just shift between N frequencies where each frequency is one possible symbol.  However, because we are modulating a carrier, it's really our carrier frequency +/- these N frequencies. E.g.. we might be at a carrier of 1.2 GHz and shift between these four frequencies:
 
-1. 1.2005 GHz
-2. 1.2010 GHz
-3. 1.1995 GHz
-4. 1.1990 GHz
+1. 1.2001 GHz
+2. 1.2003 GHz
+3. 1.1999 GHz
+4. 1.1997 GHz
 
-The example above would be 4-FSK, and there would be two bits per symbol.  A 4-FSK signal in the frequency domain might look something like this:
+The example above would be 4-FSK, so there would be two bits per symbol.  The frequency spacing is 200 kHz, and the total signal would span slightly more than 600 kHz.  This 4-FSK signal in the frequency domain at baseband might look something like this, when doing an FFT over many symbols:
 
 .. image:: ../_images/fsk.svg
    :align: center
    :target: ../_images/fsk.svg
    :alt: Example of Frequency Shift Keying (FSK), specifically 4FSK
 
-If you use FSK, you must ask a critical question: What should the spacing between frequencies be?  We often denote this spacing as :math:`\Delta f` in Hz. We want to avoid overlap in the frequency domain so that the receiver knows which frequency a given symbol used, so :math:`\Delta f` must be large enough.  The width of each carrier in frequency is a function of our symbol rate.  More symbols per second means shorter symbols, which means wider bandwidth (recall the inverse relationship between time and frequency scaling).  The faster we transmit symbols, the wider each carrier will get, and consequently the larger we have to make :math:`\Delta f` to avoid overlapping carriers.  We won't go into any more details about the design of FSK in this textbook.
+If you use FSK, you must ask a critical question: What should the spacing between frequencies be?  We often denote this spacing as :math:`\Delta f` in Hz. We want to avoid overlap in the frequency domain so that the receiver knows which frequency a given symbol used, so :math:`\Delta f` must be large enough.  The width of each carrier in frequency is a function of our symbol rate and any pulse shaping filter applied.  More symbols per second means shorter symbols, which means wider bandwidth (recall the inverse relationship between time and frequency scaling).  The faster we transmit symbols, the wider each carrier will get, and consequently the larger we have to make :math:`\Delta f` to avoid overlapping carriers.
 
 IQ plots can't be used to show different frequencies. They show magnitude and phase.  While it is possible to show FSK in the time domain, any more than 2 frequencies makes it difficult to distinguish between symbols:
 

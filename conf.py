@@ -47,7 +47,11 @@ imgmath_latex_preamble = r'''
   \egroup
 }
 \makeatother
+
+\usepackage{xcolor}
 '''
+
+# We can also add latex packages to include above
 
 # dvisvgm is the program used to generate the svg equations, and these are its settings:
 # https://dvisvgm.de/Manpage/

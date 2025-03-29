@@ -288,11 +288,27 @@ Remember that we tuned the SDR to 100 MHz.  So the signal that was at about 97.5
 
 From a mathematical perspective, negative frequencies can be seen by looking at the complex exponential function, :math:`e^{2j \pi f t}`.  If we have a negative frequency, we can see that it will be a complex sinusoid that rotates in the opposite direction.
 
+.. math::
+   e^{2j \pi f t} = \cos(2j \pi f t) + j \sin(2j \pi f t) \quad \mathrm{\textcolor{blue}{blue}}
+
+.. math::
+   e^{2j \pi (-f) t} = \cos(2j \pi f t) - j \sin(2j \pi f t) \quad \mathrm{\textcolor{red}{red}}
+
 .. image:: ../_images/negative_freq_animation.gif
    :align: center
    :scale: 75 %
    :target: ../_images/negative_freq_animation.gif
    :alt: Animation of a positive and negative frequency sinusoid on the complex plane
+
+The reason we used the complex exponential above is because just a :math:`cos()` or :math:`sin()` contains both positive and negative frequencies, as seen by Euler's formula applied to a sinusoid at frequency :math:`f` over time :math:`t`:
+
+.. math::
+   \cos(2 \pi f t) = \underbrace{\frac{1}{2} e^{2j \pi f t}}_\text{positive} + \underbrace{\frac{1}{2} e^{-2j \pi f t}}_\text{negative}
+
+.. math::
+   \sin(2 \pi f t) = \underbrace{\frac{1}{2j} e^{2j \pi f t}}_\text{positive} - \underbrace{\frac{1}{2j} e^{-2j \pi f t}}_\text{negative}
+
+So in RF signal processing we tend to use complex exponentials instead of cosines and sines, in general.
 
 ****************************
 Order in Time Doesn't Matter
@@ -339,7 +355,7 @@ If we look at :code:`S` we see it's an array of complex numbers:
 
     S =  array([-0.01865008 +0.00000000e+00j, -0.01171553 -2.79073782e-01j,0.02526446 -8.82681208e-01j,  3.50536075 -4.71354150e+01j, -0.15045671 +1.31884375e+00j, -0.10769903 +7.10452463e-01j, -0.09435855 +5.01303240e-01j, -0.08808671 +3.92187956e-01j, -0.08454414 +3.23828386e-01j, -0.08231753 +2.76337148e-01j, -0.08081535 +2.41078885e-01j, -0.07974909 +2.13663710e-01j,...
 
-Hint: regardless of what you’re doing, if you ever run into complex numbers, try calculating the magnitude and the phase and see if they make more sense.  Let's do exactly that, and plot the magnitude and phase.  In most languages, abs() is a function for magnitude of a complex number.  The function for phase varies by language, but in Python we can use NumPy's :code:`np.angle()`, which returns the phase in units of radians.
+Hint: regardless of what you're doing, if you ever run into complex numbers, try calculating the magnitude and the phase and see if they make more sense.  Let's do exactly that, and plot the magnitude and phase.  In most languages, abs() is a function for magnitude of a complex number.  The function for phase varies by language, but in Python we can use NumPy's :code:`np.angle()`, which returns the phase in units of radians.
 
 .. code-block:: python
 

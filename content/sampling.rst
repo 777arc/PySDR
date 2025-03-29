@@ -67,7 +67,7 @@ We must identify the highest frequency component, then double it, and make sure 
    :scale: 70% 
    :align: center 
 
-If we don't sample fast enough we get something called aliasing, which we will learn about later, but we try to avoid it at all costs.  What our SDRs do (and most receivers in general) is filter out everything above Fs/2 right before the sampling is performed. If we attempt to receive a signal with too low a sample rate, that filter will chop off part of the signal.  Our SDRs go to great lengths to provide us with samples free of aliasing and other imperfections.  Because the SDR's antialiasing filter doesn't go from passband to stopband insantly (it needs a small transition band), the rule of thumb is to assume only the center 4/5 of your sample rate is usable bandwidth, known as "Sean's 4/5 rule".
+If we don't sample fast enough we get something called aliasing, which we will learn about later, but we try to avoid it at all costs.  What our SDRs do (and most receivers in general) is filter out everything above Fs/2 right before the sampling is performed. If we attempt to receive a signal with too low a sample rate, that filter will chop off part of the signal.  Our SDRs go to great lengths to provide us with samples free of aliasing and other imperfections.  Because the SDR's anti-aliasing filter doesn't go from passband to stopband instantly (it needs a small transition band), the rule of thumb is to assume only the center 4/5 of your sample rate is usable bandwidth, known as "Sean's 4/5 rule".
 
 *************************
 Quadrature Sampling

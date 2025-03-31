@@ -39,10 +39,15 @@ The terminal commands below should build and install the latest version of UHD, 
 
 .. code-block:: bash
 
- sudo apt-get install git cmake libboost-all-dev libusb-1.0-0-dev python3-docutils python3-mako python3-numpy python3-requests python3-ruamel.yaml python3-setuptools build-essential
+ sudo apt update
+ sudo apt install git cmake libboost-all-dev libusb-1.0-0-dev build-essential
+ sudo pip install pybind11[global]
+ pip install numpy==1.26.4 docutils mako requests ruamel.yaml setuptools
  cd ~
  git clone https://github.com/EttusResearch/uhd.git
- cd uhd/host
+ cd uhd
+ git checkout v4.8.0.0
+ cd host
  mkdir build
  cd build
  cmake -DENABLE_TESTS=OFF -DENABLE_C_API=OFF -DENABLE_PYTHON_API=ON -DENABLE_MANUAL=OFF ..

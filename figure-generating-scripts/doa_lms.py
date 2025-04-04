@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import hilbert
 
 sample_rate = 1e6
 d = 0.5 # half wavelength spacing
@@ -41,13 +42,16 @@ tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
 # Simulate received signal
 r = s1 @ soi + s2 @ tone2 + s3 @ tone3
 n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
-r = r + 0.05*n # 8xN
+r = r + 0.00005*n # 8xN
 
 # LMS, not knowing the direction of SOI but knowing the soi signal itself
 # TODO add in a random time delay to start of soi
-mu = 0.001 # LMS step size
+mu = 0.0005 # LMS step size
 w_lms = np.random.randn(Nr, 1) + 1j*np.random.randn(Nr, 1) # random weights
+#w_lms = np.zeros((Nr, 1), dtype=np.complex128) # zero weights
 
+
+'''
 # Loop through received samples
 error_log = []
 for i in range(N):
@@ -59,6 +63,18 @@ for i in range(N):
     error_log.append(np.abs(error))
     w_lms += mu * error * r_sample # weights are still 8x1
     w_lms /= np.linalg.norm(w_lms) # normalize
+'''
+
+# Use all samples every iteration
+error_log = []
+for _ in range(1000):
+    y = w_lms.conj().T @ r # apply the weights (output is 1xN)
+    #error = np.sum(soi - y) # TODO do we need magnitude or hilbert or anything else here?
+    error = np.conj(soi - y) # 1xN
+    error_log.append(np.mean(np.abs(error)))
+    w_lms += mu * r @ error.conj().T # weights are still 8x1
+    w_lms /= np.linalg.norm(w_lms) # normalize
+
 
 plt.figure("Error Log")
 plt.plot(error_log)

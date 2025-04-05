@@ -399,11 +399,11 @@ As we approach the endfire of the array, which is when the signal arrives at or 
 
 From this point on, we will only be displaying -90 to +90 degrees in our polar plots, as the pattern will always be mirrored over the axis of the array, at least for 1D linear arrays (which is all we cover in this chapter).
 
-********************
+************
 Beam Pattern
-********************
+************
 
-The plots we have shown so far are DOA results; they correspond to the received power at each angle after applying the beamformer.  They were specific to a scenario that involved transmitters arriving from certain angles.  But we can also take a look at the beam pattern itself, before receiving any signal, this is sometimes referred to as the "quiescent antenna pattern" or "array response".
+The plots we have shown so far are DOA results; they correspond to the received power at each angle after applying the beamformer.  They were specific to a scenario that involved signals arriving from certain angles.  But given a set of weights, we can also observe the beam pattern itself, before receiving any signal.  When that set of weights corresponds to the conventional beamformer towards a specific direction, this is sometimes referred to as the "quiescent antenna pattern" or "array response" in that direction.  It also includes the individual element antenna radiation pattern, although we are assuming omnidirectional antennas for now.
 
 Recall that our steering vector we keep seeing,
 
@@ -483,9 +483,9 @@ Let's use the previous code but increase :code:`Nr` to 16 elements.  Using the e
 
 It may be hard to see in the plot, but zooming way in, we find that the HPBW is about 6.8 degrees and the FNBW is about 15.4 degrees, so pretty close to our calculations, especially HPBW!
 
-*******************
-When d is not λ/2
-*******************
+******************************
+When d > λ/2 and Grating Lobes
+******************************
 
 So far we have been using a distance between elements, d, equal to one half wavelength.  So for example, an array designed for 2.4 GHz WiFi with λ/2 spacing would have a spacing of 3e8/2.4e9/2 = 12.5cm or about 5 inches, meaning a 4x4 element array would be about 15" x 15" x the height of the antennas.  There are times when an array may not be able to achieve exactly λ/2 spacing, such as when space is restricted, or when the same array has to work on a variety of carrier frequencies.
 
@@ -511,6 +511,14 @@ or in terms of distance between elements, :math:`d`, which is essentially meters
  d \leq \lambda/2
 
 As long as :math:`d \leq \lambda/2` we won't have any grating lobes!
+
+One last tip related to grating lobes: you may notice that as :math:`d` increases, the grating lobes start appearing from the outer angles (i.e., array endfire, -90 and +90 degrees in the ULA case).  For those who are interested in sacrificing visible region in order to space out antennas more, there is a handy equation that provides the minimum :math:`d` as long as you're only interested in :math:`\theta` from boresight (0 degrees): :math:`\frac{1}{1 + \sin(\theta)}`.  For example, if you are OK only having a visible region of -30 to +30 degrees, you can space the antennas at 0.66 wavelength.  What is more likely to occur is you already have an array built and are interested in observing signals at a frequency slightly higher than the design frequency, and you want to know how to limit your sweeps so that you don't need to worry about a grating lobe appearing and throwing off results.
+
+
+
+*************
+When d < λ/2
+*************
 
 Now what happens when d is less than λ/2, such as when we need to fit the array in a small space?  We know we won't have grating lobes, but something else does happen... Let's repeat the same simulation but start at 0.5λ and lower :math:`d`:
 

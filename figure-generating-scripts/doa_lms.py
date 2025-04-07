@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# OBS plus lots of ezgif.com was used to make the final animated gif
+
 fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-theta_sois_deg = np.linspace(-90, 90, 100)
+theta_sois_deg = np.linspace(-90, 90, 200)
 for theta_soi_deg in theta_sois_deg:
     sample_rate = 1e6
     d = 0.5 # half wavelength spacing
@@ -12,10 +14,10 @@ for theta_soi_deg in theta_sois_deg:
     Nr = 8 # elements
     theta_soi = theta_soi_deg / 180 * np.pi # convert to radians
     theta2    = 60 / 180 * np.pi
-    #theta3   = -60 / 180 * np.pi
+    theta3   = -50 / 180 * np.pi
     s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1) # 8x1
     s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-    #s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
 
 
     if False:
@@ -42,9 +44,9 @@ for theta_soi_deg in theta_sois_deg:
     tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
 
     # Simulate received signal
-    r = s1 @ soi + s2 @ tone2  # + s3 @ tone3
+    r = s1 @ soi + s2 @ tone2 + s3 @ tone3
     n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
-    r = r + 0.05*n # 8xN
+    r = r + 0.5*n # 8xN
 
     # LMS, not knowing the direction of SOI but knowing the soi signal itself
     # TODO add in a random time delay to start of soi
@@ -52,7 +54,6 @@ for theta_soi_deg in theta_sois_deg:
     gamma = 0.995 # knowledge decay rate
     #w_lms = np.random.randn(Nr, 1) + 1j*np.random.randn(Nr, 1) # random weights
     w_lms = np.zeros((Nr, 1), dtype=np.complex128) # zeros
-
 
     # Loop through received samples
     error_log = []
@@ -62,24 +63,9 @@ for theta_soi_deg in theta_sois_deg:
         y = w_lms.conj().T @ r_sample # apply the weights (output is a scalar)
         y = y.squeeze() # make it a scalar
         error = soi_sample - y
-        #error = np.random.randn(1) - y # makes soi into just another interferer
         error_log.append(np.abs(error)**2)
         w_lms = w_lms * gamma + mu * np.conj(error) * r_sample # weights are still 8x1
         w_lms /= np.linalg.norm(w_lms) # normalize
-
-
-    '''
-    # Use all samples every iteration
-    error_log = []
-    for _ in range(1000):
-        y = w_lms.conj().T @ r # apply the weights (output is 1xN)
-        #error = np.sum(soi - y) # TODO do we need magnitude or hilbert or anything else here?
-        error = np.conj(soi - y) # 1xN
-        error_log.append(np.mean(np.abs(error)))
-        w_lms = w_lms * gamma + mu * r @ error.conj().T # weights are still 8x1
-        w_lms /= np.linalg.norm(w_lms) # normalize
-    '''
-
 
     '''
     plt.figure("Error Log")
@@ -95,20 +81,20 @@ for theta_soi_deg in theta_sois_deg:
     w_lms = w_lms.conj()
     w_padded = np.concatenate((w_lms, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
-    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    #w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
     theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # in radians
     
     ax.plot(theta_bins, w_fft_dB)
-    ax.plot([theta_soi, theta_soi], [-30, 1],'g--')
-    ax.plot([theta2, theta2], [-30, 1],'r--')
-    #ax.plot([theta3, theta3], [-30, 1],'r--')
+    ax.plot([theta_soi, theta_soi], [-30, 10],'g--')
+    ax.plot([theta2, theta2], [-30, 10],'r--')
+    ax.plot([theta3, theta3], [-30, 10],'r--')
     ax.set_theta_zero_location('N') # type: ignore # make 0 degrees point up
     ax.set_theta_direction(-1) # type: ignore # increase clockwise
     ax.set_rlabel_position(55) # type: ignore # Move grid labels away from other labels
     ax.set_thetamin(-90) # type: ignore # only show top half
     ax.set_thetamax(90) # type: ignore
-    ax.set_ylim((-30, 1)) # because there's no noise, only go down 30 dB
+    ax.set_ylim((-30, 10)) # because there's no noise, only go down 30 dB
     plt.draw()
-    plt.pause(0.1) # pause to update the plot
+    plt.pause(0.001) # pause to update the plot
     plt.cla()
 

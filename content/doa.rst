@@ -1140,11 +1140,81 @@ Another experiment worth trying with MUSIC is to see how close two signals can a
    :scale: 100 %
    :align: center
 
-*******************
-ESPRIT
-*******************
+***
+LMS
+***
 
-Coming soon!
+The Least Mean Squares (LMS) beamformer is a low-complexity beamformer introduced by Bernard Widrow.  It is different from every beamformer we have shown so far in two ways: 1) it requires knowing the SOI, or at least part of it (e.g., a synchronization sequence, pilots, etc) and 2) it is iterative, meaning the weights are honed in on over some number of iterations.  It works by minimizing the mean square error between the desired signal (the SOI) and the output of the beamformer (i.e., the weights applied to the received samples). The traditional implementation of LMS is to treat each received sample as the next step in the iterative process, by applying the current weights to the single sample and calculating the error.  That error is then used to fine-tune the weights, and the process repeats.  The LMS beamformer can be used in both analog and digital beamforming.  The LMS algorithm is given by the following equation:
+
+.. math::
+
+ w_{n+1} = w_n + \mu \underbrace{\left(y_n -  w_{n}^H x_n\right)^*}_{error} x_n
+
+where :math:`w_n` is the weight vector at iteration/sample :math:`n`, :math:`\mu` is the step size, :math:`x_n` is the received sample at :math:`n`, :math:`y_n` is the expected value at that iteration (i.e., the known SOI), and :math:`*` is a complex conjugate.  Don't let the :math:`w_{n}^H x_n` make the equation seem complicated, that term is simply the act of applying the current weights to the input signal, which is the standard beamforming equation.  The step size :math:`\mu` controls how quickly the weights converge to their optimal values.  A small value of :math:`\mu` will result in slow convergence (e.g. you may not reach the "best" weights before the known signal is gone), while a large value of :math:`\mu` may cause instability in the algorithm.  The LMS algorithm is a powerful tool for adaptive beamforming, but it does have some limitations.  It requires a known SOI, which may not always be available in practice, and you have to perform time and frequency synchronization as part of the LMS process so that your blueprint of the SOI is aligned with the received samples.
+
+In the example Python code below, we simulate an 8-element array with a SOI that is comprised of a repeating Gold code transmitted as BPSK. Gold codes are used in 5G and GPS, and have excellent cross-correlation properties, making them great for synchronization signals.  In the simulation we also include two tone interferers, at 60 and -50 degrees. Note that this simulation does not include any time or frequency shift, if it did then we would have to synchronize to the SOI as part of the LMS process (i.e., joint beamforming-synchronization). In the following animation we sweep the SOI angle of arrival and plot the beam pattern LMS created for us after 10k samples.  Note how LMS keeps the gain towards the SOI at exactly 0 dB (unless there is an interferer on top), while placing nulls at the interferers.
+
+.. image:: ../_images/doa_lms_animation.gif
+   :scale: 100 %
+   :align: center
+
+.. code-block:: python
+
+ # Scenario
+ sample_rate = 1e6
+ d = 0.5 # half wavelength spacing
+ N = 10000 # number of samples to simulate
+ Nr = 8 # elements
+ theta_soi = 20 / 180 * np.pi # convert to radians
+ theta2    = 60 / 180 * np.pi
+ theta3   = -50 / 180 * np.pi
+ t = np.arange(N)/sample_rate # time vector
+ s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1) # 8x1
+ s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+ s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+
+ # SOI is a gold code, repeated, length 127
+ gold_code = np.array([-1, 1, 1, -1, 1, 1, 1, 1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 1, -1, 1, -1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, 1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, 1, 1, 1, 1, -1, 1, 1, 1, -1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1, -1, -1, 1, 1])
+ soi_samples_per_symbol = 8
+ soi = np.repeat(gold_code, soi_samples_per_symbol)
+ num_sequence_repeats = int(N / soi.shape[0]) + 1 # number of times to repeat the sequence for N samples
+ soi = np.tile(soi, num_sequence_repeats)[:N] # repeat the sequence to fill simulated time, then trim
+ soi = soi.reshape(1, -1) # 1xN
+
+ # Interference, eg tone jammers, from different directions
+ tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
+ tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
+
+ # Simulate received signal
+ r = s1 @ soi + s2 @ tone2 + s3 @ tone3
+ n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
+ r = r + 0.5*n # 8xN
+
+ # LMS, not knowing the direction of SOI but knowing the SOI signal itself
+ mu = 1e-4 # LMS step size
+ gamma = 0.995 # knowledge decay rate
+ w_lms = np.zeros((Nr, 1), dtype=np.complex128) # start with all zeros
+
+ # Loop through received samples
+ error_log = []
+ for i in range(N):
+    r_sample = r[:, i].reshape(-1, 1) # 8x1
+    soi_sample = soi[0, i] # scalar
+    y = w_lms.conj().T @ r_sample # apply the weights
+    y = y.squeeze() # make it a scalar
+    error = soi_sample - y
+    error_log.append(np.abs(error)**2)
+    w_lms = w_lms * gamma + mu * np.conj(error) * r_sample # weights are still 8x1
+    w_lms /= np.linalg.norm(w_lms) # normalize weights
+
+ plt.plot(error_log)
+ plt.xlabel('Iteration')
+ plt.ylabel('Mean Square Error')
+ plt.show()
+
+ # Plot the beam pattern as shown previously
+
+Try changing :code:`theta_soi`, the amount of noise (i.e., the :code:`0.5*n`), and the step size :code:`mu` to see how the LMS algorithm performs.
 
 *******************
 Circular Arrays

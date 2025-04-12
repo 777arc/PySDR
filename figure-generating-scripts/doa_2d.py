@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
+
+# TODO: maybe add a function for the 2d dir transform
+# Write up the content at the end of DOA chapter, I'll reorganize the chapters at a later date
 
 fc = 5e9
 wavelength = 3e8 / fc
@@ -113,6 +115,7 @@ w = s
 print("weights:\n", w)
 
 # At this point it's worth pointing out that we didn't actually change dimensionality of anything, going from 1D to 2D, we just have a non-zero y component, the steering vector equation is still the same and the weights are still a 1D array
+# Some folks might assemble their weights as a 2D array so that visually it matches the array geometry, but it's not necessary and best to keep it 1D
 
 # Visualize beam pattern when using these weights, but this time we need a 3D surface plot
 # Note that this is not a polar plot, it's using X and Y to represent the azimuth and elevation angles, and Z to represent the power in dB

@@ -35,34 +35,41 @@ element_gain_dB = np.zeros(N) # Gains in dB for the array elements (all zeros he
 element_gain_linear = 10.0 ** (element_gain_dB / 10) # Convert array gains to linear numbers
 fractional_bw = 0
 
-# --------------------------------------------------------------------
-# Build NxN jammer covariance matrix R
-# --------------------------------------------------------------------
-s = np.exp(2j * np.pi * np.arange(N) * d * np.sin(look_direction_rad)) # type: ignore # Create steering vector
-s = s / np.linalg.norm(s)  # Normalize
-R = np.zeros((N, N), dtype=complex)
-for m in range(N):
-    for n in range(N):
-        for j in range(num_jammers):
-            total_element_gain = np.sqrt(element_gain_linear[m] * element_gain_linear[n])
-            sinc_term = np.sinc(0.5 * fractional_bw * (m - n) * jammer_aoa_rad[j] / np.pi)
-            exp_term = np.exp(1j * (m - n) * jammer_aoa_rad[j])
-            R[m, n] += jammer_pow_linear[j] * total_element_gain * sinc_term * exp_term
-R = np.eye(N, dtype=complex) + R
-#R = np.eye(N, dtype=complex) # zero jammers
+if True:
+    # --------------------------------------------------------------------
+    # Build NxN jammer covariance matrix R
+    # --------------------------------------------------------------------
+    R = np.zeros((N, N), dtype=complex)
+    for m in range(N):
+        for n in range(N):
+            for j in range(num_jammers):
+                total_element_gain = np.sqrt(element_gain_linear[m] * element_gain_linear[n])
+                sinc_term = np.sinc(0.5 * fractional_bw * (m - n) * jammer_aoa_rad[j] / np.pi)
+                exp_term = np.exp(1j * (m - n) * jammer_aoa_rad[j])
+                R[m, n] += jammer_pow_linear[j] * total_element_gain * sinc_term * exp_term
+    R = np.eye(N, dtype=complex) + R
+    #R = np.eye(N, dtype=complex) # zero jammers
 
-# Compute optimum SINR, just for fun
-sinr_opt = np.real(np.conj(s) @ np.linalg.inv(R) @ s)
-
-# --------------------------------------------------------------------
-# Generate received samples
-# --------------------------------------------------------------------
-A = fractional_matrix_power(R, 0.5) # Compute the matrix square-root (effective Cholesky factorization)
-A = A / np.sqrt(2)
-X = np.zeros((N, num_samples), dtype=complex)
-for k in range(num_samples):
-    noise_vec = np.random.randn(N) + 1j * np.random.randn(N) # complex noise
-    X[:, k] = A.conj().T @ noise_vec
+    # --------------------------------------------------------------------
+    # Generate received samples
+    # --------------------------------------------------------------------
+    A = fractional_matrix_power(R, 0.5) # Compute the matrix square-root (effective Cholesky factorization)
+    A = A / np.sqrt(2)
+    X = np.zeros((N, num_samples), dtype=complex)
+    for k in range(num_samples):
+        noise_vec = np.random.randn(N) + 1j * np.random.randn(N) # complex noise
+        X[:, k] = A.conj().T @ noise_vec
+else:
+    # Traditional narrowband method of adding jammers
+    X = np.zeros((N, num_samples), dtype=complex)
+    for j in range(num_jammers):
+        s_jammer = np.exp(2j * np.pi * np.arange(N) * d * np.sin(np.deg2rad(jammer_aoa_deg[j]))).reshape(-1,1)
+        tx_jammer = np.exp(2j*np.pi*(0.05*(j+1))*np.arange(num_samples)).reshape(1,-1) # put them on diff freq for good measure
+        temp = s_jammer @ tx_jammer
+        X += s_jammer @ tx_jammer * np.sqrt(jammer_pow_linear[j])
+    # Add noise
+    noise = np.random.randn(N, num_samples) + 1j * np.random.randn(N, num_samples)
+    X += noise / np.sqrt(2)
 
 # --------------------------------------------------------------------
 # Plot eigenspectra (eigenvalues sorted)
@@ -73,14 +80,14 @@ eigvals_dB = 10 * np.log10(eigvals)
 eigvals_sorted = np.sort(eigvals_dB)[::-1] # Sort the eigenvalues in desc order
 
 # Compute eigenvalues of the true covariance matrix, Rx_array.
-eigvals_true = np.real(np.linalg.eigvals(R))
-eigvals_true_dB = 10 * np.log10(np.abs(eigvals_true))
-eigvals_true_sorted = np.sort(eigvals_true_dB)[::-1]
+#eigvals_true = np.real(np.linalg.eigvals(R))
+#eigvals_true_dB = 10 * np.log10(np.abs(eigvals_true))
+#eigvals_true_sorted = np.sort(eigvals_true_dB)[::-1]
 
 # Plot the eigenvalues
 plt.figure()
 plt.plot(eigvals_sorted, 'k*', label='Sampled')
-plt.plot(eigvals_true_sorted, 'r', label='True')
+#plt.plot(eigvals_true_sorted, 'r', label='True')
 plt.xlabel('Eigenvalue Number', fontweight='bold', fontsize=14)
 plt.ylabel('Eigenvalue, dB', fontweight='bold', fontsize=14)
 plt.axis((0, N, np.min(eigvals_sorted) - 10, np.max(eigvals_sorted) + 10))
@@ -95,10 +102,13 @@ plt.legend()
 nfft = 2048 # for plotting weights beam pattern
 
 # Compute non-adaptive (conventional) weights and beam pattern
+s = np.exp(2j * np.pi * np.arange(N) * d * np.sin(look_direction_rad)) # type: ignore # Create steering vector
 w_conventional = s
+w_conventional /= np.linalg.norm(w_conventional)  # Normalize
 pattern_conventional = 20 * np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_conventional, n=nfft)) / np.sqrt(N)))
 
-# Compute MVDR weights and beam pattern
+# Compute MVDR weights and beam pattern FIXME THIS IS USING THE GENERATED R NOT THE CALC R BASED ON X, SO CONTRIVED!
+R = np.cov(X)
 w_ideal = np.linalg.inv(R) @ s
 w_ideal = w_ideal / (np.conjugate(s) @ np.linalg.inv(R) @ s)
 pattern_mvdr = 20 * np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_ideal, n=nfft)) / np.sqrt(N)))
@@ -118,7 +128,7 @@ plt.xlim([-90, 90])
 plt.ylim([-80, 10])
 plt.xlabel('Azimuth angle (deg)', fontweight='bold', fontsize=14)
 plt.ylabel('Power, dB', fontweight='bold', fontsize=14)
-plt.title('N=' + str(N) + ' DOF, K=' + str(num_samples) + ', SINR_opt= ' + str(10 * np.log10(sinr_opt)),  fontweight='bold', fontsize=14)
+plt.title('N=' + str(N) + ' DOF, K=' + str(num_samples), fontweight='bold', fontsize=14)
 
 # Plot vertical lines at jammer and look locations
 for theta in jammer_aoa_deg:

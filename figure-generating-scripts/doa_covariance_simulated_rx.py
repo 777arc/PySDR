@@ -33,7 +33,7 @@ jammer_aoa_deg = np.array([-70, -20, 40])  # Jammer angles in degrees
 jammer_aoa_rad = np.sin(np.deg2rad(jammer_aoa_deg)) * np.pi # not sure why the *pi is here
 element_gain_dB = np.zeros(N) # Gains in dB for the array elements (all zeros here)
 element_gain_linear = 10.0 ** (element_gain_dB / 10) # Convert array gains to linear numbers
-fractional_bw = 0
+fractional_bw = 0.1 # if this is 0, the method matches the traditional way of using array factor to simulate received signals
 
 if True:
     # --------------------------------------------------------------------
@@ -126,16 +126,18 @@ plt.plot(faxis_physical_angle, pattern_mvdr, 'black', label='Optimal Pattern')
 
 plt.xlim([-90, 90])
 plt.ylim([-80, 10])
-plt.xlabel('Azimuth angle (deg)', fontweight='bold', fontsize=14)
-plt.ylabel('Power, dB', fontweight='bold', fontsize=14)
-plt.title('N=' + str(N) + ' DOF, K=' + str(num_samples), fontweight='bold', fontsize=14)
+plt.xlabel('Azimuth angle (deg)', fontsize=14)
+plt.ylabel('Power, dB', fontsize=14)
+#plt.title('N=' + str(N) + ' DOF, K=' + str(num_samples), fontweight='bold', fontsize=14)
 
 # Plot vertical lines at jammer and look locations
 for theta in jammer_aoa_deg:
     plt.axvline(x=theta, color='r', linestyle='--', linewidth=2)
 plt.axvline(x=look_direction_deg, color='g', linestyle='--', linewidth=2)
 
-legend_str = ['Non-Adaptive Pattern', 'Optimal Pattern']
-plt.legend(legend_str, loc='lower left', frameon=False, fontsize=12)
+legend_str = ['Conventional Pattern', 'MVDR Pattern']
+plt.legend(legend_str, loc='upper left', frameon=False, fontsize=12)
 plt.grid(True)
+#plt.savefig('../_images/doa_covariance_method_1.svg', bbox_inches='tight') # 1 is fractiona_bw=0, and 2 is 0.1
 plt.show()
+

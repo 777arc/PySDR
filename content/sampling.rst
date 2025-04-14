@@ -19,7 +19,7 @@ Whether we are dealing with audio or radio frequencies, we must sample if we wan
    :target: ../_images/sampling.svg
    :alt: Concept of sampling a signal, showing sample period T, the samples are the blue dots
 
-We record the value of :math:`S(t)` at regular intervals of :math:`T` seconds, known as the **sample period**.  The frequency at which we sample, i.e., the number of samples taken per second, is simply :math:`\frac{1}{T}`.  We call this the **sample rate**, and its the inverse of the sample period.  For example, if we have a sample rate of 10 Hz, then the sample period is 0.1 seconds; there will be 0.1 seconds between each sample.  In practice our sample rates will be on the order of hundreds of kHz to tens of MHz or even higher.  When we sample signals, we need to be mindful of the sample rate, it's a very important parameter. 
+We record the value of :math:`S(t)` at regular intervals of :math:`T` seconds, known as the **sample period**.  The frequency at which we sample, i.e., the number of samples taken per second, is simply :math:`\frac{1}{T}`.  We call this the **sample rate**, and it's the inverse of the sample period.  For example, if we have a sample rate of 10 Hz, then the sample period is 0.1 seconds; there will be 0.1 seconds between each sample.  In practice our sample rates will be on the order of hundreds of kHz to tens of MHz or even higher.  When we sample signals, we need to be mindful of the sample rate, it's a very important parameter.
 
 For those who prefer to see the math; let :math:`S_n` represent sample :math:`n`, usually an integer starting at 0. Using this convention, the sampling process can be represented mathematically as :math:`S_n = S(nT)` for integer values of :math:`n`.  I.e., we evaluate the analog signal :math:`S(t)` at these intervals of :math:`nT`.
 
@@ -30,14 +30,14 @@ Nyquist Sampling
 For a given signal, the big question often is how fast must we sample?  Let's examine a signal that is just a sine wave, of frequency f, shown in green below.  Let's say we sample at a rate Fs (samples shown in blue).  If we sample that signal at a rate equal to f (i.e., Fs = f), we will get something that looks like:
 
 .. image:: ../_images/sampling_Fs_0.3.svg
-   :align: center 
+   :align: center
 
 The red dashed line in the above image reconstructs a different (incorrect) function that could have lead to the same samples being recorded. It indicates that our sample rate was too low because the same samples could have come from two different functions, leading to ambiguity. If we want to accurately reconstruct the original signal, we can't have this ambiguity.
 
 Let's try sampling a little faster, at Fs = 1.2f:
 
 .. image:: ../_images/sampling_Fs_0.36.svg
-   :align: center 
+   :align: center
 
 Once again, there is a different signal that could fit these samples. This ambiguity means that if someone gave us this list of samples, we could not distinguish which signal was the original one based on our sampling.
 
@@ -50,7 +50,7 @@ How about sampling at Fs = 1.5f:
 Still not fast enough!  According to a piece of DSP theory we won't dive into, you have to sample at **twice** the frequency of the signal in order to remove the ambiguity we are experiencing:
 
 .. image:: ../_images/sampling_Fs_0.6.svg
-   :align: center 
+   :align: center
 
 There's no incorrect signal this time because we sampled fast enough that no signal exists that fits these samples other than the one you see (unless you go *higher* in frequency, but we will discuss that later).
 
@@ -60,12 +60,12 @@ In the above example our signal was just a simple sine wave, most actual signals
    :align: center
    :target: ../_images/max_freq.svg
    :alt: Nyquist sampling means that your sample rate is higher than the signal's maximum bandwidth
-   
+
 We must identify the highest frequency component, then double it, and make sure we sample at that rate or faster.  The minimum rate in which we can sample is known as the Nyquist Rate.  In other words, the Nyquist Rate is the minimum rate at which a (finite bandwidth) signal needs to be sampled to retain all of its information.  It is an extremely important piece of theory within DSP and SDR that serves as a bridge between continuous and discrete signals.
 
 .. image:: ../_images/nyquist_rate.png
-   :scale: 70% 
-   :align: center 
+   :scale: 70%
+   :align: center
 
 If we don't sample fast enough we get something called aliasing, which we will learn about later, but we try to avoid it at all costs.  What our SDRs do (and most receivers in general) is filter out everything above Fs/2 right before the sampling is performed. If we attempt to receive a signal with too low a sample rate, that filter will chop off part of the signal.  Our SDRs go to great lengths to provide us with samples free of aliasing and other imperfections.  Because the SDR's anti-aliasing filter doesn't go from passband to stopband instantly (it needs a small transition band), the rule of thumb is to assume only the center 4/5 of your sample rate is usable bandwidth, known as "Sean's 4/5 rule".
 
@@ -79,18 +79,18 @@ Next let's assign variables to represent the **amplitude** of the sine and cosin
 
 .. math::
   I \cos(2\pi ft)
-  
+
   Q \sin(2\pi ft)
 
 
 We can see this visually by plotting I and Q equal to 1:
 
 .. image:: ../_images/IQ_wave.png
-   :scale: 70% 
+   :scale: 70%
    :align: center
    :alt: I and Q visualized as amplitudes of sinusoids that get summed together
 
-We call the cos() the "in phase" component, hence the name I, and the sin() is the 90 degrees out of phase or "quadrature" component, hence Q.  Although if you accidentally mix it up and assign Q to the cos() and I to the sin(), it won't make a difference for most situations. 
+We call the cos() the "in phase" component, hence the name I, and the sin() is the 90 degrees out of phase or "quadrature" component, hence Q.  Although if you accidentally mix it up and assign Q to the cos() and I to the sin(), it won't make a difference for most situations.
 
 IQ sampling is more easily understood by using the transmitter's point of view, i.e., considering the task of transmitting an RF signal through the air.  We want to send a single sine wave at a certain phase, which can be done by sending the sum of a sin() and cos() with a phase of 0, because of the trig identity: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`.  Let's say x(t) is our signal to transmit:
 
@@ -100,7 +100,7 @@ IQ sampling is more easily understood by using the transmitter's point of view, 
 What happens when we add a sine and cosine?  Or rather, what happens when we add two sinusoids that are 90 degrees out of phase?  In the video below, there is a slider for adjusting I and another for adjusting Q.  What is plotted are the cosine, sine, and then the sum of the two.
 
 .. image:: ../_images/IQ3.gif
-   :scale: 100% 
+   :scale: 100%
    :align: center
    :target: ../_images/IQ3.gif
    :alt: GNU Radio animation showing I and Q as amplitudes of sinusoids that get summed together
@@ -110,7 +110,7 @@ What happens when we add a sine and cosine?  Or rather, what happens when we add
 The important takeaways are that when we add the cos() and sin(), we get another pure sine wave with a different phase and amplitude.   Also, the phase shifts as we slowly remove or add one of the two parts.  The amplitude also changes.  This is all a result of the trig identity: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`, which we will come back to in a bit.  The "utility" of this behavior is that we can control the phase and amplitude of a resulting sine wave by adjusting the amplitudes I and Q (we don't have to adjust the phase of the cosine or sine).  For example, we could adjust I and Q in a way that keeps the amplitude constant and makes the phase whatever we want.  As a transmitter this ability is extremely useful because we know that we need to transmit a sinusoidal signal in order for it to fly through the air as an electromagnetic wave.  And it's much easier to adjust two amplitudes and perform an addition operation compared to adjusting an amplitude and a phase.  The result is that our transmitter will look something like this:
 
 .. image:: ../_images/IQ_diagram.png
-   :scale: 80% 
+   :scale: 80%
    :align: center
    :alt: Diagram showing how I and Q are modulated onto a carrier
 
@@ -123,13 +123,13 @@ Complex Numbers
 Ultimately, the IQ convention is an alternative way to represent magnitude and phase, which leads us to complex numbers and the ability to represent them on a complex plane.  You may have seen complex numbers before in other classes. Take the complex number 0.7-0.4j as an example:
 
 .. image:: ../_images/complex_plane_1.png
-   :scale: 70% 
+   :scale: 70%
    :align: center
 
 A complex number is really just two numbers together, a real and an imaginary portion. A complex number also has a magnitude and phase, which makes more sense if you think about it as a vector instead of a point. Magnitude is the length of the line between the origin and the point (i.e., length of the vector), while phase is the angle between the vector and 0 degrees, which we define as the positive real axis:
 
 .. image:: ../_images/complex_plane_2.png
-   :scale: 70% 
+   :scale: 70%
    :align: center
    :alt: A vector on the complex plane
 
@@ -137,22 +137,22 @@ This representation of a sinusoid is known as a "phasor diagram".  It's simply p
 
 .. math::
   \mathrm{magnitude} = \sqrt{a^2 + b^2} = 0.806
-  
-  \mathrm{phase} = \tan^{-1} \left( \frac{b}{a} \right) = -29.7^{\circ} = -0.519 \quad \mathrm{radians} 
-  
+
+  \mathrm{phase} = \tan^{-1} \left( \frac{b}{a} \right) = -29.7^{\circ} = -0.519 \quad \mathrm{radians}
+
 In Python you can use np.abs(x) and np.angle(x) for the magnitude and phase. The input can be a complex number or an array of complex numbers, and the output will be a **real** number(s) (of the data type float).
 
 You may have figured out by now how this vector or phasor diagram relates to IQ convention: I is real and Q is imaginary.  From this point on, when we draw the complex plane, we will label it with I and Q instead of real and imaginary.  They are still complex numbers!
 
 .. image:: ../_images/complex_plane_3.png
-   :scale: 70% 
+   :scale: 70%
    :align: center
 
 Now let's say we want to transmit our example point 0.7-0.4j.  We will be transmitting:
 
 .. math::
   x(t) = I \cos(2\pi ft)  + Q \sin(2\pi ft)
-  
+
   \quad \quad \quad = 0.7 \cos(2\pi ft) - 0.4 \sin(2\pi ft)
 
 We can use trig identity :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)` where :math:`A` is our magnitude found with :math:`\sqrt{I^2 + Q^2}` and :math:`\phi` is our phase, equal to :math:`\tan^{-1} \left( Q/I \right)`.  The above equation now becomes:
@@ -175,7 +175,7 @@ Receiver Side
 Now let's take the perspective of a radio receiver that is trying to receive a signal (e.g., an FM radio signal).  Using IQ sampling, the diagram now looks like:
 
 .. image:: ../_images/IQ_diagram_rx.png
-   :scale: 70% 
+   :scale: 70%
    :align: center
    :alt: Receiving IQ samples by directly multiplying the input signal by a sine wave and a 90 degree shifted version of that sine wave
 
@@ -186,7 +186,7 @@ If someone gives you a bunch of IQ samples, it will look like a 1D array/vector 
 Throughout this textbook you will become **very** familiar with how IQ samples work, how to receive and transmit them with an SDR, how to process them in Python, and how to save them to a file for later analysis.
 
 One last important note: the figure above shows what's happening **inside** of the SDR. We don't actually have to generate a sine wave, shift by 90, multiply or add--the SDR does that for us.  We tell the SDR what frequency we want to sample at, or what frequency we want to transmit our samples at.  On the receiver side, the SDR will provide us the IQ samples. For the transmitting side, we have to provide the SDR the IQ samples.  In terms of data type, they will either be complex ints or floats.
-   
+
 .. _downconversion-section:
 
 **************************
@@ -202,27 +202,27 @@ Until this point we have not discussed frequency, but we saw there was an :math:
    \draw[->,red,thick] (1.9,-0.5) -- (2.4,-1.5);
    \draw[->,red,thick] (0,-4) node[red, below, align=center]{This is what we call the carrier} -- (-0.6,-2.7);
 
-For reference, radio signals such as FM radio, WiFi, Bluetooth, LTE, GPS, etc., usually use a frequency (i.e., a carrier) between 100 MHz and 6 GHz.  These frequencies travel really well through the air, but they don't require super long antennas or a ton of power to transmit or receive.  Your microwave cooks food with electromagnetic waves at 2.4 GHz. If there is a leak in the door then your microwave will jam WiFi signals and possibly also burn your skin.  Another form of electromagnetic waves is light. Visible light has a frequency of around 500 THz.  It's so high that we don't use traditional antennas to transmit light. We use  methods like LEDs that are semiconductor devices. They create light when electrons jump in between the atomic orbits of the semiconductor material, and the color depends on how far they jump.  Technically, radio frequency (RF) is defined as the range from roughly 20 kHz to 300 GHz. These are the frequencies at which energy from an oscillating electric current can radiate off a conductor (an antenna) and travel through space.  The 100 MHz to 6 GHz range are the more useful frequencies, at least for most modern applications.  Frequencies above 6 GHz have been used for radar and satellite communications for decades, and are now being used in 5G "mmWave" (24 - 29 GHz) to supplement the lower bands and increase speeds. 
+For reference, radio signals such as FM radio, WiFi, Bluetooth, LTE, GPS, etc., usually use a frequency (i.e., a carrier) between 100 MHz and 6 GHz.  These frequencies travel really well through the air, but they don't require super long antennas or a ton of power to transmit or receive.  Your microwave cooks food with electromagnetic waves at 2.4 GHz. If there is a leak in the door then your microwave will jam WiFi signals and possibly also burn your skin.  Another form of electromagnetic waves is light. Visible light has a frequency of around 500 THz.  It's so high that we don't use traditional antennas to transmit light. We use  methods like LEDs that are semiconductor devices. They create light when electrons jump in between the atomic orbits of the semiconductor material, and the color depends on how far they jump.  Technically, radio frequency (RF) is defined as the range from roughly 20 kHz to 300 GHz. These are the frequencies at which energy from an oscillating electric current can radiate off a conductor (an antenna) and travel through space.  The 100 MHz to 6 GHz range are the more useful frequencies, at least for most modern applications.  Frequencies above 6 GHz have been used for radar and satellite communications for decades, and are now being used in 5G "mmWave" (24 - 29 GHz) to supplement the lower bands and increase speeds.
 
-When we change our IQ values quickly and transmit our carrier, it's called "modulating" the carrier (with data or whatever we want).  When we change I and Q, we change the phase and amplitude of the carrier.  Another option is to change the frequency of the carrier, i.e., shift it slightly up or down, which is what FM radio does. 
+When we change our IQ values quickly and transmit our carrier, it's called "modulating" the carrier (with data or whatever we want).  When we change I and Q, we change the phase and amplitude of the carrier.  Another option is to change the frequency of the carrier, i.e., shift it slightly up or down, which is what FM radio does.
 
-As a simple example, let's say we transmit the IQ sample 1+0j, and then we switch to transmitting 0+1j.  We go from sending :math:`\cos(2\pi ft)` to :math:`\sin(2\pi ft)`, meaning our carrier shifts phase by 90 degrees when we switch from one sample to another. 
+As a simple example, let's say we transmit the IQ sample 1+0j, and then we switch to transmitting 0+1j.  We go from sending :math:`\cos(2\pi ft)` to :math:`\sin(2\pi ft)`, meaning our carrier shifts phase by 90 degrees when we switch from one sample to another.
 
-It is easy to get confused between the signal we want to transmit (which typically contains many frequency components), and the frequency we transmit it on (our carrier frequency).  This will hopefully get cleared up when we cover baseband vs. bandpass signals. 
+It is easy to get confused between the signal we want to transmit (which typically contains many frequency components), and the frequency we transmit it on (our carrier frequency).  This will hopefully get cleared up when we cover baseband vs. bandpass signals.
 
 Now back to sampling for a second.  Instead of receiving samples by multiplying what comes off the antenna by a cos() and sin() then recording I and Q, what if we fed the signal from the antenna straight into a single ADC?  Say the carrier frequency is 2.4 GHz, like WiFi or Bluetooth.  That means we would have to sample at 4.8 GHz, as we learned.  That's extremely fast! An ADC that samples that fast costs thousands of dollars.  Instead, we "downconvert" the signal so that the signal we want to sample is centered around DC or 0 Hz. This downconversion happens before we sample.  We go from:
 
 .. math::
   I \cos(2\pi ft)
-  
+
   Q \sin(2\pi ft)
-  
+
 to just I and Q.
 
 Let's visualize downconversion in the frequency domain:
 
 .. image:: ../_images/downconversion.png
-   :scale: 60% 
+   :scale: 60%
    :align: center
    :alt: The downconversion process where a signal is frequency shifted from RF to 0 Hz or baseband
 
@@ -255,7 +255,7 @@ Baseband and Bandpass Signals
 We refer to a signal centered around 0 Hz as being at "baseband".  Conversely, "bandpass" refers to when a signal exists at some RF frequency nowhere near 0 Hz, that has been shifted up for the purpose of wireless transmission.  There is no notion of a "baseband transmission", because you can't transmit something imaginary.  A signal at baseband may be perfectly centered at 0 Hz like the right-hand portion of the figure in Section :ref:`downconversion-section`. It might be *near* 0 Hz, like the two signals shown below. Those two signals are still considered baseband.   Also shown is an example bandpass signal, centered at a very high frequency denoted :math:`f_c`.
 
 .. image:: ../_images/baseband_bandpass.png
-   :scale: 50% 
+   :scale: 50%
    :align: center
    :alt: Baseband vs bandpass
 
@@ -265,7 +265,7 @@ We tend to create, record, or analyze signals at baseband because we can work at
 
 If we do not have any imaginary component in our signal, then we don't have any Q values (or you can think of all Q values equal to zero). This, in turn, means that we only have cosine signals without any phase shift. A sum of cosine signals without any phase shift will be symmetrical around the y-axis when plotting the frequency domain due to having the same positive and negative components.
 
-In the earlier section where we played around with the complex point 0.7 - 0.4j, that was essentially one sample in a baseband signal.  Most of the time you see complex samples (IQ samples), you are at baseband.  Signals are rarely represented or stored digitally at RF, because of the amount of data it would take, and the fact we are usually only interested in a small portion of the RF spectrum.  
+In the earlier section where we played around with the complex point 0.7 - 0.4j, that was essentially one sample in a baseband signal.  Most of the time you see complex samples (IQ samples), you are at baseband.  Signals are rarely represented or stored digitally at RF, because of the amount of data it would take, and the fact we are usually only interested in a small portion of the RF spectrum.
 
 ***************************
 DC Spike and Offset Tuning
@@ -277,10 +277,10 @@ It is called a "DC offset" or "DC spike" or sometimes "LO leakage", where LO sta
 Here's an example of a DC spike:
 
 .. image:: ../_images/dc_spike.png
-   :scale: 50% 
+   :scale: 50%
    :align: center
    :alt: DC spike shown in a power spectral density (PSD)
-   
+
 Because the SDR tunes to a center frequency, the 0 Hz portion of the FFT corresponds to the center frequency.
 That being said, a DC spike doesn't necessarily mean there is energy at the center frequency.
 If there is only a DC spike, and the rest of the FFT looks like noise, there is most likely not actually a signal present where it is showing you one.
@@ -295,7 +295,7 @@ Instead what we can do is sample at 20 MHz at a center frequency of 95 MHz.
    :scale: 40 %
    :align: center
    :alt: The offset tuning process to avoid the DC spike
-   
+
 The blue box above shows what is actually sampled by the SDR, and the green box displays the portion of the spectrum we want.  Our LO will be set to 95 MHz because that is the frequency to which we ask the SDR to tune. Since 95 MHz is outside of the green box, we won't get any DC spike.
 
 There is one problem: if we want our signal to be centered at 100 MHz and only contain 5 MHz, we will have to perform a frequency shift, filter, and downsample the signal ourselves (something we will learn how to do later). Fortunately, this process of offtuning, a.k.a applying an LO offset, is often built into the SDRs, where they will automatically perform offtuning and then shift the frequency to your desired center frequency.  We benefit when the SDR can do it internally: we don't have to send a higher sample rate over our USB or Ethernet connection, which bottleneck how high a sample rate we can use.
@@ -337,7 +337,7 @@ If your signal has roughly zero mean--which is usually the case in SDR (we will 
  avg_pwr = np.var(x) # (signal should have roughly zero mean)
 
 The reason why the variance of the samples calculates average power is quite simple: the equation for variance is :math:`\frac{1}{N}\sum^N_{n=1} |x[n]-\mu|^2` where :math:`\mu` is the signal's mean. That equation looks familiar! If :math:`\mu` is zero then the equation to determine variance of the samples becomes equivalent to the equation for power.  You can also subtract out the mean from the samples in your window of observation, then take variance.  Just know that if the mean value is not zero, the variance and the power are not equal.
- 
+
 **********************************
 Calculating Power Spectral Density
 **********************************
@@ -365,7 +365,7 @@ Those six steps in Python are:
  PSD = np.abs(np.fft.fft(x))**2 / (N*Fs)
  PSD_log = 10.0*np.log10(PSD)
  PSD_shifted = np.fft.fftshift(PSD_log)
- 
+
 Optionally we can apply a window, like we learned about in the :ref:`freq-domain-chapter` chapter. Windowing would occur right before the line of code with fft().
 
 .. code-block:: python
@@ -381,13 +381,13 @@ If we had tuned our SDR to 2.4 GHz, our observation window would be between 2.39
 In Python, shifting the observation window will look like:
 
 .. code-block:: python
- 
+
  center_freq = 2.4e9 # frequency we tuned our SDR to
  f = np.arange(Fs/-2.0, Fs/2.0, Fs/N) # start, stop, step.  centered around 0 Hz
  f += center_freq # now add center frequency
  plt.plot(f, PSD_shifted)
  plt.show()
- 
+
 We should be left with a beautiful PSD!
 
 If you want to find the PSD of millions of samples, don't do a million-point FFT because it will probably take forever. It will give you an output of a million "frequency bins", after all, which is too much to show in a plot.
@@ -400,30 +400,30 @@ Here is a full code example that includes generating a signal (complex exponenti
 
  import numpy as np
  import matplotlib.pyplot as plt
- 
+
  Fs = 300 # sample rate
  Ts = 1/Fs # sample period
  N = 2048 # number of samples to simulate
- 
+
  t = Ts*np.arange(N)
  x = np.exp(1j*2*np.pi*50*t) # simulates sinusoid at 50 Hz
- 
+
  n = (np.random.randn(N) + 1j*np.random.randn(N))/np.sqrt(2) # complex noise with unity power
  noise_power = 2
  r = x + n * np.sqrt(noise_power)
- 
+
  PSD = np.abs(np.fft.fft(r))**2 / (N*Fs)
  PSD_log = 10.0*np.log10(PSD)
  PSD_shifted = np.fft.fftshift(PSD_log)
- 
+
  f = np.arange(Fs/-2.0, Fs/2.0, Fs/N) # start, stop, step
- 
+
  plt.plot(f, PSD_shifted)
  plt.xlabel("Frequency [Hz]")
  plt.ylabel("Magnitude [dB]")
  plt.grid(True)
  plt.show()
- 
+
 Output:
 
 .. image:: ../_images/fft_example1.svg

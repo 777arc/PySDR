@@ -290,3 +290,5 @@ VCO
 SoC
 endian
 Widrow
+jammer
+jammers

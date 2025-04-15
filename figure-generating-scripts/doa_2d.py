@@ -1,9 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# TODO: maybe add a function for the 2d dir transform
-# Write up the content at the end of DOA chapter, I'll reorganize the chapters at a later date
-
 fc = 5e9
 wavelength = 3e8 / fc
 d = 0.5 * wavelength # in meters
@@ -36,6 +33,7 @@ if False:
     theta = np.deg2rad(20) # point towards 20 degrees
     plt.arrow(float(np.mean(pos[:,0])), 0, np.cos(theta)*0.05, np.sin(theta)*0.05, head_width=0.005, head_length=0.005, fc='r', ec='r')
     plt.text(0.07, 0.005, 'theta (20 deg)', color='red')
+    plt.savefig('../_images/2d_beamforming_ula.svg', bbox_inches='tight')
     plt.show()
     exit()
 
@@ -93,6 +91,7 @@ if False:
     plt.ylabel("Y Position [m]")
     plt.grid()
     plt.gca().set_aspect('equal', adjustable='box')
+    plt.savefig('../_images/2d_beamforming_element_pos.svg', bbox_inches='tight')
     plt.show()
     exit()
 
@@ -101,10 +100,13 @@ theta = np.deg2rad(60) # azimith angle
 phi = np.deg2rad(30) # elevation angle
 
 # The direction unit vector in this direction now has two nonzero components:
-dir = np.asmatrix([np.sin(theta) * np.sin(phi), # x component, goes back to the geometry shown in the beginning of DOA chapter
-                   np.cos(theta) * np.sin(phi), # y component
-                   0]                           # z component
-                   ).T 
+# Let's make a function out of it, because we will be using it a lot
+def get_unit_vector(theta, phi):
+    return np.asmatrix([np.sin(theta) * np.sin(phi), # x component
+                        np.cos(theta) * np.sin(phi), # y component
+                        0]                           # z component
+                        ).T
+dir = get_unit_vector(theta, phi)
 print("dir:\n", dir) # Remember that it's a unit vector representing a direction, it's not in meters
 
 # Now let's use our generalized steering vector function to calculate the steering vector
@@ -126,11 +128,7 @@ if False:
     results = np.zeros((resolution, resolution)) # 2D array to store results
     for i, theta_i in enumerate(theta_scan):
         for j, phi_i in enumerate(phi_scan):
-            dir_i = np.asmatrix([
-                np.sin(theta_i) * np.sin(phi_i), # x component, goes back to the geometry shown in the beginning of DOA chapter
-                np.cos(theta_i) * np.sin(phi_i), # y component
-                0]                               # z component
-                ).T 
+            dir_i = get_unit_vector(theta_i, phi_i)
             a = steering_vector(pos, dir_i) # array factor
             resp = w.conj().T @ a # scalar
             results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
@@ -149,6 +147,7 @@ if False:
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('Power [dB]') # type: ignore
+    plt.savefig('../_images/2d_beamforming_3dplot.svg', bbox_inches='tight')
     plt.show()
     exit()
 
@@ -158,13 +157,13 @@ N = 10000 # number of samples to simulate
 
 jammer1_theta = np.deg2rad(-30)
 jammer1_phi = np.deg2rad(10)
-jammer1_dir = np.asmatrix([np.sin(jammer1_theta) * np.sin(jammer1_phi), np.cos(jammer1_theta) * np.sin(jammer1_phi), 0]).T
+jammer1_dir = get_unit_vector(jammer1_theta, jammer1_phi)
 jammer1_s = steering_vector(pos, jammer1_dir) # Nr x 1
 jammer1_tone = np.exp(2j*np.pi*0.1*np.arange(N)).reshape(1,-1) # make a row vector
 
 jammer2_theta = np.deg2rad(10)
 jammer2_phi = np.deg2rad(50)
-jammer2_dir = np.asmatrix([np.sin(jammer2_theta) * np.sin(jammer2_phi), np.cos(jammer2_theta) * np.sin(jammer2_phi), 0]).T
+jammer2_dir = get_unit_vector(jammer2_theta, jammer2_phi)
 jammer2_s = steering_vector(pos, jammer2_dir)
 jammer2_tone = np.exp(2j*np.pi*0.2*np.arange(N)).reshape(1,-1) # make a row vector
 
@@ -198,7 +197,7 @@ print("Power in direction of jammer 2:", 10*np.log10(np.abs(resp)[0,0]), 'dB')
 # Power in the direction slightly off (1 deg in each axis) from where we are pointing:
 theta_off = np.deg2rad(61) # azimith angle
 phi_off = np.deg2rad(31) # elevation angle
-dir_off = np.asmatrix([np.sin(theta_off) * np.sin(phi_off), np.cos(theta_off) * np.sin(phi_off), 0]).T 
+dir_off = get_unit_vector(theta_off, phi_off)
 a = steering_vector(pos, dir_off) # array factor
 resp = w.conj().T @ a # scalar
 print("Power in direction slightly off from where we are pointing:", 10*np.log10(np.abs(resp)[0,0]), 'dB')
@@ -206,7 +205,7 @@ print("Power in direction slightly off from where we are pointing:", 10*np.log10
 # Power towards a random direction:
 theta_rand = np.deg2rad(360 * np.random.rand()) # azimith angle
 phi_rand = np.deg2rad(90 * np.random.rand()) # elevation angle
-dir_rand = np.asmatrix([np.sin(theta_rand) * np.sin(phi_rand), np.cos(theta_rand) * np.sin(phi_rand), 0]).T 
+dir_rand = get_unit_vector(theta_rand, phi_rand)
 a = steering_vector(pos, dir_rand) # array factor
 resp = w.conj().T @ a # scalar
 print("Power in a random direction:", 10*np.log10(np.abs(resp)[0,0]), 'dB')

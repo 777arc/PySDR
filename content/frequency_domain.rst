@@ -119,19 +119,19 @@ Mathematically, the "transform" we use to go from the time domain to the frequen
 .. math::
    X(f) = \int x(t) e^{-j2\pi ft} dt
 
-For a signal x(t) we can get the frequency domain version, X(f), using this formula.  We will represent the time domain version of a function with x(t) or y(t), and the corresponding frequency domain version with X(f) and Y(f).  Note the "t" for time, and "f" for frequency. The "j" is simply the imaginary unit. You may have seen it as "i" in high school math class.  We use "j" in engineering and computer science because "i" is often referring to current, and in programming it's often used as an iterator.
+For a signal :math:`x(t)` we can get the frequency domain version, :math:`X(f)`, using this formula.  We will represent the time domain version of a function with :math:`x(t)` or :math:`y(t)`, and the corresponding frequency domain version with :math:`X(f)` and :math:`Y(f)`.  Note the :math:`t` for time, and :math:`f` for frequency. The :math:`j` is simply the imaginary unit, you may have seen it as :math:`i` in high school math class.  We use "j" in engineering and computer science because "i" is often referring to current, and in programming it's often used as an iterator.
 
-To return to the time domain from frequency is almost the same, aside from a scaling factor and negative sign:
+To return to the time domain from frequency is almost the same, aside from a negative sign:
 
 .. math::
-   x(t) = \frac{1}{2 \pi} \int X(f) e^{j2\pi ft} df
+   x(t) = \int X(f) e^{j2\pi ft} df
 
-Note that a lot of textbooks and other resources use :math:`w` in place of the :math:`2\pi f`.  :math:`w` is angular frequency in radians per second, while :math:`f` is in Hz.  All you have to know is that
+Note that a lot of textbooks and other resources use :math:`w` in place of the :math:`2\pi f`, where :math:`w` is angular frequency in radians per second, while :math:`f` is in Hz.  All you have to know is that
 
 .. math::
    \omega = 2 \pi f
 
-Even though it adds a :math:`2 \pi` term to many equations, it's easier to stick with frequency in Hz. Ultimately you will work with Hz in your SDR application.
+Even though it adds a :math:`2 \pi` term to many equations, it's easier to stick with frequency in Hz, as we work with Hz in most SDR and RF signal processing applications.
 
 The above equation for the Fourier Transform is the continuous form, which you will only see in math problems.  The discrete form is much closer to what is implemented in code:
 

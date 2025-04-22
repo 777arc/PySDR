@@ -119,6 +119,27 @@ print("weights:\n", w)
 # At this point it's worth pointing out that we didn't actually change dimensionality of anything, going from 1D to 2D, we just have a non-zero y component, the steering vector equation is still the same and the weights are still a 1D array
 # Some folks might assemble their weights as a 2D array so that visually it matches the array geometry, but it's not necessary and best to keep it 1D
 
+# 2D plot that makes more sense
+# This seems to be making a UV plot
+if True:
+    resolution = 100 # number of points in each direction
+    theta_scan = np.linspace(0, 2*np.pi, resolution) # azimuth angles
+    phi_scan = np.linspace(0, np.pi, resolution) # elevation angles
+    results = np.zeros((resolution, resolution)) # 2D array to store results
+    for i, theta_i in enumerate(theta_scan):
+        for j, phi_i in enumerate(phi_scan):
+            dir_i = get_unit_vector(theta_i, phi_i)
+            a = steering_vector(pos, dir_i) # array factor
+            resp = w.conj().T @ a # scalar
+            results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
+    X = np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:]) # doesnt make sense to convert to degrees at this point because its not a radian anymore
+    Y = np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:])
+    results[results < -10] = -10
+    CS = plt.contour(X, Y, results)
+    plt.clabel(CS, inline=True, fontsize=8)
+    plt.show()
+
+
 # Visualize beam pattern when using these weights, but this time we need a 3D surface plot
 # Note that this is not a polar plot, it's using X and Y to represent the azimuth and elevation angles, and Z to represent the power in dB
 if False:
@@ -134,6 +155,7 @@ if False:
             results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
     # plot_surface needs x,y,z form
     results[results < -10] = -10 # crop the z axis to -10 dB
+    print(np.max(results)) # 12.04 dB because we have 16 elements 10*log10(16) = 12.04 dB
     fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
     surf = ax.plot_surface(np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # x # type: ignore
                            np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # y
@@ -214,3 +236,20 @@ print("Power in a random direction:", 10*np.log10(np.abs(resp)[0,0]), 'dB')
 # So we end up getting a pretty low value towards the jammers
 # Slightly off from where we are pointing, we get a value a tad below 0 dB
 # Towards a random direction, we get a value higher than the jammers but way lower than 0 dB, most of the time
+
+# Sanity check the max gain from MVDR
+resolution = 200 # number of points in each direction
+theta_scan = np.linspace(0, 2*np.pi, resolution) # azimuth angles
+phi_scan = np.linspace(0, np.pi, resolution) # elevation angles
+results = np.zeros((resolution, resolution)) # 2D array to store results
+for i, theta_i in enumerate(theta_scan):
+    for j, phi_i in enumerate(phi_scan):
+        dir_i = get_unit_vector(theta_i, phi_i)
+        a = steering_vector(pos, dir_i) # array factor
+        resp = w.conj().T @ a # scalar
+        results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
+print(np.max(results)) # 1.3 dB
+# Print argmax of a 2d array
+max_idx = np.unravel_index(np.argmax(results, axis=None), results.shape)
+print(theta_scan[max_idx[0]] * 180 / np.pi) # theta doesnt really mean anything here because phi is close to 0
+print(phi_scan[max_idx[1]] * 180 / np.pi) # phi is sometimes +10 and sometimes -10 deg

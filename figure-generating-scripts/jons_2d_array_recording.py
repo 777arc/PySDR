@@ -8,13 +8,8 @@ Nr = 15
 rows = 3
 cols = 5
 
-r = np.load("/mnt/d/boresight.npy") 
-r = np.delete(r, -1, axis=0)  # 16th element is not connected
-# at this point its a 2D array of complex128, size (15, 16384)
-
-# For now, because we have 1 recording, split into train and test
-r_train = r[:,:8192]
-r_test = r[:,8192:]
+r = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\A_only_capture1.npy")[0:15] # 16th element is not connected
+r_cal = np.load("C:\\Users\\marclichtman\\Downloads\\boresight_uncalibrated.npy")[0:15] # needs to be a signal at boresight and nothing else
 
 # Element positions, still as a list of x,y,z coordinates in meters
 pos = np.zeros((Nr, 3))
@@ -41,9 +36,8 @@ if False:
 ###############
 
 # amplitude and phase offsets are found from the eigenvalue decomposition of the covariance matrix R
-r = r_train # TEMPORARY
-R = r @ r.conj().T # Calc covariance matrix, it's Nr x Nr
-w, v = np.linalg.eig(R) # eigenvalue decomposition, v[:,i] is the eigenvector corresponding to the eigenvalue w[i]
+R_cal = r_cal @ r_cal.conj().T # Calc covariance matrix, it's Nr x Nr
+w, v = np.linalg.eig(R_cal) # eigenvalue decomposition, v[:,i] is the eigenvector corresponding to the eigenvalue w[i]
 
 # Plot eigenvalues
 if False:
@@ -60,12 +54,12 @@ if False:
 # TODO: the accuracy of cal can be determined by taking crosscorr of all pairs of channels at 0 sample delay and some random sample delay and comparing the two
 # TODO: There's also a technique of making a phase-frequency plot, to estimate fractional delay between samples, might be worth trying
 v_max = v[:, np.argmax(np.abs(w))]
-mags = np.mean(np.abs(r), axis=1)
+mags = np.mean(np.abs(r_cal), axis=1)
 mags = mags[0] / mags # normalize to first element
 phases = np.angle(v_max)
 phases = phases[0] - phases # normalize to first element
 cal_table = mags * np.exp(1j * phases)
-print("cal_table", cal_table)
+#print("cal_table", cal_table)
 
 # Plot Cal offsets
 if False:
@@ -78,11 +72,9 @@ if False:
     plt.show()
     exit()
 
-# Apply cal offsets
-r = r_test # TEMPORARY
+# Apply cal offsets to r
 for i in range(Nr):
     r[i, :] *= cal_table[i]
-
 
 def steering_vector(pos, dir):
     return np.exp(-2j * np.pi * pos @ dir / wavelength) # outputs Nr x 1 (column vector)
@@ -93,9 +85,9 @@ def get_unit_vector(theta, phi):  # angles are in radians
                         0]                           # z component
                         ).T
 
-# Crappy 3d plot of the array
-if True:
-    resolution = 100 # number of points in each direction
+# 3d plot of weights
+if False:
+    resolution = 40 # number of points in each direction
     theta_scan = np.linspace(-np.pi, np.pi, resolution) # azimuth angles
     phi_scan = np.linspace(0, np.pi, resolution) # elevation angles
     results = np.zeros((resolution, resolution)) # 2D array to store results
@@ -113,7 +105,7 @@ if True:
     results[results < -10] = -10 # crop the z axis to -10 dB
 
     # 3D
-    if True:
+    if False:
         fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
         surf = ax.plot_surface(np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # x
                             np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # y
@@ -129,7 +121,7 @@ if True:
         ax.set_zlabel('Power [dB]')
         plt.show()
     
-    # 2D
+    # 2D, x-y projection
     else:
         x = np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:])
         y = np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:])
@@ -137,6 +129,28 @@ if True:
         ax.contour(x, y, results, levels=100, cmap='viridis')
         plt.show()
 
-
-
+# x-y scan
+if True:
+    resolution = 20 # number of points in each direction
+    x_scan = np.linspace(-1, 1, resolution)
+    y_scan = np.linspace(-1, 1, resolution)
+    results = np.zeros((resolution, resolution)) # 2D array to store results
+    for x_i, x in enumerate(x_scan):
+        for y_i, y in enumerate(y_scan):
+            if np.sqrt(x**2 + y**2) > 1:
+                continue
+            s = steering_vector(pos, np.asarray([x, y, 0]))
+            #w = s # Conventional beamformer
+            R = np.cov(r) # Covariance matrix, 15 x 15
+            Rinv = np.linalg.pinv(R)
+            w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
+            resp = w.conj().T @ r
+            results[x_i, y_i] = np.abs(resp)[0] # power in signal, in dB
+    #results = 10*np.log10(results) # convert to dB
+    #results[results < -20] = -20 # crop
+    plt.imshow(results, extent=(-1, 1, -1, 1), origin='lower', aspect='auto', cmap='viridis')
+    plt.colorbar(label='Power [linear]')
+    plt.xlabel('X Position [normalized]')
+    plt.ylabel('Y Position [normalized]')
+    plt.show()
 

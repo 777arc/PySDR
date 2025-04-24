@@ -8,8 +8,9 @@ Nr = 15
 rows = 3
 cols = 5
 
-r = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\A_only_capture1.npy")[0:15] # 16th element is not connected
-r_cal = np.load("C:\\Users\\marclichtman\\Downloads\\boresight_uncalibrated.npy")[0:15] # needs to be a signal at boresight and nothing else
+r = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\DandC_capture1.npy")[0:15] # 16th element is not connected
+r_cal = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\C_only_capture1.npy")[0:15]
+#r_cal = np.load("C:\\Users\\marclichtman\\Downloads\\boresight_uncalibrated.npy")[0:15] # needs to be a signal at boresight and nothing else
 
 # Element positions, still as a list of x,y,z coordinates in meters
 pos = np.zeros((Nr, 3))
@@ -82,27 +83,28 @@ def steering_vector(pos, dir):
 def get_unit_vector(theta, phi):  # angles are in radians
     return np.asmatrix([np.sin(theta) * np.sin(phi), # x component
                         np.cos(theta) * np.sin(phi), # y component
-                        0]                           # z component
+                        0]                           # z component (its not actually 0 but the pos is all 0s so it doesn't matter)
                         ).T
 
 # 3d plot of weights
-if False:
-    resolution = 40 # number of points in each direction
+if True:
+    resolution = 100 # number of points in each direction
     theta_scan = np.linspace(-np.pi, np.pi, resolution) # azimuth angles
-    phi_scan = np.linspace(0, np.pi, resolution) # elevation angles
+    phi_scan = np.linspace(np.pi/-2, np.pi/2, resolution) # elevation angles
     results = np.zeros((resolution, resolution)) # 2D array to store results
+    R = np.cov(r) # Covariance matrix, 15 x 15
+    Rinv = np.linalg.pinv(R)
     for i, theta_i in enumerate(theta_scan):
         for j, phi_i in enumerate(phi_scan):
             dir_i = get_unit_vector(theta_i, phi_i)
-            s = steering_vector(pos, dir_i) # 16 x 1
+            s = steering_vector(pos, dir_i) # 15 x 1
             #w = s # Conventional beamformer
-            R = np.cov(r) # Covariance matrix, 16 x 16
-            Rinv = np.linalg.pinv(R)
             w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
             resp = w.conj().T @ r
-            results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
+            results[i, j] = np.abs(resp)[0,0] # power in signal, in dB
     # plot_surface needs x,y,z form
-    results[results < -10] = -10 # crop the z axis to -10 dB
+    #results = 10*np.log10(results) # convert to dB
+    #results[results < -10] = -10 # crop the z axis to -10 dB
 
     # 3D
     if False:
@@ -121,28 +123,28 @@ if False:
         ax.set_zlabel('Power [dB]')
         plt.show()
     
-    # 2D, x-y projection
+    # 2D, theta-phi heatmap
     else:
-        x = np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:])
-        y = np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:])
-        fig, ax = plt.subplots(figsize=(8, 6))
-        ax.contour(x, y, results, levels=100, cmap='viridis')
+        plt.imshow(results, extent=(np.min(theta_scan)*180/np.pi, np.max(theta_scan)*180/np.pi, np.min(phi_scan)*180/np.pi, np.max(phi_scan)*180/np.pi), origin='lower', aspect='auto', cmap='viridis')
+        plt.colorbar(label='Power [linear]')
+        plt.xlabel('Theta (azimuth, degrees)')
+        plt.ylabel('Phi (elevation, degrees)')
         plt.show()
 
 # x-y scan
-if True:
+if False:
     resolution = 20 # number of points in each direction
     x_scan = np.linspace(-1, 1, resolution)
     y_scan = np.linspace(-1, 1, resolution)
     results = np.zeros((resolution, resolution)) # 2D array to store results
+    R = np.cov(r) # Covariance matrix, 15 x 15
+    Rinv = np.linalg.pinv(R)
     for x_i, x in enumerate(x_scan):
         for y_i, y in enumerate(y_scan):
             if np.sqrt(x**2 + y**2) > 1:
                 continue
-            s = steering_vector(pos, np.asarray([x, y, 0]))
-            #w = s # Conventional beamformer
-            R = np.cov(r) # Covariance matrix, 15 x 15
-            Rinv = np.linalg.pinv(R)
+            dir = np.asarray([x, y, 0]) # even if there was a z component it wouldnt matter becuase pos z is all zeros
+            s = np.exp(-2j * np.pi * pos @ dir / wavelength) # outputs Nr x 1 (column vector)
             w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
             resp = w.conj().T @ r
             results[x_i, y_i] = np.abs(resp)[0] # power in signal, in dB

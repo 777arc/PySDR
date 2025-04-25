@@ -45,8 +45,9 @@ The following was tested to work on Ubuntu 22.04 (using commit hash 17f3943 in M
 .. code-block:: bash
 
     git clone https://github.com/greatscottgadgets/hackrf.git
+    cd hackrf
     git checkout 17f3943
-    cd hackrf/host
+    cd host
     mkdir build
     cd build
     cmake ..

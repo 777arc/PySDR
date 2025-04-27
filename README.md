@@ -24,6 +24,7 @@ make html-fr
 make html-nl
 make html-ukraine
 make html-zh
+make html-ja
 ```
 
 In _build there should be an index.html that represents the main page of the English site

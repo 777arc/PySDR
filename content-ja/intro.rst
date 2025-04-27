@@ -49,12 +49,12 @@
 この教材は、DSPやSDRの概念を素早くスムーズに紹介し、読者が賢くDSPを実践し、SDRを使いこなせるようになることを目的としています。
 この教材は、全てのDSP/SDR分野を網羅するリファレンステキストを目指しているわけではありません。
 そのような優れた教科書はすでに数多く存在しており、例えば `Analog DevicesのSDRの教科書
-<https://www.analog.com/en/education/education-library/software-defined-radio-for-engineers.html>`_と `dspguide.com <http://www.dspguide.com/>`_ が挙げられます。
+<https://www.analog.com/en/education/education-library/software-defined-radio-for-engineers.html>`_ と `dspguide.com <http://www.dspguide.com/>`_ が挙げられます。
 三角関数の公式やシャノン限界などは、いつでもGoogleを使って思い出せば大丈夫です。
 この教材はDSPやSDRの世界への入り口と考えてください。
 従来の講義や教科書に比べて、時間もお金もかけずに始められる内容になっています。
 
-基礎的なDSP理論をカバーするために、電気工学分野で一般的な「Signals and Systems(信号とシステム)」という1学期分の内容を、数章に凝縮しています。
+基礎的なDSP理論をカバーするために、電気工学分野で一般的な「信号とシステム」という1学期分の内容を、数章に凝縮しています。
 DSPの基礎が一通り終わった後はSDRの話題に進みますが、DSPや無線通信に関連する概念も引き続き教材に登場します。
 
 コード例はPythonで提供されています。
@@ -88,10 +88,10 @@ Gitの操作に自信がないけれど提案したい内容がある場合に�
 - Matthew Hannon
 - James Hayek
 - Deidre Stuffer
-- Tarik Benaddi for `translating PySDR to French <https://pysdr.org/fr/index-fr.html>`_
-- `Daniel Versluis <https://versd.bitbucket.io/content/about.html>`_ for `translating PySDR to Dutch <https://pysdr.org/nl/index-nl.html>`_
-- `mrbloom <https://github.com/mrbloom>`_ for `translating PySDR to Ukrainian <https://pysdr.org/ukraine/index-ukraine.html>`_
-- `Yimin Zhao <https://github.com/doctormin>`_ for `translating PySDR to Simplified Chinese <https://pysdr.org/zh/index-zh.html>`_
-- `Eduardo Chancay <https://github.com/edulchan>`_ for `translating PySDR to Spanish <https://pysdr.org/es/index-es.html>`_
+- Tarik Benaddi (`PySDRをフランス語に翻訳 <https://pysdr.org/fr/index-fr.html>`_)
+- `Daniel Versluis <https://versd.bitbucket.io/content/about.html>`_ (`PySDRをオランダ語に翻訳 <https://pysdr.org/nl/index-nl.html>`_)
+- `mrbloom <https://github.com/mrbloom>`_ (`PySDRをウクライナ語に翻訳 <https://pysdr.org/ukraine/index-ukraine.html>`_)
+- `Yimin Zhao <https://github.com/doctormin>`_ (`PySDRを簡体字中国語に翻訳 <https://pysdr.org/zh/index-zh.html>`_)
+- `Eduardo Chancay <https://github.com/edulchan>`_ (`PySDRをスペイン語に翻訳 <https://pysdr.org/es/index-es.html>`_)
 
-As well as all `PySDR Patreon <https://www.patreon.com/PySDR>`_ supporters!
+また、すべての `PySDR Patreon <https://www.patreon.com/PySDR>`_ サポーターの皆さまにも感謝いたします！

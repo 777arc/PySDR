@@ -8,7 +8,7 @@ Nr = 15
 rows = 3
 cols = 5
 
-r = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\DandC_capture1.npy")[0:15] # 16th element is not connected
+r = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\DandB_capture1.npy")[0:15] # 16th element is not connected
 r_cal = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\C_only_capture1.npy")[0:15]
 #r_cal = np.load("C:\\Users\\marclichtman\\Downloads\\boresight_uncalibrated.npy")[0:15] # needs to be a signal at boresight and nothing else
 
@@ -16,18 +16,20 @@ r_cal = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\C_only_capt
 pos = np.zeros((Nr, 3))
 for i in range(Nr):
     pos[i,0] = d * (i % cols)  # x position
-    pos[i,1] = d * (i // cols) # y position
-    pos[i,2] = 0               # z position
+    pos[i,1] = 0 # y position
+    pos[i,2] = d * (i // cols) # z position
 
-# Plot positions of elements
+# Plot and label positions of elements, to sanity check
 if False:
-    plt.plot(pos[:,0], pos[:,1], 'o')
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(pos[:,0], pos[:,1], pos[:,2], 'o')
+    # Labal indeces
     for i in range(Nr):
-        plt.text(pos[i,0], pos[i,1], str(i), fontsize=12)
-    plt.xlim([-0.01, 0.25])
-    plt.ylim([-0.01, 0.15])
+        ax.text(pos[i,0], pos[i,1], pos[i,2], str(i), fontsize=10)
     plt.xlabel("X Position [m]")
     plt.ylabel("Y Position [m]")
+    ax.set_zlabel("Z Position [m]") # type: ignore
     plt.grid()
     plt.show()
     exit()
@@ -80,79 +82,64 @@ for i in range(Nr):
 def steering_vector(pos, dir):
     return np.exp(-2j * np.pi * pos @ dir / wavelength) # outputs Nr x 1 (column vector)
 
+# Matches the Julia convention
 def get_unit_vector(theta, phi):  # angles are in radians
-    return np.asmatrix([np.sin(theta) * np.sin(phi), # x component
-                        np.cos(theta) * np.sin(phi), # y component
-                        0]                           # z component (its not actually 0 but the pos is all 0s so it doesn't matter)
-                        ).T
+    return np.asmatrix([np.sin(theta) * np.cos(phi), # x component
+                        np.cos(theta) * np.cos(phi), # y component
+                        np.sin(phi)]).T              # z component
 
 # 3d plot of weights
 if True:
-    resolution = 100 # number of points in each direction
-    theta_scan = np.linspace(-np.pi, np.pi, resolution) # azimuth angles
-    phi_scan = np.linspace(np.pi/-2, np.pi/2, resolution) # elevation angles
+    resolution = 400 # number of points in each direction
+    theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
+    phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
     results = np.zeros((resolution, resolution)) # 2D array to store results
     R = np.cov(r) # Covariance matrix, 15 x 15
     Rinv = np.linalg.pinv(R)
+    expected_num_signals = 4 # for MUSIC only
+    w, v = np.linalg.eig(R) # eigenvalue decomposition, v[:,i] is the eigenvector corresponding to the eigenvalue w[i]
+    eig_val_order = np.argsort(np.abs(w))
+    v = v[:, eig_val_order] # sort eigenvectors using this order
+    V = np.zeros((Nr, Nr - expected_num_signals), dtype=np.complex64) # Noise subspace is the rest of the eigenvalues
+    for i in range(Nr - expected_num_signals):
+        V[:, i] = v[:, i]
     for i, theta_i in enumerate(theta_scan):
         for j, phi_i in enumerate(phi_scan):
-            dir_i = get_unit_vector(theta_i, phi_i)
+            dir_i = get_unit_vector(theta_i, -1*phi_i) # TODO FIGURE OUT WHY I NEEDED TO NEGATE PHI FOR THE RESULTS TO MATCH REALITY
             s = steering_vector(pos, dir_i) # 15 x 1
             #w = s # Conventional beamformer
-            w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
-            resp = w.conj().T @ r
-            results[i, j] = np.abs(resp)[0,0] # power in signal, in dB
-    # plot_surface needs x,y,z form
-    #results = 10*np.log10(results) # convert to dB
-    #results[results < -10] = -10 # crop the z axis to -10 dB
+            music_metric = 1 / (s.conj().T @ V @ V.conj().T @ s)
+            music_metric = np.abs(music_metric).squeeze()
+            music_metric = np.clip(music_metric, 0, 2) # Useful for ABCD one
+            results[i, j] = music_metric
+            # MVDR/Capon
+            #w = (Rinv @ s)/(s.conj().T @ Rinv @ s)
+            #resp = w.conj().T @ r
+            #results[i, j] = np.abs(resp)[0,0] # power in signal, in dB
 
     # 3D
-    if False:
+    if True:
+        results = 10*np.log10(results) # convert to dB
+        results[results < -20] = -20 # crop the z axis to some level of dB
         fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
-        surf = ax.plot_surface(np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # x
-                            np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # y
-                            results, cmap='viridis')
-        # Plot a dot at the maximum point
-        max_idx = np.unravel_index(np.argmax(results, axis=None), results.shape)
-        ax.scatter(np.sin(theta_scan[max_idx[0]]) * np.sin(phi_scan[max_idx[1]]), # x
-                np.cos(theta_scan[max_idx[0]]) * np.sin(phi_scan[max_idx[1]]), # y
-                results[max_idx], color='red', s=100)
-        ax.set_zlim(-10, results[max_idx])
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('Power [dB]')
+        surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
+                               np.rad2deg(phi_scan[None,:]),
+                               results,
+                               cmap='viridis')
+        #ax.set_zlim(-10, results[max_idx])
+        ax.set_xlabel('Azimuth (theta)')
+        ax.set_ylabel('Elevation (phi)')
+        ax.set_zlabel('Power [dB]') # type: ignore
         plt.show()
     
     # 2D, theta-phi heatmap
     else:
-        plt.imshow(results, extent=(np.min(theta_scan)*180/np.pi, np.max(theta_scan)*180/np.pi, np.min(phi_scan)*180/np.pi, np.max(phi_scan)*180/np.pi), origin='lower', aspect='auto', cmap='viridis')
+        extent=(np.min(theta_scan)*180/np.pi,
+                np.max(theta_scan)*180/np.pi,
+                np.min(phi_scan)*180/np.pi,
+                np.max(phi_scan)*180/np.pi)
+        plt.imshow(results.T, extent=extent, origin='lower', aspect='auto', cmap='viridis') # type: ignore
         plt.colorbar(label='Power [linear]')
         plt.xlabel('Theta (azimuth, degrees)')
         plt.ylabel('Phi (elevation, degrees)')
         plt.show()
-
-# x-y scan
-if False:
-    resolution = 20 # number of points in each direction
-    x_scan = np.linspace(-1, 1, resolution)
-    y_scan = np.linspace(-1, 1, resolution)
-    results = np.zeros((resolution, resolution)) # 2D array to store results
-    R = np.cov(r) # Covariance matrix, 15 x 15
-    Rinv = np.linalg.pinv(R)
-    for x_i, x in enumerate(x_scan):
-        for y_i, y in enumerate(y_scan):
-            if np.sqrt(x**2 + y**2) > 1:
-                continue
-            dir = np.asarray([x, y, 0]) # even if there was a z component it wouldnt matter becuase pos z is all zeros
-            s = np.exp(-2j * np.pi * pos @ dir / wavelength) # outputs Nr x 1 (column vector)
-            w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
-            resp = w.conj().T @ r
-            results[x_i, y_i] = np.abs(resp)[0] # power in signal, in dB
-    #results = 10*np.log10(results) # convert to dB
-    #results[results < -20] = -20 # crop
-    plt.imshow(results, extent=(-1, 1, -1, 1), origin='lower', aspect='auto', cmap='viridis')
-    plt.colorbar(label='Power [linear]')
-    plt.xlabel('X Position [normalized]')
-    plt.ylabel('Y Position [normalized]')
-    plt.show()
-

@@ -44,7 +44,7 @@ def scrape_patreon():
         html_string += '<div style="margin-top: 5px;">and organization-level supporters:</div>'
         html_string += '<img width="12px" height="12px" src="https://pysdr.org/_static/adi.svg">' + ' <a style="border-bottom: 0;" target="_blank" href="https://www.analog.com/en/design-center/reference-designs/circuits-from-the-lab/cn0566.html">Analog Devices, Inc.</a>' + "<br />"
         html_string += "</div>"
-        with open("_templates/patrons.html", "w") as patron_file:
+        with open("_templates/patrons.html", "w", encoding="utf-8") as patron_file:
             patron_file.write(html_string)
     else:
         print("\n=====================================================")

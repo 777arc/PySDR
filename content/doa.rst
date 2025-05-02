@@ -1163,7 +1163,7 @@ In the example Python code below, we simulate an 8-element array with a SOI that
  # Scenario
  sample_rate = 1e6
  d = 0.5 # half wavelength spacing
- N = 10000 # number of samples to simulate
+ N = 100000 # number of samples to simulate
  Nr = 8 # elements
  theta_soi = 20 / 180 * np.pi # convert to radians
  theta2    = 60 / 180 * np.pi
@@ -1191,8 +1191,7 @@ In the example Python code below, we simulate an 8-element array with a SOI that
  r = r + 0.5*n # 8xN
 
  # LMS, not knowing the direction of SOI but knowing the SOI signal itself
- mu = 1e-4 # LMS step size
- gamma = 0.995 # knowledge decay rate
+ mu = 0.5e-5 # LMS step size
  w_lms = np.zeros((Nr, 1), dtype=np.complex128) # start with all zeros
 
  # Loop through received samples
@@ -1204,8 +1203,9 @@ In the example Python code below, we simulate an 8-element array with a SOI that
     y = y.squeeze() # make it a scalar
     error = soi_sample - y
     error_log.append(np.abs(error)**2)
-    w_lms = w_lms * gamma + mu * np.conj(error) * r_sample # weights are still 8x1
-    w_lms /= np.linalg.norm(w_lms) # normalize weights
+    w_lms += mu * np.conj(error) * r_sample # weights are still 8x1
+ 
+ w_lms /= np.linalg.norm(w_lms) # normalize weights
 
  plt.plot(error_log)
  plt.xlabel('Iteration')
@@ -1631,7 +1631,7 @@ This outputs 0 dB, which is what we expect because MVDR's goal is to achieve uni
    * - A random direction
      - -14.285 dB
 
-Your results may vary due to the random noise being used to calculate the received samples, which get used to calculate :code:`R`.  But the main take-away is that the jammers will be in a null and very low power, the 1 degree off from :code:`dir` will be slightly below 0 dB, but still in the main lobe, and then a random direction is going to be lower than 0 dB but higher than the jammers, and very different every run of the simulation.
+Your results may vary due to the random noise being used to calculate the received samples, which get used to calculate :code:`R`.  But the main take-away is that the jammers will be in a null and very low power, the 1 degree off from :code:`dir` will be slightly below 0 dB, but still in the main lobe, and then a random direction is going to be lower than 0 dB but higher than the jammers, and very different every run of the simulation.  Note that with MVDR you get a gain of 0 dB for the main lobe, but if you were to use the conventional beamformer, you would get :math:`10 \log_{10}(Nr)`, so about 12 dB for our 16-element array, showing one of the trade-offs of using MVDR.
 
 *************************
 Conclusion and References
@@ -1643,6 +1643,8 @@ All Python code, including code used to generate the figures/animations, can be 
 * DOA implementation used by KrakenSDR - https://github.com/krakenrf/krakensdr_doa/blob/main/_signal_processing/krakenSDR_signal_processor.py
 
 [1] Mailloux, Robert J. Phased Array Antenna Handbook. Second edition, Artech House, 2005
+
+[2] Van Trees, Harry L. Optimum Array Processing: Part IV of Detection, Estimation, and Modulation Theory. Wiley, 2002.
 
 .. |br| raw:: html
 

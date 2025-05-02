@@ -1,14 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import imageio
 
-# OBS plus lots of ezgif.com was used to make the final animated gif
+# ezgif.com was used just to crop it
 
-fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+tmp = 'C:\\Users\\marclichtman\\AppData\\Local\\Temp'
+
 theta_sois_deg = np.linspace(-90, 90, 200)
+filenames = []
 for theta_soi_deg in theta_sois_deg:
     sample_rate = 1e6
     d = 0.5 # half wavelength spacing
-    N = 10000 # number of samples to simulate
+    N = 100000 # number of samples to simulate
     t = np.arange(N)/sample_rate # time vector
 
     Nr = 8 # elements
@@ -18,7 +21,6 @@ for theta_soi_deg in theta_sois_deg:
     s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1) # 8x1
     s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
     s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
-
 
     if False:
         # SOI is a tone
@@ -50,8 +52,7 @@ for theta_soi_deg in theta_sois_deg:
 
     # LMS, not knowing the direction of SOI but knowing the soi signal itself
     # TODO add in a random time delay to start of soi
-    mu = 1e-4 # LMS step size
-    gamma = 0.995 # knowledge decay rate
+    mu = 0.5e-5 # LMS step size
     #w_lms = np.random.randn(Nr, 1) + 1j*np.random.randn(Nr, 1) # random weights
     w_lms = np.zeros((Nr, 1), dtype=np.complex128) # zeros
 
@@ -64,8 +65,9 @@ for theta_soi_deg in theta_sois_deg:
         y = y.squeeze() # make it a scalar
         error = soi_sample - y
         error_log.append(np.abs(error)**2)
-        w_lms = w_lms * gamma + mu * np.conj(error) * r_sample # weights are still 8x1
-        w_lms /= np.linalg.norm(w_lms) # normalize
+        w_lms += mu * np.conj(error) * r_sample # weights are still 8x1
+    
+    w_lms /= np.linalg.norm(w_lms) # normalize
 
     '''
     plt.figure("Error Log")
@@ -84,6 +86,7 @@ for theta_soi_deg in theta_sois_deg:
     #w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
     theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # in radians
     
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
     ax.plot(theta_bins, w_fft_dB)
     ax.plot([theta_soi, theta_soi], [-30, 10],'g--')
     ax.plot([theta2, theta2], [-30, 10],'r--')
@@ -94,7 +97,17 @@ for theta_soi_deg in theta_sois_deg:
     ax.set_thetamin(-90) # type: ignore # only show top half
     ax.set_thetamax(90) # type: ignore
     ax.set_ylim((-30, 10)) # because there's no noise, only go down 30 dB
-    plt.draw()
-    plt.pause(0.001) # pause to update the plot
-    plt.cla()
+    #plt.draw()
+    #plt.pause(0.001) # pause to update the plot
+    #plt.cla()
+    filename = tmp + '\\lms_animation' + str(theta_soi_deg) + '.png'
+    print(theta_soi_deg)
+    fig.savefig(filename, bbox_inches='tight')
+    filenames.append(filename)
+    plt.close(fig)
 
+# Create animated gif
+images = []
+for filename in filenames:
+    images.append(imageio.imread(filename))
+imageio.mimsave(tmp + '\\lms_animation.gif', images, fps=10, loop=0) # loop=0 means loop forever

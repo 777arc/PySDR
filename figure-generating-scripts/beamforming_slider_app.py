@@ -46,16 +46,16 @@ for i in range(Nr):
 
 ax1 = fig.add_subplot(gs[0:5, 3:5], projection = 'polar')
 polar_plot, = ax1.plot(theta_bins, np.zeros(N_fft))
-ax1.set_theta_zero_location('N') # make 0 degrees point up
-ax1.set_theta_direction(-1) # increase clockwise
-ax1.set_thetamin(-90) # only show top half
-ax1.set_thetamax(90)
-ax1.set_ylim([-30, 10])
+ax1.set_theta_zero_location('N') # type: ignore # make 0 degrees point up
+ax1.set_theta_direction(-1) # type: ignore # increase clockwise
+ax1.set_thetamin(-90) # type: ignore # only show top half
+ax1.set_thetamax(90) # type: ignore
+ax1.set_ylim((-30, 10))
 ax1.set_yticks(np.arange(-30, 11, 10)) # Only label every 10 dB
 
 ax2 = fig.add_subplot(gs[5:9, 3:5])
 rect_plot, = ax2.plot(theta_bins * 180 / np.pi, np.zeros(N_fft))
-plt.axis([-90, 90, -40, 10])
+plt.axis((-90, 90, -40, 10))
 plt.xlabel('Theta [Degrees]')
 plt.grid()
 

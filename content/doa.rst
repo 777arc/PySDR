@@ -1163,7 +1163,7 @@ In the example Python code below, we simulate an 8-element array with a SOI that
  # Scenario
  sample_rate = 1e6
  d = 0.5 # half wavelength spacing
- N = 10000 # number of samples to simulate
+ N = 100000 # number of samples to simulate
  Nr = 8 # elements
  theta_soi = 20 / 180 * np.pi # convert to radians
  theta2    = 60 / 180 * np.pi
@@ -1191,8 +1191,7 @@ In the example Python code below, we simulate an 8-element array with a SOI that
  r = r + 0.5*n # 8xN
 
  # LMS, not knowing the direction of SOI but knowing the SOI signal itself
- mu = 1e-4 # LMS step size
- gamma = 0.995 # knowledge decay rate
+ mu = 0.5e-5 # LMS step size
  w_lms = np.zeros((Nr, 1), dtype=np.complex128) # start with all zeros
 
  # Loop through received samples
@@ -1204,8 +1203,9 @@ In the example Python code below, we simulate an 8-element array with a SOI that
     y = y.squeeze() # make it a scalar
     error = soi_sample - y
     error_log.append(np.abs(error)**2)
-    w_lms = w_lms * gamma + mu * np.conj(error) * r_sample # weights are still 8x1
-    w_lms /= np.linalg.norm(w_lms) # normalize weights
+    w_lms += mu * np.conj(error) * r_sample # weights are still 8x1
+ 
+ w_lms /= np.linalg.norm(w_lms) # normalize weights
 
  plt.plot(error_log)
  plt.xlabel('Iteration')

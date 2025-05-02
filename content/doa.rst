@@ -1643,6 +1643,7 @@ All Python code, including code used to generate the figures/animations, can be 
 * DOA implementation used by KrakenSDR - https://github.com/krakenrf/krakensdr_doa/blob/main/_signal_processing/krakenSDR_signal_processor.py
 
 [1] Mailloux, Robert J. Phased Array Antenna Handbook. Second edition, Artech House, 2005
+[2] Van Trees, Harry L. Optimum Array Processing: Part IV of Detection, Estimation, and Modulation Theory. Wiley, 2002.
 
 .. |br| raw:: html
 

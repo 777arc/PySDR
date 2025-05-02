@@ -1631,7 +1631,7 @@ This outputs 0 dB, which is what we expect because MVDR's goal is to achieve uni
    * - A random direction
      - -14.285 dB
 
-Your results may vary due to the random noise being used to calculate the received samples, which get used to calculate :code:`R`.  But the main take-away is that the jammers will be in a null and very low power, the 1 degree off from :code:`dir` will be slightly below 0 dB, but still in the main lobe, and then a random direction is going to be lower than 0 dB but higher than the jammers, and very different every run of the simulation.  Note that with MVDR you get a gain of 0 dB for the main lobe, but if you were to use the conventional beamformer, you would get :math:`10 \log_{10}(Nr)`, so about 12 dB for our 16-element array, showing one of the tradeoffs of using MVDR.
+Your results may vary due to the random noise being used to calculate the received samples, which get used to calculate :code:`R`.  But the main take-away is that the jammers will be in a null and very low power, the 1 degree off from :code:`dir` will be slightly below 0 dB, but still in the main lobe, and then a random direction is going to be lower than 0 dB but higher than the jammers, and very different every run of the simulation.  Note that with MVDR you get a gain of 0 dB for the main lobe, but if you were to use the conventional beamformer, you would get :math:`10 \log_{10}(Nr)`, so about 12 dB for our 16-element array, showing one of the trade-offs of using MVDR.
 
 *************************
 Conclusion and References

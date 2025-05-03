@@ -519,7 +519,7 @@ Now what happens when d is less than λ/2, such as when we need to fit the array
    :align: center
    :alt: Animation of direction of arrival (DOA) showing what happens when distance d is much less than half-wavelength
 
-While the main lobe gets wider as d gets lower, it still has a maximum at 20 degrees, and there are no grating lobes, so in theory this would still work (at least at high SNR).  To better understand what breaks as d gets too small, let's repeat the experiment but with an additional signal arriving from -40 degrees:
+While the main lobe gets wider as d gets lower, it still has a maximum at 20 degrees, and there are no grating lobes, so in theory this would still work (at least at high SNR and if mutual coupling doesn't become a major issue).  To better understand what breaks as d gets too small, let's repeat the experiment but with an additional signal arriving from -40 degrees:
 
 .. image:: ../_images/doa_d_is_small_animation2.gif
    :scale: 100 %

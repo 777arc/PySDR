@@ -88,58 +88,83 @@ def get_unit_vector(theta, phi):  # angles are in radians
                         np.cos(theta) * np.cos(phi), # y component
                         np.sin(phi)]).T              # z component
 
-# 3d plot of weights
+# DOA
+resolution = 400 # number of points in each direction
+theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
+phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
+results = np.zeros((resolution, resolution)) # 2D array to store results
+R = np.cov(r) # Covariance matrix, 15 x 15
+Rinv = np.linalg.pinv(R)
+expected_num_signals = 4 # for MUSIC only
+w, v = np.linalg.eig(R) # eigenvalue decomposition, v[:,i] is the eigenvector corresponding to the eigenvalue w[i]
+eig_val_order = np.argsort(np.abs(w))
+v = v[:, eig_val_order] # sort eigenvectors using this order
+V = np.zeros((Nr, Nr - expected_num_signals), dtype=np.complex64) # Noise subspace is the rest of the eigenvalues
+for i in range(Nr - expected_num_signals):
+    V[:, i] = v[:, i]
+for i, theta_i in enumerate(theta_scan):
+    for j, phi_i in enumerate(phi_scan):
+        dir_i = get_unit_vector(theta_i, -1*phi_i) # TODO FIGURE OUT WHY I NEEDED TO NEGATE PHI FOR THE RESULTS TO MATCH REALITY
+        s = steering_vector(pos, dir_i) # 15 x 1
+        #w = s # Conventional beamformer
+        music_metric = 1 / (s.conj().T @ V @ V.conj().T @ s)
+        music_metric = np.abs(music_metric).squeeze()
+        music_metric = np.clip(music_metric, 0, 2) # Useful for ABCD one
+        results[i, j] = music_metric
+        # MVDR/Capon
+        #w = (Rinv @ s)/(s.conj().T @ Rinv @ s)
+        #resp = w.conj().T @ r
+        #results[i, j] = np.abs(resp)[0,0] # power in signal
+
+# 3D
+if False:
+    results = 10*np.log10(results) # convert to dB
+    results[results < -20] = -20 # crop the z axis to some level of dB
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
+    surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
+                            np.rad2deg(phi_scan[None,:]),
+                            results,
+                            cmap='viridis')
+    #ax.set_zlim(-10, results[max_idx])
+    ax.set_xlabel('Azimuth (theta)')
+    ax.set_ylabel('Elevation (phi)')
+    ax.set_zlabel('Power [dB]') # type: ignore
+    plt.show()
+
+# 2D, theta-phi heatmap
+else:
+    extent=(np.min(theta_scan)*180/np.pi,
+            np.max(theta_scan)*180/np.pi,
+            np.min(phi_scan)*180/np.pi,
+            np.max(phi_scan)*180/np.pi)
+    plt.imshow(results.T, extent=extent, origin='lower', aspect='auto', cmap='viridis') # type: ignore
+    plt.colorbar(label='Power [linear]')
+    plt.xlabel('Theta (azimuth, degrees)')
+    plt.ylabel('Phi (elevation, degrees)')
+    plt.show()
+
+'''
+# Try just looking at boresight, calc MVDR weights, and using the nulls in the beam pattern to essentially do DOA
+# NOTE - THIS DOESNT REALLY WORK, I MEAN IT SHOWS NULLS BUT ITS NOT USEFUL AS DOA
 if True:
-    resolution = 400 # number of points in each direction
-    theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
-    phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
-    results = np.zeros((resolution, resolution)) # 2D array to store results
-    R = np.cov(r) # Covariance matrix, 15 x 15
-    Rinv = np.linalg.pinv(R)
-    expected_num_signals = 4 # for MUSIC only
-    w, v = np.linalg.eig(R) # eigenvalue decomposition, v[:,i] is the eigenvector corresponding to the eigenvalue w[i]
-    eig_val_order = np.argsort(np.abs(w))
-    v = v[:, eig_val_order] # sort eigenvectors using this order
-    V = np.zeros((Nr, Nr - expected_num_signals), dtype=np.complex64) # Noise subspace is the rest of the eigenvalues
-    for i in range(Nr - expected_num_signals):
-        V[:, i] = v[:, i]
+    dir_i = get_unit_vector(0, 0) # boresight
+    s = steering_vector(pos, dir_i) # 15 x 1
+    w = (Rinv @ s)/(s.conj().T @ Rinv @ s)
+    results = np.zeros((resolution, resolution))
     for i, theta_i in enumerate(theta_scan):
         for j, phi_i in enumerate(phi_scan):
-            dir_i = get_unit_vector(theta_i, -1*phi_i) # TODO FIGURE OUT WHY I NEEDED TO NEGATE PHI FOR THE RESULTS TO MATCH REALITY
-            s = steering_vector(pos, dir_i) # 15 x 1
-            #w = s # Conventional beamformer
-            music_metric = 1 / (s.conj().T @ V @ V.conj().T @ s)
-            music_metric = np.abs(music_metric).squeeze()
-            music_metric = np.clip(music_metric, 0, 2) # Useful for ABCD one
-            results[i, j] = music_metric
-            # MVDR/Capon
-            #w = (Rinv @ s)/(s.conj().T @ Rinv @ s)
-            #resp = w.conj().T @ r
-            #results[i, j] = np.abs(resp)[0,0] # power in signal, in dB
+            dir_i = get_unit_vector(theta_i, -1*phi_i)
+            a = steering_vector(pos, dir_i) # 15 x 1
+            results[i, j] = np.abs(w.conj().T @ a)[0,0] # BEAM PATTERN! not acually applying weights to any samples
 
-    # 3D
-    if True:
-        results = 10*np.log10(results) # convert to dB
-        results[results < -20] = -20 # crop the z axis to some level of dB
-        fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
-        surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
-                               np.rad2deg(phi_scan[None,:]),
-                               results,
-                               cmap='viridis')
-        #ax.set_zlim(-10, results[max_idx])
-        ax.set_xlabel('Azimuth (theta)')
-        ax.set_ylabel('Elevation (phi)')
-        ax.set_zlabel('Power [dB]') # type: ignore
-        plt.show()
-    
-    # 2D, theta-phi heatmap
-    else:
-        extent=(np.min(theta_scan)*180/np.pi,
-                np.max(theta_scan)*180/np.pi,
-                np.min(phi_scan)*180/np.pi,
-                np.max(phi_scan)*180/np.pi)
-        plt.imshow(results.T, extent=extent, origin='lower', aspect='auto', cmap='viridis') # type: ignore
-        plt.colorbar(label='Power [linear]')
-        plt.xlabel('Theta (azimuth, degrees)')
-        plt.ylabel('Phi (elevation, degrees)')
-        plt.show()
+    extent=(np.min(theta_scan)*180/np.pi,
+            np.max(theta_scan)*180/np.pi,
+            np.min(phi_scan)*180/np.pi,
+            np.max(phi_scan)*180/np.pi)
+    # Plot inverse of beam pattern, so nulls are yellow
+    plt.imshow(1 - results.T, extent=extent, origin='lower', aspect='auto', cmap='viridis') # type: ignore
+    plt.colorbar(label='Power [linear]')
+    plt.xlabel('Theta (azimuth, degrees)')
+    plt.ylabel('Phi (elevation, degrees)')
+    plt.show()
+'''

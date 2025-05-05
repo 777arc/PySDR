@@ -92,6 +92,11 @@ jobs:
         env:
           CREATOR_ID: ${{ secrets.CREATOR_ID }}
 
+      - name: Build Japanese
+        run: make html-ja
+        env:
+          CREATOR_ID: ${{ secrets.CREATOR_ID }}
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3.0.1
         with:

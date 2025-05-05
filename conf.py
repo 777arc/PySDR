@@ -98,7 +98,7 @@ release = u'0.1'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', 'index-fr.rst', 'content-fr/*', 'index-nl.rst', 'content-nl/*', 'index-ukraine.rst', 'content-ukraine/*', 'index-zh.rst', 'content-zh/*', 'index-es.rst', 'content-es/*']
+exclude_patterns = ['_build', 'index-fr.rst', 'content-fr/*', 'index-nl.rst', 'content-nl/*', 'index-ukraine.rst', 'content-ukraine/*', 'index-zh.rst', 'content-zh/*', 'index-es.rst', 'content-es/*', 'index-ja.rst', 'content-ja/*']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.

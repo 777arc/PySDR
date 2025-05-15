@@ -1,5 +1,6 @@
 export class SceneTheme{
 	constructor(){
+		/*
 		const ttg = document.querySelector('.theme-toggle');
 		const _callbacks = [];
 		ttg.addEventListener('click', () => {
@@ -26,6 +27,7 @@ export class SceneTheme{
 		const _install = (cb) => {_callbacks.push(cb);}
 		window.installThemeChanged = _install;
 		this.installChanged = _install;
+		*/
 	}
 }
 

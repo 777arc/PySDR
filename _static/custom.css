@@ -242,5 +242,47 @@ canvas{
 		width: 100%;
 	}
 }
+
+#pa-refresh{
+	width: 200px;
+	height: 40px;
+}
+#pa-progress{
+	width: 300px;
+	display: block;
+}
+#pa-status{
+	font-size: 0.8em;
+	width: 300px;
+	text-align: center;
+}
+.pa-update-div{
+	width: 300px;
+	margin: auto;
+}
+.pa-settings{
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	justify-content: center;
+	width: 100%;
+	margin: 5px 0 5px 0;
+}
+.pa-settings h3{
+	margin: 10px 0;
+	display: block;
+	text-align: center;
+}
+.pa-settings input{
+	max-width: 60px;
+}
+.pa-settings > div{
+	background-color: var(--settings-bg-color);
+	padding: 5px;
+	border: 1px solid var(--settings-border-color);
+	min-width: 170px;
+	border-radius: 5px;
+}
+
 /* End of PhasedArrayVisualizer part */
 

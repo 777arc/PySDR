@@ -14,9 +14,9 @@ export class ColormapControl{
 		selector.addEventListener('change', () => {
 			this.changed = true;
 		});
-		window.installThemeChanged(() => {
-			this.changed = true;
-		});
+		//window.installThemeChanged(() => {
+		//	this.changed = true;
+		//});
 	}
 	addEventListener(e, callback){ this.selector.addEventListener(e, callback); }
 	cmap(){

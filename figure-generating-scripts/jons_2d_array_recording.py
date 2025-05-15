@@ -8,7 +8,7 @@ Nr = 15
 rows = 3
 cols = 5
 
-r = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\DandB_capture1.npy")[0:15] # 16th element is not connected
+r = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\ABCD_capture1.npy")[0:15] # 16th element is not connected
 r_cal = np.load("C:\\Users\\marclichtman\\Downloads\\3x5_Array_Data\\C_only_capture1.npy")[0:15]
 #r_cal = np.load("C:\\Users\\marclichtman\\Downloads\\boresight_uncalibrated.npy")[0:15] # needs to be a signal at boresight and nothing else
 
@@ -88,8 +88,10 @@ def get_unit_vector(theta, phi):  # angles are in radians
                         np.cos(theta) * np.cos(phi), # y component
                         np.sin(phi)]).T              # z component
 
+
+'''
 # DOA
-resolution = 400 # number of points in each direction
+resolution = 100 # number of points in each direction
 theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
 phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
 results = np.zeros((resolution, resolution)) # 2D array to store results
@@ -106,15 +108,18 @@ for i, theta_i in enumerate(theta_scan):
     for j, phi_i in enumerate(phi_scan):
         dir_i = get_unit_vector(theta_i, -1*phi_i) # TODO FIGURE OUT WHY I NEEDED TO NEGATE PHI FOR THE RESULTS TO MATCH REALITY
         s = steering_vector(pos, dir_i) # 15 x 1
-        #w = s # Conventional beamformer
+        
         music_metric = 1 / (s.conj().T @ V @ V.conj().T @ s)
         music_metric = np.abs(music_metric).squeeze()
         music_metric = np.clip(music_metric, 0, 2) # Useful for ABCD one
         results[i, j] = music_metric
-        # MVDR/Capon
-        #w = (Rinv @ s)/(s.conj().T @ Rinv @ s)
+        
+        #w = s # Conventional beamformer
+        #w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon
         #resp = w.conj().T @ r
-        #results[i, j] = np.abs(resp)[0,0] # power in signal
+        #metric = np.abs(resp)[0,0] # power in signal
+        #metric = np.clip(metric, 0, 20) # for mvdr ABDC
+        #results[i, j] = metric
 
 # 3D
 if False:
@@ -142,6 +147,31 @@ else:
     plt.xlabel('Theta (azimuth, degrees)')
     plt.ylabel('Phi (elevation, degrees)')
     plt.show()
+exit()
+'''
+
+# Interferometry
+resolution = 100 # number of points in each direction
+theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
+phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
+results = np.zeros((resolution, resolution)) # 2D array to store results
+R = np.cov(r) # Covariance matrix, 15 x 15
+for i, theta_i in enumerate(theta_scan):
+    for j, phi_i in enumerate(phi_scan):
+        dir_i = get_unit_vector(theta_i, -1*phi_i)
+        running_sum = 0
+        for l in range(15):
+            for m in range(15):
+                e1 = steering_vector(pos[l, :], dir_i) # scalar
+                e2 = steering_vector(pos[m, :], dir_i)
+                temp = R[l, m] * e1 * np.conj(e2)
+                running_sum += temp[0,0]
+        results[i, j] = running_sum
+results = np.abs(results)**2
+plt.imshow(results.T, extent=(-90, 90, -45, 45), origin='lower', aspect='auto', cmap='viridis')
+plt.show()
+
+
 
 '''
 # Try just looking at boresight, calc MVDR weights, and using the nulls in the beam pattern to essentially do DOA

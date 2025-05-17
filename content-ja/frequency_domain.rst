@@ -449,7 +449,7 @@ SDRが100 MHzにチューニングされていたことを思い出してくだ�
    :target: ../_images/negative_freq_animation.gif
    :alt: 正と負の周波数を持つ正弦波の複素平面上でのアニメーション。
 
-上記で複素指数関数を使った理由は、周波数 :math:`f`、時間 :math:`t`の正弦波に対してオイラーの公式を適用して分かる通り、 :math:`cos()` あるいは :math:`sin()` が、実は正と負の周波数の両方を含んでいるからです。
+上記で複素指数関数を使った理由は、周波数 :math:`f` 、時間 :math:`t` の正弦波に対してオイラーの公式を適用して分かる通り、 :math:`cos()` あるいは :math:`sin()` が、実は正と負の周波数の両方を含んでいるからです。
 
 .. math::
    \cos(2 \pi f t) = \underbrace{\frac{1}{2} e^{2j \pi f t}}_\text{positive} + \underbrace{\frac{1}{2} e^{-2j \pi f t}}_\text{negative}
@@ -767,7 +767,7 @@ The building block of this algorithm is known as the butterfly, which is essenti
 
    y_1 = x_0 - x_1 w^k_N
 
-ここで、:math:`w^k_N = e^{j2\pi k/N}`は回転子(twiddle factor)と呼ばれます(:math:`N` はsub-FFTのサイズ and :math:`k` はインデックスです)。
+ここで、:math:`w^k_N = e^{j2\pi k/N}` は回転子(twiddle factor)と呼ばれます(:math:`N` はsub-FFTのサイズ and :math:`k` はインデックスです)。
 入力・出力は複素数であることを想定しており、例えば :math:`x_0` は0.6123 - 0.5213j のようになります。
 加算・乗算の結果も複素数です。
 

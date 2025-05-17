@@ -11,4 +11,4 @@
    :numbered: 1
 
    content-ja/intro
-   content-ja/frequency_domain.rst
+   content-ja/frequency_domain

@@ -112,7 +112,7 @@ export class ScenePlot2DGeometryABC extends ScenePlotABC{
 		for (let i = 0; i < geo.length; i++){
 			let [x, y] = _xy_to_wh(geo.x[i], geo.y[i]);
 			ctx.beginPath();
-			ctx.ellipse(x, y, dx, dy, 0.0, 0.0, 2*Math.PI);
+			ctx.ellipse(x, y, dx/2, dy/2, 0.0, 0.0, 2*Math.PI);
 			ctx.closePath();
 			ctx.fillStyle = colormap(data[i]);
 			ctx.fill();

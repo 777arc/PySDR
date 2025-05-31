@@ -158,7 +158,7 @@ This property is probably the easiest to understand.  If we add two signals in t
 2. Frequency Shift Property:
 
 .. math::
-   e^{2 \pi j f_0 t}x(t) \leftrightarrow X(f-f_0)
+   e^{2 \pi j f_0 t}x(t) \leftrightarrow X(f+f_0)
 
 The term to the left of x(t) is what we call a "complex sinusoid" or "complex exponential". For now, all we need to know is that it's essentially just a sine wave at frequency :math:`f_0`.  This property tells us that if we take a signal :math:`x(t)` and multiply it by a sine wave, then in the frequency domain we get :math:`X(f)` except shifted by a certain frequency, :math:`f_0`.  This shift in frequency may be easier to visualize:
 

@@ -12,3 +12,4 @@
 
    content-ja/intro
    content-ja/frequency_domain
+   content-ja/sampling

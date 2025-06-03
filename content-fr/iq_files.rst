@@ -176,7 +176,7 @@ Le code Python permettant d'écrire le fichier .sigmf-meta pour l'exemple du dé
  # r.tofile('bpsk_in_noise.iq')
  r.tofile('bpsk_in_noise.sigmf-data') # remplacer la ligne ci-dessus par celle-ci
  
- # crérer les metadata
+ # créer les metadata
  meta = SigMFFile(
      data_file='bpsk_in_noise.sigmf-data', # extension optionalle
      global_info = {

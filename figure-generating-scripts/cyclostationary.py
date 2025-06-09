@@ -203,16 +203,16 @@ if False:
 # Direct CAF #
 ##############
 
-if False:
+if True:
     # CAF only at the correct alpha
-    correct_alpha = 1/sps # equates to 0.05 Hz
-    #correct_alpha = 0.08 # INCORRECT ALPHA FOR SAKE OF PLOT
-    taus = np.arange(-100, 101) # -100 to +100 in steps of 1
+    alpha_of_interest = 1/sps # equates to 0.05 Hz
+    #alpha_of_interest = 0.08 # INCORRECT ALPHA FOR SAKE OF PLOT
+    taus = np.arange(-50, 51)
     CAF = np.zeros(len(taus), dtype=complex)
     for i in range(len(taus)):
-        CAF[i] = np.sum(samples *
-                        np.conj(np.roll(samples, taus[i])) *
-                        np.exp(-2j * np.pi * correct_alpha * np.arange(N)))
+        CAF[i] = (np.exp(1j * np.pi * alpha_of_interest * taus[i]) * # This term is to make up for the fact we're shifting by 1 sample at a time, and only on one side
+                  np.sum(samples * np.conj(np.roll(samples, taus[i])) * 
+                         np.exp(-2j * np.pi * alpha_of_interest * np.arange(N))))
     plt.figure(0)
     plt.plot(taus, np.real(CAF))
     plt.xlabel('Tau')
@@ -222,8 +222,8 @@ if False:
 
     # Used in SCF section
     plt.figure(1)
-    f = np.linspace(-0.5, 0.5, len(CAF))
-    SCF = np.fft.fftshift(np.fft.fft(CAF))
+    SCF = np.fft.fftshift(np.fft.fft(CAF, 2048))
+    f = np.linspace(-0.5, 0.5, len(SCF))
     SCF_magnitude = np.abs(SCF)
     plt.plot(f, SCF_magnitude)
     plt.xlabel('Frequency')
@@ -234,14 +234,14 @@ if False:
     #plt.show()
     #exit()
 
-    # CAF at all alphas
+    # CAF at all alphas (this will take a while!)
     alphas = np.arange(0, 0.5, 0.005)
     CAF = np.zeros((len(alphas), len(taus)), dtype=complex)
     for j in range(len(alphas)):
         for i in range(len(taus)):
-            CAF[j, i] = np.sum(samples *
-                        np.conj(np.roll(samples, taus[i])) *
-                        np.exp(-2j * np.pi * alphas[j] * np.arange(N)))
+            CAF[j, i] = (np.exp(1j * np.pi * alphas[j] * taus[i]) *
+                         np.sum(samples * np.conj(np.roll(samples, taus[i])) * 
+                                np.exp(-2j * np.pi * alphas[j] * np.arange(N))))
     CAF_magnitudes = np.average(np.abs(CAF), axis=1) # at each alpha, calc power in the CAF
     plt.figure(2)
     plt.plot(alphas, CAF_magnitudes)

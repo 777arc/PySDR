@@ -65,11 +65,11 @@ In Python, the CAF of baseband signal :code:`samples` at a given :code:`alpha` a
 
 .. code-block:: python
  
- CAF = np.sum(samples *
-              np.conj(np.roll(samples, tau)) *
-              np.exp(-2j * np.pi * alpha * np.arange(N)))
+ CAF = (np.exp(1j * np.pi * alpha * tau) *
+        np.sum(samples * np.conj(np.roll(samples, tau)) * 
+               np.exp(-2j * np.pi * alpha * np.arange(N))))
 
-We use :code:`np.roll()` to shift one of the sets of samples by tau, because you have to shift by an integer number of samples, so if we shifted both sets of samples in opposite directions we would skip every other shift.
+We use :code:`np.roll()` to shift one of the sets of samples by tau, because you have to shift by an integer number of samples, so if we shifted both sets of samples in opposite directions we would skip every other shift.  We also have to add a frequency shift to account for the fact that we're shifting by 1 sample at a time, and only on one side (instead of half a sample on both sides like the basic CAF equation).  The frequency of the shift is :code:`alpha/2`.
 
 In order to play with the CAF in Python, we first need to simulate an example signal. For now we will use a rectangular BPSK signal (i.e., BPSK without pulse-shaping applied) with 20 samples per symbol, added to some white Gaussian noise (AWGN).  We will apply a frequency offset to the BPSK signal, so that later we can show off how cyclostationary processing can be used to estimate the frequency offset as well as the cyclic frequency.  This frequency offset is equivalent to your radio receiving a signal while not perfectly centered on it; either a little off or way off (but not too much to cause the signal to extend past the sampled bandwidth).
 
@@ -99,17 +99,18 @@ Just for fun, let's look at the power spectral density (i.e., FFT) of the signal
 
 It has the 0.2 Hz frequency shift that we applied, and the samples per symbol of 20 leads to a fairly narrow signal, but because we did not apply pulse shaping, the signal tapers off very slowly in frequency.
 
-Now we will compute the CAF at the correct alpha, and over a range of tau values (we'll use tau from -100 to +100 as a starting point).  The correct alpha in our case is simply the samples per symbol inverted, or 1/20 = 0.05 Hz.  To generate the CAF in Python, we will loop over tau:
+Now we will compute the CAF at the correct alpha, and over a range of tau values (we'll use tau from -50 to +50 as a starting point).  The correct alpha in our case is simply the samples per symbol inverted, or 1/20 = 0.05 Hz.  To generate the CAF in Python, we will loop over tau:
 
 .. code-block:: python
 
-    correct_alpha = 1/sps # equates to 0.05 Hz
-    taus = np.arange(-100, 101) # -100 to +100 in steps of 1
+    # CAF only at the correct alpha
+    alpha_of_interest = 1/sps # equates to 0.05 Hz
+    taus = np.arange(-50, 51)
     CAF = np.zeros(len(taus), dtype=complex)
     for i in range(len(taus)):
-        CAF[i] = np.sum(samples *
-                        np.conj(np.roll(samples, taus[i])) *
-                        np.exp(-2j * np.pi * correct_alpha * np.arange(N)))
+        CAF[i] = (np.exp(1j * np.pi * alpha_of_interest * taus[i]) * # This term is to make up for the fact we're shifting by 1 sample at a time, and only on one side
+                  np.sum(samples * np.conj(np.roll(samples, taus[i])) * 
+                         np.exp(-2j * np.pi * alpha_of_interest * np.arange(N))))
 
 Let's plot the real part of :code:`CAF` using :code:`plt.plot(taus, np.real(CAF))`:
 
@@ -135,9 +136,9 @@ One thing we can do is calculate the CAF over a range of alphas, and at each alp
     CAF = np.zeros((len(alphas), len(taus)), dtype=complex)
     for j in range(len(alphas)):
         for i in range(len(taus)):
-            CAF[j, i] = np.sum(samples *
-                        np.conj(np.roll(samples, taus[i])) *
-                        np.exp(-2j * np.pi * alphas[j] * np.arange(N)))
+            CAF[j, i] = (np.exp(1j * np.pi * alphas[j] * taus[i]) *
+                         np.sum(samples * np.conj(np.roll(samples, taus[i])) * 
+                                np.exp(-2j * np.pi * alphas[j] * np.arange(N))))
     CAF_magnitudes = np.average(np.abs(CAF), axis=1) # at each alpha, calc power in the CAF
     plt.plot(alphas, CAF_magnitudes)
     plt.xlabel('Alpha')
@@ -963,9 +964,3 @@ Signal Detection With Known Cyclic Frequency
 ********************************************
 
 In some applications you may want to use CSP to detect a signal/waveform that is already known, such as variants of 802.11, LTE, 5G, etc.  If you know the cyclic frequency of the signal, and you know your sample rate, then you really only need to calculate a single alpha and single tau.  Coming soon will be an example of this type of problem using an RF recording of WiFi.
-
-***********************************
-Cyclic Filtering with FRESH Filters
-***********************************
-
-Coming Soon!

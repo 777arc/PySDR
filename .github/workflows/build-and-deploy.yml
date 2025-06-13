@@ -1,4 +1,5 @@
 # Simple workflow for deploying static content to GitHub Pages
+# adjusted 
 # adapted from https://github.com/actions/starter-workflows/blob/main/pages/static.yml
 name: Build and Deploy to Pages
 

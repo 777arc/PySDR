@@ -197,7 +197,7 @@ Until this point we have not discussed frequency, but we saw there was an :math:
 
 .. tikz:: [font=\Large\bfseries\sffamily]
    \draw (0,0) node[align=center]{$A\cdot cos(2\pi ft+ \phi)$}
-   (0,-2) node[align=center]{$\left(\sqrt{I^2+Q^2}\right)cos\left(2\pi ft + tan^{-1}(\frac{Q}{I})\right)$};
+   (0,-2) node[align=center]{$\left(\sqrt{I^2+Q^2}\right)cos\left(2\pi ft - tan^{-1}(\frac{Q}{I})\right)$};
    \draw[->,red,thick] (-2,-0.5) -- (-2.5,-1.2);
    \draw[->,red,thick] (1.9,-0.5) -- (2.4,-1.5);
    \draw[->,red,thick] (0,-4) node[red, below, align=center]{This is what we call the carrier} -- (-0.6,-2.7);

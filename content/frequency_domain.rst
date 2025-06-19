@@ -289,10 +289,10 @@ Remember that we tuned the SDR to 100 MHz.  So the signal that was at about 97.5
 From a mathematical perspective, negative frequencies can be seen by looking at the complex exponential function, :math:`e^{2j \pi f t}`.  If we have a negative frequency, we can see that it will be a complex sinusoid that rotates in the opposite direction.
 
 .. math::
-   e^{2j \pi f t} = \cos(2j \pi f t) + j \sin(2j \pi f t) \quad \mathrm{\textcolor{blue}{blue}}
+   e^{2j \pi f t} = \cos(2 \pi f t) + j \sin(2 \pi f t) \quad \mathrm{\textcolor{blue}{blue}}
 
 .. math::
-   e^{2j \pi (-f) t} = \cos(2j \pi f t) - j \sin(2j \pi f t) \quad \mathrm{\textcolor{red}{red}}
+   e^{2j \pi (-f) t} = \cos(2 \pi f t) - j \sin(2 \pi f t) \quad \mathrm{\textcolor{red}{red}}
 
 .. image:: ../_images/negative_freq_animation.gif
    :align: center

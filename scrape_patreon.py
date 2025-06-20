@@ -36,15 +36,15 @@ def scrape_patreon():
             names.append(full_name) # there's also 'first_name' which might be better for a public display name
         # Patreon Supporters
         html_string = ''
-        html_string += '<div style="font-size: 120%; margin-top: 5px; color: #444;">A big thanks to all PySDR<br><a href="https://www.patreon.com/PySDR" target="_blank">Patreon</a> supporters:</div>'
-        html_string += '<div style="font-size: 120%; margin-bottom: 80px; margin-top: 0px; color: #444;">'
+        html_string += '<div style="font-size: 120%; margin-top: 5px;">A big thanks to all PySDR<br><a href="https://www.patreon.com/PySDR" target="_blank">Patreon</a> supporters:</div>'
+        html_string += '<div style="font-size: 120%; margin-bottom: 80px; margin-top: 0px;">'
         for name in names:
             html_string += '&#9900; ' + name + "<br />"
         # Organizations that are sponsoring (Manually added to get logo included)
-        html_string += '<div style="margin-top: 5px; color: #444;">and organization-level supporters:</div>'
+        html_string += '<div style="margin-top: 5px;">and organization-level supporters:</div>'
         html_string += '<img width="12px" height="12px" src="https://pysdr.org/_static/adi.svg">' + ' <a style="border-bottom: 0;" target="_blank" href="https://www.analog.com/en/design-center/reference-designs/circuits-from-the-lab/cn0566.html">Analog Devices, Inc.</a>' + "<br />"
         html_string += "</div>"
-        with open("_templates/patrons.html", "w") as patron_file:
+        with open("_templates/patrons.html", "w", encoding="utf-8") as patron_file:
             patron_file.write(html_string)
     else:
         print("\n=====================================================")

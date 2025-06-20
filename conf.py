@@ -47,7 +47,11 @@ imgmath_latex_preamble = r'''
   \egroup
 }
 \makeatother
+
+\usepackage{xcolor}
 '''
+
+# We can also add latex packages to include above
 
 # dvisvgm is the program used to generate the svg equations, and these are its settings:
 # https://dvisvgm.de/Manpage/
@@ -94,7 +98,7 @@ release = u'0.1'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', 'index-fr.rst', 'content-fr/*', 'index-nl.rst', 'content-nl/*', 'index-ukraine.rst', 'content-ukraine/*', 'index-zh.rst', 'content-zh/*', 'index-es.rst', 'content-es/*']
+exclude_patterns = ['_build', 'index-fr.rst', 'content-fr/*', 'index-nl.rst', 'content-nl/*', 'index-ukraine.rst', 'content-ukraine/*', 'index-zh.rst', 'content-zh/*', 'index-es.rst', 'content-es/*', 'index-ja.rst', 'content-ja/*']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.

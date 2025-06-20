@@ -119,19 +119,19 @@ Mathematically, the "transform" we use to go from the time domain to the frequen
 .. math::
    X(f) = \int x(t) e^{-j2\pi ft} dt
 
-For a signal x(t) we can get the frequency domain version, X(f), using this formula.  We will represent the time domain version of a function with x(t) or y(t), and the corresponding frequency domain version with X(f) and Y(f).  Note the "t" for time, and "f" for frequency. The "j" is simply the imaginary unit. You may have seen it as "i" in high school math class.  We use "j" in engineering and computer science because "i" is often referring to current, and in programming it's often used as an iterator.
+For a signal :math:`x(t)` we can get the frequency domain version, :math:`X(f)`, using this formula.  We will represent the time domain version of a function with :math:`x(t)` or :math:`y(t)`, and the corresponding frequency domain version with :math:`X(f)` and :math:`Y(f)`.  Note the :math:`t` for time, and :math:`f` for frequency. The :math:`j` is simply the imaginary unit, you may have seen it as :math:`i` in high school math class.  We use "j" in engineering and computer science because "i" is often referring to current, and in programming it's often used as an iterator.
 
-To return to the time domain from frequency is almost the same, aside from a scaling factor and negative sign:
+To return to the time domain from frequency is almost the same, aside from a negative sign:
 
 .. math::
-   x(t) = \frac{1}{2 \pi} \int X(f) e^{j2\pi ft} df
+   x(t) = \int X(f) e^{j2\pi ft} df
 
-Note that a lot of textbooks and other resources use :math:`w` in place of the :math:`2\pi f`.  :math:`w` is angular frequency in radians per second, while :math:`f` is in Hz.  All you have to know is that
+Note that a lot of textbooks and other resources use :math:`w` in place of the :math:`2\pi f`, where :math:`w` is angular frequency in radians per second, while :math:`f` is in Hz.  All you have to know is that
 
 .. math::
    \omega = 2 \pi f
 
-Even though it adds a :math:`2 \pi` term to many equations, it's easier to stick with frequency in Hz. Ultimately you will work with Hz in your SDR application.
+Even though it adds a :math:`2 \pi` term to many equations, it's easier to stick with frequency in Hz, as we work with Hz in most SDR and RF signal processing applications.
 
 The above equation for the Fourier Transform is the continuous form, which you will only see in math problems.  The discrete form is much closer to what is implemented in code:
 
@@ -286,6 +286,30 @@ Now, when the SDR gives us the samples, it will appear like this:
 
 Remember that we tuned the SDR to 100 MHz.  So the signal that was at about 97.5 MHz shows up at -2.5 MHz when we represent it digitally, which is technically a negative frequency.  In reality it's just a frequency lower than the center frequency.  This will make more sense when we learn more about sampling and obtain experience using our SDRs.
 
+From a mathematical perspective, negative frequencies can be seen by looking at the complex exponential function, :math:`e^{2j \pi f t}`.  If we have a negative frequency, we can see that it will be a complex sinusoid that rotates in the opposite direction.
+
+.. math::
+   e^{2j \pi f t} = \cos(2 \pi f t) + j \sin(2 \pi f t) \quad \mathrm{\textcolor{blue}{blue}}
+
+.. math::
+   e^{2j \pi (-f) t} = \cos(2 \pi f t) - j \sin(2 \pi f t) \quad \mathrm{\textcolor{red}{red}}
+
+.. image:: ../_images/negative_freq_animation.gif
+   :align: center
+   :scale: 75 %
+   :target: ../_images/negative_freq_animation.gif
+   :alt: Animation of a positive and negative frequency sinusoid on the complex plane
+
+The reason we used the complex exponential above is because just a :math:`cos()` or :math:`sin()` contains both positive and negative frequencies, as seen by Euler's formula applied to a sinusoid at frequency :math:`f` over time :math:`t`:
+
+.. math::
+   \cos(2 \pi f t) = \underbrace{\frac{1}{2} e^{2j \pi f t}}_\text{positive} + \underbrace{\frac{1}{2} e^{-2j \pi f t}}_\text{negative}
+
+.. math::
+   \sin(2 \pi f t) = \underbrace{\frac{1}{2j} e^{2j \pi f t}}_\text{positive} - \underbrace{\frac{1}{2j} e^{-2j \pi f t}}_\text{negative}
+
+So in RF signal processing we tend to use complex exponentials instead of cosines and sines, in general.
+
 ****************************
 Order in Time Doesn't Matter
 ****************************
@@ -331,7 +355,7 @@ If we look at :code:`S` we see it's an array of complex numbers:
 
     S =  array([-0.01865008 +0.00000000e+00j, -0.01171553 -2.79073782e-01j,0.02526446 -8.82681208e-01j,  3.50536075 -4.71354150e+01j, -0.15045671 +1.31884375e+00j, -0.10769903 +7.10452463e-01j, -0.09435855 +5.01303240e-01j, -0.08808671 +3.92187956e-01j, -0.08454414 +3.23828386e-01j, -0.08231753 +2.76337148e-01j, -0.08081535 +2.41078885e-01j, -0.07974909 +2.13663710e-01j,...
 
-Hint: regardless of what you’re doing, if you ever run into complex numbers, try calculating the magnitude and the phase and see if they make more sense.  Let's do exactly that, and plot the magnitude and phase.  In most languages, abs() is a function for magnitude of a complex number.  The function for phase varies by language, but in Python we can use NumPy's :code:`np.angle()`, which returns the phase in units of radians.
+Hint: regardless of what you're doing, if you ever run into complex numbers, try calculating the magnitude and the phase and see if they make more sense.  Let's do exactly that, and plot the magnitude and phase.  In most languages, abs() is a function for magnitude of a complex number.  The function for phase varies by language, but in Python we can use NumPy's :code:`np.angle()`, which returns the phase in units of radians.
 
 .. code-block:: python
 

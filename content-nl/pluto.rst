@@ -287,7 +287,7 @@ De wetten in "Part 15" specificeren wel een maximaal zend- en ontvangstvermogen 
 
 Een andere manier om ernaar te kijken is om te zeggen "Nou, dit voldoet niet aan Part 15 maar laten we toch die regels volgen". Voor de 915 MHz ISM band is de regels dat "De veldsterkte van een uitstraling binnen de gespecificeerde frequentieband zal niet boven de 500 microvolt/meter op 30 meter afstand komen. Gemeten met officiële apparatuur.". Dus, zoals je kunt zien is het niet zo simpel als een maximaal zendvermogen in Watt.
 
-Als je een amateur radio (ham) licentie hebt, dan mag je van de FCC bepaalde banden gebruiken voor amateur radio. Er zijn nog steeds regels om te volgen, en maximale zendvermogens, maar die zijn tenminste uitgedrukt in Watt van effectief uitgestraald vermogen. `Dit info-graphic <http://www.arrl.org/files/file/Regulatory/Band%20Chart/Band%20Chart%20-%2011X17%20Color.pdf>`_ laat zien welke banden beschikbaar zijn afhankelijk van je licentietype. Iedereen die geïnteresseerd is in zenden met SDR's raadt ik aan om hun HAM licentie te halen.
+Als je een amateur radio (ham) licentie hebt, dan mag je van de FCC bepaalde banden gebruiken voor amateur radio. Er zijn nog steeds regels om te volgen, en maximale zendvermogens, maar die zijn tenminste uitgedrukt in Watt van effectief uitgestraald vermogen. `Dit info-graphic <https://www.arrl.org/files/file/Regulatory/Band%20Chart/Hambands4_Color_11x8_5.pdf>`_ laat zien welke banden beschikbaar zijn afhankelijk van je licentietype. Iedereen die geïnteresseerd is in zenden met SDR's raadt ik aan om hun HAM licentie te halen.
 
 Als iemand meer details heeft over wat er wel en niet is toegestaan, email me alsjeblieft.
 

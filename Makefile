@@ -76,13 +76,13 @@ html:
 
 .PHONY: html-es
 html-es:
-	$(SPHINXBUILD) -b html -D project="PySDR: Guia de uso para SDR/DSP con Python"        -D exclude_patterns=_build,index.rst,content/*,index-nl.rst,content-nl/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/* -D master_doc=index-es $(EXTENSIONS) . $(BUILDDIR)/es/
+	$(SPHINXBUILD) -b html -D project="PySDR: Guia de uso para SDR/DSP con Python"        -D exclude_patterns=_build,index.rst,content/*,index-nl.rst,content-nl/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/*,index-ja.rst,content-ja/* -D master_doc=index-es $(EXTENSIONS) . $(BUILDDIR)/es/
 	@echo
 	@echo "Spanish Build finished. The HTML pages are in $(BUILDDIR)/es/html."
 
 .PHONY: html-nl
 html-nl:
-	$(SPHINXBUILD) -b html -D project="PySDR: Een handleiding voor SDR en DSP met Python" -D exclude_patterns=_build,index.rst,content/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/*,index-es.rst,content-es/* -D master_doc=index-nl $(EXTENSIONS) . $(BUILDDIR)/nl/
+	$(SPHINXBUILD) -b html -D project="PySDR: Een handleiding voor SDR en DSP met Python" -D exclude_patterns=_build,index.rst,content/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/*,index-es.rst,content-es/*,index-ja.rst,content-ja/* -D master_doc=index-nl $(EXTENSIONS) . $(BUILDDIR)/nl/
 	@echo
 	@echo "Dutch Build finished. The HTML pages are in $(BUILDDIR)/nl/html."
 	@echo translating title of index and content pages
@@ -93,21 +93,27 @@ html-nl:
 
 .PHONY: html-fr
 html-fr:
-	$(SPHINXBUILD) -b html -D project="PySDR : un guide sur SDR et DSP à l'aide de Python" -D exclude_patterns=_build,index.rst,content/*,index-nl.rst,content-nl/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/*,index-es.rst,content-es/* -D master_doc=index-fr $(EXTENSIONS) . $(BUILDDIR)/fr/
+	$(SPHINXBUILD) -b html -D project="PySDR : un guide sur SDR et DSP à l'aide de Python" -D exclude_patterns=_build,index.rst,content/*,index-nl.rst,content-nl/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/*,index-es.rst,content-es/*,index-ja.rst,content-ja/* -D master_doc=index-fr $(EXTENSIONS) . $(BUILDDIR)/fr/
 	@echo
 	@echo "French Build finished. The HTML pages are in $(BUILDDIR)/fr/html."
 
 .PHONY: html-ukraine
 html-ukraine:
-	$(SPHINXBUILD) -b html -D project="PySDR: Посібник з SDR та DSP за допомогою Python" -D exclude_patterns=_build,index.rst,content/*,index-fr.rst,content-fr/*,index-nl.rst,content-nl/*,index-zh.rst,content-zh/*,index-es.rst,content-es/* -D master_doc=index-ukraine $(EXTENSIONS) . $(BUILDDIR)/ukraine/
+	$(SPHINXBUILD) -b html -D project="PySDR: Посібник з SDR та DSP за допомогою Python" -D exclude_patterns=_build,index.rst,content/*,index-fr.rst,content-fr/*,index-nl.rst,content-nl/*,index-zh.rst,content-zh/*,index-es.rst,content-es/*,index-ja.rst,content-ja/* -D master_doc=index-ukraine $(EXTENSIONS) . $(BUILDDIR)/ukraine/
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/ukraine/html."
 
 .PHONY: html-zh
 html-zh:
-	$(SPHINXBUILD) -b html -D project="PySDR：使用 Python 玩转 SDR 和 DSP" -D exclude_patterns=_build,index.rst,content/*,index-fr.rst,content-fr/*,index-nl.rst,content-nl/*,index-ukraine.rst,content-ukraine/*,index-es.rst,content-es/* -D master_doc=index-zh $(EXTENSIONS) . $(BUILDDIR)/zh/
+	$(SPHINXBUILD) -b html -D project="PySDR：使用 Python 玩转 SDR 和 DSP" -D exclude_patterns=_build,index.rst,content/*,index-fr.rst,content-fr/*,index-nl.rst,content-nl/*,index-ukraine.rst,content-ukraine/*,index-es.rst,content-es/*,index-ja.rst,content-ja/* -D master_doc=index-zh $(EXTENSIONS) . $(BUILDDIR)/zh/
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/zh/html."
+
+.PHONY: html-ja
+html-ja:
+	$(SPHINXBUILD) -b html -D project="PySDR: Pythonで学ぶSDRとDSP入門" -D exclude_patterns=_build,index.rst,content/*,index-fr.rst,content-fr/*,index-nl.rst,content-nl/*,index-ukraine.rst,content-ukraine/*,index-es.rst,content-es/*,index-zh.rst,content-zh/* -D master_doc=index-ja $(EXTENSIONS) . $(BUILDDIR)/ja/
+	@echo
+	@echo "Build finished. The HTML pages are in $(BUILDDIR)/ja/html."
 
 .PHONY: dirhtml
 dirhtml:

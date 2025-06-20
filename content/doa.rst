@@ -519,7 +519,7 @@ Now what happens when d is less than λ/2, such as when we need to fit the array
    :align: center
    :alt: Animation of direction of arrival (DOA) showing what happens when distance d is much less than half-wavelength
 
-While the main lobe gets wider as d gets lower, it still has a maximum at 20 degrees, and there are no grating lobes, so in theory this would still work (at least at high SNR).  To better understand what breaks as d gets too small, let's repeat the experiment but with an additional signal arriving from -40 degrees:
+While the main lobe gets wider as d gets lower, it still has a maximum at 20 degrees, and there are no grating lobes, so in theory this would still work (at least at high SNR and if mutual coupling doesn't become a major issue).  To better understand what breaks as d gets too small, let's repeat the experiment but with an additional signal arriving from -40 degrees:
 
 .. image:: ../_images/doa_d_is_small_animation2.gif
    :scale: 100 %
@@ -1140,31 +1140,81 @@ Another experiment worth trying with MUSIC is to see how close two signals can a
    :scale: 100 %
    :align: center
 
-*******************
-ESPRIT
-*******************
+***
+LMS
+***
 
-Coming soon!
+The Least Mean Squares (LMS) beamformer is a low-complexity beamformer introduced by Bernard Widrow.  It is different from every beamformer we have shown so far in two ways: 1) it requires knowing the SOI, or at least part of it (e.g., a synchronization sequence, pilots, etc) and 2) it is iterative, meaning the weights are honed in on over some number of iterations.  It works by minimizing the mean square error between the desired signal (the SOI) and the output of the beamformer (i.e., the weights applied to the received samples). The traditional implementation of LMS is to treat each received sample as the next step in the iterative process, by applying the current weights to the single sample and calculating the error.  That error is then used to fine-tune the weights, and the process repeats.  The LMS beamformer can be used in both analog and digital beamforming.  The LMS algorithm is given by the following equation:
 
-*******************
-Circular Arrays
-*******************
+.. math::
 
-We will briefly talk about the Uniform Circular Array (UCA), which is a popular array geometry for DOA because it gets around the 180-degree ambiguity issue ULAs have.  The KrakenSDR, for example, is a 5-element array, and it is common to place those five elements in a circle with equal spacing between elements.  In theory, only three elements is needed to form a UCA, just like how we can make a ULA with only two elements.
+ w_{n+1} = w_n + \mu \underbrace{\left(y_n -  w_{n}^H x_n\right)^*}_{error} x_n
 
-All of the code we have studied so far applies to UCAs, we just have to replace the steering vector equation with one specific to the UCA:
+where :math:`w_n` is the weight vector at iteration/sample :math:`n`, :math:`\mu` is the step size, :math:`x_n` is the received sample at :math:`n`, :math:`y_n` is the expected value at that iteration (i.e., the known SOI), and :math:`*` is a complex conjugate.  Don't let the :math:`w_{n}^H x_n` make the equation seem complicated, that term is simply the act of applying the current weights to the input signal, which is the standard beamforming equation.  The step size :math:`\mu` controls how quickly the weights converge to their optimal values.  A small value of :math:`\mu` will result in slow convergence (e.g. you may not reach the "best" weights before the known signal is gone), while a large value of :math:`\mu` may cause instability in the algorithm.  The LMS algorithm is a powerful tool for adaptive beamforming, but it does have some limitations.  It requires a known SOI, which may not always be available in practice, and you have to perform time and frequency synchronization as part of the LMS process so that your blueprint of the SOI is aligned with the received samples.
+
+In the example Python code below, we simulate an 8-element array with a SOI that is comprised of a repeating Gold code transmitted as BPSK. Gold codes are used in 5G and GPS, and have excellent cross-correlation properties, making them great for synchronization signals.  In the simulation we also include two tone interferers, at 60 and -50 degrees. Note that this simulation does not include any time or frequency shift, if it did then we would have to synchronize to the SOI as part of the LMS process (i.e., joint beamforming-synchronization). In the following animation we sweep the SOI angle of arrival and plot the beam pattern LMS created for us after 10k samples.  Note how LMS keeps the gain towards the SOI at exactly 0 dB (unless there is an interferer on top), while placing nulls at the interferers.
+
+.. image:: ../_images/doa_lms_animation.gif
+   :scale: 100 %
+   :align: center
 
 .. code-block:: python
 
-   radius = 0.05 # normalized by wavelength!
-   d = np.sqrt(2 * radius**2 * (1 - np.cos(2*np.pi/Nr)))
-   sf = 1.0 / (np.sqrt(2.0) * np.sqrt(1.0 - np.cos(2*np.pi/Nr))) # scaling factor based on geometry, eg for a hexagon it is 1.0
-   x = d * sf * np.cos(2 * np.pi / Nr * np.arange(Nr))
-   y = -1 * d * sf * np.sin(2 * np.pi / Nr * np.arange(Nr))
-   s = np.exp(1j * 2 * np.pi * (x * np.cos(theta) + y * np.sin(theta)))
-   s = s.reshape(-1, 1) # Nrx1
+ # Scenario
+ sample_rate = 1e6
+ d = 0.5 # half wavelength spacing
+ N = 100000 # number of samples to simulate
+ Nr = 8 # elements
+ theta_soi = 20 / 180 * np.pi # convert to radians
+ theta2    = 60 / 180 * np.pi
+ theta3   = -50 / 180 * np.pi
+ t = np.arange(N)/sample_rate # time vector
+ s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1) # 8x1
+ s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+ s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
 
-Lastly, you will want to scan from 0 to 360 degrees, instead of just -90 to +90 degrees like with a ULA.
+ # SOI is a gold code, repeated, length 127
+ gold_code = np.array([-1, 1, 1, -1, 1, 1, 1, 1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 1, -1, 1, -1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, 1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, 1, 1, 1, 1, -1, 1, 1, 1, -1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1, -1, -1, 1, 1])
+ soi_samples_per_symbol = 8
+ soi = np.repeat(gold_code, soi_samples_per_symbol)
+ num_sequence_repeats = int(N / soi.shape[0]) + 1 # number of times to repeat the sequence for N samples
+ soi = np.tile(soi, num_sequence_repeats)[:N] # repeat the sequence to fill simulated time, then trim
+ soi = soi.reshape(1, -1) # 1xN
+
+ # Interference, eg tone jammers, from different directions
+ tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
+ tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
+
+ # Simulate received signal
+ r = s1 @ soi + s2 @ tone2 + s3 @ tone3
+ n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
+ r = r + 0.5*n # 8xN
+
+ # LMS, not knowing the direction of SOI but knowing the SOI signal itself
+ mu = 0.5e-5 # LMS step size
+ w_lms = np.zeros((Nr, 1), dtype=np.complex128) # start with all zeros
+
+ # Loop through received samples
+ error_log = []
+ for i in range(N):
+    r_sample = r[:, i].reshape(-1, 1) # 8x1
+    soi_sample = soi[0, i] # scalar
+    y = w_lms.conj().T @ r_sample # apply the weights
+    y = y.squeeze() # make it a scalar
+    error = soi_sample - y
+    error_log.append(np.abs(error)**2)
+    w_lms += mu * np.conj(error) * r_sample # weights are still 8x1
+ 
+ w_lms /= np.linalg.norm(w_lms) # normalize weights
+
+ plt.plot(error_log)
+ plt.xlabel('Iteration')
+ plt.ylabel('Mean Square Error')
+ plt.show()
+
+ # Plot the beam pattern as shown previously
+
+Try changing :code:`theta_soi`, the amount of noise (i.e., the :code:`0.5*n`), and the step size :code:`mu` to see how the LMS algorithm performs.
 
 *******************
 Training Data
@@ -1307,6 +1357,282 @@ Using the same method of plotting, we get:
 
 Note that we still get nulls from A and B (B's null is less, but B is also a weaker signal), but this time there is a massive main lobe directed towards our angle of interest, C.  This is the power of training data, and why it is so important in radar applications.
 
+*******************************
+Simulating Wideband Interferers
+*******************************
+
+The method we have been using this entire chapter for simulating signals hitting our array from a certain angle of arrival (by multiplying the steering vector by the transmitted signal) uses a narrowband assumption, meaning the signal is assumed to be a single frequency, and the steering vector is calculated at that frequency.  This is a good approximation for many signals, but it does not work well for wideband signals, e.g., those with a bandwidth greater than roughly 5% of the center frequency.  We will briefly cover a trick that can be used to simulate wideband **noise** coming from a certain direction (e.g., barrage jamming arriving from a single AoA).  
+
+The way this method works is by constructing a covariance matrix :code:`R` that is built by summing the contributions from each wideband noise source.  The square-root matrix :code:`A` is computed, and the set of samples :code:`X` is generated by "coloring" standard complex Gaussian noise with :code:`A`.  A key parameter is the :code:`fractional_bw` which is the noise signal's bandwidth divided by the center frequency.  When :code:`fractional_bw=0` the following code should produce the same scenario as the traditional method of simulating received signals.  The Python code below can be substituted into previous examples to simulate the received signal :code:`X`.
+
+.. code-block:: python
+
+ N = 10 # number of elements in ULA
+ num_samples = 10000
+ d = 0.5
+ 
+ num_jammers = 3
+ jammer_pow_dB = np.array([30, 30, 30]) # Jammer powers in dB
+ jammer_aoa_deg = np.array([-70, -20, 40])  # Jammer angles in degrees
+ jammer_aoa = np.sin(np.deg2rad(jammer_aoa_deg)) * np.pi
+ element_gain_dB = np.zeros(N) # Gains in dB for the array elements (all 0 dB in our case)
+ element_gain_linear = 10.0 ** (element_gain_dB / 10) # Convert array gains to linear numbers
+ fractional_bw = 0.1 # if this is 0, the method matches the traditional way of using array factor to simulate received signals
+ 
+ # Build NxN jammer covariance matrix R
+ R = np.zeros((N, N), dtype=complex)
+ for m in range(N):
+     for n in range(N):
+         for j in range(num_jammers):
+             total_element_gain = np.sqrt(element_gain_linear[m] * element_gain_linear[n])
+             sinc_term = np.sinc(0.5 * fractional_bw * (m - n) * jammer_aoa[j] / np.pi)
+             exp_term = np.exp(1j * (m - n) * jammer_aoa[j])
+             R[m, n] += 10.0 ** (jammer_pow_dB[j] / 10) * total_element_gain * sinc_term * exp_term
+ R = np.eye(N, dtype=complex) + R
+ 
+ # Generate received samples
+ A = fractional_matrix_power(R, 0.5) # Compute the matrix square-root (effective Cholesky factorization)
+ A = A / np.sqrt(2)
+ X = np.zeros((N, num_samples), dtype=complex)
+ for k in range(num_samples):
+     noise_vec = np.random.randn(N) + 1j * np.random.randn(N) # complex noise
+     X[:, k] = A.conj().T @ noise_vec
+
+In the plots below, the MVDR weights are calculated when aiming towards 20 degrees and displayed in black, while the conventional beamformer towards 20 degrees is shown in dotted blue.  The three sources of noise are indicated in red.  In this first plot, a fraction bandwidth of 0 is used, meaning these MVDR weights should match previous scenarios that used the narrowband assumption.  Based on the plot, everything seems to be working great, but if it turns out the actual noise is wide bandwidth (and your SOI is wide bandwidth, meaning you can't simply filter out the noise), then the simulation won't match real-world.
+
+.. image:: ../_images/doa_covariance_method_1.svg
+   :align: center 
+   :target: ../_images/doa_covariance_method_1.svg
+   :alt: DOA Covariance method with a fractional bandwidth of 0
+
+We now apply a fractional bandwidth of 0.1, which effectively spreads the noise sources over a wide bandwidth, causing MVDR to create much wider nulls.  For many real-world scenarios this represents a more realistic simulation.
+
+.. image:: ../_images/doa_covariance_method_2.svg
+   :align: center 
+   :target: ../_images/doa_covariance_method_2.svg
+   :alt: DOA Covariance method with a fractional bandwidth of 0.1
+
+*******************
+Circular Arrays
+*******************
+
+We will briefly talk about the Uniform Circular Array (UCA), which is a popular array geometry for DOA because it gets around the 180-degree ambiguity issue ULAs have.  The KrakenSDR, for example, is a 5-element array, and it is common to place those five elements in a circle with equal spacing between elements.  In theory, only three elements is needed to form a UCA, just like how we can make a ULA with only two elements.
+
+All of the code we have studied so far applies to UCAs, we just have to replace the steering vector equation with one specific to the UCA:
+
+.. code-block:: python
+
+   radius = 0.05 # normalized by wavelength!
+   d = np.sqrt(2 * radius**2 * (1 - np.cos(2*np.pi/Nr)))
+   sf = 1.0 / (np.sqrt(2.0) * np.sqrt(1.0 - np.cos(2*np.pi/Nr))) # scaling factor based on geometry, eg for a hexagon it is 1.0
+   x = d * sf * np.cos(2 * np.pi / Nr * np.arange(Nr))
+   y = -1 * d * sf * np.sin(2 * np.pi / Nr * np.arange(Nr))
+   s = np.exp(1j * 2 * np.pi * (x * np.cos(theta) + y * np.sin(theta)))
+   s = s.reshape(-1, 1) # Nrx1
+
+Lastly, you will want to scan from 0 to 360 degrees, instead of just -90 to +90 degrees like with a ULA.
+
+*************************************
+Rectangular Arrays and 2D Beamforming
+*************************************
+
+Rectangular arrays (a.k.a. planar arrays) involve a 2D array of elements.  With an extra dimension we get some added complexity, but the same basic principles apply, and the hardest part will be visualizing the results (e.g. no more simple polar plots, now we'll need 3D surface plots).  Even though our array is now 2D, that does not mean we have to start adding a dimension to every data structure we've been dealing with.  For example, we will keep our weights as a 1D array of complex numbers.  However, we will need to represent the positions of our elements in 2D (x and y), and we're going to go ahead and add in z, even though it will be equal to zero, for the sake of math later on.  We will keep using :code:`theta` to refer to the azimuth angle, but now we will introduce a new angle, :code:`phi`, which is the elevation angle.  
+
+.. image:: ../_images/Spherical_Coordinates.svg
+   :align: center 
+   :target: ../_images/Spherical_Coordinates.svg
+   :alt: Spherical coordinate system showing theta and phi
+
+We will also switch to using a generalized steering vector equation, which is not specific to any array geometry:
+
+.. math::
+
+   s = e^{-2j \pi \boldsymbol{p} u / \lambda}
+
+where :math:`\boldsymbol{p}` is the set of element x/y/z positions in meters (size :code:`Nr` x 3) and :math:`u` is the direction we want to point at as a unit vector in x/y/z (size 3x1).  In Python this looks like:
+
+.. code-block:: python
+
+ def steering_vector(pos, dir):
+     #                           Nrx3  3x1   
+     return np.exp(-2j * np.pi * pos @ dir / wavelength) # outputs Nr x 1 (column vector)
+
+Let's try using this generalized steering vector equation with a simple ULA with 4 elements, to make the connection back to what we have previously learned. We will now represent :code:`d` in meters instead of relative to wavelength.
+
+.. code-block:: python
+
+ Nr = 4
+ fc = 5e9
+ wavelength = 3e8 / fc
+ d = 0.5 * wavelength # in meters
+
+ # We will store our element positions in a list of (x,y,z)'s, even though it's just a ULA along the x-axis
+ pos = np.zeros((Nr, 3)) # Element positions, as a list of x,y,z coordinates in meters
+ for i in range(Nr):
+     pos[i,0] = d * i # x position
+     pos[i,1] = 0     # y position
+     pos[i,2] = 0     # z position
+
+The following graphic shows a top-down view of the ULA, with an example theta of 20 degrees.
+
+.. image:: ../_images/2d_beamforming_ula.svg
+   :align: center 
+   :target: ../_images/2d_beamforming_ula.svg
+   :alt: ULA with theta of 20 degrees
+
+The only thing left is to connect our old :code:`theta` with this new unit vector approach.  We can calculate :code:`dir` based on :code:`theta` pretty easily, we know that the y and z component of our unit vector will be 0 because we are still in 1D space, and the x component will be :code:`np.cos(theta)`, meaning the full code is :code:`dir = np.asmatrix([np.cos(theta_i), 0, 0]).T`. At this point you should be able to connect our generalized steering vector equation with the ULA steering vector equation we have been using.  Give this new code a try, pick a :code:`theta` between 0 and 360 degrees (remember to convert to radians!), and the steering vector should be a 4x1 array.
+
+Now let's move on to the 2D case.  We will represent our element positions in the exact same way, except the y component will be nonzero:
+
+.. code-block:: python
+
+ # Now let's switch to 2D, using a 4x4 array with half wavelength spacing, so 16 elements total
+ Nr = 16
+ 
+ # Element positions, still as a list of x,y,z coordinates in meters
+ pos = np.zeros((Nr,3))
+ for i in range(Nr):
+     pos[i,0] = d * (i % 4)  # x position
+     pos[i,1] = d * (i // 4) # y position
+     pos[i,2] = 0            # z position
+
+The top-down view of our rectangular 4x4 array:
+
+.. image:: ../_images/2d_beamforming_element_pos.svg
+   :align: center 
+   :target: ../_images/2d_beamforming_element_pos.svg
+   :alt: Rectangular array element positions
+
+In order to point towards a certain theta and phi, we will need to convert those angles into a unit vector.  Using a little bit of trig, we find that the x component is :code:`np.sin(theta) * np.sin(phi)`, the y component is :code:`np.cos(theta) * np.sin(phi)`, and the z component is 0.  This means we can use the same generalized steering vector equation as before, but now we will need to calculate the unit vector based on both theta and phi:
+
+.. code-block:: python
+
+ # Let's point towards an arbitrary direction
+ theta = np.deg2rad(60) # azimith angle
+ phi = np.deg2rad(30) # elevation angle
+
+ # The direction unit vector in this direction now has two nonzero components:
+ # Let's make a function out of it, because we will be using it a lot
+ def get_unit_vector(theta, phi):
+     return np.asmatrix([np.sin(theta) * np.sin(phi), # x component
+                         np.cos(theta) * np.sin(phi), # y component
+                         0]                           # z component
+                         ).T
+
+ dir = get_unit_vector(theta, phi)
+ # dir is a 3x1
+ # [[0.4330127]
+ #  [0.25     ]
+ #  [0.       ]]
+
+Now let's use our generalized steering vector function to calculate the steering vector:
+
+.. code-block:: python
+
+ s = steering_vector(pos, dir)
+ 
+ # Use the conventional beamformer, which is simply the weights equal to the steering vector, plot the beam pattern
+ w = s # 16x1 vector of weights
+
+At this point it's worth pointing out that we didn't actually change the dimensions of anything, going from 1D to 2D, we just have a non-zero y component, the steering vector equation is still the same and the weights are still a 1D array.  It might be tempting to assemble your weights as a 2D array so that visually it matches the array geometry, but it's not necessary and best to keep it 1D.  For every element, there is a corresponding weight, and the list of weights is in the same order as the list of element positions.
+
+Visualizing the beam pattern associated with these weights is a little more complicated because we need a 3D plot.  We will scan :code:`theta` and :code:`phi` to get a 2D array of power levels, and then plot that as a surface plot.  The code below does just that, and the result is shown in the figure below, along with a dot at the maximum point.
+
+.. code-block:: python
+
+    resolution = 100 # number of points in each direction
+    theta_scan = np.linspace(0, 2*np.pi, resolution) # azimuth angles
+    phi_scan = np.linspace(0, np.pi, resolution) # elevation angles
+    results = np.zeros((resolution, resolution)) # 2D array to store results
+    for i, theta_i in enumerate(theta_scan):
+        for j, phi_i in enumerate(phi_scan):
+            dir_i = get_unit_vector(theta_i, phi_i)
+            a = steering_vector(pos, dir_i) # array factor
+            resp = w.conj().T @ a # scalar
+            results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
+    # plot_surface needs x,y,z form
+    results[results < -10] = -10 # crop the z axis to -10 dB
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
+    surf = ax.plot_surface(np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # x
+                           np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # y
+                           results, cmap='viridis')
+    # Plot a dot at the maximum point
+    max_idx = np.unravel_index(np.argmax(results, axis=None), results.shape)
+    ax.scatter(np.sin(theta_scan[max_idx[0]]) * np.sin(phi_scan[max_idx[1]]), # x
+               np.cos(theta_scan[max_idx[0]]) * np.sin(phi_scan[max_idx[1]]), # y
+               results[max_idx], color='red', s=100)
+    ax.set_zlim(-10, results[max_idx])
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('Power [dB]')
+
+.. image:: ../_images/2d_beamforming_3dplot.svg
+   :align: center 
+   :target: ../_images/2d_beamforming_3dplot.svg
+   :alt: 3D plot of the beam pattern
+
+If anyone has a better 3D polar-style plot in Python, please use the "Suggest an Edit" link at the bottom of this page, or email Marc at marc@pysdr.org.
+
+Let's simulate some actual samples now; we'll add two tone jammers arriving from different directions:
+
+.. code-block:: python
+
+ N = 10000 # number of samples to simulate
+ 
+ jammer1_theta = np.deg2rad(-30)
+ jammer1_phi = np.deg2rad(10)
+ jammer1_dir = get_unit_vector(jammer1_theta, jammer1_phi)
+ jammer1_s = steering_vector(pos, jammer1_dir) # Nr x 1
+ jammer1_tone = np.exp(2j*np.pi*0.1*np.arange(N)).reshape(1,-1) # make a row vector
+ 
+ jammer2_theta = np.deg2rad(10)
+ jammer2_phi = np.deg2rad(50)
+ jammer2_dir = get_unit_vector(jammer2_theta, jammer2_phi)
+ jammer2_s = steering_vector(pos, jammer2_dir)
+ jammer2_tone = np.exp(2j*np.pi*0.2*np.arange(N)).reshape(1,-1) # make a row vector
+ 
+ noise = np.random.normal(0, 1, (Nr, N)) + 1j * np.random.normal(0, 1, (Nr, N)) # complex Gaussian noise
+ r = jammer1_s @ jammer1_tone + jammer2_s @ jammer2_tone + noise # produces 16 x 10000 matrix of samples
+
+Just for fun let's calculate the MVDR beamformer weights towards the theta and phi we were using earlier (a unit vector in that direction is still saved as :code:`dir`):
+
+.. code-block:: python
+
+ s = steering_vector(pos, dir) # 16 x 1
+ R = np.cov(r) # Covariance matrix, 16 x 16
+ Rinv = np.linalg.pinv(R)
+ w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
+
+Instead of looking at the beam pattern in the crummy 3D plot, we'll use an alternative method of checking if these weights make sense; we will evaluate the response of the weights towards different directions and calculate the power in dB.  Let's start with the direction we were pointing:
+
+.. code-block:: python
+
+ # Power in the direction we are pointing (theta=60, phi=30, which is still saved as dir):
+ a = steering_vector(pos, dir) # array factor
+ resp = w.conj().T @ a # scalar
+ print("Power in direction we are pointing:", 10*np.log10(np.abs(resp)[0,0]), 'dB')
+
+This outputs 0 dB, which is what we expect because MVDR's goal is to achieve unit power in the desired direction.  Now let's check the power in the directions of the two jammers, as well as a random direction and a direction that is one degree off of our desired direction (the same code is used, just update :code:`dir`).  The results are shown in the table below:
+
+.. list-table::
+   :widths: 70 30
+   :header-rows: 1
+
+   * - Direction Pointed
+     - Gain
+   * - :code:`dir` (direction used to find MVDR weights)
+     - 0 dB
+   * - Jammer 1
+     - -20.816 dB
+   * - Jammer 2
+     - -27.347 dB
+   * - 1 degree off from :code:`dir` in both :math:`\theta` and :math:`\phi`
+     - -0.0131 dB
+   * - A random direction
+     - -14.285 dB
+
+Your results may vary due to the random noise being used to calculate the received samples, which get used to calculate :code:`R`.  But the main take-away is that the jammers will be in a null and very low power, the 1 degree off from :code:`dir` will be slightly below 0 dB, but still in the main lobe, and then a random direction is going to be lower than 0 dB but higher than the jammers, and very different every run of the simulation.  Note that with MVDR you get a gain of 0 dB for the main lobe, but if you were to use the conventional beamformer, you would get :math:`10 \log_{10}(Nr)`, so about 12 dB for our 16-element array, showing one of the trade-offs of using MVDR.
+
 *************************
 Conclusion and References
 *************************
@@ -1317,6 +1643,8 @@ All Python code, including code used to generate the figures/animations, can be 
 * DOA implementation used by KrakenSDR - https://github.com/krakenrf/krakensdr_doa/blob/main/_signal_processing/krakenSDR_signal_processor.py
 
 [1] Mailloux, Robert J. Phased Array Antenna Handbook. Second edition, Artech House, 2005
+
+[2] Van Trees, Harry L. Optimum Array Processing: Part IV of Detection, Estimation, and Modulation Theory. Wiley, 2002.
 
 .. |br| raw:: html
 

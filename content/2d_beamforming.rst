@@ -371,7 +371,7 @@ Our results are in 2D, because the array is 2D, so we must either use a 3D plot 
    :target: ../_images/2d_array_3d_doa_plot.png
    :alt: 3D DOA plot
 
-Depending on the situation it might be annoying to read off numbers from a 3D plot, so we can also do a 2D heatmap with matplotlib's :code:`imshow()`:
+Depending on the situation it might be annoying to read off numbers from a 3D plot, so we can also do a 2D heatmap with :code:`imshow()`:
 
 .. code-block:: python
 

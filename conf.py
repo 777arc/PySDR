@@ -200,7 +200,10 @@ class PatchedHTMLTranslator(HTMLTranslator):
                              '.'.join(map(str, node['secnumber'])))
 def setup(app):
     app.set_translator('html', PatchedHTMLTranslator)
-    
+    app.add_js_file('js/PhasedArrayVisualizer/js/index.js', loading_method='defer', type='module')
+    app.add_js_file('js/PhasedArrayVisualizer/js/index-scenes.js', loading_method='defer', type='module')
+
+
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 
@@ -227,6 +230,7 @@ html_js_files = [
     'js/FFT.js',
     'js/cyclostationary_app.js',
     'js/homepage_app.js'
+    # we also include the index.js file from the PhasedArrayVisualizer directory in setup() above
 ]
 
 # Add any extra paths that contain custom files (such as robots.txt or

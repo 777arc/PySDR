@@ -292,3 +292,6 @@ endian
 Widrow
 jammer
 jammers
+heatmap
+Durbin
+dBi

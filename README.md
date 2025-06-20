@@ -49,6 +49,12 @@ python -m sphinx.cmd.build -b html -D imgmath_latex="C:\texlive\2025\bin\windows
 
 The first time running this it might take a while because it has to download LaTeX packages.
 
+Test the javascript part with the following to avoid CORS errors:
+```
+cd _build
+python -m http.server
+```
+
 ## Creating a PDF Export
 
 Not fully working yet due to animated gifs, they all need to be removed for this to not error out:

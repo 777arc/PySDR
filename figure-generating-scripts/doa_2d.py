@@ -13,17 +13,17 @@ def steering_vector(pos, dir):
 # Let's start with 1D, using a 4-element ULA
 Nr = 4
 
-# We will store our element positions in a list of (x,y,z)'s, even though it's just a ULA along the x-axis
+# We will store our element positions in a list of (x,y,z)'s, even though it's just a ULA along the y-axis
 pos = np.zeros((Nr, 3)) # Element positions, as a list of x,y,z coordinates in meters
 for i in range(Nr):
-    pos[i,0] = d * i # x position
-    pos[i,1] = 0     # y position
+    pos[i,0] = 0     # x position
+    pos[i,1] = d * i # y position
     pos[i,2] = 0     # z position
 
 # Plot positions of elements, top-down view, so no z-axis shown
 if False:
     plt.plot(pos[:,0], pos[:,1], 'o')
-    plt.xlim([-0.01, 0.1])
+    plt.xlim([-0.05, 0.05])
     plt.ylim([-0.01, 0.1])
     plt.xlabel("X Position [m]")
     plt.ylabel("Y Position [m]")
@@ -31,8 +31,8 @@ if False:
     plt.gca().set_aspect('equal', adjustable='box')
     # Draw an arrow to show theta
     theta = np.deg2rad(20) # point towards 20 degrees
-    plt.arrow(float(np.mean(pos[:,0])), 0, np.cos(theta)*0.05, np.sin(theta)*0.05, head_width=0.005, head_length=0.005, fc='r', ec='r')
-    plt.text(0.07, 0.005, 'theta (20 deg)', color='red')
+    plt.arrow(0, float(np.mean(pos[:,1])), np.sin(theta)*0.03, np.cos(theta)*0.03, head_width=0.005, head_length=0.005, fc='r', ec='r')
+    plt.text(0.018, 0.07, 'theta (20 deg)', color='red')
     plt.savefig('../_images/2d_beamforming_ula.svg', bbox_inches='tight')
     plt.show()
     exit()
@@ -41,8 +41,8 @@ if False:
 theta = np.deg2rad(60) # azimith angle. point towards 60 degrees as an example
 
 # The direction unit vector pointing towards theta is:
-dir = np.asmatrix([np.cos(theta), # x component, goes back to the geometry shown in the beginning of DOA chapter
-                   np.sin(theta), # y component ends up being 0 because the element positions are all 0 in y
+dir = np.asmatrix([np.sin(theta), # x component
+                   np.cos(theta), # y component 
                    0]             # z component
                    ).T
 print("dir:\n", dir) # Remember that it's a unit vector representing a direction, it's not in meters
@@ -60,7 +60,7 @@ if False:
     theta_scan = np.linspace(0, 2*np.pi, 1000) # 1000 different thetas for nice resolution
     results = []
     for theta_i in theta_scan:
-        dir_theta_i = np.asmatrix([np.cos(theta_i), 0, 0]).T
+        dir_theta_i = np.asmatrix([np.sin(theta_i), np.cos(theta_i), 0]).T
         a = steering_vector(pos, dir_theta_i) # array factor
         resp = w.conj().T @ a # scalar
         results.append(10*np.log10(np.abs(resp)[0,0])) # power in signal, in dB
@@ -75,20 +75,20 @@ if False:
 # Now let's switch to 2D, using a 4x4 array with half wavelength spacing, so 16 elements total
 Nr = 16
 
-# Element positions, still as a list of x,y,z coordinates in meters
+# Element positions, still as a list of x,y,z coordinates in meters, we'll place the array in the X-Z plane
 pos = np.zeros((Nr,3))
 for i in range(Nr):
     pos[i,0] = d * (i % 4)  # x position
-    pos[i,1] = d * (i // 4) # y position
-    pos[i,2] = 0            # z position
+    pos[i,1] = 0            # y position
+    pos[i,2] = d * (i // 4) # z position
 
 # Plot positions of elements
 if False:
-    plt.plot(pos[:,0], pos[:,1], 'o')
+    plt.plot(pos[:,0], pos[:,2], 'o')
     plt.xlim([-0.01, 0.1])
     plt.ylim([-0.01, 0.1])
     plt.xlabel("X Position [m]")
-    plt.ylabel("Y Position [m]")
+    plt.ylabel("Z Position [m]")
     plt.grid()
     plt.gca().set_aspect('equal', adjustable='box')
     plt.savefig('../_images/2d_beamforming_element_pos.svg', bbox_inches='tight')
@@ -96,16 +96,15 @@ if False:
     exit()
 
 # We will introduce phi, the elevation angle. Let's point towards an arbitrary direction
-theta = np.deg2rad(0) # azimith angle
-phi = np.deg2rad(0) # elevation angle
+theta = np.deg2rad(60) # azimith angle
+phi = np.deg2rad(30) # elevation angle
 
-# The direction unit vector in this direction now has two nonzero components:
-# Let's make a function out of it, because we will be using it a lot
-def get_unit_vector(theta, phi):
-    return np.asmatrix([np.sin(theta) * np.sin(phi), # x component
-                        np.cos(theta) * np.sin(phi), # y component
-                        np.cos(phi)] # z component, ends up being 0 because the element positions are all 0 in z
-                        ).T
+# Using our spherical coordinate convention, we can calculate the unit vector:
+def get_unit_vector(theta, phi):  # angles are in radians
+    return np.asmatrix([np.sin(theta) * np.cos(phi), # x component
+                        np.cos(theta) * np.cos(phi), # y component
+                        np.sin(phi)]).T              # z component
+
 dir = get_unit_vector(theta, phi)
 print("dir:\n", dir) # Remember that it's a unit vector representing a direction, it's not in meters
 
@@ -180,36 +179,31 @@ if False:
 
 # 2D plot that makes more sense
 # This seems to be making a UV plot
-if True:
+if False:
     resolution = 100 # number of points in each direction
-    theta_scan = np.linspace(-np.pi, np.pi, resolution) # azimuth angles
-    phi_scan = np.linspace(0, np.pi, resolution) # elevation angles
+    theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
+    phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
     results = np.zeros((resolution, resolution)) # 2D array to store results
     for i, theta_i in enumerate(theta_scan):
         for j, phi_i in enumerate(phi_scan):
             a = steering_vector(pos, get_unit_vector(theta_i, phi_i)) # array factor
             results[i, j] = np.abs(w.conj().T @ a)[0,0] # power in signal, in dB
-    
-    #results = 10*np.log10(results) # Convert to dB
-    #results[results < -20] = -20
-    
-    #X = np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:]) # doesnt make sense to convert to degrees at this point because its not a radian anymore
-    #Y = np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:])
-    #CS = plt.contour(X, Y, results)
-    #plt.clabel(CS, inline=True, fontsize=8)
-    plt.imshow(results, extent=(-180, 180, 0, 90), origin='lower', aspect='auto', cmap='viridis')
+    plt.imshow(results, extent=(theta_scan[0]*180/np.pi, theta_scan[-1]*180/np.pi, phi_scan[0]*180/np.pi, phi_scan[-1]*180/np.pi), origin='lower', aspect='auto', cmap='viridis')
     plt.colorbar(label='Power [dB]')
+    plt.scatter(theta*180/np.pi, phi*180/np.pi, color='red', s=50) # Add a dot at the correct theta/phi
     plt.xlabel('Azimuth angle [degrees]')
     plt.ylabel('Elevation angle [degrees]')
+    plt.savefig('../_images/2d_beamforming_2dplot.svg', bbox_inches='tight')
     plt.show()
+    exit()
 
 
 # Visualize beam pattern when using these weights, but this time we need a 3D surface plot
 # Note that this is not a polar plot, it's using X and Y to represent the azimuth and elevation angles, and Z to represent the power in dB
 if False:
     resolution = 100 # number of points in each direction
-    theta_scan = np.linspace(0, 2*np.pi, resolution) # azimuth angles
-    phi_scan = np.linspace(0, np.pi, resolution) # elevation angles
+    theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
+    phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
     results = np.zeros((resolution, resolution)) # 2D array to store results
     for i, theta_i in enumerate(theta_scan):
         for j, phi_i in enumerate(phi_scan):
@@ -218,22 +212,18 @@ if False:
             resp = w.conj().T @ a # scalar
             results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
     # plot_surface needs x,y,z form
-    results[results < -10] = -10 # crop the z axis to -10 dB
-    print(np.max(results)) # 12.04 dB because we have 16 elements 10*log10(16) = 12.04 dB
+    results = 10*np.log10(results) # convert to dB
+    #results[results < -10] = -10 # crop the z axis to some level of dB
     fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
-    surf = ax.plot_surface(np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # x # type: ignore
-                           np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # y
-                           results, cmap='viridis')
-    # Plot a dot at the maximum point
-    max_idx = np.unravel_index(np.argmax(results, axis=None), results.shape)
-    ax.scatter(np.sin(theta_scan[max_idx[0]]) * np.sin(phi_scan[max_idx[1]]), # x
-               np.cos(theta_scan[max_idx[0]]) * np.sin(phi_scan[max_idx[1]]), # y
-               results[max_idx], color='red', s=100) # type: ignore
-    ax.set_zlim(-10, results[max_idx]) # type: ignore
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
+    surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
+                                                    np.rad2deg(phi_scan[None,:]),
+                                                    results,
+                                                    cmap='viridis')
+    #ax.set_zlim(-10, results[max_idx])
+    ax.set_xlabel('Azimuth (theta)')
+    ax.set_ylabel('Elevation (phi)')
     ax.set_zlabel('Power [dB]') # type: ignore
-    plt.savefig('../_images/2d_beamforming_3dplot.svg', bbox_inches='tight')
+    fig.savefig('../_images/2d_beamforming_3dplot.svg', bbox_inches='tight')
     plt.show()
     exit()
 
@@ -312,7 +302,7 @@ for i, theta_i in enumerate(theta_scan):
         a = steering_vector(pos, dir_i) # array factor
         resp = w.conj().T @ a # scalar
         results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
-print(np.max(results)) # 1.3 dB
+print(np.max(results)) # about 0 dB
 # Print argmax of a 2d array
 max_idx = np.unravel_index(np.argmax(results, axis=None), results.shape)
 print(theta_scan[max_idx[0]] * 180 / np.pi) # theta doesnt really mean anything here because phi is close to 0

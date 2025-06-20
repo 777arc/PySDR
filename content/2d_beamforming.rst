@@ -260,9 +260,9 @@ The spacing between antennas was 0.051 meters.  We can represent the element pos
 
 The plot labels each element with its index, which corresponds to the order of the elements in the :code:`r` and :code:`r_cal` IQ samples that were recorded.
 
-.. image:: ../_static/2d_array_element_positions.svg
+.. image:: ../_images/2d_array_element_positions.svg
    :align: center 
-   :target: ../_static/2d_array_element_positions.svg
+   :target: ../_images/2d_array_element_positions.svg
    :alt: 2D array element positions
 
 Calibration is performed using only the :code:`r_cal` samples, which were recorded with just the transmitter at boresight on. The goal is to find the phase and magntiude offsets for each element.  With perfect calibration, and assuming the transmitter was exactly at boresight, all of the individual receive elements should be receiving the same signal, all in phase with each other and at the same magnitude.  But because of imperfections in the array/cables/antennas, each element will have a different phase and magnitude offset.  The calibration process is to find these offsets, which we will later apply to the :code:`r` samples before attempting to do any array processing on them.
@@ -297,9 +297,9 @@ There are many ways to perform calibration, but we will use a method that involv
 
 Below shows the plot of the eigenvalue distribution, we want to make sure that there's just one large value, and the rest are small, representing one signal being received.  Any interferers or multipath will degrade the calibration process. 
 
-.. image:: ../_static/2d_array_eigenvalues.svg
+.. image:: ../_images/2d_array_eigenvalues.svg
    :align: center 
-   :target: ../_static/2d_array_eigenvalues.svg
+   :target: ../_images/2d_array_eigenvalues.svg
    :alt: 2D array eigenvalue distribution
 
 The calibration table is a list of complex numbers, one for each element, representing the phase and magnitude offsets (it is easier to represent it in rectangular form instead of polar).  The first element is the reference element, and will always be 1.0 + 0.j. The rest of the elements are the offsets for each element corresponding to the same order we used for :code:`pos`.
@@ -366,13 +366,13 @@ Our results are in 2D, because the array is 2D, so we must either use a 3D plot 
 	ax.set_xlabel('Azimuth (theta)')
 	ax.set_ylabel('Elevation (phi)')
 	ax.set_zlabel('Power [dB]') # type: ignore
-	fig.savefig('../_static/2d_array_3d_doa_plot.svg', bbox_inches='tight')
+	fig.savefig('../_images/2d_array_3d_doa_plot.svg', bbox_inches='tight')
 	plt.show()
 
-.. image:: ../_static/2d_array_3d_doa_plot.png
+.. image:: ../_images/2d_array_3d_doa_plot.png
    :align: center 
    :scale: 30%
-   :target: ../_static/2d_array_3d_doa_plot.png
+   :target: ../_images/2d_array_3d_doa_plot.png
    :alt: 3D DOA plot
 
 Depending on the situation it might be annoying to read off numbers from a 3D plot, so we can also do a 2D heatmap with matplotlib's :code:`imshow()`:
@@ -388,12 +388,12 @@ Depending on the situation it might be annoying to read off numbers from a 3D pl
 	plt.colorbar(label='Power [linear]')
 	plt.xlabel('Theta (azimuth, degrees)')
 	plt.ylabel('Phi (elevation, degrees)')
-	plt.savefig('../_static/2d_array_2d_doa_plot.svg', bbox_inches='tight')
+	plt.savefig('../_images/2d_array_2d_doa_plot.svg', bbox_inches='tight')
 	plt.show()
 
-.. image:: ../_static/2d_array_2d_doa_plot.svg
+.. image:: ../_images/2d_array_2d_doa_plot.svg
    :align: center 
-   :target: ../_static/2d_array_2d_doa_plot.svg
+   :target: ../_images/2d_array_2d_doa_plot.svg
    :alt: 2D DOA plot
 
 Using this 2D plot we can easily read off the estimated azimuth and elevation of the two emitters (and see that there was just two).  Based on the test setup that was used to produce this recording, these results match reality, the *exact* azimuth and elevation of the emitters was never actually measured because that would require very specialized equipment. 

@@ -101,11 +101,11 @@ phi = np.deg2rad(0) # elevation angle
 
 # The direction unit vector in this direction now has two nonzero components:
 # Let's make a function out of it, because we will be using it a lot
-def get_unit_vector(theta, phi):
-    return np.asmatrix([np.sin(theta) * np.sin(phi), # x component
-                        np.cos(theta) * np.sin(phi), # y component
-                        np.cos(phi)] # z component, ends up being 0 because the element positions are all 0 in z
-                        ).T
+def get_unit_vector(theta, phi):  # angles are in radians
+    return np.asmatrix([np.sin(theta) * np.cos(phi), # x component
+                        np.cos(theta) * np.cos(phi), # y component
+                        np.sin(phi)]).T              # z component
+
 dir = get_unit_vector(theta, phi)
 print("dir:\n", dir) # Remember that it's a unit vector representing a direction, it's not in meters
 

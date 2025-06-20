@@ -33,7 +33,7 @@ plt.xlabel("X Position [m]")
 plt.ylabel("Y Position [m]")
 ax.set_zlabel("Z Position [m]") # type: ignore
 plt.grid()
-#fig.savefig('../_static/2d_array_element_positions.svg')
+#fig.savefig('../_images/2d_array_element_positions.svg')
 plt.show()
 
 ###############
@@ -51,7 +51,7 @@ fig, (ax1) = plt.subplots(1, 1, figsize=(7, 3))
 ax1.plot(w_dB, '.-')
 ax1.set_xlabel('Index')
 ax1.set_ylabel('Eigenvalue [dB]')
-#fig.savefig('../_static/2d_array_eigenvalues.svg', bbox_inches='tight')
+#fig.savefig('../_images/2d_array_eigenvalues.svg', bbox_inches='tight')
 plt.show()
 
 # Use max eigenvector to calibrate
@@ -118,7 +118,7 @@ surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
 ax.set_xlabel('Azimuth (theta)')
 ax.set_ylabel('Elevation (phi)')
 ax.set_zlabel('Power [dB]') # type: ignore
-#fig.savefig('../_static/2d_array_3d_doa_plot.png', bbox_inches='tight', dpi=300) # increase dpi to 300
+#fig.savefig('../_images/2d_array_3d_doa_plot.png', bbox_inches='tight', dpi=300) # increase dpi to 300
 plt.show()
 
 # 2D, az-el heatmap (same as above, but 2D)
@@ -130,7 +130,7 @@ plt.imshow(results.T, extent=extent, origin='lower', aspect='auto', cmap='viridi
 plt.colorbar(label='Power [linear]')
 plt.xlabel('Theta (azimuth, degrees)')
 plt.ylabel('Phi (elevation, degrees)')
-#plt.savefig('../_static/2d_array_2d_doa_plot.svg', bbox_inches='tight')
+#plt.savefig('../_images/2d_array_2d_doa_plot.svg', bbox_inches='tight')
 plt.show()
 
 

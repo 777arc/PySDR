@@ -4,7 +4,7 @@
 2D Beamforming
 ##############
 
-This chapter extends the 1D beamforming/DOA chapter to 2D arrays.  We will start with a simple rectangular array and develop the steering vector equation and MVDR beamformer, then we will work with some actual data from a 3x5 array.  Lastly, we will use the interactive tool to explore the effects of different array geometries and element spacings.
+This chapter extends the 1D beamforming/DOA chapter to 2D arrays.  We will start with a simple rectangular array and develop the steering vector equation and MVDR beamformer, then we will work with some actual data from a 3x5 array.  Lastly, we will use the interactive tool to explore the effects of different array geometries and element spacing.
 
 *************************************
 Rectangular Arrays and 2D Beamforming
@@ -261,7 +261,7 @@ The plot labels each element with its index, which corresponds to the order of t
    :target: ../_images/2d_array_element_positions.svg
    :alt: 2D array element positions
 
-Calibration is performed using only the :code:`r_cal` samples, which were recorded with just the transmitter at boresight on. The goal is to find the phase and magntiude offsets for each element.  With perfect calibration, and assuming the transmitter was exactly at boresight, all of the individual receive elements should be receiving the same signal, all in phase with each other and at the same magnitude.  But because of imperfections in the array/cables/antennas, each element will have a different phase and magnitude offset.  The calibration process is to find these offsets, which we will later apply to the :code:`r` samples before attempting to do any array processing on them.
+Calibration is performed using only the :code:`r_cal` samples, which were recorded with just the transmitter at boresight on. The goal is to find the phase and magnitude offsets for each element.  With perfect calibration, and assuming the transmitter was exactly at boresight, all of the individual receive elements should be receiving the same signal, all in phase with each other and at the same magnitude.  But because of imperfections in the array/cables/antennas, each element will have a different phase and magnitude offset.  The calibration process is to find these offsets, which we will later apply to the :code:`r` samples before attempting to do any array processing on them.
 
 There are many ways to perform calibration, but we will use a method that involves taking the eigenvalue decomposition of the covariance matrix.  The covariance matrix is a square matrix of size :code:`Nr x Nr`, where :code:`Nr` is the number of receive elements.  The eigenvector corresponding to the largest eigenvalue is the one that represents the received signal, hopefully, and we will use it to find the phase offsets for each element by simply taking the phase of each element of the eigenvector and normalizing it to the first element which we will treat as the reference element.  The magnitude calibration does not actually use the eigenvector, but instead uses the mean magnitude of the received signal for each element.
 
@@ -346,7 +346,7 @@ Next we will perform DOA estimation using the MUSIC algorithm.  We will use the 
 			music_metric = np.clip(music_metric, 0, 2) # Useful for ABCD one
 			results[i, j] = music_metric
 
-Our results are in 2D, because the array is 2D, so we must either use a 3D plot or a 2D imshow/surface style plot.  Let's try both. First, we will do a 3D plot that has elevation on one axis and azimuth on the other:
+Our results are in 2D, because the array is 2D, so we must either use a 3D plot or a 2D heatmap plot.  Let's try both. First, we will do a 3D plot that has elevation on one axis and azimuth on the other:
 
 .. code-block:: python
 
@@ -404,7 +404,7 @@ Interactive Design Tool
 
 The following interactive tool was created by Jason Durbin, a free-lancing phased array engineer, who graciously allowed it to be embedded within PySDR; feel free to visit the `full project <https://jasondurbin.github.io/PhasedArrayVisualizer>`_ or his `consulting business <https://neonphysics.com/>`_.  This tool allows you to change a phased array's geometry, element spacing, steering position, add sidelobe tapering, and other features.
 
-Some details on this tool: Antenna elements are assumed to be isotropic. However, the directivity calculation assumes half-hemisphere radiation (e.g. no back lobes). Therefore, the computed directivity will be 3 dBi higher than using pure isotropic (i.e., the individual element gain is +3.0 dBi). The mesh can be made finer by increasing theta/phi, u/v, or az/el points. Clicking (or long pressing) elements in the phase/attenuation plots allows you to manually set phase/attenuation ("be sure to select "enable override"). Additionally, the attenuation pop-up allows you to disable elements. Hovering (or touching) the 2D farfield plot or geometry plots will show the value of the plot under the cursor.
+Some details on this tool: Antenna elements are assumed to be isotropic. However, the directivity calculation assumes half-hemisphere radiation (e.g. no back lobes). Therefore, the computed directivity will be 3 dBi higher than using pure isotropic (i.e., the individual element gain is +3.0 dBi). The mesh can be made finer by increasing theta/phi, u/v, or azimuth/elevation points. Clicking (or long pressing) elements in the phase/attenuation plots allows you to manually set phase/attenuation ("be sure to select "enable override"). Additionally, the attenuation pop-up allows you to disable elements. Hovering (or touching) the 2D far field plot or geometry plots will show the value of the plot under the cursor.
 
 .. raw:: html
 

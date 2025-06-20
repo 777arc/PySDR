@@ -92,12 +92,51 @@ We can see this visually by plotting I and Q equal to 1:
 
 We call the cos() the "in phase" component, hence the name I, and the sin() is the 90 degrees out of phase or "quadrature" component, hence Q.  Although if you accidentally mix it up and assign Q to the cos() and I to the sin(), it won't make a difference for most situations.
 
-IQ sampling is more easily understood by using the transmitter's point of view, i.e., considering the task of transmitting an RF signal through the air.  We want to send a single sine wave at a certain phase, which can be done by sending the sum of a sin() and cos() with a phase of 0, because of the trig identity: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`.  Let's say x(t) is our signal to transmit:
+IQ sampling is more easily understood by using the transmitter's point of view.  Consider the task of transmitting an RF signal through the air at a certain frequency :math:`f` (in Hz).  We want to take this sine wave of frequency :math:`f` and control its amplitude :math:`A` and phase :math:`\phi`:
 
 .. math::
-  x(t) = I \cos(2\pi ft)  + Q \sin(2\pi ft)
 
-What happens when we add a sine and cosine?  Or rather, what happens when we add two sinusoids that are 90 degrees out of phase?  In the video below, there is a slider for adjusting I and another for adjusting Q.  What is plotted are the cosine, sine, and then the sum of the two.
+ A \cos(2 \pi f t - \phi)
+
+The negative sign is purely convention and isn't important for understanding the concept. At any given moment in time there may be a different amplitude and phase we want to transmit, so we can represent them as a function of time to be more formal:
+
+.. math::
+
+ A(t) \cos(2 \pi f t - \phi(t))
+
+It turns out that in RF circuitry, controlling the amplitude of a sine wave is easy but controlling the phase is hard, so what we can do is take advantage of the trig identity: :math:`a \cos(x) + b \sin(x) = A \cos(x - \phi)` which tells us that a sum of a cos() and sin() of the same frequency, each with a phase of 0, is equivalent to a single cos() with an amplitude :math:`A` and phase :math:`\phi`.  Using I and Q instead of :math:`a` and :math:`b`, and adding back in our :math:`2 \pi f t`, we get:
+
+.. math::
+
+ A \cos(2 \pi f t - \phi) 
+ 
+ = I \cos(2 \pi f t) + Q \sin(2 \pi f t)
+
+where
+
+.. math::
+
+ A = \sqrt{I^2 + Q^2}
+
+ \phi = \tan^{-1}\left(\frac{Q}{I}\right)
+
+Using this I and Q approach, we can transmit any magnitude and phase we want, using a circuit that looks something like this:
+
+.. image:: ../_images/IQ_diagram.png
+   :scale: 80%
+   :align: center
+   :alt: Diagram showing how I and Q are modulated onto a carrier
+
+
+Let's say we have an IQ sample, which is the single complex number :math:`I + jQ`.  We can **modulate** that IQ sample onto a sine wave; the amplitude and phase are determined by the IQ sample:
+
+.. math::
+
+ x(t) = I \cos(2\pi ft) + Q \sin(2\pi ft)
+ 
+ \qquad \qquad \qquad \qquad = \left(\sqrt{I^2+Q^2}\right) \cos\left(2\pi ft - \tan^{-1}\left(\frac{Q}{I}\right)\right)
+
+Even though we saw the math, let's play around with adding two sinusoids that are 90 degrees out of phase.  In the video below, there is a slider for adjusting I and another for adjusting Q, the amplitude of the cosine and sine.  What is plotted are the cosine (red), sine (blue), and the sum of the two (green).
 
 .. image:: ../_images/IQ3.gif
    :scale: 100%
@@ -105,16 +144,9 @@ What happens when we add a sine and cosine?  Or rather, what happens when we add
    :target: ../_images/IQ3.gif
    :alt: GNU Radio animation showing I and Q as amplitudes of sinusoids that get summed together
 
-(The code used for this pyqtgraph-based Python app can be found `here <https://raw.githubusercontent.com/777arc/PySDR/master/figure-generating-scripts/sin_plus_cos.py>`_)
+The code used for this pyqtgraph-based Python app can be found `here <https://raw.githubusercontent.com/777arc/PySDR/master/figure-generating-scripts/sin_plus_cos.py>`_.
 
-The important takeaways are that when we add the cos() and sin(), we get another pure sine wave with a different phase and amplitude.   Also, the phase shifts as we slowly remove or add one of the two parts.  The amplitude also changes.  This is all a result of the trig identity: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`, which we will come back to in a bit.  The "utility" of this behavior is that we can control the phase and amplitude of a resulting sine wave by adjusting the amplitudes I and Q (we don't have to adjust the phase of the cosine or sine).  For example, we could adjust I and Q in a way that keeps the amplitude constant and makes the phase whatever we want.  As a transmitter this ability is extremely useful because we know that we need to transmit a sinusoidal signal in order for it to fly through the air as an electromagnetic wave.  And it's much easier to adjust two amplitudes and perform an addition operation compared to adjusting an amplitude and a phase.  The result is that our transmitter will look something like this:
-
-.. image:: ../_images/IQ_diagram.png
-   :scale: 80%
-   :align: center
-   :alt: Diagram showing how I and Q are modulated onto a carrier
-
-We only need to generate one sine wave and shift it by 90 degrees to get the Q portion.
+The important takeaways are that when we add the cos() and sin(), we get another pure sine wave of the same frequency but with a different phase and amplitude.   Also, the phase shifts as we slowly remove or add one of the two parts (the amplitude also changes).  This is all a result of the trig identity: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`.  The "utility" of this behavior is that we can control the phase and amplitude of a resulting sine wave by adjusting the amplitudes I and Q (we don't have to adjust the phase of the cosine or sine).  For example, we could adjust I and Q in a way that keeps the amplitude constant and makes the phase whatever we want.  As a transmitter this ability is extremely useful because we know that we need to transmit a sinusoidal signal in order for it to fly through the air as an electromagnetic wave.  And it's much easier to adjust two amplitudes and perform an addition operation compared to adjusting an amplitude and a phase.  It also allows us to represent basebands signals more conviniently, keeping them agnostic of the carrier.
 
 *************************
 Complex Numbers
@@ -151,9 +183,10 @@ You may have figured out by now how this vector or phasor diagram relates to IQ 
 Now let's say we want to transmit our example point 0.7-0.4j.  We will be transmitting:
 
 .. math::
-  x(t) = I \cos(2\pi ft)  + Q \sin(2\pi ft)
 
-  \quad \quad \quad = 0.7 \cos(2\pi ft) - 0.4 \sin(2\pi ft)
+ x(t) = I \cos(2\pi ft)  + Q \sin(2\pi ft)
+ 
+ \quad \quad \quad = 0.7 \cos(2\pi ft) - 0.4 \sin(2\pi ft)
 
 We can use trig identity :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)` where :math:`A` is our magnitude found with :math:`\sqrt{I^2 + Q^2}` and :math:`\phi` is our phase, equal to :math:`\tan^{-1} \left( Q/I \right)`.  The above equation now becomes:
 
@@ -193,29 +226,17 @@ One last important note: the figure above shows what's happening **inside** of t
 Carrier and Downconversion
 **************************
 
-Until this point we have not discussed frequency, but we saw there was an :math:`f` in the equations involving the cos() and sin().  This frequency is the center frequency of the signal we actually send through the air (the electromagnetic wave's frequency).  We refer to it as the "carrier" because it carries our signal on a certain RF frequency.  When we tune to a frequency with our SDR and receive samples, our information is stored in I and Q; this carrier does not show up in I and Q, assuming we tuned to the carrier.
-
-.. tikz:: [font=\Large\bfseries\sffamily]
-   \draw (0,0) node[align=center]{$A\cdot cos(2\pi ft+ \phi)$}
-   (0,-2) node[align=center]{$\left(\sqrt{I^2+Q^2}\right)cos\left(2\pi ft + tan^{-1}(\frac{Q}{I})\right)$};
-   \draw[->,red,thick] (-2,-0.5) -- (-2.5,-1.2);
-   \draw[->,red,thick] (1.9,-0.5) -- (2.4,-1.5);
-   \draw[->,red,thick] (0,-4) node[red, below, align=center]{This is what we call the carrier} -- (-0.6,-2.7);
+Until this point we have not discussed frequency, but we saw there was an :math:`f` in the equations involving the cos() and sin().  This frequency is the center frequency of the signal we actually send through the air (the electromagnetic wave's frequency).  We refer to it as the "carrier" because it carries our signal on a certain RF frequency.  When we tune to a frequency with our SDR and receive samples, our information is stored in I and Q; this carrier does not show up in I and Q.
 
 For reference, radio signals such as FM radio, WiFi, Bluetooth, LTE, GPS, etc., usually use a frequency (i.e., a carrier) between 100 MHz and 6 GHz.  These frequencies travel really well through the air, but they don't require super long antennas or a ton of power to transmit or receive.  Your microwave cooks food with electromagnetic waves at 2.4 GHz. If there is a leak in the door then your microwave will jam WiFi signals and possibly also burn your skin.  Another form of electromagnetic waves is light. Visible light has a frequency of around 500 THz.  It's so high that we don't use traditional antennas to transmit light. We use  methods like LEDs that are semiconductor devices. They create light when electrons jump in between the atomic orbits of the semiconductor material, and the color depends on how far they jump.  Technically, radio frequency (RF) is defined as the range from roughly 20 kHz to 300 GHz. These are the frequencies at which energy from an oscillating electric current can radiate off a conductor (an antenna) and travel through space.  The 100 MHz to 6 GHz range are the more useful frequencies, at least for most modern applications.  Frequencies above 6 GHz have been used for radar and satellite communications for decades, and are now being used in 5G "mmWave" (24 - 29 GHz) to supplement the lower bands and increase speeds.
 
-When we change our IQ values quickly and transmit our carrier, it's called "modulating" the carrier (with data or whatever we want).  When we change I and Q, we change the phase and amplitude of the carrier.  Another option is to change the frequency of the carrier, i.e., shift it slightly up or down, which is what FM radio does.
-
-As a simple example, let's say we transmit the IQ sample 1+0j, and then we switch to transmitting 0+1j.  We go from sending :math:`\cos(2\pi ft)` to :math:`\sin(2\pi ft)`, meaning our carrier shifts phase by 90 degrees when we switch from one sample to another.
-
-It is easy to get confused between the signal we want to transmit (which typically contains many frequency components), and the frequency we transmit it on (our carrier frequency).  This will hopefully get cleared up when we cover baseband vs. bandpass signals.
+When we change our IQ values quickly and transmit our carrier, it's called "modulating" the carrier (with data or whatever we want).  When we change I and Q, we change the phase and amplitude of the carrier.  Another option is to change the frequency of the carrier, i.e., shift it slightly up or down, which is what FM radio does.  It is easy to get confused between the signal we want to transmit (which typically contains many frequency components), and the frequency we transmit it on (our carrier frequency).  This will hopefully get cleared up when we cover baseband vs. bandpass signals.
 
 Now back to sampling for a second.  Instead of receiving samples by multiplying what comes off the antenna by a cos() and sin() then recording I and Q, what if we fed the signal from the antenna straight into a single ADC?  Say the carrier frequency is 2.4 GHz, like WiFi or Bluetooth.  That means we would have to sample at 4.8 GHz, as we learned.  That's extremely fast! An ADC that samples that fast costs thousands of dollars.  Instead, we "downconvert" the signal so that the signal we want to sample is centered around DC or 0 Hz. This downconversion happens before we sample.  We go from:
 
 .. math::
-  I \cos(2\pi ft)
 
-  Q \sin(2\pi ft)
+ I \underbrace{\cos(2\pi ft)}_{carrier} \ + \ \ Q \underbrace{\sin(2\pi ft)}_{carrier}
 
 to just I and Q.
 

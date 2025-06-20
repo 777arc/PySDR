@@ -10,7 +10,7 @@ Interactive Design Tool
 
 The following interactive tool was created by Jason Durbin, a free-lancing phased array engineer, who graciously allowed it to be embedded within PySDR; feel free to visit the `full project <https://jasondurbin.github.io/PhasedArrayVisualizer>`_ or his `consulting business <https://neonphysics.com/>`_.  This tool allows you to change a phased array's geometry, element spacing, steering position, add sidelobe tapering, and other features.
 
-Antenna elements are assumed to be isotropic. However, the directivity calculation assumes half-hemisphere radiation (e.g. no back lobes). Therefore, the computed directivity will be 3 dBi higher than using pure isotropic. Said in different terms, the individual element gain is +3.0 dBi. The mesh can be made finer by increasing theta/phi, u/v, or az/el points. However, increasing the number of points may result in laggy performance. Clicking (or long pressing) elements in the phase/attenuation plots allows you to manually set phase/attenuation. <b>Be sure to select "enable override."</b> Additionally, the attenuation pop-up allows you to disable elements. Hovering (or touching) the 2-D farfield plot or geometry plots will show the value of the plot under the cursor.
+Some details on this tool: Antenna elements are assumed to be isotropic. However, the directivity calculation assumes half-hemisphere radiation (e.g. no back lobes). Therefore, the computed directivity will be 3 dBi higher than using pure isotropic (i.e., the individual element gain is +3.0 dBi). The mesh can be made finer by increasing theta/phi, u/v, or az/el points. Clicking (or long pressing) elements in the phase/attenuation plots allows you to manually set phase/attenuation ("be sure to select "enable override"). Additionally, the attenuation pop-up allows you to disable elements. Hovering (or touching) the 2D farfield plot or geometry plots will show the value of the plot under the cursor.
 
 .. raw:: html
 
@@ -69,7 +69,7 @@ Antenna elements are assumed to be isotropic. However, the directivity calculati
 	</div>
 	<div class="canvas-grid">
 		<div class="canvas-container">
-			<div class="canvas-header"><h2>Element Phase</h2><span>&nbsp;</span></div>
+			<div class="canvas-header"><h2>Element<br>Phase</h2><span>&nbsp;</span></div>
 			<div class="canvas-wrapper">
 				<canvas id="pa-geometry-phase-canvas" class="canvas-grid"></canvas>
 			</div>
@@ -115,15 +115,13 @@ Antenna elements are assumed to be isotropic. However, the directivity calculati
 						<label for="pa-farfield-2d-colormap">Colormap</label>
 						<select id="pa-farfield-2d-colormap" name="pa-farfield-2d-colormap"></select>
 					</div>
-				</div>
-				<div class="footer-group">
 					<div>
 						<label for="pa-farfield-ax1-points">Theta Points</label>
-						<input type="number" min="11" max="513" value="257" id="pa-farfield-ax1-points" name="pa-farfield-ax1-points">
+						<input type="number" min="11" max="513" value="257" size="6" id="pa-farfield-ax1-points" name="pa-farfield-ax1-points">
 					</div>
 					<div>
 						<label for="pa-farfield-ax2-points">Phi Points</label>
-						<input type="number" min="11" max="513" value="257" id="pa-farfield-ax2-points" name="pa-farfield-ax2-points">
+						<input type="number" min="11" max="513" value="257" size="6" id="pa-farfield-ax2-points" name="pa-farfield-ax2-points">
 					</div>
 				</div>
 			</div>

@@ -87,12 +87,11 @@ In order to point towards a certain theta and phi, we will need to convert those
 
  # The direction unit vector in this direction now has two nonzero components:
  # Let's make a function out of it, because we will be using it a lot
- def get_unit_vector(theta, phi):
-     return np.asmatrix([np.sin(theta) * np.sin(phi), # x component
-                         np.cos(theta) * np.sin(phi), # y component
-                         0]                           # z component
-                         ).T
-
+ def get_unit_vector(theta, phi):  # angles are in radians
+     return np.asmatrix([np.sin(theta) * np.cos(phi), # x component
+                         np.cos(theta) * np.cos(phi), # y component
+                         np.sin(phi)]).T              # z component
+ 
  dir = get_unit_vector(theta, phi)
  # dir is a 3x1
  # [[0.4330127]
@@ -207,11 +206,201 @@ This outputs 0 dB, which is what we expect because MVDR's goal is to achieve uni
 
 Your results may vary due to the random noise being used to calculate the received samples, which get used to calculate :code:`R`.  But the main take-away is that the jammers will be in a null and very low power, the 1 degree off from :code:`dir` will be slightly below 0 dB, but still in the main lobe, and then a random direction is going to be lower than 0 dB but higher than the jammers, and very different every run of the simulation.  Note that with MVDR you get a gain of 0 dB for the main lobe, but if you were to use the conventional beamformer, you would get :math:`10 \log_{10}(Nr)`, so about 12 dB for our 16-element array, showing one of the trade-offs of using MVDR.
 
-************************
-Example 2D Array Signals
-************************
+**********************************************
+Processing Signals from an Actual 2D Array
+**********************************************
 
-Coming soon!
+In this section we work with some actual data recorded from a 3x5 array made out of a `QUAD-MxFE <https://www.analog.com/en/resources/evaluation-hardware-and-software/evaluation-boards-kits/quad-mxfe.html#eb-overview>`_ platform from Analog Devices which supports up to 16 transmit and receive channels (we only used 15 and only in receive mode).  Two recordings are provided below, the first one contains one emitter located at boresight to the array, which we will use for calibration.  The second recording contains two emitters at different directions, which we will use for beamforming and DOA testing.
+
+- `IQ recording of just C <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/C_only_capture1.npy>`_ (used for calibration, as C is at boresight)
+- `IQ recording of B and D <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/DandB_capture1.npy>`_ (used for beamforming/DOA testing)
+
+The QUAD-MxFE was tuned to 2.8 GHz and all transmitters were using a simple tone within the observation bandwidth.  What's interesting about this DSP is that it doesn't actually matter what the sample rate is, none of the array processing techniques we use depend on the sample rate, they just make the assumption that the signal is somewhere in the baseband signal.  The DSP does depend on the center frequency, because the phase shift between elements depends on the frequency and angle of arrival.  This is opposite of most other signal processing where the sample rate is important, but the center frequency is not.
+
+We can load these recordings into Python using the following code:
+
+.. code-block:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    r = np.load("DandB_capture1.npy")[0:15] # 16th element is not connected but was still recorded
+    r_cal = np.load("C_only_capture1.npy")[0:15] # only the calibration signal (at boresight) on
+
+The spacing between antennas was 0.051 meters.  We can represent the element positions as a list of x,y,z coordinates in meters.  We will place the array in the X-Z plane, as the array was mounted vertically (with boresight pointing horizontally).
+
+.. code-block:: python
+
+	fc = 2.8e9 # center frequency in Hz
+	d = 0.051 # spacing between antennas in meters
+	wavelength = 3e8 / fc
+	Nr = 15
+	rows = 3
+	cols = 5
+
+	# Element positions, as a list of x,y,z coordinates in meters
+	pos = np.zeros((Nr, 3))
+	for i in range(Nr):
+		pos[i,0] = d * (i % cols)  # x position
+		pos[i,1] = 0 # y position
+		pos[i,2] = d * (i // cols) # z position
+
+	# Plot and label positions of elements
+	fig = plt.figure()
+	ax = fig.add_subplot(projection='3d')
+	ax.scatter(pos[:,0], pos[:,1], pos[:,2], 'o')
+	# Label indices
+	for i in range(Nr):
+		ax.text(pos[i,0], pos[i,1], pos[i,2], str(i), fontsize=10)
+	plt.xlabel("X Position [m]")
+	plt.ylabel("Y Position [m]")
+	ax.set_zlabel("Z Position [m]")
+	plt.grid()
+	plt.show()
+
+The plot labels each element with its index, which corresponds to the order of the elements in the :code:`r` and :code:`r_cal` IQ samples that were recorded.
+
+.. image:: ../_static/2d_array_element_positions.svg
+   :align: center 
+   :target: ../_static/2d_array_element_positions.svg
+   :alt: 2D array element positions
+
+Calibration is performed using only the :code:`r_cal` samples, which were recorded with just the transmitter at boresight on. The goal is to find the phase and magntiude offsets for each element.  With perfect calibration, and assuming the transmitter was exactly at boresight, all of the individual receive elements should be receiving the same signal, all in phase with each other and at the same magnitude.  But because of imperfections in the array/cables/antennas, each element will have a different phase and magnitude offset.  The calibration process is to find these offsets, which we will later apply to the :code:`r` samples before attempting to do any array processing on them.
+
+There are many ways to perform calibration, but we will use a method that involves taking the eigenvalue decomposition of the covariance matrix.  The covariance matrix is a square matrix of size :code:`Nr x Nr`, where :code:`Nr` is the number of receive elements.  The eigenvector corresponding to the largest eigenvalue is the one that represents the received signal, hopefully, and we will use it to find the phase offsets for each element by simply taking the phase of each element of the eigenvector and normalizing it to the first element which we will treat as the reference element.  The magnitude calibration does not actually use the eigenvector, but instead uses the mean magnitude of the received signal for each element.
+
+.. code-block:: python
+
+	# Calc covariance matrix, it's Nr x Nr
+	R_cal = r_cal @ r_cal.conj().T
+
+    # eigenvalue decomposition, v[:,i] is the eigenvector corresponding to the eigenvalue w[i]
+	w, v = np.linalg.eig(R_cal) 
+
+	# Plot eigenvalues to make sure we have just one large one
+	w_dB = 10*np.log10(np.abs(w))
+	w_dB -= np.max(w_dB) # normalize
+	fig, (ax1) = plt.subplots(1, 1, figsize=(7, 3))
+	ax1.plot(w_dB, '.-')
+	ax1.set_xlabel('Index')
+	ax1.set_ylabel('Eigenvalue [dB]')
+	plt.show()
+
+	# Use max eigenvector to calibrate
+	v_max = v[:, np.argmax(np.abs(w))]
+	mags = np.mean(np.abs(r_cal), axis=1)
+	mags = mags[0] / mags # normalize to first element
+	phases = np.angle(v_max)
+	phases = phases[0] - phases # normalize to first element
+	cal_table = mags * np.exp(1j * phases)
+	print("cal_table", cal_table)
+
+Below shows the plot of the eigenvalue distribution, we want to make sure that there's just one large value, and the rest are small, representing one signal being received.  Any interferers or multipath will degrade the calibration process. 
+
+.. image:: ../_static/2d_array_eigenvalues.svg
+   :align: center 
+   :target: ../_static/2d_array_eigenvalues.svg
+   :alt: 2D array eigenvalue distribution
+
+The calibration table is a list of complex numbers, one for each element, representing the phase and magnitude offsets (it is easier to represent it in rectangular form instead of polar).  The first element is the reference element, and will always be 1.0 + 0.j. The rest of the elements are the offsets for each element corresponding to the same order we used for :code:`pos`.
+
+.. code-block:: python
+
+	[1.        +0.j          0.99526771+0.76149029j -0.91754588-0.66825262j
+	-0.96840297+0.37251012j  0.87866849+0.40446665j  0.56040169+1.50499875j
+	-0.80109196-1.29299264j -1.28464742-0.31133052j  1.26622038+0.46047599j
+	 2.01855809+9.77121302j -0.29249322-1.09413205j -1.0372309 -0.17983522j
+	-0.70614339+0.78682873j -0.75612972+5.67234809j  1.00032754-0.60824109j]
+
+
+We can apply these offsets to any set of samples recorded from the array simply by multiplying each element of the samples by the corresponding element of the calibration table:
+
+.. code-block:: python
+
+	# Apply cal offsets to r
+	for i in range(Nr):
+		r[i, :] *= cal_table[i]
+
+As a side note, this is why we calculated the offsets using :code:`mags[0] / mags` and :code:`phases[0] - phases`, if we had reversed that order then we would need to do a division in order to apply the offsets, but we prefer to do the multiplication instead.
+
+Next we will perform DOA estimation using the MUSIC algorithm.  We will use the :code:`steering_vector()` and :code:`get_unit_vector()` functions we defined earlier to calculate the steering vector for each element of the array, and then use the MUSIC algorithm to estimate the DOA of the two emitters in the :code:`r` samples.  The MUSIC algorithm was discussed in the previous chapter.
+
+.. code-block:: python
+
+	# DOA using MUSIC
+	resolution = 400 # number of points in each direction
+	theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
+	phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
+	results = np.zeros((resolution, resolution)) # 2D array to store results
+	R = np.cov(r) # Covariance matrix, 15 x 15
+	Rinv = np.linalg.pinv(R)
+	expected_num_signals = 4
+	w, v = np.linalg.eig(R) # eigenvalue decomposition, v[:,i] is the eigenvector corresponding to the eigenvalue w[i]
+	eig_val_order = np.argsort(np.abs(w))
+	v = v[:, eig_val_order] # sort eigenvectors using this order
+	V = np.zeros((Nr, Nr - expected_num_signals), dtype=np.complex64) # Noise subspace is the rest of the eigenvalues
+	for i in range(Nr - expected_num_signals):
+		V[:, i] = v[:, i]
+	for i, theta_i in enumerate(theta_scan):
+		for j, phi_i in enumerate(phi_scan):
+			dir_i = get_unit_vector(theta_i, -1*phi_i)
+			s = steering_vector(pos, dir_i) # 15 x 1
+			music_metric = 1 / (s.conj().T @ V @ V.conj().T @ s)
+			music_metric = np.abs(music_metric).squeeze()
+			music_metric = np.clip(music_metric, 0, 2) # Useful for ABCD one
+			results[i, j] = music_metric
+
+Our results are in 2D, because the array is 2D, so we must either use a 3D plot or a 2D imshow/surface style plot.  Let's try both. First, we will do a 3D plot that has elevation on one axis and azimuth on the other:
+
+.. code-block:: python
+
+	# 3D az-el DOA results
+	results = 10*np.log10(results) # convert to dB
+	results[results < -20] = -20 # crop the z axis to some level of dB
+	fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
+	surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
+							np.rad2deg(phi_scan[None,:]),
+							results,
+							cmap='viridis')
+	#ax.set_zlim(-10, results[max_idx])
+	ax.set_xlabel('Azimuth (theta)')
+	ax.set_ylabel('Elevation (phi)')
+	ax.set_zlabel('Power [dB]') # type: ignore
+	fig.savefig('../_static/2d_array_3d_doa_plot.svg', bbox_inches='tight')
+	plt.show()
+
+.. image:: ../_static/2d_array_3d_doa_plot.png
+   :align: center 
+   :scale: 30%
+   :target: ../_static/2d_array_3d_doa_plot.png
+   :alt: 3D DOA plot
+
+Depending on the situation it might be annoying to read off numbers from a 3D plot, so we can also do a 2D heatmap with matplotlib's :code:`imshow()`:
+
+.. code-block:: python
+
+	# 2D, az-el heatmap (same as above, but 2D)
+	extent=(np.min(theta_scan)*180/np.pi,
+			np.max(theta_scan)*180/np.pi,
+			np.min(phi_scan)*180/np.pi,
+			np.max(phi_scan)*180/np.pi)
+	plt.imshow(results.T, extent=extent, origin='lower', aspect='auto', cmap='viridis') # type: ignore
+	plt.colorbar(label='Power [linear]')
+	plt.xlabel('Theta (azimuth, degrees)')
+	plt.ylabel('Phi (elevation, degrees)')
+	plt.savefig('../_static/2d_array_2d_doa_plot.svg', bbox_inches='tight')
+	plt.show()
+
+.. image:: ../_static/2d_array_2d_doa_plot.svg
+   :align: center 
+   :target: ../_static/2d_array_2d_doa_plot.svg
+   :alt: 2D DOA plot
+
+Using this 2D plot we can easily read off the estimated azimuth and elevation of the two emitters (and see that there was just two).  Based on the test setup that was used to produce this recording, these results match reality, the *exact* azimuth and elevation of the emitters was never actually measured because that would require very specialized equipment. 
+
+As an exercise, try using the conventional beamformer, as well as MVDR, and compare the results to MUSIC.
+
+This code in its entirety can be found `here <https://github.com/777arc/RADAR-2025-Beamforming-Labs/blob/refs/heads/main/figure-generating-scripts/2d_array_recording.py>`_.
 
 ***********************
 Interactive Design Tool

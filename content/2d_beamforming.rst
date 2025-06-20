@@ -10,12 +10,22 @@ This chapter extends the 1D beamforming/DOA chapter to 2D arrays.  We will start
 Rectangular Arrays and 2D Beamforming
 *************************************
 
-Rectangular arrays (a.k.a. planar arrays) involve a 2D array of elements.  With an extra dimension we get some added complexity, but the same basic principles apply, and the hardest part will be visualizing the results (e.g. no more simple polar plots, now we'll need 3D surface plots).  Even though our array is now 2D, that does not mean we have to start adding a dimension to every data structure we've been dealing with.  For example, we will keep our weights as a 1D array of complex numbers.  However, we will need to represent the positions of our elements in 2D (x and y), and we're going to go ahead and add in z, even though it will be equal to zero, for the sake of math later on.  We will keep using :code:`theta` to refer to the azimuth angle, but now we will introduce a new angle, :code:`phi`, which is the elevation angle.  
+Rectangular arrays (a.k.a. planar arrays) involve a 2D array of elements.  With an extra dimension we get some added complexity, but the same basic principles apply, and the hardest part will be visualizing the results (e.g. no more simple polar plots, now we'll need 3D surface plots).  Even though our array is now 2D, that does not mean we have to start adding a dimension to every data structure we've been dealing with.  For example, we will keep our weights as a 1D array of complex numbers.  However, we will need to represent the positions of our elements in 2D.  We will keep using :code:`theta` to refer to the azimuth angle, but now we will introduce a new angle, :code:`phi`, which is the elevation angle.  There are many spherical coordinate conventions, but we will be using the following:
 
 .. image:: ../_images/Spherical_Coordinates.svg
    :align: center 
    :target: ../_images/Spherical_Coordinates.svg
    :alt: Spherical coordinate system showing theta and phi
+
+Which corresponds to:
+
+.. math::
+
+ x = \sin(\theta) \cos(\phi)
+
+ y = \cos(\theta) \cos(\phi)
+
+ z = \sin(\phi)
 
 We will also switch to using a generalized steering vector equation, which is not specific to any array geometry:
 
@@ -31,7 +41,7 @@ where :math:`\boldsymbol{p}` is the set of element x/y/z positions in meters (si
      #                           Nrx3  3x1   
      return np.exp(-2j * np.pi * pos @ dir / wavelength) # outputs Nr x 1 (column vector)
 
-Let's try using this generalized steering vector equation with a simple ULA with 4 elements, to make the connection back to what we have previously learned. We will now represent :code:`d` in meters instead of relative to wavelength.
+Let's try using this generalized steering vector equation with a simple ULA with 4 elements, to make the connection back to what we have previously learned. We will now represent :code:`d` in meters instead of relative to wavelength.  We will place the elements along the y-axis:
 
 .. code-block:: python
 
@@ -40,11 +50,11 @@ Let's try using this generalized steering vector equation with a simple ULA with
  wavelength = 3e8 / fc
  d = 0.5 * wavelength # in meters
 
- # We will store our element positions in a list of (x,y,z)'s, even though it's just a ULA along the x-axis
+ # We will store our element positions in a list of (x,y,z)'s, even though it's just a ULA along the y-axis
  pos = np.zeros((Nr, 3)) # Element positions, as a list of x,y,z coordinates in meters
  for i in range(Nr):
-     pos[i,0] = d * i # x position
-     pos[i,1] = 0     # y position
+     pos[i,0] = 0     # x position
+     pos[i,1] = d * i # y position
      pos[i,2] = 0     # z position
 
 The following graphic shows a top-down view of the ULA, with an example theta of 20 degrees.
@@ -54,9 +64,9 @@ The following graphic shows a top-down view of the ULA, with an example theta of
    :target: ../_images/2d_beamforming_ula.svg
    :alt: ULA with theta of 20 degrees
 
-The only thing left is to connect our old :code:`theta` with this new unit vector approach.  We can calculate :code:`dir` based on :code:`theta` pretty easily, we know that the y and z component of our unit vector will be 0 because we are still in 1D space, and the x component will be :code:`np.cos(theta)`, meaning the full code is :code:`dir = np.asmatrix([np.cos(theta_i), 0, 0]).T`. At this point you should be able to connect our generalized steering vector equation with the ULA steering vector equation we have been using.  Give this new code a try, pick a :code:`theta` between 0 and 360 degrees (remember to convert to radians!), and the steering vector should be a 4x1 array.
+The only thing left is to connect our old :code:`theta` with this new unit vector approach.  We can calculate :code:`dir` based on :code:`theta` pretty easily, we know that the x and z component of our unit vector will be 0 because we are still in 1D space, and based on our spherical coordinate convention the y component will be :code:`np.cos(theta)`, meaning the full code is :code:`dir = np.asmatrix([0, np.cos(theta_i), 0]).T`. At this point you should be able to connect our generalized steering vector equation with the ULA steering vector equation we have been using.  Give this new code a try, pick a :code:`theta` between 0 and 360 degrees (remember to convert to radians!), and the steering vector should be a 4x1 array.
 
-Now let's move on to the 2D case.  We will represent our element positions in the exact same way, except the y component will be nonzero:
+Now let's move on to the 2D case.  We will place our array in the X-Z plane, with boresight pointing horizontally towards the positive y-axis (:math:`\theta = 0`, :math:`\phi = 0`).  We will use the same element spacing as before, but now we will have 16 elements total:
 
 .. code-block:: python
 
@@ -77,7 +87,7 @@ The top-down view of our rectangular 4x4 array:
    :target: ../_images/2d_beamforming_element_pos.svg
    :alt: Rectangular array element positions
 
-In order to point towards a certain theta and phi, we will need to convert those angles into a unit vector.  Using a little bit of trig, we find that the x component is :code:`np.sin(theta) * np.sin(phi)`, the y component is :code:`np.cos(theta) * np.sin(phi)`, and the z component is 0.  This means we can use the same generalized steering vector equation as before, but now we will need to calculate the unit vector based on both theta and phi:
+In order to point towards a certain theta and phi, we will need to convert those angles into a unit vector.  We can use the same generalized steering vector equation as before, but now we will need to calculate the unit vector based on both theta and phi, using the equations at the beginning of this chapter:
 
 .. code-block:: python
 
@@ -85,8 +95,7 @@ In order to point towards a certain theta and phi, we will need to convert those
  theta = np.deg2rad(60) # azimith angle
  phi = np.deg2rad(30) # elevation angle
 
- # The direction unit vector in this direction now has two nonzero components:
- # Let's make a function out of it, because we will be using it a lot
+ # Using our spherical coordinate convention, we can calculate the unit vector:
  def get_unit_vector(theta, phi):  # angles are in radians
      return np.asmatrix([np.sin(theta) * np.cos(phi), # x component
                          np.cos(theta) * np.cos(phi), # y component
@@ -94,9 +103,9 @@ In order to point towards a certain theta and phi, we will need to convert those
  
  dir = get_unit_vector(theta, phi)
  # dir is a 3x1
- # [[0.4330127]
- #  [0.25     ]
- #  [0.       ]]
+ # [[0.75     ]
+ #  [0.4330127]
+ #  [0.5      ]]
 
 Now let's use our generalized steering vector function to calculate the steering vector:
 
@@ -107,44 +116,31 @@ Now let's use our generalized steering vector function to calculate the steering
  # Use the conventional beamformer, which is simply the weights equal to the steering vector, plot the beam pattern
  w = s # 16x1 vector of weights
 
-At this point it's worth pointing out that we didn't actually change the dimensions of anything, going from 1D to 2D, we just have a non-zero y component, the steering vector equation is still the same and the weights are still a 1D array.  It might be tempting to assemble your weights as a 2D array so that visually it matches the array geometry, but it's not necessary and best to keep it 1D.  For every element, there is a corresponding weight, and the list of weights is in the same order as the list of element positions.
+At this point it's worth pointing out that we didn't actually change the dimensions of anything, going from 1D to 2D, we just have a non-zero x/y/z components, the steering vector equation is still the same and the weights are still a 1D array.  It might be tempting to assemble your weights as a 2D array so that visually it matches the array geometry, but it's not necessary and best to keep it 1D.  For every element, there is a corresponding weight, and the list of weights is in the same order as the list of element positions.
 
-Visualizing the beam pattern associated with these weights is a little more complicated because we need a 3D plot.  We will scan :code:`theta` and :code:`phi` to get a 2D array of power levels, and then plot that as a surface plot.  The code below does just that, and the result is shown in the figure below, along with a dot at the maximum point.
+Visualizing the beam pattern associated with these weights is a little more complicated because we need a 3D plot or a 2D heatmap.  We will scan :code:`theta` and :code:`phi` to get a 2D array of power levels, and then plot that using :code:`imshow()`.  The code below does just that, and the result is shown in the figure below, along with a dot at the angle we entered earlier:
 
 .. code-block:: python
 
     resolution = 100 # number of points in each direction
-    theta_scan = np.linspace(0, 2*np.pi, resolution) # azimuth angles
-    phi_scan = np.linspace(0, np.pi, resolution) # elevation angles
+    theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
+    phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
     results = np.zeros((resolution, resolution)) # 2D array to store results
     for i, theta_i in enumerate(theta_scan):
         for j, phi_i in enumerate(phi_scan):
-            dir_i = get_unit_vector(theta_i, phi_i)
-            a = steering_vector(pos, dir_i) # array factor
-            resp = w.conj().T @ a # scalar
-            results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
-    # plot_surface needs x,y,z form
-    results[results < -10] = -10 # crop the z axis to -10 dB
-    fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
-    surf = ax.plot_surface(np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # x
-                           np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # y
-                           results, cmap='viridis')
-    # Plot a dot at the maximum point
-    max_idx = np.unravel_index(np.argmax(results, axis=None), results.shape)
-    ax.scatter(np.sin(theta_scan[max_idx[0]]) * np.sin(phi_scan[max_idx[1]]), # x
-               np.cos(theta_scan[max_idx[0]]) * np.sin(phi_scan[max_idx[1]]), # y
-               results[max_idx], color='red', s=100)
-    ax.set_zlim(-10, results[max_idx])
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('Power [dB]')
+            a = steering_vector(pos, get_unit_vector(theta_i, phi_i)) # array factor
+            results[i, j] = np.abs(w.conj().T @ a)[0,0] # power in signal, in dB
+    plt.imshow(results, extent=(theta_scan[0]*180/np.pi, theta_scan[-1]*180/np.pi, phi_scan[0]*180/np.pi, phi_scan[-1]*180/np.pi), origin='lower', aspect='auto', cmap='viridis')
+    plt.colorbar(label='Power [dB]')
+    plt.scatter(theta*180/np.pi, phi*180/np.pi, color='red', s=50) # Add a dot at the correct theta/phi
+    plt.xlabel('Azimuth angle [degrees]')
+    plt.ylabel('Elevation angle [degrees]')
+    plt.show()
 
-.. image:: ../_images/2d_beamforming_3dplot.svg
+.. image:: ../_images/2d_beamforming_2dplot.svg
    :align: center 
-   :target: ../_images/2d_beamforming_3dplot.svg
+   :target: ../_images/2d_beamforming_2dplot.svg
    :alt: 3D plot of the beam pattern
-
-If anyone has a better 3D polar-style plot in Python, please use the "Suggest an Edit" link at the bottom of this page, or email Marc at marc@pysdr.org.
 
 Let's simulate some actual samples now; we'll add two tone jammers arriving from different directions:
 
@@ -196,13 +192,13 @@ This outputs 0 dB, which is what we expect because MVDR's goal is to achieve uni
    * - :code:`dir` (direction used to find MVDR weights)
      - 0 dB
    * - Jammer 1
-     - -20.816 dB
+     - -17.488 dB
    * - Jammer 2
-     - -27.347 dB
+     - -18.551 dB
    * - 1 degree off from :code:`dir` in both :math:`\theta` and :math:`\phi`
-     - -0.0131 dB
+     - -0.00683 dB
    * - A random direction
-     - -14.285 dB
+     - -10.591 dB
 
 Your results may vary due to the random noise being used to calculate the received samples, which get used to calculate :code:`R`.  But the main take-away is that the jammers will be in a null and very low power, the 1 degree off from :code:`dir` will be slightly below 0 dB, but still in the main lobe, and then a random direction is going to be lower than 0 dB but higher than the jammers, and very different every run of the simulation.  Note that with MVDR you get a gain of 0 dB for the main lobe, but if you were to use the conventional beamformer, you would get :math:`10 \log_{10}(Nr)`, so about 12 dB for our 16-element array, showing one of the trade-offs of using MVDR.
 

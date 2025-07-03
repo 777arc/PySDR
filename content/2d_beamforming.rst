@@ -73,12 +73,12 @@ Now let's move on to the 2D case.  We will place our array in the X-Z plane, wit
  # Now let's switch to 2D, using a 4x4 array with half wavelength spacing, so 16 elements total
  Nr = 16
  
- # Element positions, still as a list of x,y,z coordinates in meters
+ # Element positions, still as a list of x,y,z coordinates in meters, we'll place the array in the X-Z plane
  pos = np.zeros((Nr,3))
  for i in range(Nr):
      pos[i,0] = d * (i % 4)  # x position
-     pos[i,1] = d * (i // 4) # y position
-     pos[i,2] = 0            # z position
+     pos[i,1] = 0            # y position
+     pos[i,2] = d * (i // 4) # z position
 
 The top-down view of our rectangular 4x4 array:
 
@@ -201,6 +201,8 @@ This outputs 0 dB, which is what we expect because MVDR's goal is to achieve uni
      - -10.591 dB
 
 Your results may vary due to the random noise being used to calculate the received samples, which get used to calculate :code:`R`.  But the main take-away is that the jammers will be in a null and very low power, the 1 degree off from :code:`dir` will be slightly below 0 dB, but still in the main lobe, and then a random direction is going to be lower than 0 dB but higher than the jammers, and very different every run of the simulation.  Note that with MVDR you get a gain of 0 dB for the main lobe, but if you were to use the conventional beamformer, you would get :math:`10 \log_{10}(Nr)`, so about 12 dB for our 16-element array, showing one of the trade-offs of using MVDR.
+
+The code for this section can be found `here <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/doa_2d.py>`_.
 
 **********************************************
 Processing Signals from an Actual 2D Array
@@ -396,7 +398,7 @@ Using this 2D plot we can easily read off the estimated azimuth and elevation of
 
 As an exercise, try using the conventional beamformer, as well as MVDR, and compare the results to MUSIC.
 
-This code in its entirety can be found `here <https://github.com/777arc/RADAR-2025-Beamforming-Labs/blob/refs/heads/main/figure-generating-scripts/2d_array_recording.py>`_.
+This code in its entirety can be found `here <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/2d_array_recording.py>`_.
 
 ***********************
 Interactive Design Tool

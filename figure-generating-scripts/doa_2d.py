@@ -179,7 +179,7 @@ if False:
 
 # 2D plot that makes more sense
 # This seems to be making a UV plot
-if False:
+if True:
     resolution = 100 # number of points in each direction
     theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
     phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles

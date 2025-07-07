@@ -188,7 +188,7 @@ if True:
         for j, phi_i in enumerate(phi_scan):
             a = steering_vector(pos, get_unit_vector(theta_i, phi_i)) # array factor
             results[i, j] = np.abs(w.conj().T @ a)[0,0] # power in signal, in dB
-    plt.imshow(results, extent=(theta_scan[0]*180/np.pi, theta_scan[-1]*180/np.pi, phi_scan[0]*180/np.pi, phi_scan[-1]*180/np.pi), origin='lower', aspect='auto', cmap='viridis')
+    plt.imshow(results.T, extent=(theta_scan[0]*180/np.pi, theta_scan[-1]*180/np.pi, phi_scan[0]*180/np.pi, phi_scan[-1]*180/np.pi), origin='lower', aspect='auto', cmap='viridis')
     plt.colorbar(label='Power [dB]')
     plt.scatter(theta*180/np.pi, phi*180/np.pi, color='red', s=50) # Add a dot at the correct theta/phi
     plt.xlabel('Azimuth angle [degrees]')

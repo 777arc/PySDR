@@ -19,43 +19,12 @@ scrape_patreon()
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.imgmath',
+    'sphinx.ext.mathjax',
     'sphinx.ext.autosectionlabel',
     #'sphinxcontrib.tikz', #added for dutch
 ]
-imgmath_image_format = 'svg' # way better looking than pngs (its vectorized after all!)
-imgmath_embed = True #turned this on since latest update broke html formula output, generated wrong svg src links.
-imgmath_font_size = 14 # default is 12 and it looked a bit small
 
 html_favicon = 'myicon.png' # should be in same dir as conf.py
-
-# Additional LaTeX code to put into the preamble of the LaTeX files used to translate the math snippets. This is left empty by default. Use it e.g. to add packages which modify the fonts used for math, such as '\\usepackage{newtxsf}' for sans-serif fonts, or '\\usepackage{fouriernc}' for serif fonts. Indeed, the default LaTeX math fonts have rather thin glyphs which (in HTML output) often do not match well with the font for text.
-# The code below makes math equations not right-align which was so ugly
-imgmath_latex_preamble = r'''
-\makeatletter
-\renewenvironment{aligned}[1][c]{%
-    \alignedspace@left
-    \if #1t\vtop \else \if#1b\vbox \else \vcenter \fi\fi \bgroup
-        \Let@ \chardef\dspbrk@context\@ne \restore@math@cr
-        \spread@equation
-        \ialign\bgroup
-            \hfil\strut@$\m@th\displaystyle##$\hfil
-            \crcr
-}{%
-  \crcr\egroup
-  \restorecolumn@
-  \egroup
-}
-\makeatother
-
-\usepackage{xcolor}
-'''
-
-# We can also add latex packages to include above
-
-# dvisvgm is the program used to generate the svg equations, and these are its settings:
-# https://dvisvgm.de/Manpage/
-#imgmath_dvisvgm_args = []
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -299,8 +268,6 @@ tikz_latex_preamble = r'''
 \usepackage{circuitikz}
 \usepackage[russian]{babel}
 '''
-#imgmath_latex_preamble = r'\usepackage{siunitx}'
-
 
 latex_elements = {}
 

@@ -24,6 +24,8 @@ extensions = [
     #'sphinxcontrib.tikz', #added for dutch
 ]
 
+mathjax_path = "mathjax/tex-mml-chtml.js" # so that the textbook can work offline
+
 html_favicon = 'myicon.png' # should be in same dir as conf.py
 
 # Add any paths that contain templates here, relative to this directory.

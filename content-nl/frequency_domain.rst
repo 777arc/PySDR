@@ -270,7 +270,7 @@ Dat zou betekenen dat :math:`y(t)` de tijddomein-versie is van ons masker, en wa
 
 Wanneer we filters gaan behandelen zal de convolutie-eigenschap duidelijker worden.
 
-1. Convolutie in Frequentie:
+5. Convolutie in Frequentie:
 
 Als laatste wil ik opmerken dat de convolutie-eigenschap ook omgekeerd werkt, maar dit zullen we niet zoveel gebruiken als convolutie in het tijddomein:
 

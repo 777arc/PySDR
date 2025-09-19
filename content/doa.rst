@@ -821,11 +821,11 @@ for wireless signals at baseband, :math:`E[X]` is typically zero or very close t
 
 :math:`\mathrm{cov}(X) = E[X X^H]`
 
-Given a limited number of IQ samples, :math:`\bm{X}`, we can estimate this covariance, which we will denote as :math:`\hat{R}`:
+Given a limited number of IQ samples, :math:`\boldsymbol{X}`, we can estimate this covariance, which we will denote as :math:`\hat{R}`:
 
 .. math::
 
- \hat{R} = \frac{\bm{X} \bm{X}^H}{N}
+ \hat{R} = \frac{\boldsymbol{X} \boldsymbol{X}^H}{N}
 
          = \frac{1}{N} \sum^N_{n=1} X_n X_n^H
 

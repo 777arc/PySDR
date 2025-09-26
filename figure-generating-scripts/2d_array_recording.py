@@ -68,7 +68,7 @@ for i in range(Nr):
     r[i, :] *= cal_table[i]
 
 def steering_vector(pos, dir):
-    return np.exp(-2j * np.pi * pos @ dir / wavelength) # outputs Nr x 1 (column vector)
+    return np.exp(2j * np.pi * pos @ dir / wavelength) # outputs Nr x 1 (column vector)
 
 def get_unit_vector(theta, phi):  # angles are in radians
     return np.asmatrix([np.sin(theta) * np.cos(phi), # x component
@@ -94,7 +94,7 @@ for i in range(Nr - expected_num_signals):
     V[:, i] = v[:, i]
 for i, theta_i in enumerate(theta_scan):
     for j, phi_i in enumerate(phi_scan):
-        dir_i = get_unit_vector(theta_i, -1*phi_i) # TODO FIGURE OUT WHY I NEEDED TO NEGATE PHI FOR THE RESULTS TO MATCH REALITY
+        dir_i = get_unit_vector(-1*theta_i, phi_i) # TODO FIGURE OUT WHY I NEEDED TO NEGATE THETA FOR THE RESULTS TO MATCH REALITY
         s = steering_vector(pos, dir_i) # 15 x 1
         #w = s # Conventional beamformer
         music_metric = 1 / (s.conj().T @ V @ V.conj().T @ s)
@@ -106,20 +106,22 @@ for i, theta_i in enumerate(theta_scan):
         #resp = w.conj().T @ r
         #results[i, j] = np.abs(resp)[0,0] # power in signal, in dB
 
-# 3D az-el DOA results
 results = 10*np.log10(results) # convert to dB
 results[results < -20] = -20 # crop the z axis to some level of dB
-fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
-surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
-                        np.rad2deg(phi_scan[None,:]),
-                        results,
-                        cmap='viridis')
-#ax.set_zlim(-10, results[max_idx])
-ax.set_xlabel('Azimuth (theta)')
-ax.set_ylabel('Elevation (phi)')
-ax.set_zlabel('Power [dB]') # type: ignore
-#fig.savefig('../_images/2d_array_3d_doa_plot.png', bbox_inches='tight', dpi=300) # increase dpi to 300
-plt.show()
+
+# 3D az-el DOA results
+if False:
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
+    surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
+                            np.rad2deg(phi_scan[None,:]),
+                            results,
+                            cmap='viridis')
+    #ax.set_zlim(-10, results[max_idx])
+    ax.set_xlabel('Azimuth (theta)')
+    ax.set_ylabel('Elevation (phi)')
+    ax.set_zlabel('Power [dB]') # type: ignore
+    #fig.savefig('../_images/2d_array_3d_doa_plot.png', bbox_inches='tight', dpi=300) # increase dpi to 300
+    plt.show()
 
 # 2D, az-el heatmap (same as above, but 2D)
 extent=(np.min(theta_scan)*180/np.pi,

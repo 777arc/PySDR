@@ -341,7 +341,7 @@ Next we will perform DOA estimation using the MUSIC algorithm.  We will use the 
 		V[:, i] = v[:, i]
 	for i, theta_i in enumerate(theta_scan):
 		for j, phi_i in enumerate(phi_scan):
-			dir_i = get_unit_vector(theta_i, -1*phi_i)
+			dir_i = get_unit_vector(-1*theta_i, phi_i) # TODO figure out why -1* was needed to match reality
 			s = steering_vector(pos, dir_i) # 15 x 1
 			music_metric = 1 / (s.conj().T @ V @ V.conj().T @ s)
 			music_metric = np.abs(music_metric).squeeze()

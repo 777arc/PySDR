@@ -4,7 +4,7 @@ import imageio
 
 # ezgif.com was used just to crop it
 
-tmp = 'C:\\Users\\marclichtman\\AppData\\Local\\Temp'
+tmp = '/tmp'
 
 theta_sois_deg = np.linspace(-90, 90, 200)
 filenames = []
@@ -18,9 +18,9 @@ for theta_soi_deg in theta_sois_deg:
     theta_soi = theta_soi_deg / 180 * np.pi # convert to radians
     theta2    = 60 / 180 * np.pi
     theta3   = -50 / 180 * np.pi
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-    s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s3 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
 
     if False:
         # SOI is a tone
@@ -69,18 +69,17 @@ for theta_soi_deg in theta_sois_deg:
     
     w_lms /= np.linalg.norm(w_lms) # normalize
 
-    '''
-    plt.figure("Error Log")
-    plt.plot(error_log)
-    plt.xlabel('Iteration')
-    plt.ylabel('Mean Square Error')
-    plt.grid()
-    '''
+    if False:
+        plt.figure("Error Log")
+        plt.plot(error_log)
+        plt.xlabel('Iteration')
+        plt.ylabel('Mean Square Error')
+        plt.grid()
+        plt.show()
 
     # Visualize the weights
     N_fft = 1024
     w_lms = w_lms.reshape(-1) # make into a row vector
-    w_lms = w_lms.conj()
     w_padded = np.concatenate((w_lms, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
     #w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
@@ -100,7 +99,7 @@ for theta_soi_deg in theta_sois_deg:
     #plt.draw()
     #plt.pause(0.001) # pause to update the plot
     #plt.cla()
-    filename = tmp + '\\lms_animation' + str(theta_soi_deg) + '.png'
+    filename = tmp + '/lms_animation' + str(theta_soi_deg) + '.png'
     print(theta_soi_deg)
     fig.savefig(filename, bbox_inches='tight')
     filenames.append(filename)
@@ -110,4 +109,4 @@ for theta_soi_deg in theta_sois_deg:
 images = []
 for filename in filenames:
     images.append(imageio.imread(filename))
-imageio.mimsave(tmp + '\\lms_animation.gif', images, fps=10, loop=0) # loop=0 means loop forever
+imageio.mimsave('../_images/doa_lms_animation.gif', images, fps=10, loop=0) # loop=0 means loop forever

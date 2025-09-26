@@ -7,8 +7,8 @@ d = 0.5 * wavelength # in meters
 
 # generalized steering vector equation, given element positions and a direction vector (which is a 3x1 unit vector of x,y,z)
 def steering_vector(pos, dir):
-    #                           Nrx3  3x1   
-    return np.exp(-2j * np.pi * pos @ dir / wavelength) # Nrx1 (column vector)
+    #                          Nrx3  3x1   
+    return np.exp(2j * np.pi * pos @ dir / wavelength) # Nrx1 (column vector)
 
 # Let's start with 1D, using a 4-element ULA
 Nr = 4
@@ -179,7 +179,7 @@ if False:
 
 # 2D plot that makes more sense
 # This seems to be making a UV plot
-if True:
+if False:
     resolution = 100 # number of points in each direction
     theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
     phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles

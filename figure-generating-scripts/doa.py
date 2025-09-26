@@ -17,7 +17,7 @@ d = 0.5
 Nr = 3
 theta_degrees = 20 # direction of arrival
 theta = theta_degrees / 180 * np.pi # convert to radians
-s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector
+s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector
 #print(s)
 
 # we have to do a matrix multiplication of s and tx, which currently are both 1D, so we have to make them 2D with reshape
@@ -86,11 +86,11 @@ if False:
 
 
 # conventional beamforming
-if True:
+if False:
     theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:
-        w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Conventional, aka delay-and-sum, beamformer
+        w = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Conventional, aka delay-and-sum, beamformer
         r_weighted = w.conj().T @ r # apply our weights. remember r is 3x10000
         results.append(10*np.log10(np.var(r_weighted))) # power in signal, in dB so its easier to see small and large lobes at the same time
     results -= np.max(results) # normalize
@@ -116,7 +116,6 @@ if True:
     ax.set_rlabel_position(55)  # Move grid labels away from other labels
     plt.show()
     #fig.savefig('../_images/doa_conventional_beamformer_polar.svg', bbox_inches='tight')
-
     exit()
 
 # sweeping angle of arrival
@@ -129,14 +128,14 @@ if False:
         print(t_i)
 
         theta = theta_txs[t_i] / 180 * np.pi
-        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta))
+        s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta))
         s = s.reshape(-1,1) # 3x1
         tone = np.exp(2j*np.pi*0.02e6*t)
         tone = tone.reshape(-1,1) # 10000x1
         r = s @ tone.T
 
         for theta_i in range(len(theta_scan)):
-            w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_scan[theta_i]))
+            w = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_scan[theta_i]))
             r_weighted = np.conj(w) @ r # apply our weights corresponding to the direction theta_i
             results[t_i, theta_i]  = np.mean(np.abs(r_weighted)**2) # energy detector
 
@@ -179,7 +178,7 @@ if False:
         print(d_i)
 
         # Have to recalc r
-        s = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta))
+        s = np.exp(2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta))
         s = s.reshape(-1,1)
         r = s @ tx.T
 
@@ -187,15 +186,15 @@ if False:
         if True:
             theta1 = 20 / 180 * np.pi
             theta2 = -40 / 180 * np.pi
-            s1 = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta1)).reshape(-1,1)
-            s2 = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+            s1 = np.exp(2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta1)).reshape(-1,1)
+            s2 = np.exp(2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
             freq1 = np.exp(2j*np.pi*0.02e6*t).reshape(-1,1)
             freq2 = np.exp(2j*np.pi*-0.02e6*t).reshape(-1,1)
             # two tones at diff frequencies and angles of arrival (not sure it actually had to be 2 diff freqs...)
             r = s1 @ freq1.T + s2 @ freq2.T
 
         for theta_i in range(len(theta_scan)):
-            w = np.exp(-2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta_scan[theta_i]))
+            w = np.exp(2j * np.pi * ds[d_i] * np.arange(Nr) * np.sin(theta_scan[theta_i]))
             r_weighted = np.conj(w) @ r # apply our weights corresponding to the direction theta_i
             results[d_i, theta_i]  = np.mean(np.abs(r_weighted)**2) # energy detector
 
@@ -233,7 +232,7 @@ if False:
 
     # theta is the direction of interest, in radians, and r is our received signal
     def w_mvdr(theta, r):
-        s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
+        s = np.exp(2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
         R = np.cov(r) # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
@@ -241,7 +240,7 @@ if False:
         return w
 
     def power_mvdr(theta, r):
-        s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
+        s = np.exp(2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
         #R = (r @ r.conj().T)/r.shape[1] # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         R = np.cov(r)
@@ -249,15 +248,15 @@ if False:
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
         return 1/(s.conj().T @ Rinv @ s).squeeze()
     
-    if False: # use for doacompons2
+    if True: # use for doacompons2
         # more complex scenario
         Nr = 8 # 8 elements
         theta1 = 20 / 180 * np.pi # convert to radians
         theta2 = 25 / 180 * np.pi
         theta3 = -40 / 180 * np.pi
-        s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-        s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-        s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+        s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+        s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+        s3 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
         # we'll use 3 different frequencies.  1xN
         tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
         tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
@@ -300,9 +299,9 @@ if False:
     theta1 = 20 / 180 * np.pi # convert to radians
     theta2 = 25 / 180 * np.pi
     theta3 = -40 / 180 * np.pi
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-    s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s3 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
     # we'll use 3 different frequencies.  1xN
     tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
     tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
@@ -314,7 +313,7 @@ if False:
     theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:
-        w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Conventional, aka delay-and-sum, beamformer
+        w = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Conventional, aka delay-and-sum, beamformer
         r_weighted = w.conj().T @ r # apply our weights. remember r is 3x10000
         results.append(10*np.log10(np.var(r_weighted))) # power in signal, in dB so its easier to see small and large lobes at the same time
     results -= np.max(results) # normalize
@@ -339,9 +338,9 @@ if False:
     theta1 = 20 / 180 * np.pi # convert to radians
     theta2 = 25 / 180 * np.pi
     theta3 = -40 / 180 * np.pi
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-    s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s3 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
     # we'll use 3 different frequencies.  1xN
     tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
     tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
@@ -373,7 +372,7 @@ if False:
     theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 100 different thetas between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:
-        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1)
+        s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1)
         metric = 1 / (s.conj().T @ V @ V.conj().T @ s) # The main MUSIC equation
         metric = np.abs(metric.squeeze()) # take magnitude
         metric = 10*np.log10(metric) # convert to dB
@@ -388,7 +387,7 @@ if False:
     ax.set_thetamin(-90)
     ax.set_thetamax(90)
     plt.show()
-    fig.savefig('../_images/doa_music.svg', bbox_inches='tight')
+    #fig.savefig('../_images/doa_music.svg', bbox_inches='tight')
     exit()
 
 
@@ -403,8 +402,8 @@ if False:
     for theta2s_i in range(len(theta2s)):
         theta1 = 18 / 180 * np.pi # convert to radians
         theta2 = theta2s[theta2s_i]
-        s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1)
-        s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+        s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1)
+        s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
         tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(-1,1)
         tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(-1,1)
         r = s1 @ tone1.T + s2 @ tone2.T
@@ -418,7 +417,7 @@ if False:
         for i in range(Nr - num_expected_signals):
             V[:, i] = v[:, i]
         for theta_i in range(len(theta_scan)):
-            s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_scan[theta_i])).reshape(-1,1)
+            s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_scan[theta_i])).reshape(-1,1)
             metric = 1 / (s.conj().T @ V @ V.conj().T @ s) # The main MUSIC equation
             metric = np.abs(metric.squeeze()) # take magnitude
             metric = 10*np.log10(metric) # convert to dB
@@ -455,8 +454,8 @@ if False:
     Nr = 32 # number of elements
     theta_jammer = 20 / 180 * np.pi
     theta_soi =    30 / 180 * np.pi
-    s_jammer = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_jammer)).reshape(-1,1) # Nr x 1
-    s_soi =    np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
+    s_jammer = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_jammer)).reshape(-1,1) # Nr x 1
+    s_soi =    np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
 
     # Generate the signal with just jammer, before SOI turns on
     jamming_signal = np.random.randn(1,  N) + 1j*np.random.randn(1,  N)
@@ -476,9 +475,8 @@ if False:
     if True:
         N_fft = 1024
         theta_i = theta_soi
-        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1) # steering vector
+        s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1) # steering vector
         w = (Rinv_jammer @ s)/(s.conj().T @ Rinv_jammer @ s) # MVDR
-        w = np.conj(w) # or else our answer will be negative/inverted
         w = w.squeeze()
         w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
         w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
@@ -496,7 +494,7 @@ if False:
     theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # sweep theta between -180 and +180 degrees
     results = []
     for theta_i in theta_scan:
-        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1) # steering vector in the desired direction theta (size Nr x 1)
+        s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1) # steering vector in the desired direction theta (size Nr x 1)
         w = (Rinv_jammer @ s)/(s.conj().T @ Rinv_jammer @ s) # MVDR/Capon equation!  Note which R's are being used where
         r_weighted = w.conj().T @ r_both # apply weights to the signal that contains both jammer and SOI
         power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
@@ -523,7 +521,7 @@ if False:
     results = []
     Rinv_both = np.linalg.pinv(r_both @ r_both.conj().T) # Nr x Nr, inverse covariance matrix estimate using the received samples
     for theta_i in theta_scan:
-        s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1) # steering vector in the desired direction theta (size Nr x 1)
+        s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)).reshape(-1,1) # steering vector in the desired direction theta (size Nr x 1)
         w = (Rinv_both @ s)/(s.conj().T @ Rinv_both @ s) # MVDR/Capon equation!  Note which R's are being used where
         r_weighted = w.conj().T @ r_both # apply weights to the signal that contains both jammer and SOI
         power_dB = 10*np.log10(np.var(r_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
@@ -546,8 +544,7 @@ if False:
     N_fft = 512
     theta_degrees = 20 # there is no SOI, we arent processing samples, this is just the direction we want to point at
     theta = theta_degrees / 180 * np.pi # doesnt need to match SOI, we arent processing samples, this is just the direction we want to point at
-    w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector
-    w = np.conj(w) # or else our answer will be negative/inverted
+    w = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector
     w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
     w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
@@ -558,7 +555,7 @@ if False:
     # find max so we can add it to plot
     theta_max = theta_bins[np.argmax(w_fft_dB)]
     
-    if False: # first plot
+    if True: # first plot
         fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
         ax.plot(theta_bins, w_fft_dB) # MAKE SURE TO USE RADIAN FOR POLAR
         ax.plot([theta_max], [np.max(w_fft_dB)],'ro')
@@ -570,7 +567,6 @@ if False:
         ax.set_thetamax(90)
         ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
         plt.show()
-
         #fig.savefig('../_images/doa_quiescent.svg', bbox_inches='tight')
     else: # for rect plot showing beamwidth
         plt.plot(theta_bins * 180 / np.pi, w_fft_dB, '--')
@@ -591,9 +587,8 @@ if False:
         plt.xlabel('Theta [Degrees]')
         plt.ylabel('Beam Pattern [dB]')
         plt.grid()
-        plt.savefig('../_images/doa_quiescent_beamwidth.svg', bbox_inches='tight')
+        #plt.savefig('../_images/doa_quiescent_beamwidth.svg', bbox_inches='tight')
         plt.show()
-
     exit()
 
 
@@ -610,8 +605,8 @@ if False:
     Nr = 2
     theta1 = 20 / 180 * np.pi # Jammer
     theta2 = 30 / 180 * np.pi # SOI
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
     tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
     tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
     r_jammer = s1 @ tone1 + 0.05*(np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N))
@@ -692,10 +687,10 @@ if False:
     theta2 = -30 / 180 * np.pi
     theta3 = 0 / 180 * np.pi
     theta4 = 30 / 180 * np.pi
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-    s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
-    s4 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta4)).reshape(-1,1)
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s3 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    s4 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta4)).reshape(-1,1)
     # we'll use 3 different frequencies.  1xN
     tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
     tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
@@ -710,8 +705,8 @@ if False:
 
     # LCMV weights
     R_inv = np.linalg.pinv(np.cov(X)) # 8x8
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
     C = np.concatenate((s1, s2), axis=1) # 8x2
     f = np.asarray([1, 1]).reshape(-1,1) # 2x1
 
@@ -722,7 +717,6 @@ if False:
     # Plot beam pattern
     w = w.squeeze() # reduce to a 1D array
     N_fft = 1024
-    w = np.conj(w) # or else our answer will be negative/inverted
     w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
     w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
@@ -745,13 +739,12 @@ if False:
     ax.set_thetamax(90)
     ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
     plt.show()
-
     #fig.savefig('../_images/lcmv_beam_pattern.svg', bbox_inches='tight')
     exit()
 
 
 # LCMV with a spread of a SOI and a spread of a null
-if True:
+if False:
     Nr = 18
     X = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N) # Simulate received signal of just noise
 
@@ -765,9 +758,9 @@ if True:
     R_inv = np.linalg.pinv(np.cov(X))
     s = []
     for soi_theta in soi_thetas:
-        s.append(np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi_theta)).reshape(-1,1))
+        s.append(np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(soi_theta)).reshape(-1,1))
     for null_theta in null_thetas:
-        s.append(np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(null_theta)).reshape(-1,1))
+        s.append(np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(null_theta)).reshape(-1,1))
     C = np.concatenate(s, axis=1)
     f = np.asarray([1]*len(soi_thetas) + [0]*len(null_thetas)).reshape(-1,1)
     w = R_inv @ C @ np.linalg.pinv(C.conj().T @ R_inv @ C) @ f # LCMV equation
@@ -775,7 +768,6 @@ if True:
     # Plot beam pattern
     w = w.squeeze() # reduce to a 1D array
     N_fft = 1024
-    w = np.conj(w) # or else our answer will be negative/inverted
     w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
     w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
@@ -790,7 +782,7 @@ if True:
     ax.set_thetamin(-90) # only show top half
     ax.set_thetamax(90)
     ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
-    fig.savefig('../_images/lcmv_beam_pattern_spread.svg', bbox_inches='tight')
+    #fig.savefig('../_images/lcmv_beam_pattern_spread.svg', bbox_inches='tight')
     plt.show()
     exit()
 
@@ -808,8 +800,8 @@ if False:
 
     # LCMV weights
     R_inv = np.linalg.pinv(np.cov(X)) # 8x8
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
     C = np.concatenate((s1, s2), axis=1) # 8x2
     f = np.asarray([1, 1]).reshape(-1,1) # 2x1
 
@@ -818,7 +810,6 @@ if False:
     # Plot beam pattern
     w = w.squeeze() # reduce to a 1D array
     N_fft = 1024
-    w = np.conj(w) # or else our answer will be negative/inverted
     w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
     w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
@@ -847,15 +838,15 @@ if False:
 
     theta1 = 30 / 180 * np.pi # convert to radians
     theta2 = -45 / 180 * np.pi
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
     tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
     tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
     n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
     X = s1 @ tone1 + s2 @ tone2 + 0.05*n # 8xN
 
     def w_mvdr(theta, r):
-        s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
+        s = np.exp(2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
         R = np.cov(r) # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
@@ -868,7 +859,6 @@ if False:
     # Plot beam pattern
     w = w.squeeze() # reduce to a 1D array
     N_fft = 1024
-    w = np.conj(w) # or else our answer will be negative/inverted
     w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
     w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
@@ -885,7 +875,6 @@ if False:
     ax.set_thetamax(90)
     ax.set_ylim([-30, 1]) # because there's no noise, only go down 30 dB
     plt.show()
-
     exit()
 
 # Null steering (not adaptive)
@@ -898,12 +887,12 @@ if False:
     nulls_rad = np.asarray(nulls_deg) / 180 * np.pi
 
     # Start out with conventional beamformer pointed at theta_soi
-    w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
+    w = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
 
     # Loop through nulls
     for null_rad in nulls_rad:
         # weights equal to steering vector in target null direction
-        w_null = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(null_rad)).reshape(-1,1)
+        w_null = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(null_rad)).reshape(-1,1)
 
         # scaling_factor (complex scalar) for w at nulled direction
         scaling_factor = w_null.conj().T @ w / (w_null.conj().T @ w_null)
@@ -914,7 +903,6 @@ if False:
 
     # Plot beam pattern
     N_fft = 1024
-    w = np.conj(w) # or else our answer will be negative/inverted
     w_padded = np.concatenate((w.squeeze(), np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
     w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
@@ -934,6 +922,5 @@ if False:
     ax.set_thetamax(90)
     ax.set_ylim([-40, 1]) # because there's no noise, only go down -40 dB
     plt.show()
-    fig.savefig('../_images/null_steering.svg', bbox_inches='tight')
-
+    #fig.savefig('../_images/null_steering.svg', bbox_inches='tight')
     exit()

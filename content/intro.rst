@@ -65,5 +65,6 @@ Thank you to anyone who has read any portion of this textbook and provided feedb
 - `mrbloom <https://github.com/mrbloom>`_ for `translating PySDR to Ukrainian <https://pysdr.org/ukraine/index-ukraine.html>`_
 - `Yimin Zhao <https://github.com/doctormin>`_ for `translating PySDR to Simplified Chinese <https://pysdr.org/zh/index-zh.html>`_
 - `Eduardo Chancay <https://github.com/edulchan>`_ for `translating PySDR to Spanish <https://pysdr.org/es/index-es.html>`_
+- John Marcovici
 
 As well as all `PySDR Patreon <https://www.patreon.com/PySDR>`_ supporters!

@@ -73,8 +73,8 @@ We can easily simulate a delay by shifting samples, but it only simulates a dela
 
     # Create and apply fractional delay filter
     delay = 0.4 # fractional delay, in samples
-    N = 21 # number of taps
-    n = np.arange(-N//2, N//2) # ...-3,-2,-1,0,1,2,3...
+    N = 21 # number of taps, keep this odd
+    n = np.arange(-(N-1)//2, N//2+1) # -10,-9,...,0,...,9,10
     h = np.sinc(n - delay) # calc filter taps
     h *= np.hamming(N) # window the filter to make sure it decays to 0 on both sides
     h /= np.sum(h) # normalize to get unity gain, we don't want to change the amplitude/power

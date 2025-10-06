@@ -1,13 +1,15 @@
-================================================
-PySDR: Посібник з SDR та DSP за допомогою Python
-================================================
+.. raw:: html
+   :file: _templates/homepage.html
 
-автор :ref:`Доктор Марк Ліхтман<author-chapter>`
+.. raw:: html
+
+   <details>
+   <summary><h4 style="display: inline;">Розгорнути повний зміст</h4></summary>
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :numbered: 1
-   
+
    content-ukraine/intro
    content-ukraine/frequency_domain
    content-ukraine/sampling
@@ -26,3 +28,7 @@ PySDR: Посібник з SDR та DSP за допомогою Python
    content-ukraine/doa
    content-ukraine/phaser
    content-ukraine/about_author
+
+.. raw:: html
+
+   </details>

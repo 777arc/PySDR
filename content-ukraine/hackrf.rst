@@ -1,46 +1,46 @@
 .. _hackrf-chapter:
 
 ####################
-HackRF One in Python
+HackRF One у Python
 ####################
 
-The `HackRF One <https://greatscottgadgets.com/hackrf/one/>`_ from Great Scott Gadgets is a USB 2.0 SDR that can transmit or receive from 1 MHz to 6 GHz and has a sample rate from 2 to 20 MHz.  It was released in 2014 and has had several minor refinements over the years.  It is one of the only low-cost transmit-capable SDRs that goes down to 1 MHz, making it great for HF applications (e.g., ham radio) in addition to higher frequency fun.  The max transmit power of 15 dBm is also higher than most other SDRs, see `this page <https://hackrf.readthedocs.io/en/latest/faq.html#what-is-the-transmit-power-of-hackrf>`_ for full transmit power specs.  It uses half-duplex operation, meaning it is either in transmit or receive mode at any given time, and it uses 8-bit ADC/DAC.
+`HackRF One <https://greatscottgadgets.com/hackrf/one/>`_ від Great Scott Gadgets — це SDR з інтерфейсом USB 2.0, який може передавати або приймати сигнали в діапазоні від 1 МГц до 6 ГГц із частотою дискретизації від 2 до 20 МГц.  Його випустили у 2014 році й з того часу декілька разів незначно оновлювали.  Це один із небагатьох недорогих SDR з можливістю передавання, що працює від 1 МГц, тож він чудово підходить для застосувань у діапазоні КХ (наприклад, аматорський радіозв'язок), а також для експериментів на вищих частотах.  Максимальна потужність передавача 15 дБм також вища, ніж у більшості інших SDR; повну специфікацію передавальної потужності дивіться `на цій сторінці <https://hackrf.readthedocs.io/en/latest/faq.html#what-is-the-transmit-power-of-hackrf>`_.  HackRF працює у напівдуплексному режимі, тобто в будь-який момент часу він або передає, або приймає, і використовує 8-бітові АЦП/ЦАП.
 
 .. image:: ../_images/hackrf1.jpeg
    :scale: 60 %
-   :align: center 
+   :align: center
    :alt: HackRF One
 
 ********************************
-HackRF Architecture
+Архітектура HackRF
 ********************************
 
-The HackRF is based around the Analog Devices MAX2839 chip which is a 2.3GHz to 2.7GHz transceiver initially designed for WiMAX, combined with a MAX5864 RF front-end chip (essentially just the ADC and DAC) and a RFFC5072 wideband synthesizer/VCO (used to upconvert and downconvert the signal in frequency).  This is in contrast to most other low-cost SDRs which use a single chip known as an RFIC.  Aside from setting the frequency generated within the RFFC5072, all of the other parameters we will adjust like the attenuation and analog filtering are going to be in the MAX2839.  Instead of using an FPGA or System on Chip (SoC) like many SDRs, the HackRF uses a Complex Programmable Logic Device (CPLD) which acts as simple glue logic, and a microcontroller, the ARM-based LPC4320, which does all of the onboard DSP and interfacing over USB with the host (both transfer of IQ samples in either direction and control of the SDR settings).  The following beautiful block diagram from Great Scott Gadgets shows the architecture of the latest revision of the HackRF One:
+HackRF побудований довкола мікросхеми Analog Devices MAX2839, яка є трансивером у діапазоні 2,3–2,7 ГГц і першопочатково була розроблена для WiMAX, у поєднанні з мікросхемою радіочастотного тракту MAX5864 (фактично це просто АЦП і ЦАП) та широкосмуговим синтезатором/VCO RFFC5072 (використовується для перетворення сигналу на вищу або нижчу частоту).  Це відрізняється від більшості інших недорогих SDR, які використовують єдину мікросхему типу RFIC.  Окрім встановлення частоти, яку генерує RFFC5072, усі інші параметри, що ми налаштовуємо, як-от атенюацію чи аналогові фільтри, розташовані в MAX2839.  Замість використання ПЛІС або системи на кристалі (SoC), як у багатьох SDR, HackRF застосовує програмовану логічну інтегральну схему (CPLD), що виконує функції «клейової» логіки, та мікроконтролер LPC4320 на базі ARM, який відповідає за всю вбудовану DSP-обробку та взаємодію з хостом через USB (передавання IQ-відліків в обох напрямках і керування налаштуваннями SDR).  Нижче наведено чудову блок-схему від Great Scott Gadgets, яка демонструє архітектуру останньої ревізії HackRF One:
 
 .. image:: ../_images/hackrf_block_diagram.webp
-   :align: center 
-   :alt: HackRF One Block Diagram
+   :align: center
+   :alt: Блок-схема HackRF One
    :target: ../_images/hackrf_block_diagram.webp
 
-The HackRF One is highly expandable and hackable.  Inside the plastic case are four headers (P9, P20, P22, and P28), specifics can be `found here <https://hackrf.readthedocs.io/en/latest/expansion_interface.html>`_, but note that 8 GPIO pins and 4 ADC inputs are on the P20 header, while SPI, I2C, and UART are on the P22 header.  The P28 header can be used to trigger/synchronize transmit/receive operations with another device (e.g., TR-switch, external amp, or another HackRF), through the trigger input and output, with delay of less than one sample period.
+HackRF One легко розширювати й модифікувати.  Усередині пластикового корпуса розташовано чотири шлейфи (P9, P20, P22 і P28); подробиці можна `знайти тут <https://hackrf.readthedocs.io/en/latest/expansion_interface.html>`_, але зверніть увагу, що 8 виводів GPIO і 4 аналогові входи АЦП знаходяться на шлейфі P20, тоді як SPI, I2C та UART — на P22.  Шлейф P28 можна використовувати для запуску/синхронізації операцій передавання/приймання з іншим пристроєм (наприклад, TR-перемикачем, зовнішнім підсилювачем або іншим HackRF) через входи та виходи тригера з затримкою менше одного періоду дискретизації.
 
 .. image:: ../_images/hackrf2.jpeg
    :scale: 50 %
-   :align: center 
-   :alt: HackRF One PCB
+   :align: center
+   :alt: Друкована плата HackRF One
 
-The clock used for both the LO and ADC/DAC is derived from either the onboard 25 MHz oscillator, or from an external 10 MHz reference fed in over SMA.  Regardless of which clock is used, the HackRF produces a 10 MHz clock signal on CLKOUT; a standard 3.3V 10 MHz square wave intended for a high impedance load.  The CLKIN port is designed to take a similar 10 MHz 3.3V square wave, and the HackRF One will use the input clock instead of the internal crystal when a clock signal is detected (note, the transition to or from CLKIN only happens when a transmit or receive operation begins).  
+Тактовий сигнал, що використовується і для гетеродина, і для АЦП/ЦАП, може надходити або з вбудованого генератора на 25 МГц, або з зовнішнього 10-МГц опорного генератора, поданого через SMA.  Незалежно від джерела такту, HackRF видає на виході CLKOUT сигнал 10 МГц — стандартну прямокутну хвилю 3,3 В, розраховану на високоомне навантаження.  Порт CLKIN призначений для подавання аналогічної 10-МГц прямокутної хвилі 3,3 В, і HackRF One використовуватиме зовнішній такт замість внутрішнього кварцу, щойно виявить сигнал на вході (зверніть увагу, перехід на CLKIN або назад відбувається лише під час початку операції передавання чи приймання).
 
 ********************************
-Software and Hardware Setup
+Налаштування програмного й апаратного забезпечення
 ********************************
 
-The software install process involves two steps: first we will install the main HackRF library from Great Scott Gadgets, and then we will install the Python API.
+Установлення програмного забезпечення відбувається у два етапи: спершу ми встановимо основну бібліотеку HackRF від Great Scott Gadgets, а потім — Python API.
 
-Installing the HackRF Library
+Встановлення бібліотеки HackRF
 #############################
 
-The following was tested to work on Ubuntu 22.04 (using commit hash 17f3943 in March '25):
+Наведені нижче дії були перевірені на Ubuntu 22.04 (використовувався коміт 17f3943 у березні 2025 року):
 
 .. code-block:: bash
 
@@ -56,35 +56,35 @@ The following was tested to work on Ubuntu 22.04 (using commit hash 17f3943 in M
     sudo ldconfig
     sudo cp /usr/local/bin/hackrf* /usr/bin/.
 
-After installing :code:`hackrf` you will be able to run the following utilities:
+Після встановлення :code:`hackrf` ви зможете запускати такі утиліти:
 
-* :code:`hackrf_info` - Read device information from HackRF such as serial number and firmware version.
-* :code:`hackrf_transfer` - Send and receive signals using HackRF. Input/output files are 8-bit signed quadrature samples.
-* :code:`hackrf_sweep` - a command-line spectrum analyzer.
-* :code:`hackrf_clock` - Read and write clock input and output configuration.
-* :code:`hackrf_operacake` - Configure Opera Cake antenna switch connected to HackRF.
-* :code:`hackrf_spiflash` - A tool to write new firmware to HackRF. See: Updating Firmware.
-* :code:`hackrf_debug` - Read and write registers and other low-level configuration for debugging.
+* :code:`hackrf_info` — зчитування інформації про пристрій HackRF, як-от серійний номер і версія прошивки.
+* :code:`hackrf_transfer` — передавання та приймання сигналів за допомогою HackRF. Вхідні/вихідні файли містять 8-бітові підписані квадратичні відліки.
+* :code:`hackrf_sweep` — консольний аналізатор спектра.
+* :code:`hackrf_clock` — читання й запис конфігурації вхідного та вихідного тактових сигналів.
+* :code:`hackrf_operacake` — налаштування комутатора антен Opera Cake, підключеного до HackRF.
+* :code:`hackrf_spiflash` — інструмент для запису нової прошивки в HackRF. Див. оновлення прошивки.
+* :code:`hackrf_debug` — читання й запис регістрів та іншої низькорівневої конфігурації для налагодження.
 
-If you are using Ubuntu through WSL, on the Windows side you will need to forward the HackRF USB device to WSL, first by installing the latest `usbipd utility msi <https://github.com/dorssel/usbipd-win/releases>`_ (this guide assumes you have usbipd-win 4.0.0 or higher), then opening PowerShell in administrator mode and running:
+Якщо ви використовуєте Ubuntu у WSL, на стороні Windows потрібно пробросити USB-пристрій HackRF у WSL. Спершу встановіть найновіший `usbipd utility msi <https://github.com/dorssel/usbipd-win/releases>`_ (у цьому посібнику передбачається, що у вас usbipd-win 4.0.0 або новіший), потім відкрийте PowerShell від імені адміністратора й виконайте:
 
 .. code-block:: bash
 
     usbipd list
-    <find the BUSID labeled HackRF One and substitute it in the two commands below>
+    <знайдіть BUSID із позначкою HackRF One та підставте його в обидві команди нижче>
     usbipd bind --busid 1-10
     usbipd attach --wsl --busid 1-10
 
-On the WSL side, you should be able to run :code:`lsusb` and see a new item called :code:`Great Scott Gadgets HackRF One`.  Note that you can add the :code:`--auto-attach` flag to the :code:`usbipd attach` command if you want it to auto reconnect.  Lastly, you have to add the udev rules using the following command:
+У WSL ви маєте змогу запустити :code:`lsusb` і побачити новий запис :code:`Great Scott Gadgets HackRF One`.  За потреби ви можете додати прапорець :code:`--auto-attach` до команди :code:`usbipd attach`, щоб налаштувати автоматичне повторне підключення.  Нарешті, необхідно додати правило udev такою командою:
 
 .. code-block:: bash
 
     echo 'ATTR{idVendor}=="1d50", ATTR{idProduct}=="6089", SYMLINK+="hackrf-one-%k", MODE="660", TAG+="uaccess"' | sudo tee /etc/udev/rules.d/53-hackrf.rules
     sudo udevadm trigger
 
-Then unplug and replug your HackRF One (and redo the :code:`usbipd attach` part).  Note, I had permissions issues with the step below until I switched to using `WSL USB Manager <https://gitlab.com/alelec/wsl-usb-gui/-/releases>`_ on the Windows side, to manage forwarding to WSL, which apparently also deals with the udev rules.
+Після цього від'єднайте та знову під'єднайте ваш HackRF One (і повторіть :code:`usbipd attach`).  Зверніть увагу, що в мене виникали проблеми з правами доступу на наступному кроці, доки я не перейшов на використання `WSL USB Manager <https://gitlab.com/alelec/wsl-usb-gui/-/releases>`_ на стороні Windows для керування пробросом у WSL — схоже, він також автоматично налаштовує правила udev.
 
-Whether you're on native Linux or WSL, at this point you should be able to run :code:`hackrf_info` and see something like:
+Незалежно від того, працюєте ви на «чистому» Linux чи в WSL, на цьому етапі ви маєте змогу виконати :code:`hackrf_info` і побачити щось на кшталт:
 
 .. code-block:: bash
 
@@ -100,13 +100,13 @@ Whether you're on native Linux or WSL, at this point you should be able to run :
     Hardware appears to have been manufactured by Great Scott Gadgets.
     Hardware supported by installed firmware: HackRF One
 
-Let's also make an IQ recording of the FM band, 10 MHz wide centered at 100 MHz, and we'll grab 1 million samples:
+Також зробімо запис IQ-сигналу FM-діапазону шириною 10 МГц із центром на 100 МГц, збережемо 1 мільйон відліків:
 
 .. code-block:: bash
 
     hackrf_transfer -r out.iq -f 100000000 -s 10000000 -n 1000000 -a 0 -l 30 -g 50
 
-This utility produces a binary IQ file of int8 samples (2 bytes per IQ sample), which in our case should be 2MB.  If you're curious, the signal recording can be read in Python using the following code:
+Ця утиліта створює двійковий IQ-файл із відліками типу int8 (2 байти на IQ-відлік), у нашому випадку його розмір має становити 2 МБ.  Якщо цікаво, запис можна прочитати в Python за допомогою такого коду:
 
 .. code-block:: python
 
@@ -117,19 +117,19 @@ This utility produces a binary IQ file of int8 samples (2 bytes per IQ sample), 
     print(samples[0:10])
     print(np.max(samples))
 
-If your max is 127 (which means you saturated the ADC) then lower the two gain values at the end of the command.
+Якщо максимальне значення дорівнює 127 (це означає, що ви наситили АЦП), зменште два значення підсилення наприкінці команди.
 
-Installing the Python API
+Встановлення Python API
 #########################
 
-Lastly, we must install the HackRF One `Python bindings <https://github.com/GvozdevLeonid/python_hackrf>`_, maintained by `GvozdevLeonid <https://github.com/GvozdevLeonid>`_.  This was tested to work in Ubuntu 22.04 on 11/04/2024 using the latest main branch.
+Нарешті, потрібно встановити `Python-зв'язки <https://github.com/GvozdevLeonid/python_hackrf>`_ для HackRF One, які підтримує `GvozdevLeonid <https://github.com/GvozdevLeonid>`_.  Ці інструкції були перевірені на Ubuntu 22.04 04.11.2024 з використанням останньої гілки main.
 
 .. code-block:: bash
 
     sudo apt install libusb-1.0-0-dev
     pip install python_hackrf==1.2.7
 
-We can test the above install by running the following code, if there are no errors (there will also be no output) then everything should be good to go!
+Перевірити встановлення можна, виконавши наведений нижче код; якщо помилок немає (і вивід теж відсутній), усе працює як слід!
 
 .. code-block:: python
 
@@ -140,44 +140,44 @@ We can test the above install by running the following code, if there are no err
     sdr.pyhackrf_set_antenna_enable(False)
     sdr.pyhackrf_set_freq(100e6)
     sdr.pyhackrf_set_amp_enable(False)
-    sdr.pyhackrf_set_lna_gain(30) # LNA gain - 0 to 40 dB in 8 dB steps
-    sdr.pyhackrf_set_vga_gain(50) # VGA gain - 0 to 62 dB in 2 dB steps
+    sdr.pyhackrf_set_lna_gain(30) # підсилення LNA — від 0 до 40 дБ із кроком 8 дБ
+    sdr.pyhackrf_set_vga_gain(50) # підсилення VGA — від 0 до 62 дБ із кроком 2 дБ
     sdr.pyhackrf_close()
 
-For an actual test of receiving samples, see the example code below.
+Для фактичної перевірки приймання відліків дивіться приклад коду нижче.
 
 ********************************
-Tx and Rx Gain
+Підсилення передавача та приймача
 ********************************
 
-Receive Side
+Приймальна частина
 ############
 
-The HackRF One on the receive side has three different gain stages:
+HackRF One на прийомі має три каскади підсилення:
 
-* RF (:code:`amp`, either 0 or 11 dB)
-* IF (:code:`lna`, 0 to 40 dB in 8 dB steps)
-* baseband (:code:`vga`, 0 to 62 dB in 2 dB steps)
+* РЧ (:code:`amp`, або 0, або 11 дБ)
+* ПЧ (:code:`lna`, від 0 до 40 дБ із кроком 8 дБ)
+* базова смуга (:code:`vga`, від 0 до 62 дБ із кроком 2 дБ)
 
-For receiving most signals, it is recommended to leave the RF amplifier off (0 dB), unless you are dealing with an extremely weak signal and there are definitely no strong signals nearby.  The IF (LNA) gain is the most important gain stage to adjust, to maximize your SNR while avoiding saturation of the ADC, that is the first knob to adjust.  The baseband gain can be left at a relatively high value, e.g., we will just leave it at 50 dB.
+Для приймання більшості сигналів рекомендується залишати РЧ-підсилювач вимкненим (0 дБ), якщо тільки ви не працюєте з украй слабким сигналом і поруч точно немає потужних сигналів.  Найважливіший каскад — підсилення ПЧ (LNA); саме його слід регулювати першим, щоб максимізувати SNR і не наситити АЦП.  Підсилення базової смуги можна залишити відносно високим, наприклад 50 дБ.
 
-Transmit Side
+Передавальна частина
 #############
 
-On the transmit side, there are two gain stages:
+На передаванні є два каскади підсилення:
 
-* RF [either 0 or 11 dB]
-* IF [0 to 47 dB in 1 dB steps]
+* РЧ (або 0, або 11 дБ)
+* ПЧ (від 0 до 47 дБ із кроком 1 дБ)
 
-You will likely want the RF amplifier enabled, and then you can adjust the IF gain to suit your needs.
+Зазвичай варто вмикати РЧ-підсилювач, а потім налаштовувати підсилення ПЧ відповідно до ваших потреб.
 
 **************************************************
-Receiving IQ Samples within Python with the HackRF
+Приймання IQ-відліків у Python за допомогою HackRF
 **************************************************
 
-Currently the :code:`python_hackrf` Python package does not include any convenience functions for receiving samples, it is simply a set of Python bindings that map to the HackRF's C++ API.  That means in order to receive IQ, we have to use a decent amount of code.  The Python package is set up to use a callback function in order to receive more samples, this is a function that we must set up, but it will automatically get called whenever there are more samples ready from the HackRF.  This callback function always needs to have three specific arguments, and it needs to return :code:`0` if we want another set of samples.  In the code below, within each call to our callback function, we convert the samples to NumPy's complex type, scale them from -1 to +1, and then store them in a larger :code:`samples` array 
+Наразі пакет :code:`python_hackrf` не містить жодних зручних функцій для приймання відліків — це лише набір Python-зв'язків до C++ API HackRF.  Це означає, що для отримання IQ-відліків нам доведеться написати доволі багато коду.  Пакет Python використовує функцію зворотного виклику для передавання чергової порції відліків; ми маємо її реалізувати, але вона викликатиметься автоматично, щойно HackRF підготує нові дані.  Ця функція зворотного виклику завжди повинна мати три конкретні аргументи і повертати :code:`0`, якщо ми хочемо отримати наступний блок відліків.  У наведеному нижче коді в кожному виклику нашого зворотного виклику ми перетворюємо відліки на комплексний тип NumPy, масштабуємо їх у діапазон від –1 до +1 і зберігаємо в більшому масиві :code:`samples`.
 
-After running the code below, if in your time plot, the samples are reaching the ADC limits of -1 and +1, then reduce :code:`lna_gain` by 3 dB until it is clearly not hitting the limits.
+Після виконання коду, якщо на графіку часу відліки досягають меж АЦП –1 та +1, зменшуйте :code:`lna_gain` на 3 дБ, доки значення явно не перестануть впиратися в обмеження.
 
 .. code-block:: python
 
@@ -186,27 +186,28 @@ After running the code below, if in your time plot, the samples are reaching the
     import numpy as np
     import time
 
-    # These settings should match the hackrf_transfer example used in the textbook, and the resulting waterfall should look about the same
-    recording_time = 1  # seconds
-    center_freq = 100e6  # Hz
+    # Ці налаштування мають збігатися з прикладом hackrf_transfer у підручнику,
+    # і отриманий водоспад повинен виглядати приблизно так само
+    recording_time = 1  # секунди
+    center_freq = 100e6  # Гц
     sample_rate = 10e6
     baseband_filter = 7.5e6
-    lna_gain = 30 # 0 to 40 dB in 8 dB steps
-    vga_gain = 50 # 0 to 62 dB in 2 dB steps
+    lna_gain = 30 # від 0 до 40 дБ із кроком 8 дБ
+    vga_gain = 50 # від 0 до 62 дБ із кроком 2 дБ
 
     pyhackrf.pyhackrf_init()
     sdr = pyhackrf.pyhackrf_open()
 
-    allowed_baseband_filter = pyhackrf.pyhackrf_compute_baseband_filter_bw_round_down_lt(baseband_filter) # calculate the supported bandwidth relative to the desired one
+    allowed_baseband_filter = pyhackrf.pyhackrf_compute_baseband_filter_bw_round_down_lt(baseband_filter) # обчислюємо підтримувану смугу відносно бажаної
 
     sdr.pyhackrf_set_sample_rate(sample_rate)
     sdr.pyhackrf_set_baseband_filter_bandwidth(allowed_baseband_filter)
-    sdr.pyhackrf_set_antenna_enable(False)  # It seems this setting enables or disables power supply to the antenna port. False by default. the firmware auto-disables this after returning to IDLE mode
+    sdr.pyhackrf_set_antenna_enable(False)  # схоже, цей параметр вмикає або вимикає живлення на антенному порту. False за замовчуванням, прошивка автоматично вимикає його після повернення до режиму IDLE
 
     sdr.pyhackrf_set_freq(center_freq)
-    sdr.pyhackrf_set_amp_enable(False)  # False by default
-    sdr.pyhackrf_set_lna_gain(lna_gain)  # LNA gain - 0 to 40 dB in 8 dB steps
-    sdr.pyhackrf_set_vga_gain(vga_gain)  # VGA gain - 0 to 62 dB in 2 dB steps
+    sdr.pyhackrf_set_amp_enable(False)  # False за замовчуванням
+    sdr.pyhackrf_set_lna_gain(lna_gain)  # підсилення LNA — від 0 до 40 дБ із кроком 8 дБ
+    sdr.pyhackrf_set_vga_gain(vga_gain)  # підсилення VGA — від 0 до 62 дБ із кроком 2 дБ
 
     print(f'center_freq: {center_freq} sample_rate: {sample_rate} baseband_filter: {allowed_baseband_filter}')
 
@@ -214,13 +215,13 @@ After running the code below, if in your time plot, the samples are reaching the
     samples = np.zeros(num_samples, dtype=np.complex64)
     last_idx = 0
 
-    def rx_callback(device, buffer, buffer_length, valid_length):  # this callback function always needs to have these four args
+    def rx_callback(device, buffer, buffer_length, valid_length):  # ця функція зворотного виклику завжди має приймати саме ці чотири аргументи
         global samples, last_idx
 
         accepted = valid_length // 2
-        accepted_samples = buffer[:valid_length].astype(np.int8) # -128 to 127
-        accepted_samples = accepted_samples[0::2] + 1j * accepted_samples[1::2]  # Convert to complex type (de-interleave the IQ)
-        accepted_samples /= 128 # -1 to +1
+        accepted_samples = buffer[:valid_length].astype(np.int8) # від -128 до 127
+        accepted_samples = accepted_samples[0::2] + 1j * accepted_samples[1::2]  # перетворюємо на комплексний тип (деінтерливуємо IQ)
+        accepted_samples /= 128 # від -1 до +1
         samples[last_idx: last_idx + accepted] = accepted_samples
 
         last_idx += accepted
@@ -237,7 +238,7 @@ After running the code below, if in your time plot, the samples are reaching the
     sdr.pyhackrf_close()
     pyhackrf.pyhackrf_exit()
 
-    samples = samples[100000:] # get rid of the first 100k samples just to be safe, due to transients
+    samples = samples[100000:] # на всяк випадок відкидаємо перші 100 тис. відліків через перехідні процеси
 
     fft_size = 2048
     num_rows = len(samples) // fft_size
@@ -248,27 +249,27 @@ After running the code below, if in your time plot, the samples are reaching the
 
     plt.figure(0)
     plt.imshow(spectrogram, aspect='auto', extent=extent) # type: ignore
-    plt.xlabel("Frequency [MHz]")
-    plt.ylabel("Time [s]")
+    plt.xlabel("Частота [МГц]")
+    plt.ylabel("Час [с]")
 
     plt.figure(1)
     plt.plot(np.real(samples[0:10000]))
     plt.plot(np.imag(samples[0:10000]))
-    plt.xlabel("Samples")
-    plt.ylabel("Amplitude")
-    plt.legend(["Real", "Imaginary"])
+    plt.xlabel("Відліки")
+    plt.ylabel("Амплітуда")
+    plt.legend(["Дійсна", "Уявна"])
 
     plt.show()
 
-When using an antenna that can receive the FM band, you should get something like the following, with several FM stations visible in the waterfall plot:
+Під час використання антени, здатної приймати FM-діапазон, ви маєте отримати щось подібне до наведеного нижче, із декількома FM-станціями, видимими на водоспаді:
 
 .. image:: ../_images/hackrf_time_screenshot.png
-   :align: center 
+   :align: center
    :scale: 50 %
-   :alt: Time plot of the samples grabbed from HackRF
+   :alt: Часовий графік відліків, отриманих із HackRF
 
 .. image:: ../_images/hackrf_freq_screenshot.png
-   :align: center 
+   :align: center
    :scale: 50 %
-   :alt: Spectrogram (frequency over time) plot of the samples grabbed from HackRF
+   :alt: Водоспад (частота в часі) для відліків, отриманих із HackRF
 

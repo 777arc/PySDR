@@ -11,9 +11,9 @@
    :numbered: 1
 
    content-ukraine/intro
-   content-ukraine/frequency_doma
+   content-ukraine/frequency_domain
    content-ukraine/sampling
-   content-ukraine/digital_modula
+   content-ukraine/digital_modulation
    content-ukraine/pluto
    content-ukraine/usrp
    content-ukraine/bladerf

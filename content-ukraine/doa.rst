@@ -23,7 +23,7 @@
 
 У наведенему нижче рисунку представлена класифікація видів формування променя, а також наведено приклади методів для їх створення:
 
-The following taxonomy attempts to categorize the many areas of beamforming while providing example techniques:
+Наведена нижче таксономія намагається класифікувати основні напрями формування променя та подає приклади відповідних методів:
 
 .. image:: ../_images/beamforming_taxonomy.svg
    :align: center 

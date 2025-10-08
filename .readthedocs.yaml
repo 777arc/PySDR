@@ -1,31 +1,18 @@
-# Read the Docs configuration file
-# See https://docs.readthedocs.io/en/stable/config-file/v2.html
-
+# .readthedocs.yaml
 version: 2
 
 build:
   os: ubuntu-24.04
   tools:
     python: "3.13"
-
-# Sphinx configuration
-sphinx:
-  configuration: docs/conf.py
-  builder: html
-  # Extra Sphinx build options to match your CLI command
-  fail_on_warning: false
-
-# Override default sphinx-build arguments
-# Equivalent to: sphinx-build -b html -D exclude_patterns=... -D master_doc=...
-# and change output dir to _build/ukraine/
-build:
-  os: ubuntu-24.04
-  tools:
-    python: "3.13"
   commands:
-    - sphinx-build -b html -D exclude_patterns="_build,index.rst,content/*" -D master_doc="index-ukraine" docs _build/ukraine
+    # Install your documentation dependencies
+    - python -m pip install -U pip
+    - pip install sphinx
+    - if [ -f docs/requirements.txt ]; then pip install -r docs/requirements.txt; fi
 
-# Optional (if you have dependencies)
-# python:
-#   install:
-#     - requirements: docs/requirements.txt
+    # Build docs manually, as you need custom flags
+    - sphinx-build -b html \
+        -D exclude_patterns="_build,index.rst,content/*" \
+        -D master_doc="index-ukraine" \
+        docs "$READTHEDOCS_OUTPUT/html"

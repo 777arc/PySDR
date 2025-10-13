@@ -708,7 +708,7 @@ In Python we can implement the MVDR/Capon beamformer as follows, which will be d
 .. code-block:: python
 
  # theta is the direction of interest, in radians, and X is our received signal
- def w_mvdr(theta, r):
+ def w_mvdr(theta, X):
     s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector in the desired direction theta
     s = s.reshape(-1,1) # make into a column vector (size 3x1)
     R = (X @ X.conj().T)/X.shape[1] # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
@@ -723,7 +723,7 @@ Using this MVDR beamformer in the context of DOA, we get the following Python ex
  theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
  results = []
  for theta_i in theta_scan:
-    w = w_mvdr(theta_i, r) # 3x1
+    w = w_mvdr(theta_i, X) # 3x1
     X_weighted = w.conj().T @ X # apply weights
     power_dB = 10*np.log10(np.var(X_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
     results.append(power_dB)
@@ -794,7 +794,7 @@ Meaning we don't have to apply the weights at all, this final equation above for
 
 .. code-block:: python
 
-    def power_mvdr(theta, r):
+    def power_mvdr(theta, X):
         s = np.exp(2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
         R = (X @ X.conj().T)/X.shape[1] # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples

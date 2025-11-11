@@ -1,8 +1,8 @@
 .. _rds-chapter:
 
-###################
-Наскрізний приклад
-###################
+#########################
+Приклад повної реалізації
+#########################
 
 У цій главі ми об’єднуємо багато концепцій, про які ми раніше вивчали, і розглядаємо повний приклад отримання та декодування справжнього цифрового сигналу. Ми розглянемо систему радіоданих (RDS), яка є комунікаційним протоколом для вбудовування невеликих обсягів інформації в FM-радіопередачі, наприклад назву станції та пісні. Нам доведеться демодулювати FM, зсув частоти, фільтрувати, знищувати, повторно дискретизувати, синхронізувати, декодувати та аналізувати байти. Зразок файлу IQ надається для тестування або якщо у вас під рукою немає SDR.
 
@@ -95,14 +95,14 @@ RDS-інформація, яка передається FM-станцією (н�
 #. Декодування 1 та 0 у групи байт
 #. Синтаксичний аналіз груп байтів у наш кінцевий результат
 
-While this may seem like a lot of steps, RDS is actually one of the simplest wireless digital communications protocols out there.  A modern wireless protocol like WiFi or 5G requires a whole textbook to cover just the high-level PHY/MAC layer information.
+Хоча це може виглядати як багато кроків, RDS насправді є одним із найпростіших протоколів бездротового цифрового зв’язку.  Сучасний бездротовий протокол, наприклад WiFi або 5G, потребує цілої книги, щоб охопити навіть інформацію високого рівня про рівні PHY/MAC.
 
-We will now dive into the Python code used to receive RDS.  This code has been tested to work using an `FM radio recording you can find here <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_, although you should be able to feed in your own signal as long as its received at a high enough SNR, simply tune to the station's center frequency and sample at a rate of 250 kHz.  To maximize the received signal power (e.g., if you are indoors), it helps to use a half-wave dipole antenna of the correct length (~1.5 meters), not the 2.4 GHz antennas that come with the Pluto.  That being said, FM is a very loud signal, and if you are near a window or outside, the 2.4 GHz antennas will likely be enough to pick up the stronger radio stations.  
+Тепер ми зануримося в Python-код, який використовується для прийому RDS.  Цей код був протестований із `записом FM-радіо, який можна знайти тут <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_, хоча ви можете подати і власний сигнал за умови, що він прийнятий з достатньо високим SNR: просто налаштуйтеся на центральну частоту станції та дискретизуйте зі швидкістю 250 кГц.  Щоб максимізувати потужність прийнятого сигналу (наприклад, якщо ви перебуваєте в приміщенні), корисно використати напівхвильову дипольну антену належної довжини (~1,5 метра), а не 2,4 ГГц-антени, що постачаються з Pluto.  Водночас FM — дуже гучний сигнал, і якщо ви біля вікна або на вулиці, антен 2,4 ГГц, ймовірно, буде достатньо, щоб прийняти сильніші радіостанції.
 
-In this section we will present small portions of the code individually, with discussion, but the same code is provided at the end of this chapter in one large block.  Each section will present a block of code, and then explain what it is doing.
+У цьому розділі ми будемо показувати невеликі фрагменти коду окремо, з поясненнями, але той самий код наведений наприкінці цієї глави одним великим блоком.  Кожен підрозділ представить блок коду та пояснить, що він робить.
 
 ********************************
-Acquiring a Signal
+Отримання сигналу
 ********************************
 
 .. code-block:: python
@@ -116,10 +116,10 @@ Acquiring a Signal
  sample_rate = 250e3
  center_freq = 99.5e6
 
-We read in our test recording, which was sampled at 250 kHz and centered on an FM station received at a high SNR.  Make sure to update the file path to reflect your system and where you saved the recording.  If you have an SDR already set up and working from within Python, feel free to receive a live signal, although it helps to have first tested the entire code with a `known-to-work IQ recording <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_.  Throughout this code we will use :code:`x` to store the current signal being manipulated. 
+Ми зчитуємо наш тестовий запис, який дискретизовано на 250 кГц і центровано на FM-станції, прийнятій із високим SNR.  Обов’язково оновіть шлях до файлу відповідно до вашої системи та місця збереження запису.  Якщо у вас вже налаштований SDR, що працює з Python, можете приймати живий сигнал, хоча корисно спершу перевірити весь код на `відомому робочому IQ-записі <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_.  Протягом цього коду ми використовуватимемо :code:`x` для зберігання поточного сигналу, з яким виконуємо обробку.
 
 ********************************
-FM Demodulation
+FM-демодуляція
 ********************************
 
 .. code-block:: python
@@ -127,14 +127,14 @@ FM Demodulation
  # Quadrature Demod
  x = 0.5 * np.angle(x[0:-1] * np.conj(x[1:])) # see https://wiki.gnuradio.org/index.php/Quadrature_Demod
 
-As discussed at the beginning of this chapter, several individual signals are combined in frequency and FM modulated to create what is actually transmitted through the air.  So the first step is to undo that FM modulation.  Another way to think about it is the information is stored in the frequency variation of the signal we receive, and we want to demodulate it so the information is now in the amplitude not frequency.  Note that the output of this demodulation is a real signal, even though we fed in a complex signal.
+Як ми обговорювали на початку цієї глави, кілька окремих сигналів поєднуються за частотою та FM-модулюються, утворюючи те, що фактично передається в ефір.  Тож перший крок — зняти цю FM-модуляцію.  Іншими словами, інформація закодована у зміні частоти прийнятого сигналу, і ми хочемо демодулювати його так, щоб інформація опинилася в амплітуді, а не у частоті.  Зауважте, що результат цієї демодуляції є дійсним сигналом, навіть якщо ми подавали комплексний сигнал.
 
-What this single line of Python is doing, is first calculating the product of our signal with a delayed and conjugated version of our signal.  Next, it finds the phase of each sample in that result, which is the moment at which it goes from complex to real.  To prove to ourselves that this gives us the information contained in the frequency variations, consider a tone at frequency :math:`f` with some arbitrary phase :math:`\phi`, which we can represent as :math:`e^{j2 \pi (f t + \phi)}`.  When dealing in discrete time, which uses an integer :math:`n` instead of :math:`t`, this becomes :math:`e^{j2 \pi (f n + \phi)}`.  The conjugated and delayed version is :math:`e^{-j2 \pi (f (n-1) + \phi)}`.  Multiplying these two together leads to :math:`e^{j2 \pi f}`, which is great because :math:`\phi` is gone, and when we calculate the phase of that expression we are left with just :math:`f`.
+Що робить цей єдиний рядок Python, так це спершу обчислює добуток нашого сигналу на затриману та спряжену версію цього сигналу.  Потім він знаходить фазу кожного відліку в цьому результаті — саме в цей момент сигнал переходить від комплексного до дійсного.  Щоб переконатися, що таким чином ми повертаємо інформацію, закладену у зміні частоти, розглянемо тон із частотою :math:`f` та довільною фазою :math:`\phi`, який можна подати як :math:`e^{j2 \pi (f t + \phi)}`.  У дискретному часі, де використовуємо цілий :math:`n` замість :math:`t`, це стає :math:`e^{j2 \pi (f n + \phi)}`.  Спряжена та затримана версія матиме вигляд :math:`e^{-j2 \pi (f (n-1) + \phi)}`.  Добуток цих двох виразів дає :math:`e^{j2 \pi f}`, що чудово, адже :math:`\phi` зникає, і коли ми обчислюємо фазу цього виразу, залишається лише :math:`f`.
 
-One convenient side effect of FM modulation is that amplitude variations of the received signal does not actually change the volume of the audio, unlike AM radio.  
+Одним із зручних побічних ефектів FM-модуляції є те, що зміни амплітуди прийнятого сигналу не впливають на гучність аудіо, на відміну від AM-радіо.
 
 ********************************
-Frequency Shift
+Зсув частоти
 ********************************
 
 .. code-block:: python
@@ -145,10 +145,10 @@ Frequency Shift
  t = np.arange(N)/sample_rate # time vector
  x = x * np.exp(2j*np.pi*f_o*t) # down shift
 
-Next we frequency shift down by 57 kHz, using the :math:`e^{j2 \pi f_ot}` trick we learned in the :ref:`sync-chapter` chapter where :code:`f_o` is the frequency shift in Hz and :code:`t` is just a time vector, the fact it starts at 0 isn't important, what matters is that it uses the right sample period (which is inverse of sample rate).  As an aside, because it's a real signal being fed in, it doesn't actually matter if you use a -57 or +57 kHz because the negative frequencies match the positive, so either way we are going to get our RDS shifted to 0 Hz.
+Далі ми зсуваємо частоту вниз на 57 кГц, використовуючи прийом :math:`e^{j2 \pi f_ot}`, з яким ми познайомилися в розділі :ref:`sync-chapter`, де :code:`f_o` — це зсув частоти в герцах, а :code:`t` — просто часовий вектор; те, що він починається з 0, неважливо, головне — правильний період дискретизації (обернений до частоти дискретизації).  До речі, оскільки на вході ми маємо дійсний сигнал, не має значення, використаємо ми -57 чи +57 кГц, бо від’ємні частоти симетричні до додатних, тож у будь-якому випадку RDS зміститься до 0 Гц.
 
 ********************************
-Filter to Isolate RDS
+Фільтрація для виділення RDS
 ********************************
 
 .. code-block:: python
@@ -157,12 +157,12 @@ Filter to Isolate RDS
  taps = firwin(numtaps=101, cutoff=7.5e3, fs=sample_rate)
  x = np.convolve(x, taps, 'valid')
 
-Now we must filter out everything besides RDS. Since we have RDS centered at 0 Hz, that means a low-pass filter is the one we want.  We use :code:`firwin()` to design an FIR filter (i.e., find the taps), which just needs to know how many taps we want the filter to be, and the cutoff frequency.  The sample rate must also be provided or else the cutoff frequency doesn't make sense to firwin.  The result is a symmetric low-pass filter, so we know the taps are going to be real numbers, and we can apply the filter to our signal using a convolution.  We choose :code:`'valid'` to get rid of the edge effects of doing convolution, although in this case it doesn't really matter because we are feeding in such a long signal that a few weird samples on either edge isn't going to throw anything off.
+Тепер нам потрібно відфільтрувати все, окрім RDS.  Оскільки RDS ми вже вирівняли по центру 0 Гц, нам потрібен фільтр низьких частот.  Ми використовуємо :code:`firwin()` для синтезу FIR-фільтра (тобто обчислення коефіцієнтів), якому потрібно знати лише бажану кількість коефіцієнтів і частоту зрізу.  Також слід вказати частоту дискретизації, інакше firwin не зможе правильно інтерпретувати частоту зрізу.  Отриманий фільтр є симетричним ФНЧ, тож його коефіцієнти дійсні, і ми можемо застосувати його до сигналу за допомогою згортки.  Ми обираємо режим :code:`'valid'`, щоб позбутися крайових ефектів згортки, хоча в даному випадку це не критично, адже сигнал дуже довгий і кілька дивних відліків на краях нічого не зіпсують.
 
-Side note: At some point I will update the filter above to use a proper matched filter (root-raised cosine I believe is what RDS uses), for conceptual sake, but I got the same error rates using the firwin() approach as GNU Radio's proper matched filter, so it's clearly not a strict requirement.
+Примітка: згодом я оновлю цей фільтр на справжній узгоджений (з кореневою піднятою косинусоїдою, яку, як я вважаю, використовує RDS) задля повноти викладу, але підхід із firwin() дає ті самі показники помилок, що й коректний узгоджений фільтр у GNU Radio, тож це явно не сувора вимога.
 
 ********************************
-Decimate by 10
+Децимація на 10
 ********************************
 
 .. code-block:: python
@@ -171,14 +171,14 @@ Decimate by 10
  x = x[::10]
  sample_rate = 25e3
 
-Any time you filter down to a small fraction of your bandwidth (e.g., we started with 125 kHz of *real* bandwidth and saved only 7.5 kHz of that), it makes sense to decimate.  Recall the beginning of the :ref:`sampling-chapter` chapter where we learned about the Nyquist Rate and being able to fully store band-limited information as long as we sampled at twice the highest frequency. Well now that we used our low-pass filter, our highest frequency is about 7.5 kHz, so we only need a sample rate of 15 kHz.  Just to be safe we'll add some margin and use a new sample rate of 25 kHz (this ends up working well mathematically later on).  
+Щоразу, коли ви відсікаєте більшу частину смуги пропускання (наприклад, ми починали зі 125 кГц *реальної* смуги і залишили лише 7,5 кГц), має сенс виконати децимацію.  Згадайте початок розділу :ref:`sampling-chapter`, де ми вчили про частоту Найквіста та можливість повністю відтворити смуговий сигнал, якщо дискретизувати принаймні з подвійною максимальною частотою.  Тепер, після ФНЧ, наша максимальна частота приблизно 7,5 кГц, тож нам достатньо частоти дискретизації 15 кГц.  Для запасу використаємо 25 кГц (згодом це ще й зручно з математичної точки зору).  
 
-We perform the decimation by simply throwing out 9 out of every 10 samples, since we previously were at a sample rate of 250 kHz and we want it to now be at 25 kHz.  This might seem confusing at first, because throwing out 90% of the samples feels like you are throwing out information, but if you review the :ref:`sampling-chapter` chapter you will see why we are not actually losing anything, because we filtered properly (which acted as our anti-aliasing filter) and reduced our maximum frequency and thus signal bandwidth.
+Ми виконуємо децимацію, просто відкидаючи 9 з кожних 10 відліків, адже раніше частота дискретизації була 250 кГц, а тепер нам потрібно 25 кГц.  Це може спершу збивати з пантелику, ніби ми викидаємо 90% інформації, але якщо знову перечитати розділ :ref:`sampling-chapter`, ви побачите, що ми нічого не втрачаємо: ми належно відфільтрували сигнал (виконавши роль антиаліасингового фільтра) та зменшили максимальну частоту, а отже й смугу сигналу.  
 
-From a code perspective this is probably the simplest step out of them all, but make sure to update your :code:`sample_rate` variable to reflect the new sample rate.
+З погляду коду це, мабуть, найпростіший крок із усіх, але не забудьте оновити змінну :code:`sample_rate`, щоб вона відображала нову частоту дискретизації.
 
 ********************************
-Resample to 19 kHz
+Перевиділення до 19 кГц
 ********************************
 
 .. code-block:: python
@@ -187,16 +187,16 @@ Resample to 19 kHz
  x = resample_poly(x, 19, 25) # up, down
  sample_rate = 19e3
 
-In the :ref:`pulse-shaping-chapter` chapter we solidified the concept of "samples per symbol", and learned the convenience of having an integer number of samples per symbol (a fractional value is valid, just not convenient).  As mentioned earlier, RDS uses BPSK transmitting 1187.5 symbols per second.  If we continue to use our signal as-is, sampled at 25 kHz, we'll have 21.052631579 samples per symbol (pause and think about the math if that doesn't make sense).  So what we really want is a sample rate that is an integer multiple of 1187.5 Hz, but we can't go too low or we won't be able to "store" our full signal's bandwidth.  In the previous subsection we talked about how we need a sample rate of 15 kHz or higher, and we chose 25 kHz just to give us some margin.
+У розділі :ref:`pulse-shaping-chapter` ми закріпили поняття "відліки на символ" і побачили зручність цілої кількості відліків на символ (дробові значення теж можливі, але працювати з ними незручно).  Як уже згадувалося, RDS використовує BPSK зі швидкістю 1187,5 символів за секунду.  Якщо залишити наш сигнал із частотою дискретизації 25 кГц, отримаємо 21,052631579 відліків на символ (зупиніться й перевірте обчислення, якщо це здається дивним).  Отже, нам потрібна частота дискретизації, що є цілим кратним 1187,5 Гц, але не можна знижувати її надто сильно, інакше ми не "вмістимо" всю смугу сигналу.  У попередньому підрозділі ми говорили, що нам потрібна частота принаймні 15 кГц, і вибрали 25 кГц для запасу.
 
-Finding the best sample rate to resample to comes down to how many samples per symbol we want, and we can work backwards.  Hypothetically, let us consider targeting 10 samples per symbol.  The RDS symbol rate of 1187.5 multiplied by 10 would give us a sample rate of 11.875 kHz, which unfortunately is not high enough for Nyquist.  How about 13 samples per symbol?  1187.5 multiplied by 13 gives us 15437.5 Hz, which is above 15 kHz, but quite the uneven number.  How about the next power of 2, so 16 samples per symbol?  1187.5 multiplied by 16 is exactly 19 kHz!  The even number is less of a coincidence and more of a protocol design choice.  
+Пошук найкращої частоти, до якої слід перевиділити, зводиться до бажаної кількості відліків на символ; працюємо у зворотному напрямку.  Припустімо, що ми хочемо 10 відліків на символ.  Помноживши швидкість символів RDS 1187,5 на 10, отримуємо 11,875 кГц — на жаль, цього недостатньо для Найквіста.  А якщо взяти 13 відліків на символ?  1187,5 × 13 = 15 437,5 Гц — більше ніж 15 кГц, але число незручне.  Наступний ступінь двійки — 16 відліків на символ.  1187,5 × 16 = рівно 19 кГц!  Така "красивість" числа — це не випадковість, а особливість протоколу.  
 
-To resample from 25 kHz to 19 kHz, we use :code:`resample_poly()` which upsamples by an integer value, filters, then downsamples by an integer value.  This is convenient because instead of entering in 25000 and 19000 we can use 25 and 19.  If we had used 13 samples per symbol by using a sample rate of 15437.5 Hz, we wouldn't be able to use :code:`resample_poly()` and the resampling process would be much more complicated.
+Щоб перевиділити з 25 кГц до 19 кГц, ми використовуємо :code:`resample_poly()`, який спершу збільшує частоту дискретизації на цілий множник, фільтрує, а потім зменшує її на інший цілий множник.  Це зручно, адже замість 25000 і 19000 можна працювати з 25 та 19.  Якби ми обрали 13 відліків на символ із частотою 15 437,5 Гц, :code:`resample_poly()` застосувати не вийшло б, і процес перевиділення був би значно складнішим.
 
-Once again, always remember to update your :code:`sample_rate` variable when performing an operation that changes it.
+І знову ж таки, не забувайте оновлювати змінну :code:`sample_rate` після кожної операції, що змінює частоту дискретизації.
 
 ***********************************
-Time Synchronization (Symbol-Level)
+Синхронізація в часі (рівень символів)
 ***********************************
 
 .. code-block:: python
@@ -222,17 +222,17 @@ Time Synchronization (Symbol-Level)
      i_out += 1 # increment output index
  x = out[2:i_out] # remove the first two, and anything after i_out (that was never filled out)
 
-We are finally ready for our symbol/time synchronization, here we will use the exact same Mueller and Muller clock synchronization code from the :ref:`sync-chapter` chapter, reference it if you want to learn more about how it works.  We set the sample per symbol (:code:`sps`) to 16 as discussed earlier.  A mu gain value of 0.01 was found via experimentation to work well.  The output should now be one sample per symbol, i.e., our output is our "soft symbols", with possible frequency offset included.  The following constellation plot animation is used to verify we are getting BPSK symbols (with a frequency offset causing rotation):
+Нарешті ми готові до синхронізації символів/часу.  Тут ми використаємо той самий алгоритм синхронізації годинника Мюллера—Мюллера з розділу :ref:`sync-chapter`; зверніться до нього, якщо хочете краще зрозуміти принцип роботи.  Кількість відліків на символ (:code:`sps`) встановлюємо рівною 16, як обговорювали раніше.  Значення підсилення μ = 0.01 було підібрано експериментально і працює добре.  Тепер вихід має містити один відлік на символ, тобто ми отримуємо "м’які символи", у яких може залишатися невеликий частотний зсув.  Наступна анімація сузір’я дозволяє переконатися, що ми справді бачимо символи BPSK (із обертанням через частотний зсув).
 
 .. image:: ../_images/constellation-animated.gif
    :scale: 80 % 
    :align: center
    :alt: Animation of BPSK rotating because fine frequency sync hasn't been performed yet
 
-If you are using your own FM signal and are not getting two distinct clusters of complex samples at this point, it means either the symbol sync above failed to achieve sync, or there is something wrong with one of the previous steps.  You don't need to animate the constellation, but if you plot it, make sure to avoid plotting all the samples, because it will just look like a circle.  If you plot only 100 or 200 samples at a time, you will get a better feel for whether they are in two clusters or not, even if they are spinning.
+Якщо ви використовуєте власний FM-сигнал і не бачите на цьому етапі двох окремих скупчень комплексних відліків, це означає або те, що синхронізація символів не спрацювала, або якась з попередніх стадій виконана некоректно.  Анімація сузір’я не обов’язкова, але якщо будуєте графік, не відображайте всі відліки одразу — вони утворять суцільне коло.  Побудувавши лише 100–200 відліків за раз, ви краще зрозумієте, чи справді утворюються два скупчення, навіть якщо вони обертаються.
 
 ********************************
-Fine Frequency Synchronization
+Точна частотна синхронізація
 ********************************
 
 .. code-block:: python
@@ -263,14 +263,14 @@ Fine Frequency Synchronization
          phase += 2*np.pi
  x = out
 
-We will also copy the fine frequency synchronization Python code from the :ref:`sync-chapter` chapter, which uses a Costas loop to remove any residual frequency offset, as well as align our BPSK to the real (I) axis, by forcing Q to be as close to zero as possible.  Anything left in Q is likely due to the noise in the signal, assuming the Costas loop was tuned properly.  Just for fun let's view the same animation as above except after the frequency synchronization has been performed (no more spinning!):
+Ми також використаємо код точної частотної синхронізації з розділу :ref:`sync-chapter`, де застосовується цикл Костаса для усунення залишкового частотного зсуву та вирівнювання сигналу BPSK уздовж дійсної (I) осі, змушуючи компоненту Q наближатися до нуля.  Якщо цикл Костаса налаштовано належним чином, усе, що залишається в Q, — це шум сигналу.  Для наочності погляньмо на ту саму анімацію сузір’я після виконання частотної синхронізації (жодного обертання!).
 
 .. image:: ../_images/constellation-animated-postcostas.gif
    :scale: 80 % 
    :align: center
    :alt: Animation of the frequency sync process using a Costas Loop
 
-Additionally, we can look at the estimated frequency error over time to see the Costas loop working, note how we logged it in the code above.  It appears that there was about 13 Hz of frequency offset, either due to the transmitter's oscillator/LO being off or the receiver's LO (most likely the receiver).  If you are using your own FM signal, you may need to tweak :code:`alpha` and :code:`beta` until the curve looks similar, it should achieve synchronization fairly quickly (e.g., a few hundred symbols) and maintain it with minimal oscillation.  The pattern you see below after it finds its steady state is frequency jitter, not oscillation.
+Крім того, можна подивитися на оцінку частотної помилки в часі, щоб побачити, як працює цикл Костаса; зверніть увагу, що ми зберігаємо ці дані в коді вище.  Здається, залишковий зсув становив приблизно 13 Гц — або через неточність генератора передавача, або приймача (імовірніше, приймача).  Якщо ви працюєте зі своїм сигналом, можливо, доведеться підлаштувати коефіцієнти :code:`alpha` і :code:`beta`, щоб крива виглядала подібно: синхронізація має досягатися досить швидко (наприклад, за кілька сотень символів) і підтримуватися без значних коливань.  Візерунок, який ви бачите після стабілізації, — це джиттер частоти, а не коливання.
 
 .. image:: ../_images/freq_error.png
    :scale: 40 % 
@@ -278,7 +278,7 @@ Additionally, we can look at the estimated frequency error over time to see the 
    :alt: The frequency sync process using a Costas Loop showing the estimated frequency offset over time
 
 ********************************
-Demodulate the BPSK
+Демодуляція BPSK
 ********************************
 
 .. code-block:: python
@@ -286,10 +286,10 @@ Demodulate the BPSK
  # Demod BPSK
  bits = (np.real(x) > 0).astype(int) # 1's and 0's
 
-Demodulating the BPSK at this point is very easy, recall that each sample represents one soft symbol, so all we have to do is check whether each sample is above or below 0.  The :code:`.astype(int)` is just so we can work with an array of ints instead of an array of bools.  You may wonder whether above/below zero represents a 1 or 0.  As you will see in the next step, it doesn't matter!
+На цьому етапі демодуляція BPSK дуже проста: кожен відлік відповідає одному м’якому символу, тож нам лишається лише перевірити, чи відлік більший або менший за 0.  Виклик :code:`.astype(int)` дозволяє працювати з масивом цілих чисел замість булевих значень.  Може виникнути питання, що саме означає значення вище чи нижче нуля — 1 чи 0.  Як ми побачимо на наступному кроці, це не має значення!
 
 ********************************
-Differential Decoding
+Диференціальне декодування
 ********************************
 
 .. code-block:: python
@@ -298,7 +298,7 @@ Differential Decoding
  bits = (bits[1:] - bits[0:-1]) % 2
  bits = bits.astype(np.uint8) # for decoder
 
-The BPSK signal used differential coding when it was created, which means that each 1 and 0 of the original data was transformed such that a change from 1 to 0 or 0 to 1 got mapped to a 1, and no change got mapped to a 0.  The nice benefit of using differential coding is so you don't have to worry about 180 degree rotations in receiving the BPSK, because whether we consider a 1 to be greater than zero or less than zero is no longer an impact, what matters is changing between 1 and 0.  This concept might be easier to understand by looking at example data, below shows the first 10 symbols before and after the differential decoding:
+Під час формування сигналу BPSK застосовувалося диференціальне кодування, тобто кожна одиниця й нуль вихідних даних перетворювалися так, що перехід з 1 у 0 або з 0 в 1 відповідав значенню 1, а відсутність зміни — значенню 0.  Перевага диференціального кодування полягає в тому, що нам не потрібно хвилюватися про поворот сигналу на 180 градусів: немає значення, вважаємо ми 1 більшою чи меншою за нуль — важливим є лише факт переходу між 1 та 0.  Щоб краще це відчути, подивімося на приклад нижче, який показує перші 10 символів до та після диференціального декодування:
 
 .. code-block:: python
 
@@ -306,14 +306,14 @@ The BPSK signal used differential coding when it was created, which means that e
  [- 0 0 0 1 1 1 0 1 0] # after differential decoding
 
 ********************************
-RDS Decoding
+Декодування RDS
 ********************************
 
-We finally have our bits of information, and we are ready to decode what they mean!  The massive block of code provided below is what we will use to decode the 1's and 0's into groups of bytes.  This part would make a lot more sense if we first created the transmitter portion of RDS, but for now just know that in RDS, bytes are grouped into groups of 12 bytes, where the first 8 represent the data and the last 4 act as a sync word (called "offset words").  The last 4 bytes are not needed by the next step (the parser) so we don't include them in the output.  This block of code takes in the 1's and 0's created above (in the form of a 1D array of uint8's) and outputs a list of lists of bytes (a list of 8 bytes where those 8 bytes are in a list).  This makes it convenient for the next step, which will iterate through the list of 8 bytes, one group of 8 at a time.
+Ми нарешті отримали біти інформації й готові розібратися, що вони означають!  Великий блок коду нижче перетворює наші 1 та 0 на групи байтів.  Було б набагато зрозуміліше, якби ми спершу створили передавальну частину RDS, але наразі достатньо знати, що байти RDS згруповані по 12: перші 8 містять дані, а останні 4 виконують роль синхрослова (так званих "offset words").  Останні 4 байти наступному кроку (парсеру) не потрібні, тому ми їх не передаємо.  Цей код отримує наші 1 та 0 (масив типу uint8) і повертає список списків із 8 байтів, що зручно для наступного етапу, де ми оброблятимемо групи по 8 байтів за раз.
 
-Most of the actual decoding code below revolves around syncing (at the byte level, not symbol) and error checking.  It works in blocks of 104 bits, each block is either received correctly or in error (using CRC to check), and every 50 blocks it checks whether more than 35 of them were received with error, in which case it resets everything and attempts to sync again.  The CRC is performed using a 10-bit check, with polynomial :math:`x^{10}+x^8+x^7+x^5+x^4+x^3+1`; this occurs when :code:`reg` is xor'ed with 0x5B9 which is the binary equivalent of that polynomial.  In Python, the bitwise operators for [and, or, not, xor] are :code:`& | ~ ^` respectively, exactly the same as C++. A left bit shift is :code:`x << y` (same as multiplying x by 2**y), and a right bit shift is :code:`x >> y` (same as dividing x by 2**y), also like in C++.  
+Більшість коду нижче присвячена синхронізації (на рівні байтів, а не символів) і перевірці помилок.  Дані обробляються блоками по 104 біти: кожен блок або приймається правильно, або містить помилку (це перевіряється за допомогою CRC).  Після кожних 50 блоків перевіряється, чи не було більше 35 помилкових; якщо так, усі змінні скидаються й алгоритм намагається синхронізуватися знову.  CRC виконується з використанням 10-бітного полінома :math:`x^{10}+x^8+x^7+x^5+x^4+x^3+1`, що реалізовано як XOR регістра :code:`reg` зі значенням 0x5B9 — двійковим представленням цього полінома.  У Python побітові оператори [and, or, not, xor] — це :code:`& | ~ ^`, як і в C++.  Зсув вліво :code:`x << y` дорівнює множенню на :math:`2^y`, а зсув вправо :code:`x >> y` еквівалентний діленню на :math:`2^y`, також як у C++.  
 
-Note, you **do not** need to go through all of this code, or any of it, especially if you are focusing on learning the physical (PHY) layer side of DSP and SDR, as this does *not* represent signal processing.  This code is simply an implementation of a RDS decoder, and essentially none of it can be reused for other protocols, because it's so specific to the way RDS works.  If you are already somewhat exhausted by this chapter, feel free to just skip this enormous block of code that has one fairly simple job but does it in a complex manner.
+Зауважте, що вам **не обов’язково** вчитуватися в увесь цей код, особливо якщо ви зосереджені на вивченні фізичного рівня DSP/SDR, адже тут немає сигнал-обробки.  Це просто реалізація декодера RDS, і практично нічого з нього не можна повторно використати для інших протоколів, настільки специфічним є сам RDS.  Якщо ви вже втомилися від цієї глави, сміливо пропускайте цей величезний блок коду: він виконує відносно просте завдання, але досить громіздко.
 
 .. code-block:: python
 
@@ -440,7 +440,7 @@ Note, you **do not** need to go through all of this code, or any of it, especial
                  blocks_counter = 0
                  wrong_blocks_counter = 0
 
-Below shows an example output from this decoding step, note how in this example it synced fairly quickly but then loses sync a couple times for some reason, although it's still able to parse all of the data as we'll see.  If you are using the downloadable 1M samples file, you will only see the first few lines below.  The actual contents of these bytes just look like random numbers/characters depending on how you display them, but in the next step we will parse them into human readable information!
+Нижче наведено приклад результатів цього етапу декодування: зверніть увагу, що в цьому випадку синхронізація встановлюється доволі швидко, але згодом кілька разів губиться, хоча дані все одно вдається розібрати.  Якщо ви використовуєте завантажуваний файл на 1 М відліків, побачите лише перші кілька рядків.  Самі байти виглядають як випадкові числа чи символи залежно від способу відображення, але вже на наступному кроці ми перетворимо їх на зрозумілу інформацію!
 
 .. code-block:: console
 
@@ -484,12 +484,12 @@ Below shows an example output from this decoding step, note how in this example 
  Still Sync-ed (Got  32  bad blocks on  50  total)
  
 ********************************
-RDS Parsing
+Розбір RDS
 ********************************
 
-Now that we have bytes, in groups of 8, we can extract the final data, i.e., the final output that is human understandable.  This is known as parsing the bytes, and just like the decoder in the previous section, it is simply an implementation of the RDS protocol, and is really not that important to understand.  Luckily it's not a ton of code, if you don't include the two tables defined at the start, which are simply the lookup tables for the type of FM channel and the coverage area.
+Тепер, коли ми маємо байти у групах по вісім, можемо витягти фінальні дані — тобто отримати результат, зрозумілий людині.  Цей процес називається розбором байтів і, як і декодер у попередньому розділі, є просто реалізацією протоколу RDS, тож заглиблюватися в нього не так уже й важливо.  На щастя, тут небагато коду, якщо не рахувати двох таблиць на початку, що слугують довідниками типів FM-каналу та зони покриття.
 
-For those who want to learn how this code works, I'll provide some added information.  The protocol uses this concept of an A/B flag, which means some messages are marked A and others B, and the parsing changes based on which one (whether it's A or B is stored in the third bit of the second byte).  It also uses different "group" types which are analogous to message type, and in this code we are only parsing message type 2, which is the message type that has the radio text in it, which is the interesting part, it's the text that scrolls across the screen in your car.  We will still be able to parse the channel type and region, as they are stored in every message.  Lastly, note that :code:`radiotext` is a string that gets initialized to all spaces, gets filled out slowly as bytes are parsed, and then resets to all spaces if a specific set of bytes is received.  If you are curious what other message types exist, the list is: ["BASIC", "PIN/SL", "RT", "AID", "CT", "TDC", "IH", "RP", "TMC", "EWS", "EON"]. The message "RT" is radiotext which is the only one we decode.  The RDS GNU Radio block decodes "BASIC" as well, but for the stations I used for testing it didn't contain much interesting information, and would have added a lot of lines to the code below.
+Тим, хто хоче зрозуміти роботу цього коду, наведу кілька додаткових пояснень.  Протокол використовує так званий прапорець A/B: одні повідомлення позначені як A, інші як B, і спосіб розбору залежить від цього прапорця (він зберігається в третьому біті другого байта).  Існують також різні типи "груп", аналогічні типам повідомлень; у цьому коді ми обробляємо лише групу типу 2, що містить так званий радіотекст — саме той рядок, який прокручується на дисплеї вашого автомобіля.  Водночас ми все ще можемо визначити тип каналу та регіон, адже ці поля є в кожному повідомленні.  Нарешті, зверніть увагу на змінну :code:`radiotext`: це рядок, який спочатку заповнений пробілами, поступово наповнюється символами під час розбору й скидається до пробілів, коли надходить певна комбінація байтів.  Якщо цікаво, які ще типи повідомлень існують, ось перелік: ["BASIC", "PIN/SL", "RT", "AID", "CT", "TDC", "IH", "RP", "TMC", "EWS", "EON"].  Ми декодуємо лише "RT" (radiotext).  Блок RDS у GNU Radio також розбирає "BASIC", але на станціях, які я використовував для тестування, у ньому не було нічого цікавого, а додавання його сюди суттєво збільшило б код.
 
 .. code-block:: python
 
@@ -597,7 +597,7 @@ For those who want to learn how this code works, I'll provide some added informa
          pass
          #print("unsupported group_type:", group_type)
 
-Below shows the output of the parsing step for an example FM station.  Note how it has to build the radiotext string over multiple messages, and then it periodically clears out the string and starts again.  If you are using the 1M sample downloaded file, you will only see the first few lines below.
+Нижче показано результат етапу розбору для прикладної FM-станції.  Зверніть увагу, що радіотекст формується протягом кількох повідомлень, а потім періодично очищується й починається спочатку.  Якщо ви використовуєте завантажений файл на 1 М відліків, то побачите лише перші кілька рядків.
 
 .. code-block:: console
 
@@ -628,10 +628,10 @@ Below shows the output of the parsing step for an example FM station.  Note how 
 
 
 ********************************
-Wrap-Up and Final Code
+Підсумок та фінальний код
 ********************************
 
-You did it!  Below is all of the code above, concatenated, it should work with the `test FM radio recording you can find here <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_, although you should be able to feed in your own signal as long as its received at a high enough SNR, simply tune to the station's center frequency and sample at a rate of 250 kHz.  If you find you had to make tweaks to get it to work with your own recording or live SDR, let me know what you had to do, you can submit it as a GitHub PR at `the textbook's GitHub page <https://github.com/777arc/PySDR>`_.  You can also find a version of this code with dozens of debug plotting/printing included, that I originally used to make this chapter, `here <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/rds_demo.py>`_.  
+Ви впоралися!  Нижче наведено весь код із цієї глави, зібраний докупи.  Він має працювати з `тестовим записом FM-радіо <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_, але ви також можете використати власний сигнал за умови достатнього SNR: просто налаштуйтеся на центральну частоту станції й дискретизуйте зі швидкістю 250 кГц.  Якщо вам довелося щось підправити, щоб код запрацював із вашим записом або живим SDR, дайте знати — можете створити pull request у `репозиторії підручника <https://github.com/777arc/PySDR>`_.  Також доступна версія цього коду з десятками відлагоджувальних графіків і виводів, яку я використовував під час написання глави, `за цим посиланням <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/rds_demo.py>`_.  
 
 .. raw:: html
 
@@ -966,9 +966,9 @@ You did it!  Below is all of the code above, concatenated, it should work with t
 
    </details>
 
-Once again, the example FM recording known to work with this code `can be found here <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_.
+Нагадаю, що приклад запису FM, з яким гарантовано працює цей код, `доступний за цим посиланням <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_.
 
-For those interested in demodulating the actual audio signal, just add the following lines right after the "Acquiring a Signal" section (special thanks to `Joel Cordeiro <http://github.com/joeugenio>`_ for the code):
+Якщо ви хочете демодулювати власне аудіосигнал, додайте наведені нижче рядки одразу після розділу "Отримання сигналу" (окрема подяка `Джоелу Кордейру <http://github.com/joeugenio>`_ за цей код):
 
 .. code-block:: python
 
@@ -997,20 +997,20 @@ For those interested in demodulating the actual audio signal, just add the follo
  # Save to wav file, you can open this in Audacity for example
  wavfile.write('fm.wav', int(sample_rate_audio), x)
 
-The most complicated part is the de-emphasis filter, `which you can learn about here <https://wiki.gnuradio.org/index.php/FM_Preemphasis>`_, although it's actually an optional step if you are OK with audio that has a poor bass/treble balance.  For those curious, here is what the frequency response of the `IIR <https://en.wikipedia.org/wiki/Infinite_impulse_response>`_ de-emphasis filter looks like, it doesn't fully filter out any frequencies, it's more of a "shaping" filter.
+Найскладніший етап — фільтр деемфази, `про який можна почитати тут <https://wiki.gnuradio.org/index.php/FM_Preemphasis>`_.  Втім, цей етап необов’язковий, якщо ви готові змиритися з дещо перекошеним балансом низьких та високих частот.  Тим, кому цікаво, нижче показано частотну характеристику фільтра деемфази типу `IIR <https://en.wikipedia.org/wiki/Infinite_impulse_response>`_: він не повністю відсікає якісь частоти, радше формує спектр.
 
 .. image:: ../_images/fm_demph_filter_freq_response.svg
    :align: center 
    :target: ../_images/fm_demph_filter_freq_response.svg
    
 ********************************
-Acknowledgments
+Подяки
 ********************************
 
-Most of the steps above used to receive RDS were adapted from the GNU Radio implementation of RDS, which lives in the GNU Radio Out-of-Tree Module called `gr-rds <https://github.com/bastibl/gr-rds>`_, originally created by Dimitrios Symeonidis and maintained by Bastian Bloessl, and I would like to acknowledge the work of these authors.  In order to create this chapter, I started with using gr-rds in GNU Radio, with a working FM recording, and slowly converted each of the blocks (including many built-in blocks) to Python.  It took quite a bit of time, there are some nuances to the built-in blocks that are easy to miss, and going from stream-style signal processing (i.e., using a work function that processes a few thousand samples at a time in a stateful manner) to a block of Python is not always straightforward.  GNU Radio is an amazing tool for this kind of prototyping and I would never have been able to create all of this working Python code without it.
+Більшість кроків, описаних вище для прийому RDS, були запозичені з реалізації RDS у GNU Radio — позадеревному модулі `gr-rds <https://github.com/bastibl/gr-rds>`_, який спершу створив Дімітріос Сіменідіс, а нині підтримує Бастіан Блессл.  Я хочу відзначити їхню роботу.  Під час написання цієї глави я почав із запуску gr-rds у GNU Radio з робочим FM-записом і поступово переніс кожен блок (включно з багатьма вбудованими) у Python.  Це забрало чимало часу: у стандартних блоків є нюанси, які легко проґавити, а перехід від потокової обробки (коли функція `work` обробляє кілька тисяч відліків за раз у стані) до суцільного блоку Python не завжди очевидний.  GNU Radio — неймовірний інструмент для такого прототипування, і без нього я б ніколи не створив весь цей робочий Python-код.
 
 ********************************
-Further Reading
+Додаткові матеріали
 ********************************
 
 #. https://en.wikipedia.org/wiki/Radio_Data_System

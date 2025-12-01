@@ -48,6 +48,19 @@ year = str(datetime.now().year)
 copyright = year + u', Marc Lichtman'
 author = u'Marc Lichtman'
 
+# Base URL used when generating fully-qualified links throughout the
+# documentation.  It defaults to the historical pysdr.org domain but can be
+# overridden (for example in GitHub Actions) by setting the PYSDR_BASEURL
+# environment variable.  The trailing slash simplifies concatenation when the
+# value is used inside the Jinja templates.
+pysdr_baseurl = os.environ.get('PYSDR_BASEURL', 'https://pysdr.org/')
+if not pysdr_baseurl.endswith('/'):
+    pysdr_baseurl += '/'
+
+html_context = {
+    'pysdr_baseurl': pysdr_baseurl,
+}
+
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
@@ -124,7 +137,7 @@ html_sidebars = {
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {'description':'By <a href="https://pysdr.org/content/about_author.html">Dr. Marc Lichtman</a> - marc@pysdr.org',
+html_theme_options = {'description':f'By <a href="{pysdr_baseurl}content/about_author.html">Dr. Marc Lichtman</a> - marc@pysdr.org',
                       'logo': 'logo.svg',
                       'logo_name': True, # used if the logo doesn't contain the project name itself
                       'fixed_sidebar': True, # on smaller screens you can't see the whole sidebar, and it won't scroll

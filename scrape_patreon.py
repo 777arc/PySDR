@@ -1,6 +1,10 @@
 import patreon
 import os
 
+BASE_URL = os.environ.get('PYSDR_BASEURL', 'https://pysdr.org/')
+if not BASE_URL.endswith('/'):
+    BASE_URL += '/'
+
 # needed by sphinx
 def setup(app):
     return
@@ -28,10 +32,10 @@ def scrape_patreon():
             if full_name == "Дмитрий Ступаков":
                 continue
             if full_name == "Al Grant":
-                names.append('Al Grant <img width="15px" height="12px" src="https://pysdr.org/_static/kiwi-bird.svg">')
+                names.append(f'Al Grant <img width="15px" height="12px" src="{BASE_URL}_static/kiwi-bird.svg">')
                 continue
             if full_name == "Hash" or full_name == "RECESSIM":
-                names.append(f'<a href="https://www.youtube.com/@RECESSIM" style="border-bottom: 0;" target="_blank">{full_name} <img width="15px" height="12px" src="https://pysdr.org/_static/hash.svg"></a>')
+                names.append(f'<a href="https://www.youtube.com/@RECESSIM" style="border-bottom: 0;" target="_blank">{full_name} <img width="15px" height="12px" src="{BASE_URL}_static/hash.svg"></a>')
                 continue
             names.append(full_name) # there's also 'first_name' which might be better for a public display name
         # Patreon Supporters
@@ -42,7 +46,7 @@ def scrape_patreon():
             html_string += '&#9900; ' + name + "<br />"
         # Organizations that are sponsoring (Manually added to get logo included)
         html_string += '<div style="margin-top: 5px;">and organization-level supporters:</div>'
-        html_string += '<img width="12px" height="12px" src="https://pysdr.org/_static/adi.svg">' + ' <a style="border-bottom: 0;" target="_blank" href="https://www.analog.com/en/design-center/reference-designs/circuits-from-the-lab/cn0566.html">Analog Devices, Inc.</a>' + "<br />"
+        html_string += f'<img width="12px" height="12px" src="{BASE_URL}_static/adi.svg">' + ' <a style="border-bottom: 0;" target="_blank" href="https://www.analog.com/en/design-center/reference-designs/circuits-from-the-lab/cn0566.html">Analog Devices, Inc.</a>' + "<br />"
         html_string += "</div>"
         with open("_templates/patrons.html", "w", encoding="utf-8") as patron_file:
             patron_file.write(html_string)

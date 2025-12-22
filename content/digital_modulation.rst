@@ -111,7 +111,7 @@ How do we actually create this signal digitally, through code?  All we have to d
    :target: ../_images/ask3.svg
    :alt: Samples per symbol depiction using 2-ASK in the time domain, with 10 samples per symbol (sps)
 
-The top plot shows the discrete samples represented by red dots, i.e., our digital signal.  The bottom plot shows what the resulting modulated signal looks like, which could be transmitted over the air.  In real systems, the frequency of the carrier is usually much much higher than the rate the symbols are changing.  In this example there are only 2.5 cycles of the sinusoid in each symbol, but in practice there may be thousands, depending on how high in the spectrum the signal is being transmitted.
+The top plot shows the discrete samples represented by red dots, i.e., our digital signal.  The bottom plot shows what the resulting modulated signal looks like, which could be transmitted over the air.  In real systems, the frequency of the carrier is usually much much higher than the rate the symbols are changing.  In this example there are only 2.5 cycles of the sinusoid in each symbol, but in practice there may be thousands, depending on how high in the spectrum the signal is being transmitted. For more information on ASK we recommend `this resource <https://ez.analog.com/ez-blogs/b/engineering-mind/posts/digital-signal-modulations-with-ask-rf-modulation-schemes-part-3-of-7>`_.
 
 ************************
 Phase Shift Keying (PSK)

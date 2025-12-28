@@ -88,5 +88,6 @@ textbook <https://www.analog.com/en/education/education-library/software-defined
 - `mrbloom <https://github.com/mrbloom>`_ за `переклад PySDR українською <https://pysdr.org/ukraine/index-ukraine.html>`_
 - `Yimin Zhao <https://github.com/doctormin>`_ за `переклад PySDR спрощеною китайською <https://pysdr.org/zh/index-zh.html>`_
 - `Eduardo Chancay <https://github.com/edulchan>`_ за `переклад PySDR іспанською <https://pysdr.org/es/index-es.html>`_
+- John Marcovici
 
 А також усім прихильникам `PySDR Patreon <https://www.patreon.com/PySDR>`_!

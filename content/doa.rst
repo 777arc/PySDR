@@ -304,14 +304,14 @@ At this point :code:`X` is a 2D array, size 3 x 10000 because we have three arra
    :align: center 
    :target: ../_images/doa_time_domain.svg
 
-Note the phase shifts between elements like we expect to happen (unless the signal arrives at boresight in which case it will reach all elements at the same time and there won't be a shift, set theta to 0 to see).  Element 0 appears to arrive first, with the others slightly delayed.  Try adjusting the angle and see what happens.
+Note the phase shifts between elements like we expect to happen (unless the signal arrives at boresight in which case it will reach all elements at the same time and there won't be a shift, set theta to 0 to see). Try adjusting the angle and see what happens.
 
 As one final step, let's add noise to this received signal, as every signal we will deal with has some amount of noise. We want to apply the noise after the steering vector is applied, because each element experiences an independent noise signal (we can do this because AWGN with a phase shift applied is still AWGN):
 
 .. code-block:: python
 
  n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
- X = X + 0.5*n # X and n are both 3x10000
+ X = X + 0.1*n # X and n are both 3x10000
 
 .. image:: ../_images/doa_time_domain_with_noise.svg
    :align: center 

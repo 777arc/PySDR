@@ -4,8 +4,6 @@ on: [pull_request]
 
 jobs:
   job1:
-    env:
-      PYSDR_BASEURL: https://distribtech.github.io/PySDR/
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code

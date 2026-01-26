@@ -33,6 +33,7 @@
    content/phaser
    content/cyclostationary
    content/pyqt
+   content/detection
    content/about_author
 
 .. raw:: html

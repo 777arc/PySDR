@@ -27,6 +27,20 @@ Once a system knows something is there, it needs to find exactly where the data 
 
 When a known signal, or preamble, is transmitted over a channel corrupted only by Additive White Gaussian Noise (AWGN), the task is to decide if the signal is present. This is the simplest yet most fundamental detection problem.
 
+Python Implementation of a Cross-Correlation
+########################################################
+
+A correlator in its simplest form is just a cross-correlation, which can be implemented in Python using NumPy's `correlate` function. Here's a basic example:
+
+.. code-block:: python
+
+    TODO
+
+Valid, Same, Full Modes
+#######################################
+
+TODO
+
 The Neyman-Pearson Detector
 ############################
 

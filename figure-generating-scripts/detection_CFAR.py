@@ -1,78 +1,92 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import correlate
 
-def generate_qpsk_packets(num_packets, samples_per_sym, preamble):
-    """Generates repeating QPSK packets with a fixed preamble."""
+def generate_qpsk_packets(num_packets, sps, preamble):
+    """Generates repeating QPSK packets with gaps and varying noise."""
     qpsk_map = np.array([1+1j, -1+1j, -1-1j, 1-1j]) / np.sqrt(2)
-    packet_data_len = 100
+    data_len = 200
+    gap_len = 100
     full_signal = []
     
-    for _ in range(num_packets):
-        data = qpsk_map[np.random.randint(0, 4, packet_data_len)]
-        packet = np.concatenate([preamble, data])
-        # Upsample (simple rectangular pulse for visualization)
-        upsampled = np.repeat(packet, samples_per_sym)
-        full_signal.extend(upsampled)
-        # Add gap between packets
-        full_signal.extend(np.zeros(50 * samples_per_sym))
+    # Pre-calculate preamble upsampled for correlation
+    upsampled_preamble = np.repeat(preamble, sps)
     
-    return np.array(full_signal)
+    for _ in range(num_packets):
+        data = qpsk_map[np.random.randint(0, 4, data_len)]
+        packet = np.concatenate([preamble, data])
+        full_signal.extend(np.repeat(packet, sps))
+        full_signal.extend(np.zeros(gap_len * sps))
+    
+    return np.array(full_signal), upsampled_preamble
 
 # 1. Setup Parameters
 sps = 4
-preamble_symbols = np.array([1+1j, 1+1j, -1-1j, -1-1j]) / np.sqrt(2) # Fixed preamble
-signal = generate_qpsk_packets(5, sps, preamble_symbols)
+preamble_syms = np.array([1+1j, 1+1j, -1-1j, -1-1j, 1-1j, -1+1j]) / np.sqrt(2)
+tx_signal, ref_preamble = generate_qpsk_packets(5, sps, preamble_syms)
 
-# 2. Add Time-Varying Noise Floor
-t = np.arange(len(signal))
-noise_envelope = 0.1 + 0.4 * np.sin(2 * np.pi * 0.0005 * t)**2 # Noise floor varies
-noise = (np.random.randn(len(signal)) + 1j*np.random.randn(len(signal))) * noise_envelope
-rx_signal = signal + noise
+# 2. Channel: Time-Varying Noise Floor
+t = np.arange(len(tx_signal))
+noise_env = 0.05 + 0.3 * np.sin(2 * np.pi * 0.0003 * t)**2
+noise = (np.random.randn(len(tx_signal)) + 1j*np.random.randn(len(tx_signal))) * noise_env
+rx_signal = tx_signal + noise
 
-# 3. CFAR Detection (Cell Averaging)
-def ca_cfar(data, num_train, num_guard, pfa):
-    """Performs CA-CFAR detection on input data."""
-    # Process power of signal (Square-law detector)
-    x = np.abs(data)**2
-    num_cells = len(x)
+# 3. Preamble Correlation
+# Correlation spike occurs when the reference matches the received segment
+corr_out = correlate(rx_signal, ref_preamble, mode='same')
+corr_power = np.abs(corr_out)**2
+
+# 4. CFAR Detection on Correlator Output
+def ca_cfar_adaptive(data, num_train, num_guard, pfa):
+    num_cells = len(data)
     thresholds = np.zeros(num_cells)
-    detections = []
+    alpha = num_train * (pfa**(-1/num_train) - 1)  # Scaling factor
     
-    # Alpha factor for CA-CFAR
-    alpha = num_train * (pfa**(-1/num_train) - 1)
+    half_window = (num_train + num_guard) // 2
+    guard_half = num_guard // 2
     
-    half_train = num_train // 2
-    half_guard = num_guard // 2
-    offset = half_train + half_guard
-    
-    for i in range(offset, num_cells - offset):
-        # Sliding window for noise estimation
-        training_cells = np.concatenate([
-            x[i-offset : i-half_guard], 
-            x[i+half_guard+1 : i+offset+1]
-        ])
-        noise_floor_est = np.mean(training_cells)
+    for i in range(half_window, num_cells - half_window):
+        # Extract training cells (excluding guard cells and CUT)
+        lagging_win = data[i - half_window : i - guard_half]
+        leading_win = data[i + guard_half + 1 : i + half_window + 1]
+        noise_floor_est = np.mean(np.concatenate([lagging_win, leading_win]))
+        
         thresholds[i] = alpha * noise_floor_est
         
-        if x[i] > thresholds[i]:
-            detections.append(i)
-            
-    return thresholds, np.array(detections)
+    return thresholds
 
-# Run Detector
-th, det_indices = ca_cfar(rx_signal, num_train=40, num_guard=10, pfa=1e-4)
+# Detect on correlator power
+cfar_thresholds = ca_cfar_adaptive(corr_power, num_train=60, num_guard=20, pfa=1e-5)
+detections = np.where(corr_power > cfar_thresholds)[0]
+# Filter detections to only include those where threshold is non-zero (avoid edges)
+detections = detections[cfar_thresholds[detections] > 0]
 
-# 4. Plotting Results
-plt.figure(figsize=(14, 6))
-plt.plot(np.abs(rx_signal)**2, label='Received Signal Power', alpha=0.6, color='gray')
-plt.plot(th, label='CFAR Adaptive Threshold', color='red', linewidth=1.5)
-if len(det_indices) > 0:
-    plt.scatter(det_indices, np.abs(rx_signal[det_indices])**2, color='lime', label='Detections', zorder=5, s=20)
+# 5. Visualization
+plt.figure(figsize=(14, 8))
 
-plt.title("CFAR Detection with Time-Varying Noise Floor")
-plt.xlabel("Samples")
+# Subplot 1: Received Signal and Raw Power
+plt.subplot(2, 1, 1)
+plt.plot(np.abs(rx_signal)**2, color='gray', alpha=0.4, label='Rx Signal Power ($|r(t)|^2$)')
+plt.title("Time-Domain Received Signal")
 plt.ylabel("Power")
-plt.legend(loc='upper right')
-plt.grid(True, linestyle='--', alpha=0.7)
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+# Subplot 2: Correlator Output vs Adaptive Threshold
+plt.subplot(2, 1, 2)
+plt.plot(corr_power, label='Correlator Output $|r(t) * p^*(-t)|^2$', color='blue')
+plt.plot(cfar_thresholds, label='CFAR Adaptive Threshold', color='red', linestyle='--', linewidth=1.5)
+
+# Overlay detections
+if len(detections) > 0:
+    plt.scatter(detections, corr_power[detections], color='lime', edgecolors='black', 
+                label='Detections (Preamble Found)', zorder=5)
+
+plt.title("Preamble Correlator Output with Adaptive CFAR Threshold")
+plt.xlabel("Sample Index")
+plt.ylabel("Correlation Power")
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
 plt.savefig('../_images/detection_cfar.svg', bbox_inches='tight')
 plt.show()

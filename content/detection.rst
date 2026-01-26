@@ -16,21 +16,19 @@ Signal Detection: Making the First "Call"
 
 Signal detection is the task of deciding whether an observed energy spike is a meaningful signal or just background noise.
 
-The Challenge – In systems like radar or sonar, noise is everywhere. If the detector is too sensitive, it creates "False Alarms." If it's not sensitive enough, it "Misses" the actual target.
+The Challenge - In systems like radar or sonar, noise is everywhere. If the detector is too sensitive, it creates "False Alarms." If it's not sensitive enough, it "Misses" the actual target.
 
-The Solutions – The first and simplest option is the Neyman-Pearson Detector, which provides a mathematical "sweet spot" by maximizing the chance of finding a signal while keeping false alarms below a strictly defined limit. A second option is to use the CFAR (Constant False Alarm Rate) approach. CFAR detectors are used in situations where the noise statistics are not stationary; i.e., the noise floor and noise distribution change due to interference and evolving channel conditions. The goal is to automatically adjust the detection threshold as the background noise fluctuates. This involves estimating the noise floor over time.
+The Solutions - The first and simplest option is the Neyman-Pearson Detector, which provides a mathematical "sweet spot" by maximizing the chance of finding a signal while keeping false alarms below a strictly defined limit. A second option is to use the CFAR (Constant False Alarm Rate) approach. CFAR detectors are used in situations where the noise statistics are not stationary; i.e., the noise floor and noise distribution change due to interference and evolving channel conditions. The goal is to automatically adjust the detection threshold as the background noise fluctuates. This involves estimating the noise floor over time.
 
 Preamble Correlators: Finding the Handshake
 ####################################################
 
 Once a system knows something is there, it needs to find exactly where the data starts. Digital packets in LTE, 5G, or WiFi begin with a "preamble"—a known, repeated digital pattern. A Preamble Correlator acts like a "lock and key" mechanism. It slides a copy of the expected preamble over the incoming signal; when they align perfectly, a sharp spike occurs, telling the receiver exactly when to start reading the data. Advanced versions even account for "Frequency Offsets"—the slight tuning differences between your phone and a cell tower.
 
-Basic Detection of Preamble Signals in AWGN
-####################################################
-
 When a known signal, or preamble, is transmitted over a channel corrupted only by Additive White Gaussian Noise (AWGN), the task is to decide if the signal is present. This is the simplest yet most fundamental detection problem.
 
 The Neyman-Pearson Detector
+############################
 
 The theoretical gold standard for this decision is the Neyman-Pearson detector. This powerful criterion helps us make an optimal decision under a specific constraint: it finds a decision threshold that maximizes the probability of detection, :math:`P_{D}`, for a fixed, acceptable level of the probability of false alarm, :math:`P_{FA}`. In simple terms, you decide the maximum number of false detections you can tolerate (e.g., one false alarm per hour), and the Neyman-Pearson detector tells you the best threshold to use to catch the most actual signals possible. For detecting a known preamble in AWGN, this detector uses a simple approach: it computes a correlation value between the received signal and the known preamble pattern. If this value exceeds a predetermined threshold :math:`\tau`, it declares the signal is present, denoted as :math:`H_{1}`; otherwise, it assumes only noise is present, or :math:`H_{0}`.
 
@@ -84,12 +82,11 @@ While the Neyman-Pearson detector is optimal for a fixed noise level, real-world
 Common Use Cases
 ##########################
 
-
 CFAR detectors are the workhorses of systems where an unpredictable background makes a fixed threshold impossible to maintain:
 
-   - Radar and Sonar: Used to detect targets (planes, submarines) against "clutter"—reflections from waves, rain, or land that change as the sensor moves.
-   - Wireless Communications: In Cognitive Radio and LTE/5G systems, CFAR helps identify available spectrum or detect incoming packets when interference from other devices is bursty and unpredictable.
-   - Medical Imaging: Used in automated ultrasound or MRI analysis to distinguish actual tissue features from varying levels of electronic noise.
+- Radar and Sonar: Used to detect targets (planes, submarines) against "clutter"—reflections from waves, rain, or land that change as the sensor moves.
+- Wireless Communications: In Cognitive Radio and LTE/5G systems, CFAR helps identify available spectrum or detect incoming packets when interference from other devices is bursty and unpredictable.
+- Medical Imaging: Used in automated ultrasound or MRI analysis to distinguish actual tissue features from varying levels of electronic noise.
 
 Choosing the Right Threshold
 #######################################
@@ -113,15 +110,109 @@ The Math: If your per-lag :math:`P_{FA}` is :math:`p`, the probability of at lea
 
 The Consequence: If you have 1,000 lags and a per-lag :math:`P_{FA}` of 0.001, your system will actually report a false alarm almost 63% of the time you search! To keep the system-level false alarm rate low, the per-lag :math:`P_{FA}` must be set to an extremely small value.
 
+Python Example
+###############
+
+As a way to play around with our own CFAR detector, we'll first simulate a scenario that invovles transmitting repeating QPSK packets with a known preamble over a channel with a time-varying noise floor. We'll then implement a simple Cell-Averaging CFAR (CA-CFAR) algorithm to detect the preambles in the received signal.  The following Python code generates the received signal:
+
+.. code-block:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy.signal import correlate
+
+    def generate_qpsk_packets(num_packets, sps, preamble):
+        """Generates repeating QPSK packets with gaps and varying noise."""
+        qpsk_map = np.array([1+1j, -1+1j, -1-1j, 1-1j]) / np.sqrt(2)
+        data_len = 200
+        gap_len = 100
+        full_signal = []
+        
+        # Pre-calculate preamble upsampled for correlation
+        upsampled_preamble = np.repeat(preamble, sps)
+        
+        for _ in range(num_packets):
+            data = qpsk_map[np.random.randint(0, 4, data_len)]
+            packet = np.concatenate([preamble, data])
+            full_signal.extend(np.repeat(packet, sps))
+            full_signal.extend(np.zeros(gap_len * sps))
+        
+        return np.array(full_signal), upsampled_preamble
+
+    # Setup Parameters
+    sps = 4
+    preamble_syms = np.array([1+1j, 1+1j, -1-1j, -1-1j, 1-1j, -1+1j]) / np.sqrt(2)
+    tx_signal, ref_preamble = generate_qpsk_packets(5, sps, preamble_syms)
+
+    # Channel: Time-Varying Noise Floor
+    t = np.arange(len(tx_signal))
+    noise_env = 0.05 + 0.3 * np.sin(2 * np.pi * 0.0003 * t)**2
+    noise = (np.random.randn(len(tx_signal)) + 1j*np.random.randn(len(tx_signal))) * noise_env
+    rx_signal = tx_signal + noise
+
+The first step is doing a single correlation of the received signal against the known preamble, in practice this is usually done in batches of samples, but we will do it in one batch for now:
+
+.. code-block:: python
+
+    # Preamble Correlation, Correlation spike occurs when the reference matches the received segment
+    corr_out = correlate(rx_signal, ref_preamble, mode='same')
+    corr_power = np.abs(corr_out)**2
+
+TODO: look at just the raw output of this step
+
+Now we will implement the CFAR detector, apply it to the correlator output, and visualize the results:
+
+.. code-block:: python
+
+    # CFAR Detection on Correlator Output
+    def ca_cfar_adaptive(data, num_train, num_guard, pfa):
+        num_cells = len(data)
+        thresholds = np.zeros(num_cells)
+        alpha = num_train * (pfa**(-1/num_train) - 1)  # Scaling factor
+        half_window = (num_train + num_guard) // 2
+        guard_half = num_guard // 2
+        for i in range(half_window, num_cells - half_window):
+            # Extract training cells (excluding guard cells and CUT)
+            lagging_win = data[i - half_window : i - guard_half]
+            leading_win = data[i + guard_half + 1 : i + half_window + 1]
+            noise_floor_est = np.mean(np.concatenate([lagging_win, leading_win]))
+            thresholds[i] = alpha * noise_floor_est
+        return thresholds
+
+    # Detect on correlator power
+    cfar_thresholds = ca_cfar_adaptive(corr_power, num_train=60, num_guard=20, pfa=1e-5)
+    detections = np.where(corr_power > cfar_thresholds)[0]
+    # Filter detections to only include those where threshold is non-zero (avoid edges)
+    detections = detections[cfar_thresholds[detections] > 0]
+
+    # Subplot 1: Received Signal and Raw Power
+    plt.figure(figsize=(14, 8))
+    plt.subplot(2, 1, 1)
+    plt.plot(np.abs(rx_signal)**2, color='gray', alpha=0.4, label='Rx Signal Power ($|r(t)|^2$)')
+    plt.title("Time-Domain Received Signal")
+    plt.ylabel("Power")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+
+    # Subplot 2: Correlator Output vs Adaptive Threshold
+    plt.subplot(2, 1, 2)
+    plt.plot(corr_power, label='Correlator Output $|r(t) * p^*(-t)|^2$', color='blue')
+    plt.plot(cfar_thresholds, label='CFAR Adaptive Threshold', color='red', linestyle='--', linewidth=1.5)
+    if len(detections) > 0: # Overlay detections
+        plt.scatter(detections, corr_power[detections], color='lime', edgecolors='black', label='Detections (Preamble Found)', zorder=5)
+    plt.title("Preamble Correlator Output with Adaptive CFAR Threshold")
+    plt.xlabel("Sample Index")
+    plt.ylabel("Correlation Power")
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.show()
+
 .. image:: ../_images/detection_cfar.svg
    :align: center 
    :target: ../_images/detection_cfar.svg
    :alt: CFAR Detector Output Example
 
-.. image:: ../_images/detection_cfar2.svg
-   :align: center 
-   :target: ../_images/detection_cfar2.svg
-   :alt: CFAR Detector Output Example 2
+
 
 Frequency Offset Resilient Preamble Correlators
 ####################################################

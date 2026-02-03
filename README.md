@@ -1,8 +1,6 @@
-# PySDR Textbook Source Material
+# PySDR
 
-This repo contains the source content used to generate the textbook [PySDR: A Guide to SDR and DSP using Python](https://pysdr.org) hosted at https://pysdr.org.
-
-Feel free to submit an issue, or even a Pull Request (PR) with fixes or improvements.  Those who submit valuable feedback/fixes be permanently added to the acknowledgments section.  Not good at Git but have changes to suggest?  Feel free to email Marc at marc@pysdr.org.
+[PySDR: A Guide to SDR and DSP using Python](https://pysdr.org) is a guide to software-defined radio (SDR) and RF signal processing using Python code examples, live at https://pysdr.org.  It is a free online textbook that provides a gentle introduction to wireless communications and SDR using an abundance of diagrams, animations, and code examples. From FFTs to filters to digital modulation to receiving and transmitting from SDRs in Python, PySDR has you covered!  This repo specifically contains the source content used to generate the textbook, including the body text and Python scripts to generate the figures.  For questions/comments/suggestions feel free to submit an issue at the top of this page, or if you want to propose a change to the textbook (e.g. fix or improvement), you can use a Pull Request.  Those who submit valuable feedback/fixes be permanently added to the acknowledgments section.  Not good at Git but have changes to suggest?  Feel free to email Marc at marc@pysdr.org.
 
 <p align="center">
   <img width="200" src="https://raw.githubusercontent.com/777arc/PySDR/master/_images/fft_logo_wide.gif" />

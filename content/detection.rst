@@ -60,13 +60,13 @@ Note that we are using a *very* low SNR, in fact it's so low that if you look at
    :target: ../_images/detection_basic_1.svg
    :alt: Time Domain Signal with Zadoff-Chu Sequence
 
-Now we can implement the correlator by performing a cross-correlation of the received signal against our known Zadoff-Chu sequence, using np.correlate().  This assumes the receiver is aware of the exact preamble that was used; :code:`zadoff_chu` in our code initially was created to simulate a scenario, but now it's also going to represent a template preamble that the receiver uses in its correlator.  The correlator can be implemented in one line of Python:
+Now we can implement the correlator by performing a cross-correlation of the received signal against our known Zadoff-Chu sequence, using :code:`np.correlate()`.  This assumes the receiver is aware of the exact preamble that was used; :code:`zadoff_chu` in our code initially was created to simulate a scenario, but now it's also going to represent a template preamble that the receiver uses in its correlator.  The correlator can be implemented in one line of Python:
 
 .. code-block:: python
 
  correlation = np.correlate(signal, zadoff_chu, mode='valid')
 
-We will also normalize the output by the length of the sequence, and take the magnitude squared to get the power, although you could also just take the magnitude and leave it at that, and it would work fine, the important part is the :code:`np.correlate()` operation.
+The :code:`valid` portion will be addressed shortly.  We will also normalize the output by the length of the sequence, and take the magnitude squared to get the power, although you could also just take the magnitude and leave it at that, and it would work fine, the important part is the :code:`np.correlate()` operation.
 
 .. code-block:: python
 
@@ -79,13 +79,13 @@ Below we plot the magnitude squared and annotate the actual starting position of
    :target: ../_images/detection_basic_2.svg
    :alt: Correlator Output
 
-Even though the SNR is very low, we can see a very clear spike in the correlator output exactly where the Zadoff-Chu sequence was placed!  This is the power of correlation-based detection, combined with a very long preamble.  Note that we have not yet set any sort of threshold for how to decide if this spike is "real" or just noise, instead we are just visually inspecting the output.  However, the bulk of this chapter revolves around how to come up with the best threshold, especially when the noise floor and background interference is constantly changing.
+Even though the SNR is very low, we can see a very clear spike in the correlator output exactly where the Zadoff-Chu sequence was placed!  This shows us the *start* of the sequence; the 839 samples starting at that spike contain the sequence.  This is the power of correlation-based detection, combined with a very long preamble.  Note that we have not yet set any sort of threshold for how to decide if this spike is our signal of interest or just noise, instead we are visually inspecting the output, to automate the process we would need a threshold.  However, the bulk of this chapter revolves around how to come up with the best threshold, especially when the noise floor and background interference is constantly changing.
 
 
 Valid, Same, Full Modes
 #######################################
 
-TODO
+You may have noticed that the :code:`np.correlate()` function, as well as :code:`np.convolve()`, have three different modes: :code:`valid`, :code:`same`, and :code:`full`.  These modes determine the length of the output array compared to the input arrays.  In our case, we used :code:`valid`, which means that the output only contains points where the two input arrays fully overlap.  This results in an output length of :code:`len(signal) - len(zadoff_chu) + 1`.  If we had used :code:`same`, the output would be the same length as the (longer) input signal, and if we had used :code:`full`, the output would be the full discrete linear convolution, resulting in a slightly longer output array of length :code:`max(M, N) - min(M, N) + 1` where :code:`M` and :code:`N` are the lengths of the two input arrays.  In a lot of RF signal processing, we use a convolution to apply an FIR filter, and it is convenient when the input and output are the same length, so we often use :code:`same` in those cases.  However, for correlation-based detection, we typically want to use :code:`valid`, since we only care about the points where the preamble fully overlaps with the received signal, especially if we assume that the signal does not start until after we start receiving.
 
 The Neyman-Pearson Detector
 ############################

@@ -11,7 +11,7 @@ Detection using Correlation
 In this chapter, we learn how to detect the presence of signals by cross-correlating received samples with a portion of the signal known to us, such as the preamble of a packet. This method inherently leads to a simple form of classification, using a bank of correlators. We introduce the fundamental concepts of signal detection, focusing on how to decide if a specific signal is present or absent in a noisy environment. We explore the theoretical foundations and practical techniques for making optimal decisions amidst uncertainty.
 
 ****************************************************
-Signal Detection: Making the First "Call"
+Signal Detection and Correlator Basics
 ****************************************************
 
 Signal detection is the task of deciding whether an observed energy spike is a meaningful signal or just background noise.
@@ -81,7 +81,6 @@ Below we plot the magnitude squared and annotate the actual starting position of
 
 Even though the SNR is very low, we can see a very clear spike in the correlator output exactly where the Zadoff-Chu sequence was placed!  This shows us the *start* of the sequence; the 839 samples starting at that spike contain the sequence.  This is the power of correlation-based detection, combined with a very long preamble.  Note that we have not yet set any sort of threshold for how to decide if this spike is our signal of interest or just noise, instead we are visually inspecting the output, to automate the process we would need a threshold.  However, the bulk of this chapter revolves around how to come up with the best threshold, especially when the noise floor and background interference is constantly changing.
 
-
 Valid, Same, Full Modes
 #######################################
 
@@ -90,14 +89,9 @@ You may have noticed that the :code:`np.correlate()` function, as well as :code:
 The Neyman-Pearson Detector
 ############################
 
-The theoretical gold standard for this decision is the Neyman-Pearson detector. This powerful criterion helps us make an optimal decision under a specific constraint: it finds a decision threshold that maximizes the probability of detection, :math:`P_{D}`, for a fixed, acceptable level of the probability of false alarm, :math:`P_{FA}`. In simple terms, you decide the maximum number of false detections you can tolerate (e.g., one false alarm per hour), and the Neyman-Pearson detector tells you the best threshold to use to catch the most actual signals possible. For detecting a known preamble in AWGN, this detector uses a simple approach: it computes a correlation value between the received signal and the known preamble pattern. If this value exceeds a predetermined threshold :math:`\tau`, it declares the signal is present, denoted as :math:`H_{1}`; otherwise, it assumes only noise is present, or :math:`H_{0}`.
+The gold standard for deciding on a good threshold to compare our correlator output against is the Neyman-Pearson detector. This powerful piece of theory helps us make an optimal decision under a specific constraint: it finds a decision threshold that maximizes the probability of detection, :math:`P_{D}`, for a fixed, acceptable level of the probability of false alarm, :math:`P_{FA}`. In simple terms, you decide the maximum number of false detections you can tolerate (e.g., one false alarm per hour), and the Neyman-Pearson detector tells you the best threshold to use to catch the most actual signals possible. For detecting a known preamble in AWGN, this detector uses a simple approach: it computes a correlation value between the received signal and the known preamble pattern. If this value exceeds a predetermined threshold :math:`\tau`, it declares the signal is present, otherwise it assumes only noise is present.
 
-Basic Formulas for Probability of Detection and False Alarm
-#################################################################
-
-The performance of this detector—measured by :math:`P_{D}` and :math:`P_{FA}`—depends on the threshold (:math:`\tau`), the signal-to-noise ratio (SNR), and the preamble length (:math:`L`).
-
-Assuming the preamble is a sequence of :math:`L` complex symbols, the probability of a false alarm is a function of the threshold and the noise variance, :math:`\sigma_n^2`:
+The performance of this detector, measured by :math:`P_{D}` and :math:`P_{FA}`, depends on the threshold :math:`\tau`, the SNR, and the preamble length :math:`L`. The probability of a false alarm is a function of the threshold and the noise variance, :math:`\sigma_n^2`:
 
 :math:`P_{FA} = Q\left(\frac{\tau}{\sigma_n}\right)`
 
@@ -107,31 +101,19 @@ The probability of detection is a function of the threshold, noise variance, and
 
 Here, :math:`Q(x)` is the Q-function (the tail probability of the standard normal distribution), representing the probability that a standard normal random variable exceeds :math:`x`.
 
-Performance Analysis: ROC and Pd vs. SNR Curves
+Performance Analysis: ROC Curves and Pd vs. SNR Curves
 #################################################################
 
 To quantify how well a correlator detector performs in the presence of noise, engineers rely on two primary visualizations: the Receiver Operating Characteristic (ROC) curve and the Probability of Detection (:math:`P_{d}`) vs. SNR curve.
 
-The ROC Curve: Balancing Sensitivity and Specificity
-#################################################################
-
-The ROC curve plots the Probability of Detection (:math:`P_{d}`) against the Probability of False Alarm (:math:`P_{fa}`) for a fixed SNR. The Trade-off: By adjusting the detection threshold at the correlator output, you choose a point on this curve. A lower threshold increases :math:`P_{d}` (finding the signal) but also increases :math:`P_{fa}` (triggering on noise). Performance Metric: The "bow" of the curve toward the top-left corner indicates detector quality. A perfect detector reaches the top-left (100% :math:`P_{d}`, 0% :math:`P_{fa}`), while a diagonal line represents a random guess.
+The ROC curve plots the Probability of Detection (:math:`P_{d}`) against the Probability of False Alarm (:math:`P_{fa}`) for a fixed SNR. By adjusting the detection threshold at the correlator output, you choose a point on this curve, it's a trade-off. A lower threshold increases :math:`P_{d}` (finding the signal) but also increases :math:`P_{fa}` (triggering on noise). The "bow" of the curve toward the top-left corner indicates detector quality. A perfect detector reaches the top-left (100% :math:`P_{d}`, 0% :math:`P_{fa}`), while a diagonal line represents a random guess.
 
 .. image:: ../_images/detection_pd_vs_snr.svg
    :align: center 
    :target: ../_images/detection_pd_vs_snr.svg
    :alt: Pd vs SNR Curve and ROC curve
 
-The Significance of Preamble Length and Processing Gain
-#################################################################
-
-The preamble length (:math:`L`) is a critical design parameter because it directly controls a system's processing gain and, therefore, its detection performance.
-
-Impact on Performance: As shown in the formulas above, :math:`P_{D}` increases with :math:`L` for a fixed threshold and SNR. A longer preamble means more signal energy can be collected, making it easier to distinguish the signal from the background noise.
-
-Processing Gain: The increase in performance due to a longer preamble is known as the processing gain. It is often measured as :math:`10\log_{10}(L)` in decibels (dB). This gain is crucial for detecting weak signals that might otherwise be missed. In essence, by integrating energy over more samples, we can pull signals out of noise that are even below the noise floor.
-
-
+Based on the above equations (also, intuition), we can see that the preamble length :math:`L` is a critical design parameter because it directly controls a system's processing gain and, therefore, its detection performance.  :math:`P_{D}` increases with :math:`L` for a fixed threshold and SNR. A longer preamble means more signal energy can be collected, making it easier to distinguish the signal from the background noise.  The increase in performance due to a longer preamble is known as the "processing gain". It is often measured in dB, as :math:`10\log_{10}(L)`. This gain is crucial for detecting weak signals that might otherwise be missed. In essence, by integrating energy over more samples, we can pull signals out of noise that are even below the noise floor.
 
 ****************************************************
 CFAR Detectors: Thriving in Changing Environments
@@ -139,17 +121,11 @@ CFAR Detectors: Thriving in Changing Environments
 
 While the Neyman-Pearson detector is optimal for a fixed noise level, real-world conditions are rarely that stable. In a dynamic environment—like a radar tracking a plane through rain or a wireless receiver in a crowded city—the background noise and interference levels fluctuate constantly. This is where the Constant False Alarm Rate (CFAR) detector becomes essential.
 
-Common Use Cases
-##########################
-
 CFAR detectors are the workhorses of systems where an unpredictable background makes a fixed threshold impossible to maintain:
 
 - Radar and Sonar: Used to detect targets (planes, submarines) against "clutter"—reflections from waves, rain, or land that change as the sensor moves.
 - Wireless Communications: In Cognitive Radio and LTE/5G systems, CFAR helps identify available spectrum or detect incoming packets when interference from other devices is burst-y and unpredictable.
 - Medical Imaging: Used in automated ultrasound or MRI analysis to distinguish actual tissue features from varying levels of electronic noise.
-
-Choosing the Right Threshold
-#######################################
 
 The "C" in CFAR stands for Constant because the goal is to keep the Probability of False Alarm (:math:`P_{FA}`) at a steady, predictable level.
 
@@ -279,24 +255,17 @@ Frequency Offset Resilient Preamble Correlators
 
 Detecting a preamble becomes a multi-dimensional search problem when the center frequency is unknown. In a perfectly synchronized system, a coherent correlator acts as a matched filter, maximizing the SNR. However, frequency offsets introduce a time-varying phase rotation that decorrelates the signal from the local template, leading to a catastrophic loss of detection sensitivity.
 
-The Challenge of Frequency Uncertainty
-#######################################
-
 The impact of frequency offset :math:`\Delta f` depends on its magnitude relative to the preamble duration (:math:`T_{p}`):
 
 Slightly Shifted (Doppler/Clock Drift): Typically caused by local oscillator (LO) ppm inaccuracies or low-velocity motion. Here, :math:`\Delta f \cdot T_{p} \ll 1`. The correlation peak is slightly attenuated, but the timing can still be recovered.
 
 Completely Unknown: Common in "cold start" satellite acquisitions or high-dynamic UAV links. If the phase rotates by more than :math:`180^{\circ}` over the preamble (:math:`\Delta f > 1/(2T_{p})`), the coherent sum can actually null out to zero, making detection impossible regardless of the SNR.
 
-Quantifying Loss: The Dirichlet Function
-####################################################
-
 The loss in correlation magnitude due to a frequency offset is described by the Dirichlet kernel (or the periodic sinc function). As the frequency offset increases, the coherent sum of rotated vectors follows this sinc-like roll-off.
 
 The Correlation Loss Formula: The loss in dB can be approximated by:
 
 :math:`L_{dB}(\Delta f) = 20 \log_{10} \left| \frac{\sin(\pi \Delta f N T_{s})}{N \sin(\pi \Delta f T_{s})} \right|`
-
 
 Where:
 
@@ -306,8 +275,8 @@ Where:
 
 Explanation: As :math:`\Delta f` increases, the numerator oscillates while the denominator grows, creating "nulls" in the detector's sensitivity. For a standard correlator, the first null occurs at :math:`\Delta f = 1/(N T_{s})`. If your offset is half of the bin width, you suffer approximately 3.9 dB of loss, significantly degrading your effective SNR and :math:`P_{d}`. 
 
-Methods for Resilience
-##########################
+Methods for Resilience to Frequency Offsets
+###########################################
 
 A. Coherent Segmented Correlator
 
@@ -345,16 +314,10 @@ Trade-off: This provides the best SNR performance (full coherent gain) but is th
    :target: ../_images/detection_freq_offset2.svg
    :alt: Frequency Offset Impact on Correlation
 
-Efficient Implementation
-##########################
-
 Time-Domain Tapping: Samples are convolved with a fixed set of weights. In a frequency search, this requires a separate FIR bank for every frequency bin. This is efficient for short preambles on FPGAs using Xilinx DSP48 slices.
 Frequency-Domain (FFT) Processing: To perform a search, you take the FFT of the incoming signal and the preamble. Multiplication in the frequency domain is equivalent to correlation.
 The "Frequency Shift Trick": To test different frequency offsets, you don't need multiple FFTs. You can simply circularly shift the FFT bins of the preamble relative to the signal before performing the point-wise multiplication and IFFT.
 Chunking: For continuous streams, the Overlap-Save or Overlap-Add methods are used to process data in chunks without losing the correlation peaks at the edges of the FFT windows. 
-
-Summary
-#############
 
 Frequency offset resilience is a trade-off between processing gain and computational complexity. Non-coherent segmented correlation is the most robust for high-uncertainty environments but requires a higher link margin. Coherent segmented and brute-force FFT searches provide superior sensitivity but require significantly more hardware resources. Understanding the Dirichlet-driven loss is critical for determining the necessary "bin density" in any frequency-searching receiver. 
 

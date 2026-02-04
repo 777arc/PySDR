@@ -30,7 +30,7 @@ When a known signal, or preamble, is transmitted over a channel corrupted only b
 Python Implementation of a Cross-Correlation
 ########################################################
 
-A correlator in its simplest form is just a cross-correlation, which can be implemented in Python using NumPy's `correlate` function.  In order to put together a basic Python example of a correlator, we first need to create an example signal with a known preamble embedded in noise. We will use a Zadoff-Chu sequence as our known preamble due to its excellent correlation properties and common use in communication systems.  We won't bother with any other "data" portion of the signal, but in most systems there will be unknown data following the known preamble.  We can generate a Zadoff-Chu sequence as follows:
+A correlator in its simplest form is just a cross-correlation, which can be implemented in Python using NumPy's :code:`correlate` function.  In order to put together a basic Python example of a correlator, we first need to create an example signal with a known preamble embedded in noise. We will use a Zadoff-Chu sequence as our known preamble due to its excellent correlation properties and common use in communication systems.  We won't bother with any other "data" portion of the signal, but in most systems there will be unknown data following the known preamble.  We can generate a Zadoff-Chu sequence as follows:
 
 .. code-block:: python
 
@@ -53,18 +53,23 @@ The resulting sequence *is* a signal, the IQ samples of :code:`zadoff_chu` repre
     signal = np.sqrt(noise_power/2) * (np.random.randn(signal_length) + 1j * np.random.randn(signal_length))
     signal[offset:offset+N] += zadoff_chu # place our ZC signal at the random offset
 
-Note that we are using a *very* low SNR, in fact it's so low that if you look at the time domain signal you won't be able to see the Zadoff-Chu sequence at all!  
+Note that we are using a *very* low SNR, in fact it's so low that if you look at the time domain signal you won't be able to see the Zadoff-Chu sequence at all!  Our Zadoff-Chu sequence is 839 samples long, out of the ~8000 simulated samples, and it's buried so deep into the noise that you can't even see a slight increase in signal magnitude.
 
 .. image:: ../_images/detection_basic_1.svg
    :align: center 
    :target: ../_images/detection_basic_1.svg
    :alt: Time Domain Signal with Zadoff-Chu Sequence
 
-Now we can implement the correlator by performing a cross-correlation of the received signal against our known Zadoff-Chu sequence, using np.correlate().  We will also normalize the output by the length of the sequence, and take the magnitude squared to get the power, although you could also just take the magnitude and leave it at that, and it would work fine, the important part is the :code:`np.correlate()` operation.
+Now we can implement the correlator by performing a cross-correlation of the received signal against our known Zadoff-Chu sequence, using np.correlate().  This assumes the receiver is aware of the exact preamble that was used; :code:`zadoff_chu` in our code initially was created to simulate a scenario, but now it's also going to represent a template preamble that the receiver uses in its correlator.  The correlator can be implemented in one line of Python:
 
 .. code-block:: python
 
  correlation = np.correlate(signal, zadoff_chu, mode='valid')
+
+We will also normalize the output by the length of the sequence, and take the magnitude squared to get the power, although you could also just take the magnitude and leave it at that, and it would work fine, the important part is the :code:`np.correlate()` operation.
+
+.. code-block:: python
+
  correlation = np.abs(correlation / N)**2 # normalize by N, and take magnitude squared
 
 Below we plot the magnitude squared and annotate the actual starting position of the sequence to see if the correlator was able to find it:
@@ -140,7 +145,7 @@ Common Use Cases
 CFAR detectors are the workhorses of systems where an unpredictable background makes a fixed threshold impossible to maintain:
 
 - Radar and Sonar: Used to detect targets (planes, submarines) against "clutter"—reflections from waves, rain, or land that change as the sensor moves.
-- Wireless Communications: In Cognitive Radio and LTE/5G systems, CFAR helps identify available spectrum or detect incoming packets when interference from other devices is bursty and unpredictable.
+- Wireless Communications: In Cognitive Radio and LTE/5G systems, CFAR helps identify available spectrum or detect incoming packets when interference from other devices is burst-y and unpredictable.
 - Medical Imaging: Used in automated ultrasound or MRI analysis to distinguish actual tissue features from varying levels of electronic noise.
 
 Choosing the Right Threshold
@@ -168,7 +173,7 @@ The Consequence: If you have 1,000 lags and a per-lag :math:`P_{FA}` of 0.001, y
 Python Example
 ###############
 
-As a way to play around with our own CFAR detector, we'll first simulate a scenario that invovles transmitting repeating QPSK packets with a known preamble over a channel with a time-varying noise floor. We'll then implement a simple Cell-Averaging CFAR (CA-CFAR) algorithm to detect the preambles in the received signal.  The following Python code generates the received signal:
+As a way to play around with our own CFAR detector, we'll first simulate a scenario that involves transmitting repeating QPSK packets with a known preamble over a channel with a time-varying noise floor. We'll then implement a simple Cell-Averaging CFAR (CA-CFAR) algorithm to detect the preambles in the received signal.  The following Python code generates the received signal:
 
 .. code-block:: python
 
@@ -364,7 +369,7 @@ Energy Spreading and Noise Camouflage
 
 Spectral Thinning: Because the total power remains constant, spreading it over a broad frequency range drastically lowers the Power Spectral Density (PSD).
 Below the Noise Floor: This "thinning" effect can drive the signal level below the thermal noise floor, making it nearly invisible to conventional narrow-band receivers.
-Signal Recovery: While the signal looks like background noise to others, a correlator detector at the intended receiver applies the same chip sequence to "despread" the energy, concentrating it back into the original narrow bandwidth while simultaneously spreading out any narrow-band interference. 
+Signal Recovery: While the signal looks like background noise to others, a correlator detector at the intended receiver applies the same chip sequence to "de-spread" the energy, concentrating it back into the original narrow bandwidth while simultaneously spreading out any narrow-band interference. 
 
 The Role of Auto-Correlation Properties
 ####################################################

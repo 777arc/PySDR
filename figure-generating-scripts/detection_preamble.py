@@ -21,7 +21,7 @@ N_data = 1000         # Data symbol length
 sps = 4               # Samples per symbol
 roll_off = 0.35       # SRRC roll-off factor
 snr_db_list = [-20, -15, -10, -5, 0]  # SNR values for ROC
-mc_trials = 1000      # Monte Carlo trials per SNR
+mc_trials = 10000      # Monte Carlo trials per SNR
 
 # 1. Generate QPSK Signal
 qpsk_map = np.array([1+1j, -1+1j, -1-1j, 1-1j]) / np.sqrt(2)
@@ -37,9 +37,10 @@ tx_signal = np.convolve(upsampled_symbols, pulse, mode='same')
 
 # 3. Monte Carlo Simulation for ROC Curves
 plt.figure(figsize=(12, 5))
-thresholds = np.linspace(0, 2, 50)
+thresholds = np.linspace(0, 2, 200)
 
 for snr_db in snr_db_list:
+    print(f"Simulating for SNR={snr_db}dB...")
     pd_curve = []
     pfa_curve = []
     

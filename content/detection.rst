@@ -20,10 +20,7 @@ The Challenge - In systems like radar or sonar, noise is everywhere. If the dete
 
 The Solutions - The first and simplest option is the Neyman-Pearson Detector, which provides a mathematical "sweet spot" by maximizing the chance of finding a signal while keeping false alarms below a strictly defined limit. A second option is to use the CFAR (Constant False Alarm Rate) approach. CFAR detectors are used in situations where the noise statistics are not stationary; i.e., the noise floor and noise distribution change due to interference and evolving channel conditions. The goal is to automatically adjust the detection threshold as the background noise fluctuates. This involves estimating the noise floor over time.
 
-Preamble Correlators: Finding the Handshake
-####################################################
-
-Once a system knows something is there, it needs to find exactly where the data starts. Digital packets in LTE, 5G, or WiFi begin with a "preamble"—a known, repeated digital pattern. A Preamble Correlator acts like a "lock and key" mechanism. It slides a copy of the expected preamble over the incoming signal; when they align perfectly, a sharp spike occurs, telling the receiver exactly when to start reading the data. Advanced versions even account for "Frequency Offsets"—the slight tuning differences between your phone and a cell tower.
+Once a system knows something is there, it needs to find exactly where the data starts. Digital packets in LTE, 5G, or WiFi begin with a "preamble"—a known, repeated digital pattern. A Preamble Correlator acts like a "lock and key" mechanism. It slides a copy of the expected preamble over the incoming signal; when they align perfectly, a sharp spike occurs, telling the receiver exactly when to start reading the data. Advanced versions even account for frequency offsets, the slight tuning differences between your phone and a cell tower.
 
 When a known signal, or preamble, is transmitted over a channel corrupted only by Additive White Gaussian Noise (AWGN), the task is to decide if the signal is present. This is the simplest yet most fundamental detection problem.
 
@@ -148,15 +145,15 @@ While the Neyman-Pearson detector is optimal for a fixed noise level, real-world
 
 CFAR detectors are the workhorses of systems where an unpredictable background makes a fixed threshold impossible to maintain:
 
-- Radar and Sonar: Used to detect targets (planes, submarines) against "clutter"—reflections from waves, rain, or land that change as the sensor moves.
-- Wireless Communications: In Cognitive Radio and LTE/5G systems, CFAR helps identify available spectrum or detect incoming packets when interference from other devices is burst-y and unpredictable.
-- Medical Imaging: Used in automated ultrasound or MRI analysis to distinguish actual tissue features from varying levels of electronic noise.
+- Radar and Sonar are used to detect targets (planes, submarines) against "clutter"—reflections from waves, rain, or land that change as the sensor moves.
+- Wireless Communications, such as Cognitive Radio and LTE/5G systems, use CFAR to help identify available spectrum or detect incoming packets when interference from other devices is burst-y and unpredictable.
+- Medical Imaging applies CFAR in automated ultrasound or MRI analysis to distinguish actual tissue features from varying levels of electronic noise.
 
 The "C" in CFAR stands for Constant because the goal is to keep the Probability of False Alarm (:math:`P_{FA}`) at a steady, predictable level.
 
-Noise Distribution: To set a threshold, you must assume a statistical model for the noise. In simple AWGN, noise follows a Gaussian distribution. However, in radar clutter, it might follow a Rayleigh or Weibull distribution. If your model is wrong, your :math:`P_{FA}` will "drift," causing the system to either go blind or be overwhelmed by false triggers.
+To set a threshold, you must assume a statistical model for the noise, which is called the noise distribution. In simple AWGN, noise follows a Gaussian distribution. However, in radar clutter, it might follow a Rayleigh or Weibull distribution. If your model is wrong, your :math:`P_{FA}` will "drift," causing the system to either go blind or be overwhelmed by false triggers.
 
-The Adaptive Threshold: Instead of a hard-coded value, a CFAR detector estimates the noise power in the local "neighborhood" of the signal. It then multiplies this estimate by a scaling factor (:math:`T`) derived from your desired :math:`P_{FA}`. This ensures that as the noise floor rises, the threshold rises with it. 
+Instead of a hard-coded value, a CFAR detector estimates the noise power in the local "neighborhood" of the signal and multiplies this estimate by a scaling factor (:math:`T`) derived from your desired :math:`P_{FA}`. This ensures that as the noise floor rises, the threshold rises with it. 
 
 Per-Lag vs. System-Level False Alarm Rates
 ####################################################
@@ -167,9 +164,9 @@ Per-Lag :math:`P_{FA}`: This is the probability that a single specific correlati
 
 System-Level (Global) :math:`P_{FA}`: This is the probability that the system triggers at least one false alarm during an entire search window (e.g., across 2,048 lags).
 
-The Math: If your per-lag :math:`P_{FA}` is :math:`p`, the probability of at least one false alarm over :math:`N` lags is approximately :math:`1-(1-p)^{N}`.
+Mathematically, if your per-lag :math:`P_{FA}` is :math:`p`, the probability of at least one false alarm over :math:`N` lags is approximately :math:`1-(1-p)^{N}`.
 
-The Consequence: If you have 1,000 lags and a per-lag :math:`P_{FA}` of 0.001, your system will actually report a false alarm almost 63% of the time you search! To keep the system-level false alarm rate low, the per-lag :math:`P_{FA}` must be set to an extremely small value.
+As a consequence, if you have 1,000 lags and a per-lag :math:`P_{FA}` of 0.001, your system will actually report a false alarm almost 63% of the time you search! To keep the system-level false alarm rate low, the per-lag :math:`P_{FA}` must be set to an extremely small value.
 
 Python Example
 ###############
@@ -284,11 +281,11 @@ The impact of frequency offset :math:`\Delta f` depends on its magnitude relativ
 
 Slightly Shifted (Doppler/Clock Drift): Typically caused by local oscillator (LO) ppm inaccuracies or low-velocity motion. Here, :math:`\Delta f \cdot T_{p} \ll 1`. The correlation peak is slightly attenuated, but the timing can still be recovered.
 
-Completely Unknown: Common in "cold start" satellite acquisitions or high-dynamic UAV links. If the phase rotates by more than :math:`180^{\circ}` over the preamble (:math:`\Delta f > 1/(2T_{p})`), the coherent sum can actually null out to zero, making detection impossible regardless of the SNR.
+In cases where the frequency offset is completely unknown, such as in "cold start" satellite acquisitions or high-dynamic UAV links, if the phase rotates by more than :math:`180^{\circ}` over the preamble (:math:`\Delta f > 1/(2T_{p})`), the coherent sum can actually null out to zero, making detection impossible regardless of the SNR.
 
 The loss in correlation magnitude due to a frequency offset is described by the Dirichlet kernel (or the periodic sinc function). As the frequency offset increases, the coherent sum of rotated vectors follows this sinc-like roll-off.
 
-The Correlation Loss Formula: The loss in dB can be approximated by:
+The loss in dB due to frequency offset can be approximated by the following formula:
 
 :math:`L_{dB}(\Delta f) = 20 \log_{10} \left| \frac{\sin(\pi \Delta f N T_{s})}{N \sin(\pi \Delta f T_{s})} \right|`
 
@@ -298,7 +295,7 @@ Where:
    - :math:`T_{s}`: Symbol period.
    - :math:`\Delta f`: Frequency offset in Hz.
 
-Explanation: As :math:`\Delta f` increases, the numerator oscillates while the denominator grows, creating "nulls" in the detector's sensitivity. For a standard correlator, the first null occurs at :math:`\Delta f = 1/(N T_{s})`. If your offset is half of the bin width, you suffer approximately 3.9 dB of loss, significantly degrading your effective SNR and :math:`P_{d}`. 
+As :math:`\Delta f` increases, the numerator oscillates while the denominator grows, creating "nulls" in the detector's sensitivity. For a standard correlator, the first null occurs at :math:`\Delta f = 1/(N T_{s})`. If your offset is half of the bin width, you suffer approximately 3.9 dB of loss, significantly degrading your effective SNR and :math:`P_{d}`. 
 
 Methods for Resilience to Frequency Offsets
 ###########################################
@@ -317,18 +314,18 @@ Segments are correlated coherently, but their magnitudes are summed, discarding 
 
 :math:`Y_{non-coh} = \sum_{m=0}^{M-1} \left| \sum_{k=0}^{L-1} r[k+mL] \cdot p^{*}[k] \right|^{2}`
 
-Trade-off: This is extremely robust to frequency offsets (up to :math:`1/(L T_{s})`). However, it suffers from Non-Coherent Integration Loss. Summing magnitudes instead of complex values allows noise to accumulate faster than the signal, effectively reducing the "post-detection" SNR.
+This approach is extremely robust to frequency offsets (up to :math:`1/(L T_{s})`). However, it suffers from Non-Coherent Integration Loss. Summing magnitudes instead of complex values allows noise to accumulate faster than the signal, effectively reducing the "post-detection" SNR.
 
 C. Brute-Force Frequency Search
 
 The receiver runs multiple parallel correlators, each shifted by a discrete frequency :math:`\Delta f_{i}`.
 
-Trade-off: This provides the best SNR performance (full coherent gain) but is the most computationally expensive. The "bin spacing" must be tight enough (based on the Dirichlet formula) to ensure the worst-case loss between bins is acceptable (e.g., < 1 dB).
+This method provides the best SNR performance (full coherent gain) but is the most computationally expensive. The "bin spacing" must be tight enough (based on the Dirichlet formula) to ensure the worst-case loss between bins is acceptable (e.g., < 1 dB).
 
-Time-Domain Tapping: Samples are convolved with a fixed set of weights. In a frequency search, this requires a separate FIR bank for every frequency bin. This is efficient for short preambles on FPGAs using Xilinx DSP48 slices.
+In time-domain tapping, samples are convolved with a fixed set of weights. In a frequency search, this requires a separate FIR bank for every frequency bin. This is efficient for short preambles on FPGAs using Xilinx DSP48 slices.
 Frequency-Domain (FFT) Processing: To perform a search, you take the FFT of the incoming signal and the preamble. Multiplication in the frequency domain is equivalent to correlation.
 The "Frequency Shift Trick": To test different frequency offsets, you don't need multiple FFTs. You can simply circularly shift the FFT bins of the preamble relative to the signal before performing the point-wise multiplication and IFFT.
-Chunking: For continuous streams, the Overlap-Save or Overlap-Add methods are used to process data in chunks without losing the correlation peaks at the edges of the FFT windows. 
+For continuous streams, chunking methods such as Overlap-Save or Overlap-Add are used to process data in chunks without losing the correlation peaks at the edges of the FFT windows. 
 
 Frequency offset resilience is a trade-off between processing gain and computational complexity. Non-coherent segmented correlation is the most robust for high-uncertainty environments but requires a higher link margin. Coherent segmented and brute-force FFT searches provide superior sensitivity but require significantly more hardware resources. Understanding the Dirichlet-driven loss is critical for determining the necessary "bin density" in any frequency-searching receiver. 
 
@@ -350,16 +347,17 @@ The Role of Auto-Correlation Properties
 
 Choosing the right sequence is critical for synchronization and multipath rejection. Ideally, a sequence should have perfect auto-correlation; a high peak when perfectly aligned and near-zero values at any other time offset. Sharp auto-correlation peaks allow the receiver to lock onto the signal with sub-chip timing accuracy.  If a signal reflects off a building and arrives late, good auto-correlation ensures the receiver treats the delayed version as uncorrelated noise rather than destructive interference, thus mitigating multipath.
 
+
 Common Spreading Sequences
 ##########################
 
-Different applications require different mathematical properties in their sequences:
+Different applications require different mathematical properties in their sequences. Some examples include:
 
-- Barker Codes: Known for having the best possible auto-correlation properties for short lengths (up to 13), famously used in 802.11b Wi-Fi.
-- M-Sequences (Maximal Length): Generated using linear-feedback shift registers (LFSRs), these provide excellent randomness and auto-correlation over very long periods.
-- Gold Codes: Derived from pairs of m-sequences, these offer a large set of sequences with controlled cross-correlation, making them the standard for GPS and CDMA where multiple signals must coexist.
-- Zadoff-Chu (ZC) Sequences: These complex-valued sequences have constant amplitude and zero auto-correlation for all non-zero shifts, and are now a staple in LTE and 5G for synchronization.
-- Kasami Codes: Similar to Gold codes but with even lower cross-correlation for a given sequence length, used in high-density environments.
+- Barker Codes, which are known for having the best possible auto-correlation properties for short lengths (up to 13), and are famously used in 802.11b Wi-Fi.
+- M-Sequences (Maximal Length), generated using linear-feedback shift registers (LFSRs), provide excellent randomness and auto-correlation over very long periods.
+- Gold Codes, derived from pairs of m-sequences, offer a large set of sequences with controlled cross-correlation, making them the standard for GPS and CDMA where multiple signals must coexist.
+- Zadoff-Chu (ZC) Sequences are complex-valued sequences with constant amplitude and zero auto-correlation for all non-zero shifts, and are now a staple in LTE and 5G for synchronization.
+- Kasami Codes are similar to Gold codes but have even lower cross-correlation for a given sequence length, making them useful in high-density environments.
 
 Chip-Timing Synchronization in DSSS
 ####################################################

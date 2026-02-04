@@ -27,10 +27,35 @@ Once a system knows something is there, it needs to find exactly where the data 
 
 When a known signal, or preamble, is transmitted over a channel corrupted only by Additive White Gaussian Noise (AWGN), the task is to decide if the signal is present. This is the simplest yet most fundamental detection problem.
 
-Python Implementation of a Cross-Correlation
+The Cross-Correlation Function
+###############################
+
+A correlator in its simplest form is just a cross-correlation between a received signal and a template of what to search for.  A cross-correlation is a dot product between two vectors as one vector slides across the other.  If you learned about the convolution operation, it's exactly the same except you don't flip the second vector, so it's actually slightly simpler.  For complex signals, which is what we'll be dealing with, you also have to complex conjugate one of the inputs.  In Python this can be implemented as follows:
+
+.. code-block:: python
+
+    def correlate(a, v):
+        n = len(a)
+        m = len(v)
+        result = []
+        for i in range(n - m + 1):
+            s = 0
+            for j in range(m):
+                s += a[i + j] * v[j].conjugate()
+            result.append(s)
+        return result
+
+    # Example usage:
+    a = [1+2j, 2+1j, 3+0j, 4-1j, 5-2j]
+    v = [0+1j, 1+0j, 0.5-0.5j]
+    correlate(a, v)
+
+Note how we slide :code:`a` and complex conjugate :code:`v`, and how the loop involving :code:`j` and :code:`s` is actually just a vector dot product.  Luckily we don't have to implement a cross-correlation from scratch, in Python we can use NumPy's :code:`correlate` function (there is also a SciPy version that you're welcome to play with).  
+
+Python Example of a Cross-Correlation
 ########################################################
 
-A correlator in its simplest form is just a cross-correlation, which can be implemented in Python using NumPy's :code:`correlate` function.  In order to put together a basic Python example of a correlator, we first need to create an example signal with a known preamble embedded in noise. We will use a Zadoff-Chu sequence as our known preamble due to its excellent correlation properties and common use in communication systems.  We won't bother with any other "data" portion of the signal, but in most systems there will be unknown data following the known preamble.  We can generate a Zadoff-Chu sequence as follows:
+In order to put together a basic Python example of a correlator, we first need to create an example signal with a known preamble embedded in noise. We will use a Zadoff-Chu sequence as our known preamble due to its excellent correlation properties and common use in communication systems.  We won't bother with any other "data" portion of the signal, but in most systems there will be unknown data following the known preamble.  We can generate a Zadoff-Chu sequence as follows:
 
 .. code-block:: python
 
@@ -282,8 +307,6 @@ A. Coherent Segmented Correlator
 
 The preamble of length :math:`N` is divided into :math:`M` segments of length :math:`L = N/M`. Each segment is correlated coherently, and the results are combined by compensating for the phase drift between segments.
 
-Mathematical Representation:
-
 :math:`Y_{coh} = \sum_{m=0}^{M-1} \left( \sum_{k=0}^{L-1} r[k+mL] \cdot p^{*}[k] \right) e^{-j \hat{\phi}_m}`
 
 Where :math:`\hat{\phi}_m` is an estimate of the phase rotation for that segment. This preserves the SNR gain of a full-length preamble but requires an accurate frequency estimate to align the phases.
@@ -291,8 +314,6 @@ Where :math:`\hat{\phi}_m` is an estimate of the phase rotation for that segment
 B. Non-Coherent Segmented Correlator
 
 Segments are correlated coherently, but their magnitudes are summed, discarding phase information.
-
-Mathematical Representation:
 
 :math:`Y_{non-coh} = \sum_{m=0}^{M-1} \left| \sum_{k=0}^{L-1} r[k+mL] \cdot p^{*}[k] \right|^{2}`
 
@@ -304,16 +325,6 @@ The receiver runs multiple parallel correlators, each shifted by a discrete freq
 
 Trade-off: This provides the best SNR performance (full coherent gain) but is the most computationally expensive. The "bin spacing" must be tight enough (based on the Dirichlet formula) to ensure the worst-case loss between bins is acceptable (e.g., < 1 dB).
 
-.. image:: ../_images/detection_freq_offset.svg
-   :align: center 
-   :target: ../_images/detection_freq_offset.svg
-   :alt: Frequency Offset Impact on Correlation
-
-.. image:: ../_images/detection_freq_offset2.svg
-   :align: center 
-   :target: ../_images/detection_freq_offset2.svg
-   :alt: Frequency Offset Impact on Correlation
-
 Time-Domain Tapping: Samples are convolved with a fixed set of weights. In a frequency search, this requires a separate FIR bank for every frequency bin. This is efficient for short preambles on FPGAs using Xilinx DSP48 slices.
 Frequency-Domain (FFT) Processing: To perform a search, you take the FFT of the incoming signal and the preamble. Multiplication in the frequency domain is equivalent to correlation.
 The "Frequency Shift Trick": To test different frequency offsets, you don't need multiple FFTs. You can simply circularly shift the FFT bins of the preamble relative to the signal before performing the point-wise multiplication and IFFT.
@@ -321,52 +332,83 @@ Chunking: For continuous streams, the Overlap-Save or Overlap-Add methods are us
 
 Frequency offset resilience is a trade-off between processing gain and computational complexity. Non-coherent segmented correlation is the most robust for high-uncertainty environments but requires a higher link margin. Coherent segmented and brute-force FFT searches provide superior sensitivity but require significantly more hardware resources. Understanding the Dirichlet-driven loss is critical for determining the necessary "bin density" in any frequency-searching receiver. 
 
+TODO: Explain this plot
+
+.. image:: ../_images/detection_freq_offset.svg
+   :align: center 
+   :target: ../_images/detection_freq_offset.svg
+   :alt: Frequency Offset Impact on Correlation
+
 *****************************************************************
-Correlator Detectors in DSSS: Hiding in Plain Sight
+Detecting Direct Sequence Spread Spectrum (DSSS) Signals
 *****************************************************************
 
-In a Direct Sequence Spread Spectrum (DSSS) system, the correlator detector acts as the vital link that pulls a meaningful signal out of what appears to be random noise. By leveraging a high-rate chip sequence (or "chipping code"), the system spreads the signal's energy across a much wider bandwidth than the original data requires. 
-
-Energy Spreading and Noise Camouflage
-####################################################
-
-Spectral Thinning: Because the total power remains constant, spreading it over a broad frequency range drastically lowers the Power Spectral Density (PSD).
-Below the Noise Floor: This "thinning" effect can drive the signal level below the thermal noise floor, making it nearly invisible to conventional narrow-band receivers.
-Signal Recovery: While the signal looks like background noise to others, a correlator detector at the intended receiver applies the same chip sequence to "de-spread" the energy, concentrating it back into the original narrow bandwidth while simultaneously spreading out any narrow-band interference. 
+In a Direct Sequence Spread Spectrum (DSSS) system, the correlator detector acts as the vital link that pulls a meaningful signal out of what appears to be random noise. By leveraging a high-rate chip sequence (or "chipping code"), the system spreads the signal's energy across a much wider bandwidth than the original data requires. Because the total power remains constant, spreading it over a broad frequency range drastically lowers the Power Spectral Density (PSD).  This "spectral thinning" effect can drive the signal level below the thermal noise floor, making it nearly invisible to conventional narrow-band receivers.  While the signal looks like background noise to others, a correlator detector at the intended receiver applies the same chip sequence to "de-spread" the energy, concentrating it back into the original narrow bandwidth while simultaneously spreading out any narrow-band interference, allowing for reliable detection even in extremely noisy environments (both for the intended receiver and for eavesdroppers who are aware of the chip sequence).
 
 The Role of Auto-Correlation Properties
-####################################################
+########################################
 
-Choosing the right sequence is critical for synchronization and multipath rejection. Ideally, a sequence should have perfect auto-correlation: a high peak when perfectly aligned and near-zero values at any other time offset. 
-Timing Precision: Sharp auto-correlation peaks allow the receiver to lock onto the signal with sub-chip timing accuracy.
-Multipath Mitigation: If a signal reflects off a building and arrives late, good auto-correlation ensures the receiver treats the delayed version as uncorrelated noise rather than destructive interference.
+Choosing the right sequence is critical for synchronization and multipath rejection. Ideally, a sequence should have perfect auto-correlation; a high peak when perfectly aligned and near-zero values at any other time offset. Sharp auto-correlation peaks allow the receiver to lock onto the signal with sub-chip timing accuracy.  If a signal reflects off a building and arrives late, good auto-correlation ensures the receiver treats the delayed version as uncorrelated noise rather than destructive interference, thus mitigating multipath.
 
 Common Spreading Sequences
 ##########################
 
-
 Different applications require different mathematical properties in their sequences:
 
-   - Barker Codes: Known for having the best possible auto-correlation properties for short lengths (up to 13), famously used in 802.11b Wi-Fi.
-   - M-Sequences (Maximal Length): Generated using linear-feedback shift registers (LFSRs), these provide excellent randomness and auto-correlation over very long periods.
-   - Gold Codes: Derived from pairs of m-sequences, these offer a large set of sequences with controlled cross-correlation, making them the standard for GPS and CDMA where multiple signals must coexist.
-   - Zadoff-Chu (ZC) Sequences: These complex-valued sequences have constant amplitude and zero auto-correlation for all non-zero shifts, and are now a staple in LTE and 5G for synchronization.
-   - Kasami Codes: Similar to Gold codes but with even lower cross-correlation for a given sequence length, used in high-density environments.
+- Barker Codes: Known for having the best possible auto-correlation properties for short lengths (up to 13), famously used in 802.11b Wi-Fi.
+- M-Sequences (Maximal Length): Generated using linear-feedback shift registers (LFSRs), these provide excellent randomness and auto-correlation over very long periods.
+- Gold Codes: Derived from pairs of m-sequences, these offer a large set of sequences with controlled cross-correlation, making them the standard for GPS and CDMA where multiple signals must coexist.
+- Zadoff-Chu (ZC) Sequences: These complex-valued sequences have constant amplitude and zero auto-correlation for all non-zero shifts, and are now a staple in LTE and 5G for synchronization.
+- Kasami Codes: Similar to Gold codes but with even lower cross-correlation for a given sequence length, used in high-density environments.
 
 Chip-Timing Synchronization in DSSS
 ####################################################
 
-In a DSSS system, the receiver's ability to recover data is entirely dependent on its synchronization with the incoming chip sequence. Because chips are much shorter than data bits, even a small fractional timing error—where the receiver samples "between" chips—can significantly degrade the correlation peak.
+In a DSSS system, the receiver's ability to recover data is entirely dependent on its synchronization with the incoming chip sequence. Because chips are much shorter than data bits, even a small fractional timing error—where the receiver samples "between" chips—can significantly degrade the correlation peak. We can play around with the impact of a fractional timing offset by simulating a simple DSSS system and plotting the correlation output as we vary the timing offset from 0 to 1 chip.  Note that we don't do a full correlation here, we just do a dot product at 0 lag, because we know that will be the position of the peak.
+
+.. code-block:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # Barker 11 sequence: +1, -1, +1, +1, -1, +1, +1, +1, -1, -1, -1
+    barker11 = np.array([1, -1, 1, 1, -1, 1, 1, 1, -1, -1, -1])
+    samples_per_chip = 100
+
+    # Upsample the sequence to simulate continuous-ish time
+    sig = np.repeat(barker11, samples_per_chip)
+
+    offsets = np.linspace(-1.5, 1.5, 500) # Fractional chip offsets
+    peaks = []
+
+    for offset in offsets:
+        # Shift the signal by a fractional number of chips (converted to samples)
+        shift_samples = int(offset * samples_per_chip)
+        if shift_samples > 0:
+            shifted_sig = np.pad(sig, (shift_samples, 0))[:len(sig)]
+        elif shift_samples < 0:
+            shifted_sig = np.pad(sig, (0, abs(shift_samples)))[abs(shift_samples):]
+        else:
+            shifted_sig = sig
+            
+        # Compute normalized correlation at zero lag for this specific offset
+        correlation = np.vdot(sig, shifted_sig) / np.vdot(sig, sig)
+        peaks.append(np.abs(correlation))
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(offsets, peaks, label='Normalized Correlation', color='blue', linewidth=2)
+    plt.axvline(0, color='red', linestyle='--', alpha=0.5, label='Perfect Alignment')
+    plt.title('DSSS Correlation Peak vs. Fractional Chip Timing Offset')
+    plt.xlabel('Offset (Fraction of a Chip)')
+    plt.ylabel('Normalized Correlation Peak Magnitude')
+    plt.grid(True, which='both', linestyle='--', alpha=0.6)
+    plt.legend()
+    plt.savefig('../_images/detection_dsss.svg', bbox_inches='tight')
+    plt.show()
 
 .. image:: ../_images/detection_dsss.svg
    :align: center 
    :target: ../_images/detection_dsss.svg
    :alt: DSSS
 
-The Impact of Fractional Offsets
-#######################################
-
-Triangle Property: For standard rectangular pulses, the auto-correlation function is triangular. If the timing offset is exactly zero, the correlation peak is normalized to 1.0. As the offset increases toward half a chip (:math:`0.5`), the peak drops linearly toward 0.5, effectively halving the signal-to-noise ratio (SNR) available for detection.
-
-Acquisition vs. Tracking: Synchronization occurs in two stages. First, Acquisition performs a coarse "sliding" search to find the peak within one chip duration. Second, Tracking (often using a Delay-Locked Loop) fine-tunes the sampling point to stay at the absolute apex of the correlation triangle.
-
+The peak occurs at zero offset as expected, and it drops linearly, i.e. it gets to half the peak value at a half-chip offset.  After more than one chip offset the correlation might seem like it's going back up, but the actual peak will be low because it's not aligned to the sequence anymore.

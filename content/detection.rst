@@ -30,11 +30,52 @@ When a known signal, or preamble, is transmitted over a channel corrupted only b
 Python Implementation of a Cross-Correlation
 ########################################################
 
-A correlator in its simplest form is just a cross-correlation, which can be implemented in Python using NumPy's `correlate` function. Here's a basic example:
+A correlator in its simplest form is just a cross-correlation, which can be implemented in Python using NumPy's `correlate` function.  In order to put together a basic Python example of a correlator, we first need to create an example signal with a known preamble embedded in noise. We will use a Zadoff-Chu sequence as our known preamble due to its excellent correlation properties and common use in communication systems.  We won't bother with any other "data" portion of the signal, but in most systems there will be unknown data following the known preamble.  We can generate a Zadoff-Chu sequence as follows:
 
 .. code-block:: python
 
-    TODO
+    import numpy as np
+    import matplotlib.pyplot as plt
+    N = 839  # Length of Zadoff-Chu sequence
+    u = 25  # Root of ZC sequence
+    t = np.arange(N)
+    zadoff_chu = np.exp(-1j * np.pi * u * t * (t + 1) / N)
+
+The resulting sequence *is* a signal, the IQ samples of :code:`zadoff_chu` represent a baseband complex signal similar to many signals we have dealt with in this textbook, it just doesn't represent bits.  We can emulate a real scenario by adding this Zadoff-Chu signal into a longer stream of AWGN at a random offset:
+
+.. code-block:: python
+
+    signal_length = 10 * N # overall simulated signal length
+    offset = np.random.randint(N, signal_length - N)
+    print(f"True offset: {offset}")
+    snr_db = -15
+    noise_power = 1 / (2 * (10**(snr_db / 10)))
+    signal = np.sqrt(noise_power/2) * (np.random.randn(signal_length) + 1j * np.random.randn(signal_length))
+    signal[offset:offset+N] += zadoff_chu # place our ZC signal at the random offset
+
+Note that we are using a *very* low SNR, in fact it's so low that if you look at the time domain signal you won't be able to see the Zadoff-Chu sequence at all!  
+
+.. image:: ../_images/detection_basic_1.svg
+   :align: center 
+   :target: ../_images/detection_basic_1.svg
+   :alt: Time Domain Signal with Zadoff-Chu Sequence
+
+Now we can implement the correlator by performing a cross-correlation of the received signal against our known Zadoff-Chu sequence, using np.correlate().  We will also normalize the output by the length of the sequence, and take the magnitude squared to get the power, although you could also just take the magnitude and leave it at that, and it would work fine, the important part is the :code:`np.correlate()` operation.
+
+.. code-block:: python
+
+ correlation = np.correlate(signal, zadoff_chu, mode='valid')
+ correlation = np.abs(correlation / N)**2 # normalize by N, and take magnitude squared
+
+Below we plot the magnitude squared and annotate the actual starting position of the sequence to see if the correlator was able to find it:
+
+.. image:: ../_images/detection_basic_2.svg
+   :align: center 
+   :target: ../_images/detection_basic_2.svg
+   :alt: Correlator Output
+
+Even though the SNR is very low, we can see a very clear spike in the correlator output exactly where the Zadoff-Chu sequence was placed!  This is the power of correlation-based detection, combined with a very long preamble.  Note that we have not yet set any sort of threshold for how to decide if this spike is "real" or just noise, instead we are just visually inspecting the output.  However, the bulk of this chapter revolves around how to come up with the best threshold, especially when the noise floor and background interference is constantly changing.
+
 
 Valid, Same, Full Modes
 #######################################

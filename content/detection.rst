@@ -329,7 +329,7 @@ For continuous streams, chunking methods such as Overlap-Save or Overlap-Add are
 
 Frequency offset resilience is a trade-off between processing gain and computational complexity. Non-coherent segmented correlation is the most robust for high-uncertainty environments but requires a higher link margin. Coherent segmented and brute-force FFT searches provide superior sensitivity but require significantly more hardware resources. Understanding the Dirichlet-driven loss is critical for determining the necessary "bin density" in any frequency-searching receiver. 
 
-TODO: Explain this plot
+TODO: Explain this plot and add some portion of the Python to the section
 
 .. image:: ../_images/detection_freq_offset.svg
    :align: center 

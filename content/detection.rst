@@ -410,3 +410,481 @@ In a DSSS system, the receiver's ability to recover data is entirely dependent o
    :alt: DSSS
 
 The peak occurs at zero offset as expected, and it drops linearly, i.e. it gets to half the peak value at a half-chip offset.  After more than one chip offset the correlation might seem like it's going back up, but the actual peak will be low because it's not aligned to the sequence anymore.
+
+****************************************************
+Real-Time Packet Detection in Continuous IQ Streams
+****************************************************
+
+So far we have explored the theoretical foundations of signal detection, from correlators to CFAR detectors to spread spectrum systems. Now we bring it all together to solve a common practical problem: **detecting intermittent packets in a continuous stream of IQ samples from an SDR**.  Consider this scenario: You have a modem or IoT device that transmits a data packet once per second (or at irregular intervals). Your SDR is continuously receiving samples at, say, 1 MHz. The packets arrive at unpredictable times, buried in noise and interference. You need to:
+
+1. Detect when a packet arrives
+2. Determine the exact sample index where it starts
+3. Extract the packet for further processing (demodulation, decoding, etc.)
+4. Do this in real-time without missing packets
+
+This is fundamentally different from processing a pre-recorded IQ file where you can analyze the entire signal at once. Here, samples arrive continuously, and you must make decisions in real-time with limited computational resources.  We will combine several techniques covered in this chapter:
+
+1. **Cross-Correlation**: To find the known preamble pattern
+2. **CFAR Detection**: To adaptively set thresholds despite varying noise
+3. **Buffer Management**: To handle continuous streaming data
+4. **Peak Detection**: To extract precise packet timing
+
+To operate in real-time, we will accumulate samples in **buffers** (chunks of, say, 100,000 samples), run our detector on each buffer, and maintain state across buffer boundaries to avoid missing packets that span two buffers.
+
+Implementation
+##############
+
+Our detector will follow this workflow:
+
+.. code-block:: text
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │  Continuous IQ Stream from SDR (e.g., 1 MHz sample rate)    │
+    └────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  Buffer Accumulation (e.g., 100k samples = 0.1 sec)         │
+    └────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  Cross-Correlation with Known Preamble                      │
+    │  → Produces correlation vs. sample index                    │
+    └────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  CFAR Threshold Computation                                 │
+    │  → Adaptive threshold that tracks noise floor               │
+    └────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  Peak Detection (correlation > threshold)                   │
+    │  → List of candidate packet start indices                   │
+    └────────────────────┬────────────────────────────────────────┘
+                         │
+                         ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │  Packet Extraction & Validation                             │
+    │  → Extract samples, pass to demodulator                     │
+    └─────────────────────────────────────────────────────────────┘
+
+To avoid missing packets that straddle buffer boundaries, we use an **overlap-save** approach, where each buffer includes the last ``N_preamble`` samples from the previous buffer.  This ensures any packet starting near the end of buffer ``i`` will be fully contained in buffer ``i+1``.  This requires a small additional computational overhead but we don't want to miss packets just because they straddle buffer boundaries.
+
+Let's build a complete packet detector in Python one step at a time.  We'll use a Zadoff-Chu preamble as introduced earlier, but with a shorter length, and implement an adaptive CFAR detector.
+
+Step 1: Define the Preamble and Parameters
+*******************************************
+
+.. code-block:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy.signal import correlate
+    
+    # Preamble: Zadoff-Chu sequence (excellent correlation properties)
+    N_zc = 63  # ZC sequence length (typically prime or power of 2 - 1)
+    u = 5      # ZC root
+    t = np.arange(N_zc)
+    preamble = np.exp(-1j * np.pi * u * t * (t + 1) / N_zc)
+    
+    # System parameters
+    sample_rate = 1e6  
+    buffer_size = 100000
+    overlap_size = len(preamble)  # Overlap to catch boundary packets
+    
+    # CFAR parameters
+    cfar_guard = 10
+    cfar_train = 50
+    pfa_target = 1e-6
+    
+    # Packet parameters (for simulation)
+    packet_length = 500  # Total packet length in samples (preamble + data)
+    snr_db = -5
+
+Step 2: CFAR Detector Function
+*******************************
+
+We'll use the Cell-Averaging CFAR (CA-CFAR) from earlier, slightly optimized:
+
+.. code-block:: python
+
+    def ca_cfar_1d(signal, num_train, num_guard, pfa):
+        """
+        1D Cell-Averaging CFAR detector.
+        
+        Args:
+            signal: Input signal (typically correlation magnitude)
+            num_train: Number of training cells (on each side)
+            num_guard: Number of guard cells (on each side)
+            pfa: Target probability of false alarm
+            
+        Returns:
+            threshold: Adaptive threshold array
+        """
+        n = len(signal)
+        threshold = np.zeros(n)
+        alpha = num_train * (pfa**(-1/num_train) - 1)
+        
+        for i in range(n):
+            # Define training window indices
+            train_start_left = max(0, i - num_guard - num_train)
+            train_end_left = max(0, i - num_guard)
+            train_start_right = min(n, i + num_guard + 1)
+            train_end_right = min(n, i + num_guard + num_train + 1)
+            
+            # Collect training cells (avoid guard cells and CUT)
+            train_cells = np.concatenate([
+                signal[train_start_left:train_end_left],
+                signal[train_start_right:train_end_right]
+            ])
+            
+            if len(train_cells) > 0:
+                noise_est = np.mean(train_cells)
+                threshold[i] = alpha * noise_est
+        
+        return threshold
+
+Step 3: Packet Detection Function
+**********************************
+
+.. code-block:: python
+
+    def detect_packets(buffer, preamble, cfar_guard, cfar_train, pfa, 
+                      min_spacing=None):
+        """
+        Detect packets in a buffer of IQ samples.
+        
+        Args:
+            buffer: Complex IQ samples
+            preamble: Known preamble sequence
+            cfar_guard: CFAR guard cells
+            cfar_train: CFAR training cells
+            pfa: Target false alarm probability
+            min_spacing: Minimum samples between detections (prevents duplicates)
+            
+        Returns:
+            detections: List of sample indices where packets start
+        """
+        # Correlate buffer with preamble
+        corr = correlate(buffer, preamble, mode='same')
+        corr_power = np.abs(corr)**2
+        
+        # Compute adaptive threshold
+        threshold = ca_cfar_1d(corr_power, cfar_train, cfar_guard, pfa)
+        
+        # Find peaks above threshold
+        detections_raw = np.where(corr_power > threshold)[0]
+
+        # Compensate for correlation offset (peak occurs at len(preamble)//2 after true start)
+        half_preamble = len(preamble) // 2
+        detections_raw = detections_raw - half_preamble
+        
+        # Remove edge detections (unreliable)
+        half_preamble = len(preamble) // 2
+        detections_raw = detections_raw[
+            (detections_raw > half_preamble) & 
+            (detections_raw < len(buffer) - half_preamble)
+        ]
+        
+        # Remove duplicate detections (peaks close together)
+        if min_spacing is None:
+            min_spacing = len(preamble)
+        
+        detections = []
+        if len(detections_raw) > 0:
+            detections.append(detections_raw[0])
+            for det in detections_raw[1:]:
+                if det - detections[-1] > min_spacing:
+                    detections.append(det)
+        
+        return detections, corr_power, threshold
+
+Step 4: Simulation - Generate Test Signal
+******************************************
+
+.. code-block:: python
+
+    def generate_packet_stream(preamble, packet_length, num_packets, 
+                               sample_rate, snr_db):
+        """
+        Generate a simulated IQ stream with intermittent packets.
+        
+        Returns:
+            signal: Complex IQ samples
+            true_starts: Ground truth packet start indices
+        """
+        # Calculate noise power from SNR
+        signal_power = 1.0  # Normalized preamble power
+        noise_power = signal_power / (10**(snr_db/10))
+        noise_std = np.sqrt(noise_power / 2)  # Complex noise
+        
+        # Generate QPSK data (random payload after preamble)
+        qpsk_map = np.array([1+1j, -1+1j, -1-1j, 1-1j]) / np.sqrt(2)
+        
+        # Time between packets (1 second +/- 20% jitter)
+        packets_per_sec = 1
+        avg_gap = int(sample_rate / packets_per_sec)
+        
+        signal = []
+        true_starts = []
+        
+        for i in range(num_packets):
+            # Add gap (noise only)
+            if i == 0:
+                gap_length = np.random.randint(avg_gap//2, avg_gap)
+            else:
+                gap_length = np.random.randint(int(avg_gap*0.8), int(avg_gap*1.2))
+            
+            noise = noise_std * (np.random.randn(gap_length) + 
+                                1j*np.random.randn(gap_length))
+            signal.extend(noise)
+            
+            # Record true packet start
+            true_starts.append(len(signal))
+            
+            # Add packet (preamble + data)
+            data_length = packet_length - len(preamble)
+            data = qpsk_map[np.random.randint(0, 4, data_length)]
+            packet = np.concatenate([preamble, data])
+            
+            # Add noise to packet
+            packet_noisy = packet + noise_std * (np.random.randn(len(packet)) + 
+                                                 1j*np.random.randn(len(packet)))
+            signal.extend(packet_noisy)
+        
+        # Add final gap
+        gap_length = np.random.randint(avg_gap//2, avg_gap)
+        noise = noise_std * (np.random.randn(gap_length) + 
+                            1j*np.random.randn(gap_length))
+        signal.extend(noise)
+        
+        return np.array(signal), true_starts
+
+    # Generate 5 seconds of signal with ~5 packets
+    signal, true_starts = generate_packet_stream(
+        preamble, packet_length, num_packets=5, 
+        sample_rate=sample_rate, snr_db=snr_db
+    )
+    
+    print(f"Generated {len(signal)} samples ({len(signal)/sample_rate:.1f} sec)")
+    print(f"True packet starts: {true_starts}")
+
+Step 5: Run Detection in Streaming Mode
+****************************************
+
+Now we process the signal in chunks, simulating real-time streaming:
+
+.. code-block:: python
+
+    def process_stream(signal, preamble, buffer_size, overlap_size,
+                      cfar_guard, cfar_train, pfa):
+        """
+        Process continuous IQ stream in buffers (simulates real-time).
+        
+        Returns:
+            all_detections: List of detected packet starts (global indices)
+        """
+        all_detections = []
+        n_samples = len(signal)
+        current_pos = 0
+        
+        while current_pos < n_samples:
+            # Define buffer with overlap
+            buffer_start = max(0, current_pos - overlap_size)
+            buffer_end = min(n_samples, current_pos + buffer_size)
+            buffer = signal[buffer_start:buffer_end]
+            
+            # Detect packets in this buffer
+            detections, corr_power, threshold = detect_packets(
+                buffer, preamble, cfar_guard, cfar_train, pfa
+            )
+            
+            # Convert buffer-relative indices to global indices
+            for det in detections:
+                global_idx = buffer_start + det
+                
+                # Avoid duplicate detections from overlap region
+                if len(all_detections) == 0 or \
+                   global_idx - all_detections[-1] > len(preamble):
+                    all_detections.append(global_idx)
+            
+            current_pos += buffer_size
+        
+        return all_detections
+    
+
+    detected_starts = process_stream(
+        signal, preamble, buffer_size, overlap_size,
+        cfar_guard, cfar_train, pfa_target
+    )
+    
+    print(f"\nDetection Results:")
+    print(f"True packets:     {len(true_starts)}")
+    print(f"Detected packets: {len(detected_starts)}")
+    print(f"Detected starts:  {detected_starts}")
+
+Step 6: Evaluate Performance
+*****************************
+
+.. code-block:: python
+
+    # Calculate detection statistics
+    tolerance = len(preamble)
+    
+    matched_detections = []
+    false_alarms = []
+    
+    for det in detected_starts:
+        # Check if detection matches any true packet
+        matched = False
+        for true_start in true_starts:
+            if abs(det - true_start) <= tolerance:
+                matched_detections.append(det)
+                matched = True
+                break
+        if not matched:
+            false_alarms.append(det)
+    
+    missed_packets = len(true_starts) - len(matched_detections)
+    
+    print(f"\nPerformance Metrics:")
+    print(f"  Correct detections: {len(matched_detections)}/{len(true_starts)}")
+    print(f"  Missed packets:     {missed_packets}")
+    print(f"  False alarms:       {len(false_alarms)}")
+    
+    # Calculate timing errors
+    timing_errors = []
+    for det in matched_detections:
+        errors = [abs(det - ts) for ts in true_starts]
+        timing_errors.append(min(errors))
+    
+    if len(timing_errors) > 0:
+        print(f"  Timing error (avg): {np.mean(timing_errors):.1f} samples")
+        print(f"  Timing error (max): {np.max(timing_errors):.1f} samples")
+
+Step 7: Visualize Results
+**************************
+
+.. code-block:: python
+
+    # Process one buffer for detailed visualization
+    buffer_start = max(0, true_starts[0] - 5000)
+    buffer_end = min(len(signal), true_starts[0] + 20000)
+    viz_buffer = signal[buffer_start:buffer_end]
+    
+    detections_viz, corr_viz, thresh_viz = detect_packets(
+        viz_buffer, preamble, cfar_guard, cfar_train, pfa_target
+    )
+    
+    # Convert to global indices for plotting
+    detections_viz_global = [d + buffer_start for d in detections_viz]
+    
+    # Create visualization
+    fig, axes = plt.subplots(3, 1, figsize=(14, 10))
+    time_axis = (np.arange(len(viz_buffer)) + buffer_start) / sample_rate * 1000  # ms
+    
+    # Subplot 1: Received signal power
+    axes[0].plot(time_axis, np.abs(viz_buffer)**2, 'gray', alpha=0.6, linewidth=0.5)
+    axes[0].set_ylabel('Power')
+    axes[0].set_title('Received IQ Signal Power')
+    axes[0].grid(True, alpha=0.3)
+    
+    # Mark true packet locations
+    for ts in true_starts:
+        if buffer_start <= ts <= buffer_end:
+            t_ms = ts / sample_rate * 1000
+            axes[0].axvline(t_ms, color='green', linestyle='--', alpha=0.7, 
+                          label='True Packet' if ts == true_starts[0] else '')
+    axes[0].legend()
+    
+    # Subplot 2: Correlation output
+    axes[1].plot(time_axis, corr_viz, 'blue', linewidth=1, label='Correlation')
+    axes[1].plot(time_axis, thresh_viz, 'red', linestyle='--', linewidth=1.5, 
+                label='CFAR Threshold')
+    axes[1].set_ylabel('Correlation Power')
+    axes[1].set_title('Preamble Correlation with Adaptive CFAR Threshold')
+    axes[1].grid(True, alpha=0.3)
+    axes[1].legend()
+    
+    # Subplot 3: Detections
+    detection_mask = np.zeros(len(viz_buffer))
+    for det in detections_viz:
+        detection_mask[det] = corr_viz[det]
+    
+    axes[2].plot(time_axis, corr_viz, 'blue', alpha=0.4, linewidth=0.8)
+    axes[2].scatter(time_axis[detection_mask > 0], detection_mask[detection_mask > 0],
+                   color='lime', edgecolors='black', s=100, zorder=5, 
+                   label='Detected Packets')
+    axes[2].set_xlabel('Time (ms)')
+    axes[2].set_ylabel('Correlation Power')
+    axes[2].set_title('Detected Packet Locations')
+    axes[2].grid(True, alpha=0.3)
+    axes[2].legend()
+    
+    plt.tight_layout()
+    plt.savefig('../_images/detection_realtime.svg', bbox_inches='tight')
+    plt.show()
+
+The visualization should show:
+
+1. **Top plot**: Raw signal power with true packet locations marked
+2. **Middle plot**: Correlation output with adaptive CFAR threshold tracking the noise floor
+3. **Bottom plot**: Detected packets highlighted as peaks above threshold
+
+.. image:: ../_images/detection_realtime.svg
+   :align: center 
+   :target: ../_images/detection_realtime.svg
+   :alt: Real-time packet detection results
+
+Practical Considerations and Tuning
+####################################
+
+Buffer Size Trade-offs
+***********************
+
+**Larger buffers (e.g., 1M samples):**
+
+- ✅ Better CFAR noise estimation (more training cells)
+- ✅ Lower computational overhead (fewer processing calls)
+- ❌ Higher latency (must wait for buffer to fill)
+- ❌ More memory required
+
+**Smaller buffers (e.g., 10k samples):**
+
+- ✅ Lower latency (faster response)
+- ✅ Less memory usage
+- ❌ CFAR performance degrades (fewer training cells)
+- ❌ Higher CPU usage (more frequent processing)
+
+**Recommendation**: Start with buffer size = 10× to 100× your preamble length. For a 63-sample preamble at 1 Msps, try 10k-100k samples.
+
+CFAR Parameter Tuning
+**********************
+
+The three CFAR parameters control detector behavior:
+
+**num_guard** (guard cells):
+
+- Purpose: Prevents signal leakage into noise estimate
+- Too small: Signal leaks into training region → raised threshold → missed detections
+- Too large: Fewer training cells → poor noise estimate
+- **Rule of thumb**: Set to ~0.5 to 1.0× preamble length
+
+**num_train** (training cells):
+
+- Purpose: Estimates local noise floor
+- Too small: Noisy threshold → false alarms or missed detections
+- Too large: Threshold doesn't adapt quickly enough to noise changes
+- **Rule of thumb**: Set to ~3 to 5× preamble length
+
+**pfa** (probability of false alarm):
+
+- Purpose: Controls detection sensitivity
+- Too high (e.g., 1e-2): Many false alarms
+- Too low (e.g., 1e-10): Misses weak packets
+- **Rule of thumb**: Start with 1e-5 for per-lag PFA, then adjust based on system-level false alarm rate
+
+Remember the relationship between per-lag and system-level false alarm rates from earlier in the chapter!

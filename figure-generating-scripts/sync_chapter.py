@@ -146,34 +146,6 @@ ax2.plot(samples_interpolated[100 * 16:105 * 16], '.-')
 ax2.set_title('After Interpolation')
 #fig.savefig('/tmp/time-sync-interpolated-samples.svg', bbox_inches='tight')
 
-''' REAL VERSION
-mu = 0 # initial estimate of phase of sample
-i_in = 0 # input index
-i_out = 0 # output index
-last_sample = 0 # initial condition
-out = np.zeros(num_symbols + 30, dtype=np.complex) # output will be 1 sample per symbol, we add extra room at the end for good measure
-while i_out < len(samples) and i_in < len(samples):
-    out[i_out] = samples_interpolated[i_in*16 + int(mu*16)] # grab what we think is the "best" sample
-    last_sample = out[i_out]
-    mm_val = rail(last_sample) * out[i_out] - rail(out[i_out]) * last_sample
-    mu += sps + 0.3*mm_val # the multiplier can be tweaked to change how fast it reacts, higher value will make it work faster
-    i_in += int(np.floor(mu)) # round down to nearest int since we are using it as an index
-    mu = mu - np.floor(mu) # remove the integer part of mu
-    i_out += 1 # increment output index
-    print(i_out)
-'''
-
-# COMPLEX VERSION
-''' (made into one-liner)
-def rail_complex(x): # takes in a complex sample
-    I = 0.0
-    Q = 0.0
-    if(np.real(x) > 0):
-        I = 1.0
-    if(np.imag(x) > 0):
-        Q = 1.0
-    return I + 1j*Q
-'''
 
 mu = 0  # initial estimate of phase of sample
 out = np.zeros(len(samples) + 10, dtype=np.complex64)

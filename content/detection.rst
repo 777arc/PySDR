@@ -415,58 +415,31 @@ The peak occurs at zero offset as expected, and it drops linearly, i.e. it gets 
 Real-Time Packet Detection in Continuous IQ Streams
 ****************************************************
 
-So far we have explored the theoretical foundations of signal detection, from correlators to CFAR detectors to spread spectrum systems. Now we bring it all together to solve a common practical problem: **detecting intermittent packets in a continuous stream of IQ samples from an SDR**.
-
-The Challenge
-#############
-
-Consider this scenario: You have a modem or IoT device that transmits a data packet once per second (or at irregular intervals). Your SDR is continuously receiving samples at, say, 1 MHz. The packets arrive at unpredictable times, buried in noise and interference. You need to:
+So far we have explored the theoretical foundations of signal detection, from correlators to CFAR detectors to spread spectrum systems. Now we bring it all together to solve a common practical problem: **detecting intermittent packets in a continuous stream of IQ samples from an SDR**.  Consider this scenario: You have a modem or IoT device that transmits a data packet once per second (or at irregular intervals). Your SDR is continuously receiving samples at, say, 1 MHz. The packets arrive at unpredictable times, buried in noise and interference. You need to:
 
 1. Detect when a packet arrives
 2. Determine the exact sample index where it starts
 3. Extract the packet for further processing (demodulation, decoding, etc.)
 4. Do this in real-time without missing packets
 
-This is fundamentally different from processing a pre-recorded IQ file where you can analyze the entire signal at once. Here, samples arrive continuously, and you must make decisions in real-time with limited computational resources.
-
-Real-World Applications
-#######################
-
-This pattern appears everywhere in wireless systems:
-
-- **IoT Sensor Networks**: LoRa, Sigfox, and NB-IoT devices that wake up periodically to transmit sensor data
-- **Amateur Radio Packet Networks**: APRS beacons transmitting GPS position reports
-- **Satellite Communications**: LEO satellites passing overhead transmitting telemetry bursts
-- **Industrial Wireless**: Factory sensors reporting only when measurements exceed thresholds
-- **Smart Home Devices**: Zigbee, Z-Wave devices transmitting when button pressed or state changes
-
-In all these cases, the receiver must remain vigilant, detecting packets when they arrive without knowing precisely when that will be.
-
-The Building Blocks
-###################
-
-We will combine several techniques covered in this chapter:
+This is fundamentally different from processing a pre-recorded IQ file where you can analyze the entire signal at once. Here, samples arrive continuously, and you must make decisions in real-time with limited computational resources.  We will combine several techniques covered in this chapter:
 
 1. **Cross-Correlation**: To find the known preamble pattern
 2. **CFAR Detection**: To adaptively set thresholds despite varying noise
 3. **Buffer Management**: To handle continuous streaming data
 4. **Peak Detection**: To extract precise packet timing
 
-The key insight is that we don't need to process every single sample individually. Instead, we:
-- Accumulate samples in **buffers** (chunks of, say, 100,000 samples)
-- Run our detector on each buffer
-- Extract detected packets
-- Maintain state across buffer boundaries to avoid missing packets that span buffers
+To operate in real-time, we will accumulate samples in **buffers** (chunks of, say, 100,000 samples), run our detector on each buffer, and maintain state across buffer boundaries to avoid missing packets that span two buffers.
 
-Implementation Strategy
-#######################
+Implementation
+##############
 
 Our detector will follow this workflow:
 
 .. code-block:: text
 
     ┌─────────────────────────────────────────────────────────────┐
-    │  Continuous IQ Stream from SDR (e.g., 1 Msps)               │
+    │  Continuous IQ Stream from SDR (e.g., 1 MHz sample rate)    │
     └────────────────────┬────────────────────────────────────────┘
                          │
                          ▼
@@ -498,18 +471,9 @@ Our detector will follow this workflow:
     │  → Extract samples, pass to demodulator                     │
     └─────────────────────────────────────────────────────────────┘
 
-**Buffer Overlap Strategy**
+To avoid missing packets that straddle buffer boundaries, we use an **overlap-save** approach, where each buffer includes the last ``N_preamble`` samples from the previous buffer.  This ensures any packet starting near the end of buffer ``i`` will be fully contained in buffer ``i+1``.  This requires a small additional computational overhead but we don't want to miss packets just because they straddle buffer boundaries.
 
-To avoid missing packets that straddle buffer boundaries, we use an **overlap-save** approach:
-
-- Each buffer includes the last ``N_preamble`` samples from the previous buffer
-- This ensures any packet starting near the end of buffer ``i`` will be fully contained in buffer ``i+1``
-- Trade-off: Small computational overhead vs. guaranteed detection
-
-Python Implementation
-#####################
-
-Let's build a complete packet detector step by step. We'll use a Zadoff-Chu preamble (as introduced earlier) and implement adaptive CFAR detection.
+Let's build a complete packet detector in Python one step at a time.  We'll use a Zadoff-Chu preamble as introduced earlier, but with a shorter length, and implement an adaptive CFAR detector.
 
 Step 1: Define the Preamble and Parameters
 *******************************************
@@ -924,49 +888,3 @@ The three CFAR parameters control detector behavior:
 - **Rule of thumb**: Start with 1e-5 for per-lag PFA, then adjust based on system-level false alarm rate
 
 Remember the relationship between per-lag and system-level false alarm rates from earlier in the chapter!
-
-Handling Real SDR Hardware
-***************************
-
-When connecting to actual SDR hardware (RTL-SDR, PlutoSDR, USRP, etc.), you'll need to:
-
-1. **Replace simulation with SDR API**:
-
-   .. code-block:: python
-   
-       # Example with RTL-SDR
-       from rtlsdr import RtlSdr
-       
-       sdr = RtlSdr()
-       sdr.sample_rate = 1e6
-       sdr.center_freq = 915e6  # ISM band
-       sdr.gain = 'auto'
-       
-       # Read buffer
-       samples = sdr.read_samples(buffer_size)
-
-2. **Handle DC offset and IQ imbalance**: Real hardware often has DC spikes and phase imbalance. Pre-process with:
-
-   .. code-block:: python
-   
-       # Remove DC offset
-       samples = samples - np.mean(samples)
-       
-       # Optional: High-pass filter to remove residual DC
-       from scipy.signal import butter, lfilter
-       b, a = butter(3, 0.01, btype='high')
-       samples = lfilter(b, a, samples)
-
-3. **Frequency offset correction**: If your modem's carrier frequency is slightly offset from your SDR's LO, the preamble correlation will be reduced. Consider adding coarse frequency offset estimation or using frequency-resilient correlation (covered earlier in this chapter).
-
-4. **Sample rate mismatch**: Ensure your SDR sample rate exactly matches the expected symbol rate of your packets. Even small mismatches accumulate over long preambles.
-
-Extending to Unknown Preambles
-*******************************
-
-What if you don't know the exact preamble? Some options:
-
-- **Energy detection**: Use the simple ``np.abs()`` and ``np.diff()`` approach suggested earlier, but with CFAR thresholding
-- **Blind synchronization**: Exploit statistical properties (cyclostationary features) covered in other chapters
-- **Multi-hypothesis detection**: Run multiple correlators in parallel, one for each candidate preamble
-- **Machine learning**: Train a neural network to recognize packet boundaries (advanced topic)

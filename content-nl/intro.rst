@@ -73,10 +73,14 @@ Bedankt aan iedereen die dit boek heeft gelezen en van feedback heeft voorzien, 
 - James Hayek
 - Deidre Stuffer
 - Tarik Benaddi voor het `vertalen van PySDR naar het Frans <https://pysdr.org/fr/index-fr.html>`_
-- Daniel Versluis voor het `vertalen van PySDR naar het Nederlands <https://pysdr.org/nl/index-nl.html>`_
+- `Daniel Versluis <https://versd.bitbucket.io/content/about.html>`_ voor het `vertalen van PySDR naar het Nederlands <https://pysdr.org/nl/index-nl.html>`_
 - `mrbloom <https://github.com/mrbloom>`_ voor het `vertalen van PySDR naar het Ukraiens <https://pysdr.org/ukraine/index-ukraine.html>`_
 - `Yimin Zhao <https://github.com/doctormin>`_ voor het `vertalen van PySDR naar het Chinees <https://pysdr.org/zh/index-zh.html>`_
 - `Eduardo Chancay <https://github.com/edulchan>`_ voor het `vertalen van PySDR naar het Spaans <https://pysdr.org/es/index-es.html>`_
+- John Marcovici
+- `Vishwaksen Reddy Dhareddy <https://www.linkedin.com/in/vishwaksen-/>`_ for contributing the Detection Chapter section on real-time packet detection
+
+En alle `PySDR Patreon <https://www.patreon.com/PySDR>`_ supporters!
 
 **********************
 Nederlandse vertaling

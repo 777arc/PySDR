@@ -22,6 +22,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.autosectionlabel',
     #'sphinxcontrib.tikz', #added for dutch
+    "sphinxcontrib.mermaid"
 ]
 
 mathjax_path = "mathjax/tex-mml-chtml.js" # so that the textbook can work offline

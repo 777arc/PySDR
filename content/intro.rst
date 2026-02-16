@@ -66,5 +66,6 @@ Thank you to anyone who has read any portion of this textbook and provided feedb
 - `Yimin Zhao <https://github.com/doctormin>`_ for `translating PySDR to Simplified Chinese <https://pysdr.org/zh/index-zh.html>`_
 - `Eduardo Chancay <https://github.com/edulchan>`_ for `translating PySDR to Spanish <https://pysdr.org/es/index-es.html>`_
 - John Marcovici
+- `Vishwaksen Reddy Dhareddy <https://www.linkedin.com/in/vishwaksen-/>`_ for contributing the Detection Chapter section on real-time packet detection
 
 As well as all `PySDR Patreon <https://www.patreon.com/PySDR>`_ supporters!

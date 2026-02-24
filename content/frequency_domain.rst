@@ -497,12 +497,13 @@ In Python we can generate a spectrogram as follows:
  for i in range(num_rows):
      spectrogram[i,:] = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x[i*fft_size:(i+1)*fft_size])))**2)
  
+ # Time starts at the top and goes down, eg sample x[0] will be part of the top row displayed
  plt.imshow(spectrogram, aspect='auto', extent = [sample_rate/-2/1e6, sample_rate/2/1e6, len(x)/sample_rate, 0])
  plt.xlabel("Frequency [MHz]")
  plt.ylabel("Time [s]")
  plt.show()
 
-Which should produce the following, which is not the most interesting spectrogram because there is no time-varying behavior.  There are two tones because we simulated a real signal, and real signals always have a negative PSD that matches the positive side.  For more interesting examples of spectrograms, checkout https://www.IQEngine.org!
+Which should produce the following, which is not the most interesting spectrogram because there is no time-varying behavior.  There are two tones because we simulated a real signal, and real signals always have a negative PSD that matches the positive side.  Note that with this implementation, the top row corresponds to the beginning of the signal.  For more interesting examples of spectrograms, checkout https://www.IQEngine.org!
 
 .. image:: ../_images/spectrogram.svg
    :align: center

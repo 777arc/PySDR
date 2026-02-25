@@ -1,8 +1,8 @@
 .. _noise-chapter:
 
-#############
-Noise and dB
-#############
+##########################
+Noise and Random Variables
+##########################
 
 In this chapter we will discuss noise, including how it is modeled and handled in a wireless communications system.  Concepts include AWGN, complex noise, and SNR/SINR.  We will also introduce decibels (dB) along the way, as it is widely within wireless communications and SDR.  Lastly, we take a deeper dive into the fundamental concepts of random variables and random processes, which are essential for understanding noise, channel effects, and many signal processing techniques in wireless communications. We'll cover probability distributions, expectation, variance, and how random processes evolve over time. These concepts form the mathematical foundation for analyzing noise and many other topics throughout SDR and DSP.
 
@@ -14,7 +14,8 @@ Most people are aware of the concept of noise: unwanted fluctuations that can ob
 
 .. image:: ../_images/noise.png
    :scale: 70 % 
-   :align: center 
+   :align: center
+   :target: ../_images/noise.png
 
 Note how the average value is zero in the time domain graph.  If the average value wasn't zero, then we could subtract the average value, call it a bias, and we would be left with an average of zero.  Also note that the individual points in the graph are *not* "uniformly random", i.e., larger values are rarer, most of the points are closer to zero.
 
@@ -52,6 +53,7 @@ To further illustrate the problems of scale we encounter in signal processing, c
    :scale: 70 % 
    :align: center
    :alt: Depiction of why it's important to understand dB or decibels, showing a spectrogram using linear vs log scale
+   :target: ../_images/linear_vs_log.png
 
 For a given value x, we can represent x in dB using the following formula:
 
@@ -88,6 +90,7 @@ Some common errors people will run into when new to dB are:
 .. image:: ../_images/db.png
    :scale: 80 % 
    :align: center 
+   :target: ../_images/db.png
 
 It is also important to understand that dB is not technically a "unit".  A value in dB alone is unit-less, like if something is 2x larger, there are no units until I tell you the units.  dB is a relative thing.  In audio when they say dB, they really mean dBA which is units for sound level (the A is the units). In wireless we typically use watts to refer to an actual power level.  Therefore, you may see dBW as a unit, which is relative to 1 W. You may also see dBmW (often written dBm for short) which is relative to 1 mW.   For example, someone can say "our transmitter is set to 3 dBW" (so 2 watts).  Sometimes we use dB by itself, meaning it is relative and there are no units. One can say, "our signal was received 20 dB above the noise floor".  Here's a little tip: 0 dBm = -30 dBW.
 
@@ -133,6 +136,7 @@ In the :ref:`freq-domain-chapter` chapter we tackled "Fourier pairs", i.e., what
    :scale: 110 % 
    :align: center
    :alt: AWGN in the time domain is also Gaussian noise in the frequency domain, although it looks like a flat line when you take the magnitude and perform averaging
+   :target: ../_images/noise_freq.png
 
 We can see that it looks roughly the same across all frequencies and is fairly flat.  It turns out that Gaussian noise in the time domain is also Gaussian noise in the frequency domain.  So why don't the two plots above look the same?  It's because the frequency domain plot is showing the magnitude of the FFT, so there will only be positive numbers. Importantly, it's using a log scale, or showing the magnitude in dB.  Otherwise these graphs would look the same.  We can prove this to ourselves by generating some noise (in the time domain) in Python and then taking the FFT.
 
@@ -157,6 +161,7 @@ Take note that the :code:`randn()` function by default uses mean = 0 and varianc
    :scale: 100 % 
    :align: center
    :alt: Example of white noise simulated in Python
+   :target: ../_images/noise_python.png
 
 You can then produce the flat PSD that we had in GNU Radio by taking the log and averaging a bunch together.  The signal we generated and took the FFT of was a real signal (versus complex), and the FFT of any real signal will have matching negative and positive portions, so that's why we only saved the positive portion of the FFT output (the 2nd half).  But why did we only generate "real" noise, and how do complex signals work into this?
 
@@ -198,6 +203,7 @@ To plot complex noise in the time domain, like any complex signal we need two li
    :scale: 80 % 
    :align: center
    :alt: Complex noise simulated in Python
+   :target: ../_images/noise3.png
 
 You can see that the real and imaginary portions are completely independent.
 
@@ -214,6 +220,7 @@ What does complex Gaussian noise look like on an IQ plot?  Remember the IQ plot 
    :scale: 60 % 
    :align: center
    :alt: Complex noise on an IQ or constellation plot, simulated in Python
+   :target: ../_images/noise_iq.png
 
 It looks how we would expect; a random blob centered around 0 + 0j, or the origin.  Just for fun, let's try adding noise to a QPSK signal to see what the IQ plot looks like:
 
@@ -221,12 +228,15 @@ It looks how we would expect; a random blob centered around 0 + 0j, or the origi
    :scale: 60 % 
    :align: center
    :alt: Noisy QPSK simulated in Python
+   :target: ../_images/noisey_qpsk.png
 
 Now what happens when the noise is stronger?  
 
 .. image:: ../_images/noisey_qpsk2.png
    :scale: 50 % 
    :align: center 
+   :alt: Noisy QPSK with stronger noise simulated in Python
+   :target: ../_images/noisey_qpsk2.png
 
 We are starting to get a feel for why transmitting data wirelessly isn't that simple. We want to send as many bits per symbol as we can, but if the noise is too high then we will get erroneous bits on the receiving end.
 
@@ -262,20 +272,18 @@ Signal-to-Interference-plus-Noise Ratio (SINR) is essentially the same as SNR ex
 
 What constitutes interference is based on the application/situation, but typically it is another signal that is interfering with the signal of interest (SOI), and is either overlapping with the SOI in frequency, and/or cannot be filtered out for some reason.  
 
-************************************
+*********************************
 Deeper Dive into Random Variables
-************************************
+*********************************
 
-A **random variable** is a mathematical concept that maps outcomes of a random experiment to numerical values. Unlike the deterministic signals we've worked with so far, random variables represent quantities whose values are uncertain until they are observed or measured.
-
-Think of rolling a six-sided die. Before you roll it, you don't know what number will appear. We can define a random variable :math:`X` that represents the outcome of the roll. The value of :math:`X` is one of {1, 2, 3, 4, 5, 6}, but we don't know which one until we actually roll the die.
+So far we have avoided getting too mathematical, but now we are going to take a step back and introduce the concept of random variables and how they are used in the context of wireless communications and SDR. A **random variable** is a mathematical concept that maps outcomes of a random experiment to numerical values. Random variables represent quantities whose values are uncertain until they are observed or measured, like our noise samples.  Think of rolling a six-sided die. Before you roll it, you don't know what number will appear. We can define a random variable :math:`X` that represents the outcome of the roll. The value of :math:`X` is one of {1, 2, 3, 4, 5, 6}, but we don't know which one until we actually roll the die.
 
 In the context of wireless communications and SDR, random variables are everywhere:
 
 * The thermal noise in a receiver is modeled as a random variable at each instant in time
-* The amplitude of a received signal affected by fading is random
-* The phase offset introduced by a channel can be modeled as random
-* Even the data bits we transmit can be treated as random variables (if we don't know them ahead of time)
+* The amplitude of a received signal affected by multipath fading is random
+* The phase offset introduced by a changing channel can be modeled as a random variable between :math:`0` and :math:`2\pi`
+* Even the data bits we transmit can be treated as random variables
 
 **Single Sample vs. Many Samples**
 
@@ -363,6 +371,7 @@ In Python, ``np.random.randn()`` generates samples from a **standard Gaussian** 
    :scale: 80%
    :align: center
    :alt: Histogram of Gaussian distributed samples
+   :target: ../_images/gaussian_histogram.png
 
 Expectation (a.k.a. Mean)
 #########################
@@ -399,7 +408,7 @@ When we have :math:`N` samples, we estimate variance using:
 
 The **standard deviation** :math:`\sigma` is simply the square root of variance: :math:`\sigma = \sqrt{\sigma^2}`.
 
-*Notice the* ^ (hat) *in the above equation at* :math:`\sigma` *and that for sample mean. The hat symbolizes we're estimating the mean/variance. It's not always exactly equal to the true mean/variance, but it gets closer to the true value as we increase the number of samples*
+Note the :math:`\enspace \hat{} \enspace` symbol, known as a "hat", in the above equation at :math:`\sigma` and that for sample mean. The hat symbolizes we're estimating the mean/variance. It's not always exactly equal to the true mean/variance, but it gets closer to the true value as we increase the number of samples.
 
 **Key Property:** If :math:`X` is a random variable with variance :math:`\sigma^2`, then:
 
@@ -415,6 +424,7 @@ And consequently for standard deviation :math:`\sigma`:
    :scale: 80%
    :align: center
    :alt: Scaling and shifting the Gaussian Distribution. (notice the scales on x and y axes) 
+   :target: ../_images/gaussian_transformed.png
 
 Scaling and shifting the Gaussian Distribution. (notice the scales on x and y axes)
 
@@ -520,6 +530,8 @@ For example, if :math:`X \sim \mathcal{N}(\alpha_1, \sigma_1^2)` and :math:`Y \s
 .. image:: ../_images/gaussian_IQ.png
    :scale: 80%
    :align: center
+   :alt: Complex Gaussian noise visualized as two independent Gaussian random variables on the I and Q axes
+   :target: ../_images/gaussian_IQ.png
 
 This is why when we create complex Gaussian noise with unit power (variance = 1), we use:
 

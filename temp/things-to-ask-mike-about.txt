@@ -1,0 +1,17 @@
+Is there a benefit over using this method, vs simulating the jamming directly, besides being able to add fractional bw?  eg is it just a computational speedup?
+- i still need to find a textbook that has this approach
+- 
+
+point out that Covmatrix2 is exactly what i implemented in my chapter, and NonStatData is how i generate sampels from it
+but i dont quite understand how it works
+
+Have him explain why you take the square root of the cov matrix, and why thats effectively a cholesky factorization
+% Calculate sqrt of covariance matrix used to 'color' random vectors to match jammer covariance matrix
+A=Rx_array^(.5); % Effective Cholesky factoriz. of correlation matrix: produces the Hermitian of the result textbooks might produce
+
+It looks like you can calc SINR based on the cov matrix?  s' * R_inv * s
+sinr_opt = real(s'*(inv(Rx_array))*s); 
+
+- i need to use AWGN for the jamming of the old method
+- mikes going to look to see if there are textbooks that use his approach
+- 

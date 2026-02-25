@@ -33,7 +33,7 @@ jammer_aoa_deg = np.array([-70, -20, 40])  # Jammer angles in degrees
 jammer_aoa_rad = np.sin(np.deg2rad(jammer_aoa_deg)) * np.pi # not sure why the *pi is here
 element_gain_dB = np.zeros(N) # Gains in dB for the array elements (all zeros here)
 element_gain_linear = 10.0 ** (element_gain_dB / 10) # Convert array gains to linear numbers
-fractional_bw = 0.1 # if this is 0, the method matches the traditional way of using array factor to simulate received signals
+fractional_bw = 0.0 # if this is 0, the method matches the traditional way of using array factor to simulate received signals
 
 if True:
     # --------------------------------------------------------------------
@@ -60,7 +60,7 @@ if True:
         noise_vec = np.random.randn(N) + 1j * np.random.randn(N) # complex noise
         X[:, k] = A.conj().T @ noise_vec
 else:
-    # Traditional narrowband method of adding jammers
+    # Traditional narrowband method of adding jammers, which matches when fractional bw is 0
     X = np.zeros((N, num_samples), dtype=complex)
     for j in range(num_jammers):
         s_jammer = np.exp(2j * np.pi * np.arange(N) * d * np.sin(np.deg2rad(jammer_aoa_deg[j]))).reshape(-1,1)
@@ -71,29 +71,32 @@ else:
     noise = np.random.randn(N, num_samples) + 1j * np.random.randn(N, num_samples)
     X += noise / np.sqrt(2)
 
-# --------------------------------------------------------------------
-# Plot eigenspectra (eigenvalues sorted)
-# --------------------------------------------------------------------
-R_est = (X @ X.conj().T) / X.shape[1] # Compute the sample covariance matrix from received samples
-eigvals = np.real(np.linalg.eigvals(R_est))
-eigvals_dB = 10 * np.log10(eigvals)
-eigvals_sorted = np.sort(eigvals_dB)[::-1] # Sort the eigenvalues in desc order
+if False:
+    # --------------------------------------------------------------------
+    # Plot eigenspectra (eigenvalues sorted) and compare it to the theoretical eigenvalues from R
+    # --------------------------------------------------------------------
+    R_est = (X @ X.conj().T) / X.shape[1] # Compute the sample covariance matrix from received samples
+    eigvals = np.real(np.linalg.eigvals(R_est))
+    eigvals_dB = 10 * np.log10(eigvals)
+    eigvals_sorted = np.sort(eigvals_dB)[::-1] # Sort the eigenvalues in desc order
 
-# Compute eigenvalues of the true covariance matrix, Rx_array.
-#eigvals_true = np.real(np.linalg.eigvals(R))
-#eigvals_true_dB = 10 * np.log10(np.abs(eigvals_true))
-#eigvals_true_sorted = np.sort(eigvals_true_dB)[::-1]
+    # Compute eigenvalues of the true covariance matrix, R
+    eigvals_true = np.real(np.linalg.eigvals(R))
+    eigvals_true_dB = 10 * np.log10(np.abs(eigvals_true))
+    eigvals_true_sorted = np.sort(eigvals_true_dB)[::-1]
 
-# Plot the eigenvalues
-plt.figure()
-plt.plot(eigvals_sorted, 'k*', label='Sampled')
-#plt.plot(eigvals_true_sorted, 'r', label='True')
-plt.xlabel('Eigenvalue Number', fontweight='bold', fontsize=14)
-plt.ylabel('Eigenvalue, dB', fontweight='bold', fontsize=14)
-plt.axis((0, N, np.min(eigvals_sorted) - 10, np.max(eigvals_sorted) + 10))
-plt.grid(True)
-plt.title('Eigenspectra of true & sampled jammer covariance matrix, using K = ' + str(num_samples) + ' samples')
-plt.legend()
+    # Plot the eigenvalues
+    plt.figure()
+    plt.plot(eigvals_sorted, 'k*', label='Sampled')
+    plt.plot(eigvals_true_sorted, 'r', label='True')
+    plt.xlabel('Eigenvalue Number', fontweight='bold', fontsize=14)
+    plt.ylabel('Eigenvalue, dB', fontweight='bold', fontsize=14)
+    plt.axis((0, N, np.min(eigvals_sorted) - 10, np.max(eigvals_sorted) + 10))
+    plt.grid(True)
+    plt.title('Eigenspectra of true & sampled jammer covariance matrix, using K = ' + str(num_samples) + ' samples')
+    plt.legend()
+    plt.show()
+    exit()
 
 
 # --------------------------------------------------------------------
@@ -107,10 +110,11 @@ w_conventional = s
 w_conventional /= np.linalg.norm(w_conventional)  # Normalize
 pattern_conventional = 20 * np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_conventional, n=nfft)) / np.sqrt(N)))
 
-# Compute MVDR weights and beam pattern FIXME THIS IS USING THE GENERATED R NOT THE CALC R BASED ON X, SO CONTRIVED!
-R = np.cov(X)
-w_ideal = np.linalg.inv(R) @ s
-w_ideal = w_ideal / (np.conjugate(s) @ np.linalg.inv(R) @ s)
+# Compute MVDR weights and beam pattern
+del R
+R_est = np.cov(X)
+w_ideal = np.linalg.inv(R_est) @ s
+w_ideal = w_ideal / (np.conjugate(s) @ np.linalg.inv(R_est) @ s)
 pattern_mvdr = 20 * np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_ideal, n=nfft)) / np.sqrt(N)))
 
 # Frequency axis for beam pattern using arcsin() trick

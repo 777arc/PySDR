@@ -433,43 +433,21 @@ To operate in real-time, we will accumulate samples in **buffers** (chunks of, s
 
 Implementation
 ##############
-
 Our detector will follow this workflow:
 
-.. code-block:: text
+.. mermaid::
 
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Continuous IQ Stream from SDR (e.g., 1 MHz sample rate)    │
-    └────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Buffer Accumulation (e.g., 100k samples = 0.1 sec)         │
-    └────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Cross-Correlation with Known Preamble                      │
-    │  → Produces correlation vs. sample index                    │
-    └────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  CFAR Threshold Computation                                 │
-    │  → Adaptive threshold that tracks noise floor               │
-    └────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Peak Detection (correlation > threshold)                   │
-    │  → List of candidate packet start indices                   │
-    └────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Packet Extraction & Validation                             │
-    │  → Extract samples, pass to demodulator                     │
-    └─────────────────────────────────────────────────────────────┘
+   flowchart TD
+
+       A("Continuous IQ Stream from SDR<br/>(1 MHz sample rate)")
+       B("Buffer Accumulation<br/>(100k samples = 0.1 sec)")
+       C("Cross-Correlation with Known Preamble")
+       D("CFAR Threshold Computation")
+       E("Peak Detection<br/>(correlation > threshold)")
+       F("Packet Extraction & Validation")
+
+       A --> B --> C --> D --> E --> F
+
 
 To avoid missing packets that straddle buffer boundaries, we use an **overlap-save** approach, where each buffer includes the last ``N_preamble`` samples from the previous buffer.  This ensures any packet starting near the end of buffer ``i`` will be fully contained in buffer ``i+1``.  This requires a small additional computational overhead but we don't want to miss packets just because they straddle buffer boundaries.
 

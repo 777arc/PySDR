@@ -21,8 +21,9 @@ spectrogram = np.zeros((num_rows, fft_size))
 for i in range(num_rows):
     spectrogram[i,:] = np.log10(np.abs(np.fft.fftshift(np.fft.fft(x[i*fft_size:(i+1)*fft_size])))**2)
 
-plt.imshow(spectrogram, aspect='auto', extent = [sample_rate/-2/1e6, sample_rate/2/1e6, 0, len(x)/sample_rate])
+# Time starts at the top and goes down, eg x[0] will be in the top row displayed
+plt.imshow(spectrogram, aspect='auto', extent = [sample_rate/-2/1e6, sample_rate/2/1e6, len(x)/sample_rate, 0])
 plt.xlabel("Frequency [MHz]")
 plt.ylabel("Time [s]")
-#plt.show()
 plt.savefig('../_images/spectrogram.svg', bbox_inches='tight')
+#plt.show()

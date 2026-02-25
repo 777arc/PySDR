@@ -66,7 +66,7 @@ In Python:
 
  x_db = 10.0 * np.log10(x)
 
-You may have seen that :code:`10 *` be a :code:`20 *` in other domains.  Whenever you are dealing with a power of some sort, you use 10, and you use 20 if you are dealing with a non-power value like voltage or current.  In DSP we tend to deal with a power. In fact there is not a single time in this whole textbook we need to use 20 instead of 10.
+You may have seen that :code:`10 *` be a :code:`20 *` in other domains.  Whenever you are dealing with a power of some sort, you use 10, and you use 20 if you are dealing with a non-power value like voltage or current.  In DSP we tend to deal with a power.
 
 We convert from dB back to linear (normal numbers) using:
 

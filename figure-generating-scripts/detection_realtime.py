@@ -149,6 +149,6 @@ axes[2].grid(True, alpha=0.3)
 axes[2].legend(fontsize=10)
 
 plt.tight_layout()
-plt.savefig('../_images/detection_realtime.svg', bbox_inches='tight', dpi=150)
-print("Figure saved to ../_images/detection_realtime.svg")
+plt.savefig('../_images/detection_realtime.png', bbox_inches='tight', dpi=150)
+print("Figure saved to ../_images/detection_realtime.png")
 plt.show()

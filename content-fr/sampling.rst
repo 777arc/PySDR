@@ -64,7 +64,7 @@ Nous devons identifier la composante de fréquence la plus élevée, puis la dou
    :scale: 70% 
    :align: center 
 
-Si l'échantillonnage n'est pas assez rapide, nous obtenons ce que l'on appelle le repliement ou l'alaising, dont nous parlerons plus tard, et que nous essayons d'éviter à tout prix. Ce que font nos SDR (et la plupart des récepteurs en général), c'est filtrer tout ce qui est au-dessus de Fs/2 juste avant l'échantillonnage. Si nous essayons de recevoir un signal avec une fréquence d'échantillonnage trop faible, ce filtre coupera une partie du signal. Nos récepteurs SDR se donnent beaucoup de mal pour nous fournir des échantillons exempts de repliement ainsi que d'autres imperfections.
+Si l'échantillonnage n'est pas assez rapide, nous obtenons ce que l'on appelle le repliement ou l'aliasing, dont nous parlerons plus tard, et que nous essayons d'éviter à tout prix. Ce que font nos SDR (et la plupart des récepteurs en général), c'est filtrer tout ce qui est au-dessus de Fs/2 juste avant l'échantillonnage. Si nous essayons de recevoir un signal avec une fréquence d'échantillonnage trop faible, ce filtre coupera une partie du signal. Nos récepteurs SDR se donnent beaucoup de mal pour nous fournir des échantillons exempts de repliement ainsi que d'autres imperfections.
 
 *******************************
 Échantillonnage en quadrature
@@ -72,7 +72,7 @@ Si l'échantillonnage n'est pas assez rapide, nous obtenons ce que l'on appelle 
 
 Le terme "quadrature" a de nombreuses significations, mais dans le contexte du DSP et de la SDR, il désigne deux ondes déphasées de 90 degrés. Pourquoi un déphasage de 90 degrés? Observez que deux ondes qui sont déphasées de 180 degrés sont essentiellement la même onde avec une multipliée par -1. En étant déphasées de 90 degrés, elles deviennent orthogonales, et il y a beaucoup de choses intéressantes à faire avec les fonctions orthogonales. Par souci de simplicité, nous utilisons le sinus et le cosinus comme nos deux ondes sinusoïdales déphasées de 90 degrés.
 
-Ensuite, attribuons des variables pour représenter la **amplitude** du sinus et du cosinus.  Nous utiliserons :math:`I` pour le cos() et :math:`Q` pour le sin():
+Ensuite, attribuons des variables pour représenter l' **amplitude** du sinus et du cosinus.  Nous utiliserons :math:`I` pour le cos() et :math:`Q` pour le sin():
 
 .. math::
   I \cos(2\pi ft)
@@ -134,7 +134,7 @@ Cette représentation d'une sinusoïde est connue sous le nom de "diagramme de p
   
 En Python, vous pouvez utiliser np.abs(x) et np.angle(x) pour la magnitude et la phase. L'entrée peut être un nombre complexe ou un tableau de nombres complexes, et la sortie sera un ou plusieurs nombres **réels** (du type float).
 
-Vous avez peut-être déjà compris comment ce diagramme vectoriel est lié à la convention IQ: I est réel et Q est imaginaire. À partir de maintenant, lorsque nous dessinerons le plan complexe, nous l'étiquetterons avec I et Q au lieu de réel et imaginaire. Mais il s'agira toujours des mmême nombres complexes!
+Vous avez peut-être déjà compris comment ce diagramme vectoriel est lié à la convention IQ: I est réel et Q est imaginaire. À partir de maintenant, lorsque nous dessinerons le plan complexe, nous l'étiquetterons avec I et Q au lieu de réel et imaginaire. Mais il s'agira toujours des même nombres complexes!
 
 .. image:: ../_images/complex_plane_3.png
    :scale: 70% 
@@ -152,13 +152,13 @@ Nous pouvons utiliser l'identité trigonométrique :math:`a \cos(x) + b \sin(x) 
 .. math::
   x(t) = 0.806 \cos(2\pi ft + 0.519)
 
-Même si nous avons commencé avec un nombre complexe, ce que nous transmettons est réel, ce qui est une bonne chose car vous ne pouvez pas réellement transmettre quelque chose d'imaginaire avec des ondes électromagnétiques. Nous utilisons simplement des nombres imaginaires/complexes pour représenter *ce que* nous transmettons. Nous parlerons bientôt de la fonction :math:`f`.
+Même si nous avons commencé avec un nombre complexe, ce que nous transmettons est réel, ce qui est une bonne chose car vous ne pouvez pas réellement transmettre quelque chose d'imaginaire avec des ondes électromagnétiques. Nous utilisons simplement des nombres imaginaires/complexes pour représenter *ce que* nous transmettons. Nous parlerons bientôt de :math:`f`.
 
 *************************************
 Les nombres complexes dans les FFT
 *************************************
 
-Les nombres complexes ci-dessus ont été supposés être des échantillons du domaine temporel, mais vous rencontrerez également des nombres complexes lorsque vous effectuerez une FFT. Lorsque nous avons abordé les séries de Fourier et les FFT au chapitre précédent, nous n'avions pas encore plongé dans les nombres complexes. Lorsque vous effectuez la FFT d'une série d'échantillons, vous obtenez la représentation dans le domaine fréquentiel. Nous avons parlé de la façon dont la FFT détermine quelles fréquences existent dans cet ensemble d'échantillons (l'amplitude de la FFT indique la "puissance" de chaque fréquence). Mais la FFT détermine également le retard (décalage temporel) nécessaire à appliquer à chacune de ces fréquences, afin que l'ensemble des sinusoïdes puisse être additionné pour reconstruire le signal dans le domaine temporel. Ce retard est simplement la phase de la FFT. La sortie d'une FFT est un tableau de nombres complexes, et chaque nombre complexe vous donne la magnitude et la phase, et l'indice de ce nombre vous donne la fréquence. Si vous générez des sinusoïdes à ces fréquences/amplitudes/phases et que vous les additionnez, vous obtiendrez votre signal original dans le domaine temporel (ou quelque chose de très proche, et c'est là que le théorème d'échantillonnage de Nyquist entre en jeu).
+Les nombres complexes ci-dessus ont été supposés être des échantillons du domaine temporel, mais vous rencontrerez également des nombres complexes lorsque vous effectuerez une FFT. Lorsque nous avons abordé les séries de Fourier et les FFT au chapitre précédent, nous n'avions pas encore plongé dans les nombres complexes. Lorsque vous effectuez la FFT d'une série d'échantillons, vous obtenez la représentation dans le domaine fréquentiel. Nous avons parlé de la façon dont la FFT détermine quelles fréquences existent dans cet ensemble d'échantillons (l'amplitude de la FFT indique la "puissance" de chaque fréquence). Mais la FFT détermine également le retard (décalage temporel) nécessaire à appliquer à chacune de ces fréquences, afin que l'ensemble des sinusoïdes puissent être additionnées pour reconstruire le signal dans le domaine temporel. Ce retard est simplement la phase de la FFT. La sortie d'une FFT est un tableau de nombres complexes, et chaque nombre complexe vous donne la magnitude et la phase, et l'indice de ce nombre vous donne la fréquence. Si vous générez des sinusoïdes à ces fréquences/amplitudes/phases et que vous les additionnez, vous obtiendrez votre signal original dans le domaine temporel (ou quelque chose de très proche, et c'est là que le théorème d'échantillonnage de Nyquist entre en jeu).
 
 *************************
 Côté récepteur
@@ -176,11 +176,11 @@ Si quelqu'un vous donne un fichier d'échantillons QI, cela ressemblera à un ta
 
 Tout au long de ce manuel, vous deviendrez **très** familier avec le fonctionnement des échantillons IQ, comment les recevoir et les transmettre avec un SDR, comment les traiter dans Python et comment les enregistrer dans un fichier pour une analyse ultérieure.
 
-Une dernière remarque importante: la figure ci-dessus montre ce qui se passe **à l'intérieur** de la SDR. Nous n'avons pas besoin de générer une onde sinusoïdale, de la décaler de 90, de la multiplier ou de l'additionner - la SDR le fait pour nous. Nous indiquons à la SDR la fréquence à laquelle nous voulons échantillonner, ou la fréquence à laquelle nous voulons transmettre nos échantillons. Du côté du récepteur, le SDR nous fournira les échantillons IQ. Du côté de l'émetteur, nous devons fournir au SDR les échantillons IQ. En termes de type de données, il s'agira soit d'entiers complexes, soit de flottants.
+Une dernière remarque importante: la figure ci-dessus montre ce qui se passe **à l'intérieur** de la SDR. Nous n'avons pas besoin de générer une onde sinusoïdale, de la décaler de 90, de la multiplier ou de l'additionner - la SDR le fait pour nous. Nous indiquons à la SDR la fréquence à laquelle nous voulons échantillonner, ou la fréquence à laquelle nous voulons transmettre nos échantillons. Du côté du récepteur, la SDR nous fournira les échantillons IQ. Du côté de l'émetteur, nous devons fournir à la SDR les échantillons IQ. En termes de type de données, il s'agira soit d'entiers complexes, soit de flottants.
    
    
 **************************************
-Porteurse et Descente en Fréquence
+Porteuse et Descente en Fréquence
 **************************************
 
 Jusqu'à présent, nous n'avons pas parlé de la fréquence, mais nous avons vu qu'il y avait un :math:`f` dans les équations impliquant le cos() et le sin(). Cette fréquence est la fréquence de l'onde sinusoïdale que nous envoyons réellement dans l'air (la fréquence de l'onde électromagnétique). Nous l'appelons la "porteuse" car elle transporte nos informations sur une certaine fréquence. Lorsque nous nous accordons sur une fréquence avec notre SDR et recevons des échantillons, nos informations sont stockées dans I et Q; cette porteuse n'apparaît pas dans I et Q, en supposant que nous nous sommes réglés sur la porteuse.
@@ -195,19 +195,20 @@ Lorsque nous changeons rapidement nos valeurs IQ et que nous transmettons notre 
 
 Pour prendre un exemple simple, disons que nous transmettons l'échantillon IQ 1+0j, puis que nous passons à la transmission de 0+1j.  Nous passons de :math:`\cos(2\pi ft)` à :math:`\sin(2\pi ft)`, ce qui signifie que notre porteuse se déphase de 90 degrés lorsque nous passons d'un échantillon à un autre. 
 
-Revenons maintenant à l'échantillonnage pour une seconde.  Au lieu de recevoir des échantillons en multipliant ce qui provient de l'antenne par un cos() et un sin() puis en enregistrant I et Q, que se passerait-il si nous envoyions le signal de l'antenne dans un seul CAN, comme dans l'architecture d'échantillonnage direct dont nous venons de parler?  Supposons que la fréquence porteuse soit de 2.4 GHz, comme le WiFi ou le Bluetooth. Cela signifie que nous devrions échantillonner à 4.8 GHz, comme nous l'avons appris. C'est extrêmement rapide! Un CAN qui échantillonne aussi rapidement coûte des milliers de dollars. Au lieu de cela, nous "descendant en fréquence" (*downconversion* en anglais) le signal pour que le signal que nous voulons échantillonner soit centré sur le courant continu ou 0 Hz. Cette descente en fréquence a lieu avant l'échantillonnage. Nous passons de:
+Revenons maintenant à l'échantillonnage pour une seconde.  Au lieu de recevoir des échantillons en multipliant ce qui provient de l'antenne par un cos() et un sin() puis en enregistrant I et Q, que se passerait-il si nous envoyions le signal de l'antenne dans un seul CAN, comme dans l'architecture d'échantillonnage direct dont nous venons de parler?  Supposons que la fréquence porteuse soit de 2.4 GHz, comme le WiFi ou le Bluetooth. Cela signifie que nous devrions échantillonner à 4.8 GHz, comme nous l'avons appris. C'est extrêmement rapide! Un CAN qui échantillonne aussi rapidement coûte des milliers de dollars. Au lieu de cela, nous "descendons en fréquence" (*downconversion* en anglais) le signal pour que le signal que nous voulons échantillonner soit centré sur le courant continu ou 0 Hz. Cette descente en fréquence a lieu avant l'échantillonnage. Nous passons de:
 
 .. math::
-  I \cos(2\pi ft)
-  
-  Q \sin(2\pi ft)
-  
+
+ I \underbrace{\cos(2\pi ft)}_{porteuse} \ + \ \ Q \underbrace{\sin(2\pi ft)}_{porteuse}
+
 à juste I et Q.
 
 Visualisons la conversion de fréquence dans le domaine des fréquences:
+
 .. image:: ../_images/downconversion.png
    :scale: 60% 
    :align: center
+   :alt: La descente en fréquences où un signal est décalé de RF à 0Hz ou à la fréquence de base
 
 Lorsque nous sommes centrés autour de 0 Hz, la fréquence maximale n'est plus de 2,4 GHz mais est basée sur les caractéristiques du signal car nous avons supprimé la porteuse. La plupart des signaux ont une largeur de bande d'environ 100 kHz à 40 MHz, de sorte que, grâce à la conversion de fréquence, nous pouvons échantillonner à un taux *beaucoup* plus faible. Les USRP B2X0 et PlutoSDR contiennent un circuit intégré RF (RFIC) qui peut échantillonner jusqu'à 56 MHz, ce qui est suffisamment élevé pour la plupart des signaux que nous rencontrerons dans la vie de tous les jours.
 
@@ -218,7 +219,7 @@ Enfin, vous êtes peut-être curieux de savoir à quelle vitesse les signaux se 
 .. math::
  f = \frac{c}{\lambda}
 
-où :math:`c` est la vitesse de la lumière, généralement fixée à 3e8 lorsque :math:`f` est en Hz et :math:``lambda` en mètre.  Dans le domaine des communications sans fil, cette relation devient importante lorsqu'il s'agit d'antennes, car pour recevoir un signal à une certaine fréquence porteuse, :math:`f`, vous avez besoin d'une antenne qui correspond à sa longueur d'onde, :math:`\lambda`, généralement l'antenne a une longueur de :math:`\lambda/2` ou :math:`\lambda/4`.  Cependant, quelle que soit la fréquence/longueur d'onde, l'information transportée par ce signal se déplace toujours à la vitesse de la lumière, de l'émetteur au récepteur.  Pour calculer ce délai dans l'air, une règle empirique est que la lumière parcourt environ un 30 cm en une nanoseconde. Autre règle empirique : un signal se rendant à un satellite en orbite géostationnaire et en revenant prendra environ 0.25 seconde pour l'ensemble du trajet.
+où :math:`c` est la vitesse de la lumière, généralement fixée à 3e8 lorsque :math:`f` est en Hz et :math:`\lambda` en mètre.  Dans le domaine des communications sans fil, cette relation devient importante lorsqu'il s'agit d'antennes, car pour recevoir un signal à une certaine fréquence porteuse, :math:`f`, vous avez besoin d'une antenne qui correspond à sa longueur d'onde, :math:`\lambda`, généralement l'antenne a une longueur de :math:`\lambda/2` ou :math:`\lambda/4`.  Cependant, quelle que soit la fréquence/longueur d'onde, l'information transportée par ce signal se déplace toujours à la vitesse de la lumière, de l'émetteur au récepteur.  Pour calculer ce délai dans l'air, une règle empirique est que la lumière parcourt environ 30 cm en une nanoseconde. Autre règle empirique : un signal se rendant à un satellite en orbite géostationnaire et en revenant prendra environ 0.25 seconde pour l'ensemble du trajet.
 
 *****************************
 Architectures des récepteurs
@@ -246,10 +247,10 @@ Nous avons tendance à créer, enregistrer ou analyser des signaux en bande de b
 Dans la section précédente où nous avons joué avec le point complexe 0.7-0.4j, il s'agissait essentiellement d'un échantillon dans un signal en bande de base.  La plupart du temps, lorsque vous voyez des échantillons complexes (échantillons IQ), vous êtes en bande de base.  Les signaux sont rarement représentés ou stockés numériquement en RF, en raison de la quantité de données que cela prendrait, et du fait que nous ne sommes généralement intéressés que par une petite partie du spectre RF. 
 
 ***************************
-Le Pic DC et le décalage DC
+Le Pic DC et le Décalage DC
 ***************************
 
-Lorsque vous commencez à travailler avec les SDR, vous trouvez souvent un pic important au centre de la FFT. On l'appelle "offset DC" ou "pic DC" ou parfois "fuite LO", où LO signifie *Local oscilator* pour *oscillateur local* en français.
+Lorsque vous commencez à travailler avec les SDR, vous trouvez souvent un pic important au centre de la FFT. On l'appelle "offset DC" ou "pic DC" ou parfois "fuite LO", où LO signifie *Local oscillator* pour *oscillateur local* en français.
 
 Voici un exemple d'un pic de courant continu:
 
@@ -257,7 +258,7 @@ Voici un exemple d'un pic de courant continu:
    :scale: 50% 
    :align: center
    
-Because the SDR tunes to a center frequency, the 0 Hz portion of the FFT corresponds to the center frequency.  Ceci étant dit, un pic de courant continu ne signifie pas nécessairement qu'il y a de l'énergie à la fréquence centrale. S'il n'y a qu'un pic de courant continu et que le reste de la FFT ressemble à du bruit, il est fort probable qu'il n'y a pas de signal présent à l'endroit où elle vous le montre.
+Parceque la SDR s'accorde sur une fréquence centrale, la composante à 0hz de la FFT correspond à la fréquence centrale.  Ceci étant dit, un pic de courant continu ne signifie pas nécessairement qu'il y a de l'énergie à la fréquence centrale. S'il n'y a qu'un pic de courant continu et que le reste de la FFT ressemble à du bruit, il est fort probable qu'il n'y a pas de signal présent à l'endroit où elle vous le montre.
 
 Un décalage DC est un artefact commun dans les récepteurs à conversion directe, qui est l'architecture utilisée pour les SDRs comme le PlutoSDR, RTL-SDR, LimeSDR, et de nombreux USRPs Ettus. Dans les récepteurs à conversion directe, un oscillateur local convertit le signal de sa fréquence réelle en bande de base. Par conséquent, les fuites de cet oscillateur apparaissent au centre de la bande passante observée. La fuite du LO est une énergie supplémentaire créée à cause de la combinaison des fréquences. L'élimination de ce bruit supplémentaire est difficile car il est proche du signal de sortie souhaité. De nombreux circuits intégrés RF (RFIC) intègrent une fonction automatique d'élimination du décalage continu, mais elle nécessite généralement la présence d'un signal pour fonctionner. C'est pourquoi le pic de courant continu est très apparent lorsqu'aucun signal n'est présent.
 

@@ -180,7 +180,7 @@ Une dernière remarque importante: la figure ci-dessus montre ce qui se passe **
    
    
 **************************************
-Porteurse et Descente en Fréquence
+Porteuse et Descente en Fréquence
 **************************************
 
 Jusqu'à présent, nous n'avons pas parlé de la fréquence, mais nous avons vu qu'il y avait un :math:`f` dans les équations impliquant le cos() et le sin(). Cette fréquence est la fréquence de l'onde sinusoïdale que nous envoyons réellement dans l'air (la fréquence de l'onde électromagnétique). Nous l'appelons la "porteuse" car elle transporte nos informations sur une certaine fréquence. Lorsque nous nous accordons sur une fréquence avec notre SDR et recevons des échantillons, nos informations sont stockées dans I et Q; cette porteuse n'apparaît pas dans I et Q, en supposant que nous nous sommes réglés sur la porteuse.

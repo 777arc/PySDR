@@ -64,7 +64,7 @@ Nous devons identifier la composante de fréquence la plus élevée, puis la dou
    :scale: 70% 
    :align: center 
 
-Si l'échantillonnage n'est pas assez rapide, nous obtenons ce que l'on appelle le repliement ou l'alaising, dont nous parlerons plus tard, et que nous essayons d'éviter à tout prix. Ce que font nos SDR (et la plupart des récepteurs en général), c'est filtrer tout ce qui est au-dessus de Fs/2 juste avant l'échantillonnage. Si nous essayons de recevoir un signal avec une fréquence d'échantillonnage trop faible, ce filtre coupera une partie du signal. Nos récepteurs SDR se donnent beaucoup de mal pour nous fournir des échantillons exempts de repliement ainsi que d'autres imperfections.
+Si l'échantillonnage n'est pas assez rapide, nous obtenons ce que l'on appelle le repliement ou l'aliasing, dont nous parlerons plus tard, et que nous essayons d'éviter à tout prix. Ce que font nos SDR (et la plupart des récepteurs en général), c'est filtrer tout ce qui est au-dessus de Fs/2 juste avant l'échantillonnage. Si nous essayons de recevoir un signal avec une fréquence d'échantillonnage trop faible, ce filtre coupera une partie du signal. Nos récepteurs SDR se donnent beaucoup de mal pour nous fournir des échantillons exempts de repliement ainsi que d'autres imperfections.
 
 *******************************
 Échantillonnage en quadrature

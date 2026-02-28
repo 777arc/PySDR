@@ -72,7 +72,7 @@ Si l'échantillonnage n'est pas assez rapide, nous obtenons ce que l'on appelle 
 
 Le terme "quadrature" a de nombreuses significations, mais dans le contexte du DSP et de la SDR, il désigne deux ondes déphasées de 90 degrés. Pourquoi un déphasage de 90 degrés? Observez que deux ondes qui sont déphasées de 180 degrés sont essentiellement la même onde avec une multipliée par -1. En étant déphasées de 90 degrés, elles deviennent orthogonales, et il y a beaucoup de choses intéressantes à faire avec les fonctions orthogonales. Par souci de simplicité, nous utilisons le sinus et le cosinus comme nos deux ondes sinusoïdales déphasées de 90 degrés.
 
-Ensuite, attribuons des variables pour représenter la **amplitude** du sinus et du cosinus.  Nous utiliserons :math:`I` pour le cos() et :math:`Q` pour le sin():
+Ensuite, attribuons des variables pour représenter l' **amplitude** du sinus et du cosinus.  Nous utiliserons :math:`I` pour le cos() et :math:`Q` pour le sin():
 
 .. math::
   I \cos(2\pi ft)

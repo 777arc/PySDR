@@ -134,7 +134,7 @@ Cette représentation d'une sinusoïde est connue sous le nom de "diagramme de p
   
 En Python, vous pouvez utiliser np.abs(x) et np.angle(x) pour la magnitude et la phase. L'entrée peut être un nombre complexe ou un tableau de nombres complexes, et la sortie sera un ou plusieurs nombres **réels** (du type float).
 
-Vous avez peut-être déjà compris comment ce diagramme vectoriel est lié à la convention IQ: I est réel et Q est imaginaire. À partir de maintenant, lorsque nous dessinerons le plan complexe, nous l'étiquetterons avec I et Q au lieu de réel et imaginaire. Mais il s'agira toujours des mmême nombres complexes!
+Vous avez peut-être déjà compris comment ce diagramme vectoriel est lié à la convention IQ: I est réel et Q est imaginaire. À partir de maintenant, lorsque nous dessinerons le plan complexe, nous l'étiquetterons avec I et Q au lieu de réel et imaginaire. Mais il s'agira toujours des même nombres complexes!
 
 .. image:: ../_images/complex_plane_3.png
    :scale: 70% 

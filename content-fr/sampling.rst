@@ -152,7 +152,7 @@ Nous pouvons utiliser l'identité trigonométrique :math:`a \cos(x) + b \sin(x) 
 .. math::
   x(t) = 0.806 \cos(2\pi ft + 0.519)
 
-Même si nous avons commencé avec un nombre complexe, ce que nous transmettons est réel, ce qui est une bonne chose car vous ne pouvez pas réellement transmettre quelque chose d'imaginaire avec des ondes électromagnétiques. Nous utilisons simplement des nombres imaginaires/complexes pour représenter *ce que* nous transmettons. Nous parlerons bientôt de la fonction :math:`f`.
+Même si nous avons commencé avec un nombre complexe, ce que nous transmettons est réel, ce qui est une bonne chose car vous ne pouvez pas réellement transmettre quelque chose d'imaginaire avec des ondes électromagnétiques. Nous utilisons simplement des nombres imaginaires/complexes pour représenter *ce que* nous transmettons. Nous parlerons bientôt de :math:`f`.
 
 *************************************
 Les nombres complexes dans les FFT

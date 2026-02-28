@@ -176,7 +176,7 @@ Si quelqu'un vous donne un fichier d'échantillons QI, cela ressemblera à un ta
 
 Tout au long de ce manuel, vous deviendrez **très** familier avec le fonctionnement des échantillons IQ, comment les recevoir et les transmettre avec un SDR, comment les traiter dans Python et comment les enregistrer dans un fichier pour une analyse ultérieure.
 
-Une dernière remarque importante: la figure ci-dessus montre ce qui se passe **à l'intérieur** de la SDR. Nous n'avons pas besoin de générer une onde sinusoïdale, de la décaler de 90, de la multiplier ou de l'additionner - la SDR le fait pour nous. Nous indiquons à la SDR la fréquence à laquelle nous voulons échantillonner, ou la fréquence à laquelle nous voulons transmettre nos échantillons. Du côté du récepteur, le SDR nous fournira les échantillons IQ. Du côté de l'émetteur, nous devons fournir au SDR les échantillons IQ. En termes de type de données, il s'agira soit d'entiers complexes, soit de flottants.
+Une dernière remarque importante: la figure ci-dessus montre ce qui se passe **à l'intérieur** de la SDR. Nous n'avons pas besoin de générer une onde sinusoïdale, de la décaler de 90, de la multiplier ou de l'additionner - la SDR le fait pour nous. Nous indiquons à la SDR la fréquence à laquelle nous voulons échantillonner, ou la fréquence à laquelle nous voulons transmettre nos échantillons. Du côté du récepteur, la SDR nous fournira les échantillons IQ. Du côté de l'émetteur, nous devons fournir à la SDR les échantillons IQ. En termes de type de données, il s'agira soit d'entiers complexes, soit de flottants.
    
    
 **************************************

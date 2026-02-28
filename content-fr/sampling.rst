@@ -219,7 +219,7 @@ Enfin, vous êtes peut-être curieux de savoir à quelle vitesse les signaux se 
 .. math::
  f = \frac{c}{\lambda}
 
-où :math:`c` est la vitesse de la lumière, généralement fixée à 3e8 lorsque :math:`f` est en Hz et :math:``lambda` en mètre.  Dans le domaine des communications sans fil, cette relation devient importante lorsqu'il s'agit d'antennes, car pour recevoir un signal à une certaine fréquence porteuse, :math:`f`, vous avez besoin d'une antenne qui correspond à sa longueur d'onde, :math:`\lambda`, généralement l'antenne a une longueur de :math:`\lambda/2` ou :math:`\lambda/4`.  Cependant, quelle que soit la fréquence/longueur d'onde, l'information transportée par ce signal se déplace toujours à la vitesse de la lumière, de l'émetteur au récepteur.  Pour calculer ce délai dans l'air, une règle empirique est que la lumière parcourt environ un 30 cm en une nanoseconde. Autre règle empirique : un signal se rendant à un satellite en orbite géostationnaire et en revenant prendra environ 0.25 seconde pour l'ensemble du trajet.
+où :math:`c` est la vitesse de la lumière, généralement fixée à 3e8 lorsque :math:`f` est en Hz et :math:`\lambda` en mètre.  Dans le domaine des communications sans fil, cette relation devient importante lorsqu'il s'agit d'antennes, car pour recevoir un signal à une certaine fréquence porteuse, :math:`f`, vous avez besoin d'une antenne qui correspond à sa longueur d'onde, :math:`\lambda`, généralement l'antenne a une longueur de :math:`\lambda/2` ou :math:`\lambda/4`.  Cependant, quelle que soit la fréquence/longueur d'onde, l'information transportée par ce signal se déplace toujours à la vitesse de la lumière, de l'émetteur au récepteur.  Pour calculer ce délai dans l'air, une règle empirique est que la lumière parcourt environ 30 cm en une nanoseconde. Autre règle empirique : un signal se rendant à un satellite en orbite géostationnaire et en revenant prendra environ 0.25 seconde pour l'ensemble du trajet.
 
 *****************************
 Architectures des récepteurs
@@ -247,10 +247,10 @@ Nous avons tendance à créer, enregistrer ou analyser des signaux en bande de b
 Dans la section précédente où nous avons joué avec le point complexe 0.7-0.4j, il s'agissait essentiellement d'un échantillon dans un signal en bande de base.  La plupart du temps, lorsque vous voyez des échantillons complexes (échantillons IQ), vous êtes en bande de base.  Les signaux sont rarement représentés ou stockés numériquement en RF, en raison de la quantité de données que cela prendrait, et du fait que nous ne sommes généralement intéressés que par une petite partie du spectre RF. 
 
 ***************************
-Le Pic DC et le décalage DC
+Le Pic DC et le Décalage DC
 ***************************
 
-Lorsque vous commencez à travailler avec les SDR, vous trouvez souvent un pic important au centre de la FFT. On l'appelle "offset DC" ou "pic DC" ou parfois "fuite LO", où LO signifie *Local oscilator* pour *oscillateur local* en français.
+Lorsque vous commencez à travailler avec les SDR, vous trouvez souvent un pic important au centre de la FFT. On l'appelle "offset DC" ou "pic DC" ou parfois "fuite LO", où LO signifie *Local oscillator* pour *oscillateur local* en français.
 
 Voici un exemple d'un pic de courant continu:
 

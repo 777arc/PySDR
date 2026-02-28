@@ -198,16 +198,17 @@ Pour prendre un exemple simple, disons que nous transmettons l'échantillon IQ 1
 Revenons maintenant à l'échantillonnage pour une seconde.  Au lieu de recevoir des échantillons en multipliant ce qui provient de l'antenne par un cos() et un sin() puis en enregistrant I et Q, que se passerait-il si nous envoyions le signal de l'antenne dans un seul CAN, comme dans l'architecture d'échantillonnage direct dont nous venons de parler?  Supposons que la fréquence porteuse soit de 2.4 GHz, comme le WiFi ou le Bluetooth. Cela signifie que nous devrions échantillonner à 4.8 GHz, comme nous l'avons appris. C'est extrêmement rapide! Un CAN qui échantillonne aussi rapidement coûte des milliers de dollars. Au lieu de cela, nous "descendons en fréquence" (*downconversion* en anglais) le signal pour que le signal que nous voulons échantillonner soit centré sur le courant continu ou 0 Hz. Cette descente en fréquence a lieu avant l'échantillonnage. Nous passons de:
 
 .. math::
-  I \cos(2\pi ft)
-  
-  Q \sin(2\pi ft)
-  
+
+ I \underbrace{\cos(2\pi ft)}_{porteuse} \ + \ \ Q \underbrace{\sin(2\pi ft)}_{porteuse}
+
 à juste I et Q.
 
 Visualisons la conversion de fréquence dans le domaine des fréquences:
+
 .. image:: ../_images/downconversion.png
    :scale: 60% 
    :align: center
+   :alt: La descente en fréquences où un signal est décalé de RF à 0Hz ou à la fréquence de base
 
 Lorsque nous sommes centrés autour de 0 Hz, la fréquence maximale n'est plus de 2,4 GHz mais est basée sur les caractéristiques du signal car nous avons supprimé la porteuse. La plupart des signaux ont une largeur de bande d'environ 100 kHz à 40 MHz, de sorte que, grâce à la conversion de fréquence, nous pouvons échantillonner à un taux *beaucoup* plus faible. Les USRP B2X0 et PlutoSDR contiennent un circuit intégré RF (RFIC) qui peut échantillonner jusqu'à 56 MHz, ce qui est suffisamment élevé pour la plupart des signaux que nous rencontrerons dans la vie de tous les jours.
 

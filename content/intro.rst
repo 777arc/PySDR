@@ -46,7 +46,7 @@ Code examples are provided in Python.  They utilize NumPy, which is Python's sta
 Contributing
 ***************
 
-If you got value from PySDR, please share it with colleagues, students, and other lifelong learners who may be interested in the material.  You can also donate through the `PySDR Patreon <https://www.patreon.com/PySDR>`_ as a way to say thanks and get your name on the left of every page below the chapter list.
+If you got value from PySDR, please share it with colleagues, students, and other lifelong learners who may be interested in the material.  You can also donate through the `PySDR Patreon <https://www.patreon.com/PySDR>`_ as a way to say thanks and get your name on the left of every page below the chapter list, there is also an option to `make a one-time donation <https://www.paypal.com/donate/?hosted_button_id=FH3LQCJRUVPWL>`_.
 
 If you get through any amount of this textbook and email me at marc@pysdr.org with questions/comments/suggestions, then congratulations, you will have contributed to this textbook!  You can also edit the source material directly on the `textbook's GitHub page <https://github.com/777arc/PySDR/tree/master/content>`_ (your change will start a new pull request).  Feel free to submit an issue or even a Pull Request (PR) with fixes or improvements.  Those who submit valuable feedback/fixes will be permanently added to the acknowledgments section below.  Not good at Git but have changes to suggest?  Feel free to email me at marc@pysdr.org.
 

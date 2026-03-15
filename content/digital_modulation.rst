@@ -84,7 +84,7 @@ Amplitude Shift Keying (ASK) is the first digital modulation scheme we will disc
 
 Note how the average value is zero; we always prefer this whenever possible.
 
-We can use more than two levels, allowing for more bits per symbol.  Below shows an example of 4-ASK.  In this case each symbol carries 2 bits of information.
+We can use more than two levels, allowing for more bits per symbol.  Below shows an example of 4-ASK (off is one of the four levels).  In this case each symbol carries 2 bits of information.
 
 .. image:: ../_images/ask2.svg
    :align: center
@@ -111,7 +111,7 @@ How do we actually create this signal digitally, through code?  All we have to d
    :target: ../_images/ask3.svg
    :alt: Samples per symbol depiction using 2-ASK in the time domain, with 10 samples per symbol (sps)
 
-The top plot shows the discrete samples represented by red dots, i.e., our digital signal.  The bottom plot shows what the resulting modulated signal looks like, which could be transmitted over the air.  In real systems, the frequency of the carrier is usually much much higher than the rate the symbols are changing.  In this example there are only three cycles of the sinusoid in each symbol, but in practice there may be thousands, depending on how high in the spectrum the signal is being transmitted.
+The top plot shows the discrete samples represented by red dots, i.e., our digital signal.  The bottom plot shows what the resulting modulated signal looks like, which could be transmitted over the air.  In real systems, the frequency of the carrier is usually much much higher than the rate the symbols are changing.  In this example there are only 2.5 cycles of the sinusoid in each symbol, but in practice there may be thousands, depending on how high in the spectrum the signal is being transmitted. For more information on ASK we recommend `this resource <https://ez.analog.com/ez-blogs/b/engineering-mind/posts/digital-signal-modulations-with-ask-rf-modulation-schemes-part-3-of-7>`_.
 
 ************************
 Phase Shift Keying (PSK)
@@ -190,7 +190,7 @@ There is nothing invalid about this PSK scheme. You can certainly use it, but, b
 
    </details>
 
-Let's detour back to ASK for a moment.  Note that we can show ASK on the IQ plot just like PSK.  Here is the IQ plot of 2-ASK, 4-ASK, and 8-ASK, in the bipolar configuration, as well as 2-ASK and 4-ASK in the unipolar configuration.
+Let's detour back to ASK for a moment.  Note that we can show ASK on the IQ plot just like PSK.  Here is the IQ plot of 2-ASK, 4-ASK, and 8-ASK, in the bipolar configuration, as well as 2-ASK and 4-ASK in the unipolar configuration.  In this context, bipolar means the modulated signal can take on both positive and negative amplitude values, whereas unipolar ASK only uses positive amplitudes.
 
 .. image:: ../_images/ask_set.png
    :scale: 50 %

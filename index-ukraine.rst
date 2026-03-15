@@ -1,19 +1,24 @@
-================================================
-PySDR: Посібник з SDR та DSP за допомогою Python
-================================================
+.. raw:: html
+   :file: _templates/homepage_uk.html
 
-автор :ref:`Доктор Марк Ліхтман<author-chapter>`
+.. raw:: html
+
+   <details>
+   <summary><h4 style="display: inline;">Розгорнути повний зміст</h4></summary>
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :numbered: 1
-   
+
    content-ukraine/intro
    content-ukraine/frequency_domain
    content-ukraine/sampling
    content-ukraine/digital_modulation
    content-ukraine/pluto
    content-ukraine/usrp
+   content-ukraine/bladerf
+   content-ukraine/rtlsdr
+   content-ukraine/hackrf
    content-ukraine/noise
    content-ukraine/filters
    content-ukraine/link_budgets
@@ -24,5 +29,12 @@ PySDR: Посібник з SDR та DSP за допомогою Python
    content-ukraine/sync
    content-ukraine/rds
    content-ukraine/doa
+   content-ukraine/2d_beamforming
    content-ukraine/phaser
+   content-ukraine/cyclostationar
+   content-ukraine/pyqt
    content-ukraine/about_author
+
+.. raw:: html
+
+   </details>

@@ -1,12 +1,12 @@
-# PySDR Textbook Source Material
-
-This repo contains the source content used to generate the textbook [PySDR: A Guide to SDR and DSP using Python](https://pysdr.org) hosted at https://pysdr.org.
-
-Feel free to submit an issue, or even a Pull Request (PR) with fixes or improvements.  Those who submit valuable feedback/fixes be permanently added to the acknowledgments section.  Not good at Git but have changes to suggest?  Feel free to email Marc at marc@pysdr.org.
+# PySDR
 
 <p align="center">
   <img width="200" src="https://raw.githubusercontent.com/777arc/PySDR/master/_images/fft_logo_wide.gif" />
 </p>
+
+[PySDR: A Guide to SDR and DSP using Python](https://pysdr.org) is a guide to software-defined radio (SDR) and RF signal processing using Python code examples, live at https://pysdr.org.  It is a free online textbook that provides a gentle introduction to wireless communications and SDR using an abundance of diagrams, animations, and code examples. From FFTs to filters to digital modulation to receiving and transmitting from SDRs in Python, PySDR has you covered!  This repo specifically contains the source content used to generate the textbook, including the body text and Python scripts to generate the figures.  For questions/comments/suggestions feel free to submit an issue at the top of this page, or if you want to propose a change to the textbook (e.g. fix or improvement), you can use a Pull Request.  Those who submit valuable feedback/fixes be permanently added to the acknowledgments section.  Not good at Git but have changes to suggest?  Feel free to email Marc at marc@pysdr.org.
+
+You can also support PySDR through the [PySDR Patreon page](https://www.patreon.com/c/PySDR) or a [one-time donation](https://www.paypal.com/donate/?hosted_button_id=FH3LQCJRUVPWL).
 
 ## Building
 
@@ -35,19 +35,23 @@ Note: on one machine I had to add `~/.local/bin` to PATH
 
 Install pre-requisite software with:
 
-1. Install Tex Live from the install-tl-windows.exe link towards the beginning of https://www.tug.org/texlive/acquire-netinstall.html (after opening it, choose the Install option). When a box pops up, click Advanced. It will mention `Installation root C:/texlive/2025` which we need later.  Uncheck Install TeXworks front end because we wont need it.  Under Scheme click "change" and choose `basic scheme`.  Hit Install.  It will take a while because it installs a lot of common latex packages, you can do the remaining steps while this installs.  You know it worked if you now have a `C:\texlive\2025\bin\windows\latex.exe`.
-2. From the Microsoft Store install Python 3.10 (3.8-3.12 is fine too if you already have it installed).
-3. In a PowerShell terminal (click start menu then type powershell, or open a terminal in VSCode) run `pip install sphinx sphinxcontrib-tikz patreon setuptools`
-4. `cd` to the directory you cloned PySDR
-5. Separately, open "Tex live command-line" app from start menu, then run `tlmgr install dvisvgm pgf anyfontsize` (pgf is tikz).
+1. From the Microsoft Store install Python 3.10 (3.8-3.12 is fine too if you already have it installed).
+1. In a PowerShell terminal (click start menu then type powershell, or open a terminal in VSCode) run `pip install sphinx sphinxcontrib-tikz patreon setuptools`
+1. `cd` to the directory you cloned PySDR
 
 Build the English version only using:
 
 ```
-python -m sphinx.cmd.build -b html -D imgmath_latex="C:\texlive\2025\bin\windows\latex.exe" -D imgmath_dvisvgm="C:\texlive\2025\bin\windows\dvisvgm.exe" . _build
+python -m sphinx.cmd.build -b html . _build
 ```
 
 The first time running this it might take a while because it has to download LaTeX packages.
+
+Test the javascript part with the following to avoid CORS errors:
+```
+cd _build
+python -m http.server
+```
 
 ## Creating a PDF Export
 

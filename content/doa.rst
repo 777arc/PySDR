@@ -206,17 +206,22 @@ The above equation is specific to adjacent elements, for the signal received by 
 .. math::
  x[n] e^{-2j \pi d k \sin(\theta)}
 
+Now let's consider the coordinate convention we want to use.  In this textbook we will have 0 degrees represent tangential to the array placement (i.e., the line the elements are on), as shown in the diagram above, and we will have theta increasing clockwise.  We will also consider the first/reference element as the left-most one, and each additional element will be a distance :math:`d_m` to the right.  This is reverse from our diagram above, so we need to invert the direction of the phase shift, which means removing the negative sign:
+
+.. math::
+ x[n] e^{2j \pi d k \sin(\theta)}
+
 We can represent this in matrix form by simply arranging the above equation for all :code:`Nr` elements in the array, from :math:`k = 0, 1, ... , N-1`:
 
 .. math::
 
    x
    \begin{bmatrix}
-           e^{-2j \pi d (0) \sin(\theta)} \\
-           e^{-2j \pi d (1) \sin(\theta)} \\
-           e^{-2j \pi d (2) \sin(\theta)} \\
+           e^{2j \pi d (0) \sin(\theta)} \\
+           e^{2j \pi d (1) \sin(\theta)} \\
+           e^{2j \pi d (2) \sin(\theta)} \\
            \vdots \\
-           e^{-2j \pi d (N_r - 1) \sin(\theta)} \\
+           e^{2j \pi d (N_r - 1) \sin(\theta)} \\
     \end{bmatrix}
 
 where :math:`x` is the 1D row vector containing the transmit signal, and the column vector written out is what we call the "steering vector" (often denoted as :math:`s` and in code :code:`s`) and represent it as an array, a 1D array for a 1D antenna array, etc.  Because :math:`e^{0} = 1`, the first element of the steering vector is always 1, and the rest are phase shifts relative to the first element:
@@ -226,19 +231,19 @@ where :math:`x` is the 1D row vector containing the transmit signal, and the col
    s =
    \begin{bmatrix}
            1 \\
-           e^{-2j \pi d (1) \sin(\theta)} \\
-           e^{-2j \pi d (2) \sin(\theta)} \\
+           e^{2j \pi d (1) \sin(\theta)} \\
+           e^{2j \pi d (2) \sin(\theta)} \\
            \vdots \\
-           e^{-2j \pi d (N_r - 1) \sin(\theta)} \\
+           e^{2j \pi d (N_r - 1) \sin(\theta)} \\
     \end{bmatrix}
 
-And we're done! This vector above is what you'll see in DOA papers and ULA implementations everywhere!  You may also see it with the :math:`2\pi\sin(\theta)` expressed as a symbol like :math:`\psi`, in which case the steering vector would be just :math:`e^{-jd\psi}`, which is the more general form (we won't be using that form, however).  In python :code:`s` is:
+And we're done! This vector above is what you'll see in DOA papers and ULA implementations everywhere!  You may also see it with the :math:`2\pi\sin(\theta)` expressed as a symbol like :math:`\psi`, in which case the steering vector would be just :math:`e^{jd\psi}`, which is the more general form (we won't be using that form, however).  In python :code:`s` is:
 
 .. code-block:: python
 
- s = [np.exp(-2j*np.pi*d*0*np.sin(theta)), np.exp(-2j*np.pi*d*1*np.sin(theta)), np.exp(-2j*np.pi*d*2*np.sin(theta)), ...] # note the increasing k
+ s = [np.exp(2j*np.pi*d*0*np.sin(theta)), np.exp(2j*np.pi*d*1*np.sin(theta)), np.exp(2j*np.pi*d*2*np.sin(theta)), ...] # note the increasing k
  # or
- s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # where Nr is the number of receive antenna elements
+ s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # where Nr is the number of receive antenna elements
 
 Note how element 0 results in a 1+0j (because :math:`e^{0}=1`); this makes sense because everything above was relative to that first element, so it's receiving the signal as-is without any relative phase shifts.  This is purely how the math works out, in reality any element could be thought of as the reference, but as you'll see in our math/code later on, what matters is the difference in phase/amplitude received between elements.  It's all relative.
 
@@ -271,7 +276,7 @@ Now let's simulate an array consisting of three omnidirectional antennas in a li
  Nr = 3
  theta_degrees = 20 # direction of arrival (feel free to change this, it's arbitrary)
  theta = theta_degrees / 180 * np.pi # convert to radians
- s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Steering Vector
+ s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Steering Vector
  print(s) # note that it's 3 elements long, it's complex, and the first element is 1+0j
 
 To apply the steering vector we have to do a matrix multiplication of :code:`s` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`ourarray.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
@@ -299,14 +304,14 @@ At this point :code:`X` is a 2D array, size 3 x 10000 because we have three arra
    :align: center 
    :target: ../_images/doa_time_domain.svg
 
-Note the phase shifts between elements like we expect to happen (unless the signal arrives at boresight in which case it will reach all elements at the same time and there won't be a shift, set theta to 0 to see).  Element 0 appears to arrive first, with the others slightly delayed.  Try adjusting the angle and see what happens.
+Note the phase shifts between elements like we expect to happen (unless the signal arrives at boresight in which case it will reach all elements at the same time and there won't be a shift, set theta to 0 to see). Try adjusting the angle and see what happens.
 
 As one final step, let's add noise to this received signal, as every signal we will deal with has some amount of noise. We want to apply the noise after the steering vector is applied, because each element experiences an independent noise signal (we can do this because AWGN with a phase shift applied is still AWGN):
 
 .. code-block:: python
 
  n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
- X = X + 0.5*n # X and n are both 3x10000
+ X = X + 0.1*n # X and n are both 3x10000
 
 .. image:: ../_images/doa_time_domain_with_noise.svg
    :align: center 
@@ -321,13 +326,13 @@ We will now process these samples :code:`X`, pretending we don't know the angle 
 We'll start with the "conventional" beamforming approach, a.k.a. delay-and-sum beamforming.  Our weights vector :code:`w` needs to be a 1D array for a uniform linear array, in our example of three elements, :code:`w` is a :code:`3x1` array of complex weights.  With conventional beamforming we leave the magnitude of the weights at 1, and adjust the phases so that the signal constructively adds up in the direction of our desired signal, which we will refer to as :math:`\theta`.  It turns out that this is the exact same math we did above, i.e., our weights are our steering vector!
 
 .. math::
- w_{conv} = e^{-2j \pi d k \sin(\theta)}
+ w_{conv} = e^{2j \pi d k \sin(\theta)}
 
 or in Python:
 
 .. code-block:: python
 
- w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Conventional, aka delay-and-sum, beamformer
+ w = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Conventional, aka delay-and-sum, beamformer
  X_weighted = w.conj().T @ X # example of applying the weights to the received signal (i.e., perform the beamforming)
  print(X_weighted.shape) # 1x10000
 
@@ -340,7 +345,7 @@ But how do we know the angle of interest :code:`theta`?  We must start by perfor
  theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
  results = []
  for theta_i in theta_scan:
-    w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Conventional, aka delay-and-sum, beamformer
+    w = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Conventional, aka delay-and-sum, beamformer
     X_weighted = w.conj().T @ X # apply our weights. remember X is 3x10000
     results.append(10*np.log10(np.var(X_weighted))) # power in signal, in dB so its easier to see small and large lobes at the same time
  results -= np.max(results) # normalize (optional)
@@ -409,7 +414,7 @@ Recall that our steering vector we keep seeing,
 
 .. code-block:: python
 
- np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta))
+ np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta))
 
 encapsulates the ULA geometry, and its only other parameter is the direction you want to steer towards.  We can calculate and plot the quiescent antenna pattern (array response) when steered towards a certain direction, which will tell us the arrays natural response if we don't do any additional beamforming.  This can be done by taking the FFT of the complex conjugated weights, no for loop needed!  The tricky part is padding to increase resolution, and mapping the bins of the FFT output to angle in radians or degrees, which involves an arcsine as you can see in the full example below:
 
@@ -420,8 +425,7 @@ encapsulates the ULA geometry, and its only other parameter is the direction you
     N_fft = 512
     theta_degrees = 20 # there is no SOI, we arent processing samples, this is just the direction we want to point at
     theta = theta_degrees / 180 * np.pi
-    w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # conventional beamformer
-    w = np.conj(w) # or else our answer will be negative/inverted
+    w = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # conventional beamformer
     w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
     w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
@@ -527,12 +531,6 @@ While the main lobe gets wider as d gets lower, it still has a maximum at 20 deg
    :alt: Animation of direction of arrival (DOA) showing what happens when distance d is much less than half-wavelength and there are two signals present
 
 Once we get lower than λ/4 there is no distinguishing between the two different paths, and the array performs poorly.  As we will see later in this chapter, there are beamforming techniques that provide more precise beams than conventional beamforming, but keeping d as close to λ/2 as possible will continue to be a theme.
-
-*******************
-Number of Elements
-*******************
-
-Coming soon!
 
 ..
    COMMENTED OUT BECAUSE IT"S NOT CLEAR WHAT THIS SECTION IS PROVIDING TO THE READER BESIDES AN ALTERNATIVE EQUATION AND TERM WHICH COULD BE PRESENTED A LOT MORE CONCISE
@@ -710,8 +708,8 @@ In Python we can implement the MVDR/Capon beamformer as follows, which will be d
 .. code-block:: python
 
  # theta is the direction of interest, in radians, and X is our received signal
- def w_mvdr(theta, r):
-    s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector in the desired direction theta
+ def w_mvdr(theta, X):
+    s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # steering vector in the desired direction theta
     s = s.reshape(-1,1) # make into a column vector (size 3x1)
     R = (X @ X.conj().T)/X.shape[1] # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
     Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better/faster than a true inverse
@@ -725,7 +723,7 @@ Using this MVDR beamformer in the context of DOA, we get the following Python ex
  theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # 1000 different thetas between -180 and +180 degrees
  results = []
  for theta_i in theta_scan:
-    w = w_mvdr(theta_i, r) # 3x1
+    w = w_mvdr(theta_i, X) # 3x1
     X_weighted = w.conj().T @ X # apply weights
     power_dB = 10*np.log10(np.var(X_weighted)) # power in signal, in dB so its easier to see small and large lobes at the same time
     results.append(power_dB)
@@ -745,9 +743,9 @@ It appears to work fine, but to really compare this to other techniques we'll ha
  theta1 = 20 / 180 * np.pi # convert to radians
  theta2 = 25 / 180 * np.pi
  theta3 = -40 / 180 * np.pi
- s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
- s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
- s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+ s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+ s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+ s3 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
  # we'll use 3 different frequencies.  1xN
  tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
  tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
@@ -796,8 +794,8 @@ Meaning we don't have to apply the weights at all, this final equation above for
 
 .. code-block:: python
 
-    def power_mvdr(theta, r):
-        s = np.exp(-2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
+    def power_mvdr(theta, X):
+        s = np.exp(2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
         R = (X @ X.conj().T)/X.shape[1] # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
@@ -821,11 +819,11 @@ for wireless signals at baseband, :math:`E[X]` is typically zero or very close t
 
 :math:`\mathrm{cov}(X) = E[X X^H]`
 
-Given a limited number of IQ samples, :math:`\bm{X}`, we can estimate this covariance, which we will denote as :math:`\hat{R}`:
+Given a limited number of IQ samples, :math:`\boldsymbol{X}`, we can estimate this covariance, which we will denote as :math:`\hat{R}`:
 
 .. math::
 
- \hat{R} = \frac{\bm{X} \bm{X}^H}{N}
+ \hat{R} = \frac{\boldsymbol{X} \boldsymbol{X}^H}{N}
 
          = \frac{1}{N} \sum^N_{n=1} X_n X_n^H
 
@@ -871,8 +869,8 @@ As far as performing LCMV in Python, it is very similar to MVDR, but we have to 
 
     # LCMV weights
     R_inv = np.linalg.pinv(np.cov(X)) # 8x8
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
     C = np.concatenate((s1, s2), axis=1) # 8x2
     f = np.ones(2).reshape(-1,1) # 2x1
 
@@ -902,10 +900,10 @@ As you can see, we have beams pointed at the two directions of interest, and nul
     theta2 = -30 / 180 * np.pi
     theta3 = 0 / 180 * np.pi
     theta4 = 30 / 180 * np.pi
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
-    s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
-    s4 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta4)).reshape(-1,1)
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta1)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+    s3 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+    s4 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta4)).reshape(-1,1)
     # we'll use 3 different frequencies.  1xN
     tone1 = np.exp(2j*np.pi*0.01e6*t).reshape(1,-1)
     tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
@@ -921,8 +919,8 @@ As you can see, we have beams pointed at the two directions of interest, and nul
 
     # LCMV weights
     R_inv = np.linalg.pinv(np.cov(X)) # 8x8
-    s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
-    s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
+    s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(soi1_theta)).reshape(-1,1) # 8x1
+    s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(soi2_theta)).reshape(-1,1) # 8x1
     C = np.concatenate((s1, s2), axis=1) # 8x2
     f = np.ones(2).reshape(-1,1) # 2x1
 
@@ -933,7 +931,6 @@ As you can see, we have beams pointed at the two directions of interest, and nul
     # Plot beam pattern
     w = w.squeeze() # reduce to a 1D array
     N_fft = 1024
-    w = np.conj(w) # or else our answer will be negative/inverted
     w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
     w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
@@ -978,9 +975,9 @@ There is a special use-case of LCMV that you may have already thought of; let's 
     R_inv = np.linalg.pinv(np.cov(X))
     s = []
     for soi_theta in soi_thetas:
-        s.append(np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(soi_theta)).reshape(-1,1))
+        s.append(np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(soi_theta)).reshape(-1,1))
     for null_theta in null_thetas:
-        s.append(np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(null_theta)).reshape(-1,1))
+        s.append(np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(null_theta)).reshape(-1,1))
     C = np.concatenate(s, axis=1)
     f = np.asarray([1]*len(soi_thetas) + [0]*len(null_thetas)).reshape(-1,1)
     w = R_inv @ C @ np.linalg.pinv(C.conj().T @ R_inv @ C) @ f # LCMV equation
@@ -1010,9 +1007,9 @@ where :math:`w_{\text{null}}` is the steering vector in the direction of the nul
 
 .. math::
 
- \text{1:} \qquad w_{\text{orig}} = e^{-2j \pi d k \sin(\theta_{SOI})} \qquad
+ \text{1:} \qquad w_{\text{orig}} = e^{2j \pi d k \sin(\theta_{SOI})} \qquad
 
- \text{2:} \qquad w_{\text{null}} = e^{-2j \pi d k \sin(\theta_{null})} \qquad
+ \text{2:} \qquad w_{\text{null}} = e^{2j \pi d k \sin(\theta_{null})} \qquad
 
  \text{3:} \qquad w_{\text{new}} = w_{\text{orig}} - \frac{w_{\text{null}}^H w_{\text{orig}}}{w_{\text{null}}^H w_{\text{null}}} w_{\text{null}}
 
@@ -1032,12 +1029,12 @@ Let's simulate an 8-element array, and place four nulls:
     nulls_rad = np.asarray(nulls_deg) / 180 * np.pi
 
     # Start out with conventional beamformer pointed at theta_soi
-    w = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
+    w = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
 
     # Loop through nulls
     for null_rad in nulls_rad:
         # weights equal to steering vector in target null direction
-        w_null = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(null_rad)).reshape(-1,1)
+        w_null = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(null_rad)).reshape(-1,1)
 
         # scaling_factor (complex scalar) for w at nulled direction
         scaling_factor = w_null.conj().T @ w / (w_null.conj().T @ w_null)
@@ -1048,7 +1045,6 @@ Let's simulate an 8-element array, and place four nulls:
 
     # Plot beam pattern
     N_fft = 1024
-    w = np.conj(w) # or else our answer will be negative/inverted
     w_padded = np.concatenate((w.squeeze(), np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
     w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
     w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
@@ -1106,7 +1102,7 @@ where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2
  theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # -180 to +180 degrees
  results = []
  for theta_i in theta_scan:
-     s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Steering Vector
+     s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Steering Vector
      s = s.reshape(-1,1)
      metric = 1 / (s.conj().T @ V @ V.conj().T @ s) # The main MUSIC equation
      metric = np.abs(metric.squeeze()) # take magnitude
@@ -1169,9 +1165,9 @@ In the example Python code below, we simulate an 8-element array with a SOI that
  theta2    = 60 / 180 * np.pi
  theta3   = -50 / 180 * np.pi
  t = np.arange(N)/sample_rate # time vector
- s1 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1) # 8x1
- s2 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
- s3 = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+ s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1) # 8x1
+ s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+ s3 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
 
  # SOI is a gold code, repeated, length 127
  gold_code = np.array([-1, 1, 1, -1, 1, 1, 1, 1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 1, -1, 1, -1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, 1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, 1, 1, 1, 1, -1, 1, 1, 1, -1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1, -1, -1, 1, 1])
@@ -1258,7 +1254,7 @@ Next we will perform basic DOA with MVDR, to identify the angles of arrival of t
    R = X @ X.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
    Rinv = np.linalg.pinv(R) # pseudo-inverse tends to work better than a true inverse
    for theta_i in theta_scan:
-      a = np.exp(-2j * np.pi * d * np.arange(X.shape[0]) * np.sin(theta_i)) # steering vector in the desired direction theta_i
+      a = np.exp(2j * np.pi * d * np.arange(X.shape[0]) * np.sin(theta_i)) # steering vector in the desired direction theta_i
       a = a.reshape(-1,1) # make into a column vector
       power = 1/(a.conj().T @ Rinv @ a).squeeze() # MVDR power equation
       power_dB = 10*np.log10(np.abs(power)) # power in signal, in dB so its easier to see small and large lobes at the same time
@@ -1287,7 +1283,7 @@ It turns out that C is arriving at -0.3407 radians, so that is what we need to u
 .. code-block:: python
 
    # Calc MVDR weights
-   s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(max_angle)) # steering vector in the desired direction theta
+   s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(max_angle)) # steering vector in the desired direction theta
    s = s.reshape(-1,1) # make into a column vector
    w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
 
@@ -1301,7 +1297,7 @@ Lastly, let's plot the beam pattern of the MVDR weights we just calculated, as w
 .. code-block:: python
 
    # Calc beam pattern
-   w = np.conj(w.squeeze()) # or else our answer will be negative/inverted
+   w = w.squeeze()
    N_fft = 2048
    w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
    w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
@@ -1344,7 +1340,7 @@ This time, the big difference is that we will use :code:`Rinv_training` when cal
 .. code-block:: python
 
    # Calc MVDR weights using training Rinv
-   s = np.exp(-2j * np.pi * d * np.arange(Nr) * np.sin(max_angle)) # steering vector in the desired direction theta
+   s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(max_angle)) # steering vector in the desired direction theta
    s = s.reshape(-1,1) # make into a column vector (size 3x1)
    w = (Rinv_training @ s)/(s.conj().T @ Rinv_training @ s) # MVDR/Capon equation
 
@@ -1432,206 +1428,7 @@ All of the code we have studied so far applies to UCAs, we just have to replace 
 
 Lastly, you will want to scan from 0 to 360 degrees, instead of just -90 to +90 degrees like with a ULA.
 
-*************************************
-Rectangular Arrays and 2D Beamforming
-*************************************
-
-Rectangular arrays (a.k.a. planar arrays) involve a 2D array of elements.  With an extra dimension we get some added complexity, but the same basic principles apply, and the hardest part will be visualizing the results (e.g. no more simple polar plots, now we'll need 3D surface plots).  Even though our array is now 2D, that does not mean we have to start adding a dimension to every data structure we've been dealing with.  For example, we will keep our weights as a 1D array of complex numbers.  However, we will need to represent the positions of our elements in 2D (x and y), and we're going to go ahead and add in z, even though it will be equal to zero, for the sake of math later on.  We will keep using :code:`theta` to refer to the azimuth angle, but now we will introduce a new angle, :code:`phi`, which is the elevation angle.  
-
-.. image:: ../_images/Spherical_Coordinates.svg
-   :align: center 
-   :target: ../_images/Spherical_Coordinates.svg
-   :alt: Spherical coordinate system showing theta and phi
-
-We will also switch to using a generalized steering vector equation, which is not specific to any array geometry:
-
-.. math::
-
-   s = e^{-2j \pi \boldsymbol{p} u / \lambda}
-
-where :math:`\boldsymbol{p}` is the set of element x/y/z positions in meters (size :code:`Nr` x 3) and :math:`u` is the direction we want to point at as a unit vector in x/y/z (size 3x1).  In Python this looks like:
-
-.. code-block:: python
-
- def steering_vector(pos, dir):
-     #                           Nrx3  3x1   
-     return np.exp(-2j * np.pi * pos @ dir / wavelength) # outputs Nr x 1 (column vector)
-
-Let's try using this generalized steering vector equation with a simple ULA with 4 elements, to make the connection back to what we have previously learned. We will now represent :code:`d` in meters instead of relative to wavelength.
-
-.. code-block:: python
-
- Nr = 4
- fc = 5e9
- wavelength = 3e8 / fc
- d = 0.5 * wavelength # in meters
-
- # We will store our element positions in a list of (x,y,z)'s, even though it's just a ULA along the x-axis
- pos = np.zeros((Nr, 3)) # Element positions, as a list of x,y,z coordinates in meters
- for i in range(Nr):
-     pos[i,0] = d * i # x position
-     pos[i,1] = 0     # y position
-     pos[i,2] = 0     # z position
-
-The following graphic shows a top-down view of the ULA, with an example theta of 20 degrees.
-
-.. image:: ../_images/2d_beamforming_ula.svg
-   :align: center 
-   :target: ../_images/2d_beamforming_ula.svg
-   :alt: ULA with theta of 20 degrees
-
-The only thing left is to connect our old :code:`theta` with this new unit vector approach.  We can calculate :code:`dir` based on :code:`theta` pretty easily, we know that the y and z component of our unit vector will be 0 because we are still in 1D space, and the x component will be :code:`np.cos(theta)`, meaning the full code is :code:`dir = np.asmatrix([np.cos(theta_i), 0, 0]).T`. At this point you should be able to connect our generalized steering vector equation with the ULA steering vector equation we have been using.  Give this new code a try, pick a :code:`theta` between 0 and 360 degrees (remember to convert to radians!), and the steering vector should be a 4x1 array.
-
-Now let's move on to the 2D case.  We will represent our element positions in the exact same way, except the y component will be nonzero:
-
-.. code-block:: python
-
- # Now let's switch to 2D, using a 4x4 array with half wavelength spacing, so 16 elements total
- Nr = 16
- 
- # Element positions, still as a list of x,y,z coordinates in meters
- pos = np.zeros((Nr,3))
- for i in range(Nr):
-     pos[i,0] = d * (i % 4)  # x position
-     pos[i,1] = d * (i // 4) # y position
-     pos[i,2] = 0            # z position
-
-The top-down view of our rectangular 4x4 array:
-
-.. image:: ../_images/2d_beamforming_element_pos.svg
-   :align: center 
-   :target: ../_images/2d_beamforming_element_pos.svg
-   :alt: Rectangular array element positions
-
-In order to point towards a certain theta and phi, we will need to convert those angles into a unit vector.  Using a little bit of trig, we find that the x component is :code:`np.sin(theta) * np.sin(phi)`, the y component is :code:`np.cos(theta) * np.sin(phi)`, and the z component is 0.  This means we can use the same generalized steering vector equation as before, but now we will need to calculate the unit vector based on both theta and phi:
-
-.. code-block:: python
-
- # Let's point towards an arbitrary direction
- theta = np.deg2rad(60) # azimith angle
- phi = np.deg2rad(30) # elevation angle
-
- # The direction unit vector in this direction now has two nonzero components:
- # Let's make a function out of it, because we will be using it a lot
- def get_unit_vector(theta, phi):
-     return np.asmatrix([np.sin(theta) * np.sin(phi), # x component
-                         np.cos(theta) * np.sin(phi), # y component
-                         0]                           # z component
-                         ).T
-
- dir = get_unit_vector(theta, phi)
- # dir is a 3x1
- # [[0.4330127]
- #  [0.25     ]
- #  [0.       ]]
-
-Now let's use our generalized steering vector function to calculate the steering vector:
-
-.. code-block:: python
-
- s = steering_vector(pos, dir)
- 
- # Use the conventional beamformer, which is simply the weights equal to the steering vector, plot the beam pattern
- w = s # 16x1 vector of weights
-
-At this point it's worth pointing out that we didn't actually change the dimensions of anything, going from 1D to 2D, we just have a non-zero y component, the steering vector equation is still the same and the weights are still a 1D array.  It might be tempting to assemble your weights as a 2D array so that visually it matches the array geometry, but it's not necessary and best to keep it 1D.  For every element, there is a corresponding weight, and the list of weights is in the same order as the list of element positions.
-
-Visualizing the beam pattern associated with these weights is a little more complicated because we need a 3D plot.  We will scan :code:`theta` and :code:`phi` to get a 2D array of power levels, and then plot that as a surface plot.  The code below does just that, and the result is shown in the figure below, along with a dot at the maximum point.
-
-.. code-block:: python
-
-    resolution = 100 # number of points in each direction
-    theta_scan = np.linspace(0, 2*np.pi, resolution) # azimuth angles
-    phi_scan = np.linspace(0, np.pi, resolution) # elevation angles
-    results = np.zeros((resolution, resolution)) # 2D array to store results
-    for i, theta_i in enumerate(theta_scan):
-        for j, phi_i in enumerate(phi_scan):
-            dir_i = get_unit_vector(theta_i, phi_i)
-            a = steering_vector(pos, dir_i) # array factor
-            resp = w.conj().T @ a # scalar
-            results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
-    # plot_surface needs x,y,z form
-    results[results < -10] = -10 # crop the z axis to -10 dB
-    fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
-    surf = ax.plot_surface(np.sin(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # x
-                           np.cos(theta_scan[:,None]) * np.sin(phi_scan[None,:]), # y
-                           results, cmap='viridis')
-    # Plot a dot at the maximum point
-    max_idx = np.unravel_index(np.argmax(results, axis=None), results.shape)
-    ax.scatter(np.sin(theta_scan[max_idx[0]]) * np.sin(phi_scan[max_idx[1]]), # x
-               np.cos(theta_scan[max_idx[0]]) * np.sin(phi_scan[max_idx[1]]), # y
-               results[max_idx], color='red', s=100)
-    ax.set_zlim(-10, results[max_idx])
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('Power [dB]')
-
-.. image:: ../_images/2d_beamforming_3dplot.svg
-   :align: center 
-   :target: ../_images/2d_beamforming_3dplot.svg
-   :alt: 3D plot of the beam pattern
-
-If anyone has a better 3D polar-style plot in Python, please use the "Suggest an Edit" link at the bottom of this page, or email Marc at marc@pysdr.org.
-
-Let's simulate some actual samples now; we'll add two tone jammers arriving from different directions:
-
-.. code-block:: python
-
- N = 10000 # number of samples to simulate
- 
- jammer1_theta = np.deg2rad(-30)
- jammer1_phi = np.deg2rad(10)
- jammer1_dir = get_unit_vector(jammer1_theta, jammer1_phi)
- jammer1_s = steering_vector(pos, jammer1_dir) # Nr x 1
- jammer1_tone = np.exp(2j*np.pi*0.1*np.arange(N)).reshape(1,-1) # make a row vector
- 
- jammer2_theta = np.deg2rad(10)
- jammer2_phi = np.deg2rad(50)
- jammer2_dir = get_unit_vector(jammer2_theta, jammer2_phi)
- jammer2_s = steering_vector(pos, jammer2_dir)
- jammer2_tone = np.exp(2j*np.pi*0.2*np.arange(N)).reshape(1,-1) # make a row vector
- 
- noise = np.random.normal(0, 1, (Nr, N)) + 1j * np.random.normal(0, 1, (Nr, N)) # complex Gaussian noise
- r = jammer1_s @ jammer1_tone + jammer2_s @ jammer2_tone + noise # produces 16 x 10000 matrix of samples
-
-Just for fun let's calculate the MVDR beamformer weights towards the theta and phi we were using earlier (a unit vector in that direction is still saved as :code:`dir`):
-
-.. code-block:: python
-
- s = steering_vector(pos, dir) # 16 x 1
- R = np.cov(r) # Covariance matrix, 16 x 16
- Rinv = np.linalg.pinv(R)
- w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
-
-Instead of looking at the beam pattern in the crummy 3D plot, we'll use an alternative method of checking if these weights make sense; we will evaluate the response of the weights towards different directions and calculate the power in dB.  Let's start with the direction we were pointing:
-
-.. code-block:: python
-
- # Power in the direction we are pointing (theta=60, phi=30, which is still saved as dir):
- a = steering_vector(pos, dir) # array factor
- resp = w.conj().T @ a # scalar
- print("Power in direction we are pointing:", 10*np.log10(np.abs(resp)[0,0]), 'dB')
-
-This outputs 0 dB, which is what we expect because MVDR's goal is to achieve unit power in the desired direction.  Now let's check the power in the directions of the two jammers, as well as a random direction and a direction that is one degree off of our desired direction (the same code is used, just update :code:`dir`).  The results are shown in the table below:
-
-.. list-table::
-   :widths: 70 30
-   :header-rows: 1
-
-   * - Direction Pointed
-     - Gain
-   * - :code:`dir` (direction used to find MVDR weights)
-     - 0 dB
-   * - Jammer 1
-     - -20.816 dB
-   * - Jammer 2
-     - -27.347 dB
-   * - 1 degree off from :code:`dir` in both :math:`\theta` and :math:`\phi`
-     - -0.0131 dB
-   * - A random direction
-     - -14.285 dB
-
-Your results may vary due to the random noise being used to calculate the received samples, which get used to calculate :code:`R`.  But the main take-away is that the jammers will be in a null and very low power, the 1 degree off from :code:`dir` will be slightly below 0 dB, but still in the main lobe, and then a random direction is going to be lower than 0 dB but higher than the jammers, and very different every run of the simulation.  Note that with MVDR you get a gain of 0 dB for the main lobe, but if you were to use the conventional beamformer, you would get :math:`10 \log_{10}(Nr)`, so about 12 dB for our 16-element array, showing one of the trade-offs of using MVDR.
+For 2D arrays (e.g., rectangular), see the :ref:`2d-beamforming-chapter`.
 
 *************************
 Conclusion and References

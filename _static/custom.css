@@ -128,3 +128,161 @@ canvas {
   image-rendering: pixelated; /* Awesome future-browsers       */
   -ms-interpolation-mode: nearest-neighbor; /* IE                            */
 }
+
+
+/* PhasedArrayVisualizer part */
+.canvas-grid,
+.canvas-full{
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	justify-content: center;
+	width: 100%;
+}
+.canvas-grid .canvas-container{
+	width: 30%;
+	display: block;
+	text-align: center;
+}
+.canvas-full .canvas-container{
+	width: 100%;
+	display: block;
+	text-align: center;
+	max-width: 800px;
+}
+.canvas-full .canvas-footer{
+	display: flex;
+	gap: 10px;
+	width: 100%;
+	flex-direction: row;
+}
+.canvas-legend{
+	text-align: left;
+}
+.legend-item{
+	border: 1px solid var(--theme-bg-color);
+	padding: 2px;
+	cursor: pointer;
+	box-sizing: border-box;
+	display: inline-block;
+}
+.legend-item.disabled{
+	text-decoration: line-through;
+}
+.canvas-full .canvas-footer div{
+	width: 50%;
+}
+.canvas-container h2,
+.canvas-container-full h2{
+	margin: 0;
+}
+.canvas-grid .canvas-wrapper{
+	position: relative;
+	width: 100%;
+	padding-top: 100%;
+	box-sizing: border-box;
+}
+.canvas-grid canvas{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+.canvas-full canvas{
+	width: 100%;
+	height: 100%;
+}
+canvas{
+	border: 1px solid var(--canvas-border-color);
+	box-shadow: 3px 3px var(--shadow);
+	box-sizing: border-box;
+}
+.canvas-header{
+	margin: 10px 0 0 0;
+}
+.canvas-header progress{
+	width: 100%;
+	height: 2px;
+	margin: 0px;
+	padding: 0px;
+	display: block;
+	margin: 2px 0 0 0;
+	border: none;
+}
+.canvas-hover-div{
+	font-size: 0.8em;
+	margin: 0px;
+}
+.canvas-footer{
+	margin: 4px 0 10px 0;
+	text-align: right;
+	font-size: 0.8em;
+}
+@media (max-width: 1024px){
+	.canvas-grid{ flex-wrap: wrap; }
+	.canvas-grid .canvas-container{ width: 45%; }
+	.canvas-grid .canvas-container:nth-child(3){ width: 90%; }
+}
+@media (max-width: 600px){
+	.canvas-grid{
+		flex-direction: column;
+		gap: 0px;
+	}
+	.canvas-grid .canvas-container{
+		box-sizing: border-box;
+		width: 100%;
+	}
+	.canvas-grid .canvas-container:nth-child(3){ width: 100%; }
+
+	.canvas-full .canvas-footer{
+		flex-direction: column;
+	}
+	.canvas-full .canvas-footer div{
+		width: 100%;
+	}
+}
+
+#pa-refresh{
+	width: 200px;
+	height: 40px;
+}
+#pa-progress{
+	width: 300px;
+	display: block;
+}
+#pa-status{
+	font-size: 0.8em;
+	width: 300px;
+	text-align: center;
+}
+.pa-update-div{
+	width: 300px;
+	margin: auto;
+}
+.pa-settings{
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	justify-content: center;
+	width: 100%;
+	margin: 5px 0 5px 0;
+}
+.pa-settings h3{
+	margin: 10px 0;
+	display: block;
+	text-align: center;
+}
+.pa-settings input{
+	max-width: 60px;
+}
+.pa-settings > div{
+	background-color: var(--settings-bg-color);
+	padding: 5px;
+	border: 1px solid var(--settings-border-color);
+	min-width: 170px;
+	border-radius: 5px;
+}
+
+/* End of PhasedArrayVisualizer part */
+

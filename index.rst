@@ -29,9 +29,11 @@
    content/sync
    content/rds
    content/doa
+   content/2d_beamforming
    content/phaser
    content/cyclostationary
    content/pyqt
+   content/detection
    content/about_author
 
 .. raw:: html

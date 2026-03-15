@@ -73,8 +73,8 @@ We can easily simulate a delay by shifting samples, but it only simulates a dela
 
     # Create and apply fractional delay filter
     delay = 0.4 # fractional delay, in samples
-    N = 21 # number of taps
-    n = np.arange(-N//2, N//2) # ...-3,-2,-1,0,1,2,3...
+    N = 21 # number of taps, keep this odd
+    n = np.arange(-(N-1)//2, N//2+1) # -10,-9,...,0,...,9,10
     h = np.sinc(n - delay) # calc filter taps
     h *= np.hamming(N) # window the filter to make sure it decays to 0 on both sides
     h /= np.sum(h) # normalize to get unity gain, we don't want to change the amplitude/power
@@ -483,14 +483,3 @@ You can think of it as 11 BPSK symbols.  We can look at the autocorrelation of t
 You can see it's 11 (length of the sequence) in the center, and -1 or 0 for all other delays.  It works well for finding the start of a frame because it essentially integrates 11 symbols worth of energy in an attempt to create a 1 bit spike in the output of the cross-correlation.  In fact, the hardest part of performing start-of-frame detection is figuring out a good threshold.  You don't want frames that aren't actually part of your protocol to trigger it.  That means in addition to cross-correlation you also have to do some sort of power normalizing, which we won't consider here.  In deciding a threshold, you have to make a trade-off between probability of detection and probability of false alarms.  Remember that the frame header itself will have information, so some false alarms are OK; you will quickly find it is not actually a frame when you go to decode the header and the CRC inevitably fails (because it wasn't actually a frame).  Yet while some false alarms are OK, missing a frame detection altogether is bad.
 
 Another sequence with great autocorrelation properties is Zadoff-Chu sequences, which are used in LTE.  They have the benefit of being in sets; you can have multiple different sequences that all have good autocorrelation properties, but they won't trigger each other (i.e., also good cross-correlation properties, when you cross-correlate different sequences in the set).  Thanks to that feature, different cell towers will be assigned different sequences so that a phone can not only find the start of the frame but also know which tower it is receiving from.
-
-
-
-
-
-
-
-
-
-
-

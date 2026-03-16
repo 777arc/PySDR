@@ -21,4 +21,5 @@
    content-zh/channel_coding
    content-zh/iq_files
    content-zh/multipath_fading
+   content-zh/pulse_shaping
    content-zh/about_author

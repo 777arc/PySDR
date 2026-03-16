@@ -41,7 +41,7 @@ h = np.sinc(t / Ts) * np.cos(np.pi * beta * t / Ts) / (1 - (2 * beta * t / Ts) *
 
 
 # Filter our signal, in order to apply the pulse shaping
-samples = np.convolve(pulse_train, h)
+samples = np.convolve(pulse_train, h, "same")
 fig, ax = plt.subplots(1, figsize=(7, 3))  # 7 is nearly full width
 symbols_to_plot = 10
 plt.plot(samples[0:symbols_to_plot * sps + (num_taps - 1) // 2], '.-')

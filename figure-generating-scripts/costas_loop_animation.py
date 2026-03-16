@@ -48,8 +48,8 @@ samples = samples * np.exp(1j*2*np.pi*fo*t) # perform freq shift
 # Muller muller
 samples_interpolated = signal.resample_poly(samples, 16, 1)
 mu = 0 # initial estimate of phase of sample
-out = np.zeros(len(samples) + 10, dtype=np.complex)
-out_rail = np.zeros(len(samples) + 10, dtype=np.complex) # stores values, each iteration we need the previous 2 values plus current value
+out = np.zeros(len(samples) + 10, dtype=np.complex64)
+out_rail = np.zeros(len(samples) + 10, dtype=np.complex64) # stores values, each iteration we need the previous 2 values plus current value
 i_in = 0 # input samples index
 i_out = 2 # output index (let first two outputs be 0)
 while i_out < len(samples) and i_in < len(samples):
@@ -73,7 +73,7 @@ freq = 0
 # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
 alpha = 0.005
 beta = 0.001
-out = np.zeros(N, dtype=np.complex)
+out = np.zeros(N, dtype=np.complex64)
 freq_log = []
 ii = 0
 iii = 0

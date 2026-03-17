@@ -14,7 +14,11 @@
    content-zh/frequency_domain
    content-zh/sampling
    content-zh/digital_modulation
+   content-zh/pluto
    content-zh/usrp
+   content-zh/bladerf
+   content-zh/rtlsdr
+   content-zh/hackrf
    content-zh/noise
    content-zh/filters
    content-zh/link_budgets

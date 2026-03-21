@@ -138,6 +138,245 @@ The ROC curve plots the Probability of Detection (:math:`P_{d}`) against the Pro
 Based on the above equations (also, intuition), we can see that the preamble length :math:`L` is a critical design parameter because it directly controls a system's processing gain and, therefore, its detection performance.  :math:`P_{D}` increases with :math:`L` for a fixed threshold and SNR. A longer preamble means more signal energy can be collected, making it easier to distinguish the signal from the background noise.  The increase in performance due to a longer preamble is known as the "processing gain". It is often measured in dB, as :math:`10\log_{10}(L)`. This gain is crucial for detecting weak signals that might otherwise be missed. In essence, by integrating energy over more samples, we can pull signals out of noise that are even below the noise floor.
 
 ****************************************************
+Example: Detecting GPS Signals Below the Noise Floor
+****************************************************
+
+Quick Primer on GPS Signals
+###############################
+
+As of March 2026, there are 31 operational satellites in the U.S. GPS constellation, flying around the Earth in medium Earth orbit (MEO), each circling the Earth twice a day.  All satellites transmit a signal centered at 1575.42 MHz (called L1); this signal is always on and all satellites use the same frequency.  By the time the signal reaches the surface of the Earth, it is extremely weak, and way below the noise floor. Orthogonality between signals is achieved by each satellite being assigned a unique 1023-chip pseudo-random noise (PRN) code, called the C/A code, you might see the signal referred to as "L1 C/A". These C/A codes use "Gold codes" and are carefully designed so that any two of them are nearly orthogonal; if you correlate any two satellite's codes against each other you get almost zero output. The C/A code runs at 1.023 million chips per second and is only 1023 chips long, so it repeats every exactly 1 ms. On top of that repeating code, each satellite slowly modulates navigation data (its orbital position, clock corrections, etc.) at just 50 bits/second, so one data bit spans 20 full code repetitions.  This process of using a different code per transmitter is known as CDMA (Code Division Multiple Access), the same idea behind 3G cell phones.
+
+On the receiver side of things, to find one of the 31 satellites the receiver uses that satellite's code, and generates a local copy of that satellite's PRN sequence.  It then uses a correlator to find the start of the sequence, which can be thought of as the start of the packet/frame, although in the case of GPS it's always transmitting.  The precise peak of the correlation is also used to determine how far the signal has traveled before reaching the receiver; when this value is calculated for 4 or more satellites, the receiver can trilaterate its position on Earth.  Lastly, because the satellites are moving so fast, there is significant Doppler shift because satellites are moving at ~4 km/s relative to you, so the receiver must also perform a search across a grid of possible frequency offsets to find the best correlation peak, think of it like a 2D search.  The maximum Doppler is about +/-20 kHz (:code:`4e3 / 3e8 * 1.575e9`).  This whole process repeats every 1 ms, although the receiver tracks the delay and Doppler so it doesn't have to do a full search every time.  The process of initially finding each satellite is called "acquisition", and the process of tracking the satellite's signal after acquisition is called "tracking".  Acquisition is the more computationally intensive part, and it can take minutes if the receiver is in a "cold start" scenario where it has no prior information about which satellites are visible or their approximate Doppler shifts, or the receiver's location.
+
+Correlation Approach
+###############################
+
+We will cross-correlate the incoming signal (in our case, a recording of L1) against a locally generated replica of each satellite's code.  A large correlation peak means that satellite is visible and gives us the start of the 1 ms code period.  To also search across frequency, in order to take into account Doppler, we will use an FFT to perform the correlation in the frequency domain, which allows us to efficiently test multiple frequency offsets by simply shifting the FFT bins of the local code replica.  Lastly, power (correlation magnitude squared) is accumulated over multiple 1 ms blocks to improve SNR, this is known as a non-coherent integration, and it helps to detect these GPS signals received below the noise floor.  What we threshold against is the correlation output divided by the average correlation power across all delays, as a way to normalize.
+
+Example Recording
+###############################
+
+We will use an example recording of GPS provided by Daniel Estévez, which you can `download here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/GPS_L1_recording_10ms_4MHz_cf32.iq>`_.  It's a complex float32 datatype at 4 MHz sample rate and centered at 1575.42 MHz.
+
+Below shows the spectrogram of the recording, there is not much to see, the vertical line is not the actual GPS signal, it's likely narrowband interference.  The actual GPS L1 signals use a chip rate of 1.023 MHz with a very low data rate signal modulated on top, so the signal ends up being about 2 MHz wide, which we simply don't see in the spectrogram.  This is a good example of how these GPS signals are received well below the noise floor, and how we need to use correlation-based detection to find them.
+
+.. image:: ../_images/detection_gps_spectrogram.svg
+   :align: center 
+   :target: ../_images/detection_gps_spectrogram.svg
+   :alt: Spectrogram of GPS L1 Recording
+
+For those interested, this recording is a small portion of a much larger file hosted on `IQEngine <https://iqengine.org/>`_ under :code:`estevez/GPS and other GNSS` and look for the recording called :code:`GPS-L1-2022-03-27`.  On IQEngine it's an int16 in SigMF format.
+
+Python Example
+#####################
+
+Make sure to change the :code:`filename` to match where you downloaded the IQ file.  Note that the :code:`num_integrations` will determine how much of the IQ recording we read in and process, whatever this number times 1 ms is (with 10 being the max value for the shorter recording).
+
+.. code-block:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    filename = "GPS_L1_recording_10ms_4MHz_cf32.iq"
+    sample_rate = 4e6
+    chip_rate = 1023000 # chips / sec (part of the GPS spec)
+    num_chips = 1023 # chips per C/A code period
+    samples_per_code = int(round(sample_rate / chip_rate * num_chips))  # Exact number of samples in one 1 ms code period at 4 MHz
+    doppler_min_hz = -5e3 # GPS Doppler ≈ ±4 kHz for stationary receiver
+    doppler_max_hz = 5e3
+    doppler_step_hz = 500 # good enough for a coarse search
+    num_integrations = 10 # non-coherent power integrations (so 10 ms total), determines how much of the IQ recording we read in and process!
+    detection_thresh_dB =  14.0 # Peak-to-mean ratio (PMR) threshold in dB to declare a detection, GPS C/A signals are typically 14–20 dB PMR above threshold with 10ms of integration
+    gps_svs = list(range(1, 33)) # 1–32
+
+    ##### C/A Code Generation #####
+    # The GPS C/A code is a Gold code formed by XOR-ing two 10-stage maximal-length
+    # shift registers (G1 and G2).  G2 is effectively delayed by a satellite-
+    # specific number of chips before the XOR
+    # Reference: IS-GPS-200, Table 3-Ia
+    G2_DELAY = [ # G2 phase delay (chips) for gps_svs 1–32
+        5,   6,   7,   8,  17,  18, 139, 140,   #  1– 8
+        141, 251, 252, 254, 255, 256, 257, 258,   #  9–16
+        469, 470, 471, 472, 473, 474, 509, 512,   # 17–24
+        513, 514, 515, 516, 859, 860, 861, 862,   # 25–32
+    ]
+
+    """G1 LFSR: polynomial x^10 + x^3 + 1, all-ones init, output at stage 10."""
+    reg = np.ones(10, dtype=np.int8)
+    G1 = np.empty(num_chips, dtype=np.int8)
+    for i in range(num_chips):
+        G1[i] = reg[9]
+        fb = reg[2] ^ reg[9] # stages 3 and 10 (0-indexed: 2 and 9)
+        reg = np.roll(reg, 1)
+        reg[0] = fb
+
+    """G2 LFSR: polynomial x^10+x^9+x^8+x^6+x^3+x^2+1, all-ones init."""
+    reg = np.ones(10, dtype=np.int8)
+    G2 = np.empty(num_chips, dtype=np.int8)
+    for i in range(num_chips):
+        G2[i] = reg[9]
+        fb = reg[1]^reg[2]^reg[5]^reg[7]^reg[8]^reg[9]  # taps 2,3,6,8,9,10
+        reg = np.roll(reg, 1)
+        reg[0] = fb
+
+    # 1023-chip C/A PRN code for SV sv (1-32) as float32, 1's and -1's, so BPSK
+    def make_prn(sv: int) -> np.ndarray:
+        g2_delayed = np.roll(G2, G2_DELAY[sv - 1])
+        bits = G1 ^ g2_delayed           # {0, 1}
+        return (1 - 2 * bits).astype(np.float32)   # BPSK: {+1, −1}
+
+    def upsample_prn(sv: int) -> np.ndarray:
+        """Nearest-neighbour upsample 1023-chip C/A code → samples_per_code samples."""
+        code = make_prn(sv)
+        idx = (np.arange(samples_per_code) * num_chips / samples_per_code).astype(int)
+        return code[idx]
+
+    # Pre-compute template signals - conjugate FFTs of all upsampled PRN codes
+    template_signals = {sv: np.conj(np.fft.fft(upsample_prn(sv))) for sv in gps_svs}
+
+    # Read in IQ file
+    n_needed = samples_per_code * num_integrations
+    iq = np.fromfile(filename, dtype=np.complex64, count=n_needed)
+    # For the full version from IQEngine use the following instead
+    #iq = np.fromfile(filename, dtype=np.int16, count=n_needed * 2)
+    #iq = (iq[0::2] + 1j * iq[1::2]).astype(np.complex64)
+
+    # Loop through satellites performing acquisition
+    results = []
+    detected = []
+    print(f"  {'SV':>3}  {'Doppler (Hz)':>13}  {'Phase (chips)':>14}"
+            f"  {'Phase (samp)':>13}  {'Delay (µs)':>11}  {'PMR (dB)':>9}")
+    doppler_bins = np.arange(doppler_min_hz, doppler_max_hz + doppler_step_hz, doppler_step_hz)
+    for sv in gps_svs:
+        corr_map = np.zeros((len(doppler_bins), samples_per_code))
+        n_total = samples_per_code * num_integrations
+        for di, f_d in enumerate(doppler_bins):
+            t = np.arange(n_total) / sample_rate # time vector
+            mixed = iq[:n_total] * np.exp(-2j*np.pi*float(f_d)*t) # freq shift
+
+            # Non-coherent integration: accumulate squared correlation magnitude
+            for k in range(num_integrations):
+                blk = mixed[k * samples_per_code:(k + 1) * samples_per_code]
+                sig_fft = np.fft.fft(blk)
+                corr = np.fft.ifft(sig_fft * template_signals[sv]) # cross-correlation in freq domain
+                corr_map[di] += np.abs(corr)**2
+
+        # Normalize by mean and convert to dB
+        peak_val = float(np.max(corr_map))
+        mean_val = float(np.mean(corr_map))
+        pmr_db = 10.0 * np.log10(peak_val / mean_val)
+
+        peak_idx = np.unravel_index(np.argmax(corr_map), corr_map.shape)
+        best_doppler_hz   = float(doppler_bins[peak_idx[0]])
+        best_phase_samp   = int(peak_idx[1])
+        best_phase_chips  = best_phase_samp * num_chips / samples_per_code
+
+        r = {
+            "sv": sv,
+            "detected": pmr_db >= detection_thresh_dB,
+            "doppler_hz": best_doppler_hz,
+            "code_phase_samp": best_phase_samp, # sample offset = "start of packet"
+            "code_phase_chip": best_phase_chips,
+            "pmr_db": pmr_db,
+            "corr_map": corr_map,
+            "doppler_bins": doppler_bins,
+        }
+        results.append(r)
+
+        # Print row
+        delay_us = r['code_phase_samp'] / sample_rate * 1e6
+        flag = "  ← DETECTED" if r['detected'] else ""
+        print(f"  {sv:>3}  {r['doppler_hz']:>+13.0f}  {r['code_phase_chip']:>14.2f}"
+            f"  {r['code_phase_samp']:>13d}  {delay_us:>11.3f}  {r['pmr_db']:>9.1f}{flag}")
+
+This should give the following output:
+
+.. code-block::
+
+   SV   Doppler (Hz)   Phase (chips)   Phase (samp)   Delay (µs)   PMR (dB)
+    1          -3000          757.79           2963      740.750        5.6
+    2          +1500          264.19           1033      258.250        9.1
+    3          -2000          316.62           1238      309.500        5.8
+    4          +5000          577.48           2258      564.500        5.0
+    5          +1000           64.96            254       63.500        5.3
+    6          +1500          511.76           2001      500.250        5.0
+    7          -4000          763.41           2985      746.250        5.0
+    8          +3500          961.62           3760      940.000        5.4
+    9          +3500          118.67            464      116.000        4.9
+   10             +0          890.52           3482      870.500        5.4
+   11          +2500          837.33           3274      818.500       14.6  ← DETECTED
+   12           -500          871.60           3408      852.000       16.4  ← DETECTED
+   13          +1000          137.85            539      134.750        5.9
+   14          +2500          287.72           1125      281.250        5.0
+   15          -5000          908.68           3553      888.250        5.3
+   16          +1500          292.58           1144      286.000        5.9
+   17           +500          994.61           3889      972.250        5.3
+   18          +4500         1005.61           3932      983.000        5.4
+   19          +5000          588.48           2301      575.250        5.0
+   20             +0          768.53           3005      751.250        5.4
+   21          -3000          749.60           2931      732.750        5.0
+   22          +2500          558.05           2182      545.500       14.4  ← DETECTED
+   23          -5000          390.02           1525      381.250        5.3
+   24          +2500          955.48           3736      934.000        5.9
+   25          +1500          597.94           2338      584.500       15.5  ← DETECTED
+   26          -1500          239.89            938      234.500        6.2
+   27          -2500          488.74           1911      477.750        4.7
+   28          +3000          858.81           3358      839.500        5.2
+   29          -4000          998.70           3905      976.250        5.2
+   30          -2000          937.58           3666      916.500        5.2
+   31          +5000          463.42           1812      453.000       15.9  ← DETECTED
+   32          +1000          342.45           1339      334.750       16.2  ← DETECTED
+
+As you can see, we detected 6 satellites, and even though our threshold was 14.0, we can look at this list and tell pretty easily that most of the other satellites were not in view, with the exception of SV-2 which was probably in view but didn't quite reach the threshold.  If anyone feels like verifying this, the recording was taken at 2022-03-27T11:32:04 somewhere in Spain.
+
+Plotting
+###########
+
+Let's try plotting the results for satellite 11; the first one we detected.  The first plot is the 2-D correlation map across Doppler and time/delay, and the second plot is a slice of the correlation map at the best Doppler bin, showing correlation power over time like we have seen in the previous section.
+
+.. code-block:: python
+
+    # Plotting
+    sv = 11 # we detected 11, 12, 22, 25, 31, 32 although try looking at one we didnt find as well!
+    r = results[sv - 1] # print the dict of results for this SV to see what we got
+    cmap = r['corr_map'] # 2-D array of correlation power vs Doppler and code phase
+    d_bins = r['doppler_bins'] # Doppler bins corresponding
+    chips_axis = np.arange(samples_per_code) * num_chips / samples_per_code
+
+    # 2-D Doppler × code-phase map
+    plt.figure(0, figsize=(10, 6))
+    im = plt.pcolormesh(chips_axis, d_bins, cmap, shading='auto', cmap='viridis')
+    plt.xlabel("Code Phase (chips)")
+    plt.ylabel("Doppler (Hz)")
+    plt.title(f"SV {sv}  —  2-D Acquisition Map  (PMR = {r['pmr_db']:.1f} dB)")
+    plt.legend(fontsize=8, loc='upper right')
+    plt.colorbar(im, label="Correlation Power")
+
+    # code-phase slice at best Doppler
+    best_di = int(np.argmin(np.abs(d_bins - r['doppler_hz'])))
+    plt.figure(1, figsize=(10, 6))
+    plt.plot(chips_axis, cmap[best_di], lw=1, color='steelblue')
+    plt.xlabel("Code Phase (chips)")
+    plt.ylabel("Correlation Power")
+    plt.title(f"SV {sv}  —  Code-Phase Slice  (Doppler = {r['doppler_hz']:+.0f} Hz)")
+    plt.legend(fontsize=8)
+    plt.grid(True, alpha=0.3)
+
+    plt.show()
+
+.. image:: ../_images/detection_gps_2d_map.png
+   :align: center 
+   :width: 700px
+   :alt: 2-D Acquisition Map
+
+.. image:: ../_images/detection_gps_code_phase_slice.svg
+   :align: center 
+   :target: ../_images/detection_gps_code_phase_slice.svg
+   :alt: Code-Phase Slice
+
+We won't get into the process of trilateration here, but the precise position of that spike is ultimately what allows the GPS receiver to determine how far the satellite is, and when combined with the same information from 4 or more satellites, it can determine its position on Earth.
+
+****************************************************
 CFAR Detectors: Thriving in Changing Environments
 ****************************************************
 

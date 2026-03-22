@@ -66,45 +66,15 @@ Un exemple concret pour chaque type est présenté ci-dessous :
          soit   un   Raytheon   MIM-104  Patriot   Radar,   un   Radal
          Multi-Mission israélien ELM-2084 , Un terminal utilisateur Starlink Dishy
 
-En plus de ces trois types,  il faut également considérer la géométrie
-d'un  réseau. La  géométrie  la  plus simple  est  le réseau  linéaire
-uniforme (ULA = Uniform Linear Array), où les antennes sont alignées et
-équidistantes (c'est-à-dire disposées selon  une seule dimension). Les
-ULA souffrent d'une ambiguïté de  180 degrés, que nous aborderons plus
-loin. Une  solution consiste à  disposer les  antennes en cercle  : on
-parle  alors de  réseau  circulaire uniforme  (UCA).  Enfin, pour  les
-faisceaux 2D, on utilise généralement un réseau rectangulaire uniforme
-(URA = Uniform Rectangular Array), où les antennes sont disposées en grille.
+En plus de ces trois types,  il faut également considérer la géométrie d'un  réseau. La  géométrie  la  plus simple  est  le réseau  linéaire uniforme (ULA = Uniform Linear Array), où les antennes sont alignées et équidistantes (c'est-à-dire disposées selon  une seule dimension). Les ULA souffrent d'une ambiguïté de  180 degrés, que nous aborderons plus loin. Une  solution consiste à  disposer les  antennes en cercle  : on parle  alors de  réseau  circulaire uniforme  (UCA).  Enfin, pour  les faisceaux 2D, on utilise généralement un réseau rectangulaire uniforme (URA = Uniform Rectangular Array), où les antennes sont disposées en grille.
 Dans ce chapitre, nous nous concentrons sur les réseaux numériques, car ils sont plus adaptés à la simulation et au traitement numérique du signal (DSP), mais les concepts s'appliquent également aux réseaux analogiques et hybrides. Le chapitre suivant sera consacré à la manipulation du SDR « Phaser » d'Analog Devices, qui intègre un réseau analogique de 8 éléments fonctionnant à 10 GHz, avec des déphaseurs et des convertisseurs de gain, connecté à un Pluto et un Raspberry Pi. Nous nous concentrerons également sur la géométrie ULA car elle offre les mathématiques et le code les plus simples, mais tous les concepts s'appliquent à d'autres géométries, et à la fin du chapitre, nous aborderons la géométrie UCA.
 
 *******************
 Exigences relatives aux SDR
 *******************
 
-Les  antennes réseau  à  commande de  phase  analogiques utilisent  un
-déphaseur (et souvent  un étage de gain  ajustable) par canal/élément,
-implémenté  dans des  circuits RF  analogiques.  Cela  signifie qu'une
-antenne  réseau  à  commande  de phase  analogique  est  un  composant
-matériel  dédié  qui   doit  être  utilisé  avec  un   SDR,  ou  conçu
-spécifiquement pour  une application  particulière. En  revanche, tout
-SDR comportant  plusieurs canaux peut  être utilisé comme  une antenne
-réseau  numérique sans  matériel supplémentaire,  à condition  que les
-canaux  soient  cohérents  en  phase et  échantillonnés  sur  la  même
-horloge, ce  qui est  généralement le  cas pour  les SDR  disposant de
-plusieurs canaux  de réception  intégrés. De nombreuses  SDR possèdent
-deux canaux de réception, comme  l'Ettus USRP B210 et l'Analog Devices
-Pluto (le deuxième  canal est accessible via un connecteur  uFL sur la
-carte). Malheureusement, l'utilisation de plus de deux canaux implique
-de passer à la catégorie des SDR à plus de 10 000 € (prix constaté en
-2024),  comme  l'Ettus USRP  N310  ou  l'Analog Devices  QuadMXFE  (16
-canaux). Le principal  défi réside dans l'impossibilité,  pour les SDR
-économiques, de les chaîner afin d'augmenter le nombre de canaux. Font
-exception  les KerberosSDR  (4 canaux)  et KrakenSDR  (5 canaux),  qui
-utilisent  plusieurs  SDR RTL  partageant  un  oscillateur local  pour
-former un réseau numérique économique. Leur principal inconvénient est
-la     fréquence    d'échantillonnage     très    limitée     (jusqu'à
-2,56  MHz) et  la plage  de fréquences  très restreinte  (jusqu'à 1766
-MHz).
+Les  antennes réseau  à  commande de  phase  analogiques utilisent  un déphaseur (et souvent  un étage de gain  ajustable) par canal/élément, implémenté  dans des  circuits RF  analogiques.  Cela  signifie qu'une antenne  réseau  à  commande  de phase  analogique  est  un  composant matériel  dédié  qui   doit  être  utilisé  avec  un   SDR,  ou  conçu spécifiquement pour  une application  particulière. En  revanche, tout SDR comportant  plusieurs canaux peut  être utilisé comme  une antenne réseau  numérique sans  matériel supplémentaire,  à condition  que les canaux  soient  cohérents  en  phase et  échantillonnés  sur  la  même horloge, ce  qui est  généralement le  cas pour  les SDR  disposant de
+plusieurs canaux  de réception  intégrés. De nombreuses  SDR possèdent deux canaux de réception, comme  l'Ettus USRP B210 et l'Analog Devices Pluto (le deuxième  canal est accessible via un connecteur  uFL sur la carte). Malheureusement, l'utilisation de plus de deux canaux implique de passer à la catégorie des SDR à plus de 10 000 € (prix constaté en 2024),  comme  l'Ettus USRP  N310  ou  l'Analog Devices  QuadMXFE  (16 canaux). Le principal  défi réside dans l'impossibilité,  pour les SDR économiques, de les chaîner afin d'augmenter le nombre de canaux. Font exception  les KerberosSDR  (4 canaux)  et KrakenSDR  (5 canaux),  qui utilisent  plusieurs  SDR RTL  partageant  un  oscillateur local  pour former un réseau numérique économique. Leur principal inconvénient est la     fréquence    d'échantillonnage     très    limitée     (jusqu'à 2,56  MHz) et  la plage  de fréquences  très restreinte  (jusqu'à 1766 MHz).
 La carte KrakenSDR et un exemple de configuration d'antenne sont présentés ci-dessous.
 
 
@@ -113,9 +83,7 @@ La carte KrakenSDR et un exemple de configuration d'antenne sont présentés ci-
    :alt: The KrakenSDR
    :target: ../_images/krakensdr.jpg
 
-Dans  ce  chapitre,  nous  n'utilisons aucun  SDR  spécifique  ;  nous
-simulons plutôt la réception des signaux à l'aide de Python, puis nous
-passons en revue le DSP utilisé pour effectuer la formation de faisceaux/DOA pour les réseaux numériques.
+Dans  ce  chapitre,  nous  n'utilisons aucun  SDR  spécifique  ;  nous simulons plutôt la réception des signaux à l'aide de Python, puis nous passons en revue le DSP utilisé pour effectuer la formation de faisceaux/DOA pour les réseaux numériques.
 
 
 **************************************
@@ -123,13 +91,8 @@ Introduction aux calculs matriciels en Python/Numpy
 **************************************
 Python présente de nombreux avantages par rapport à MATLAB : il est gratuit et open source, offre une grande diversité d’applications, une communauté dynamique, les indices commencent à 0 comme dans tous les langages, il est utilisé en IA/ML et il existe une bibliothèque pour presque tout. Cependant, son point faible réside dans la manière dont la manipulation des matrices est codée/représentée (en termes de performances, c’est très rapide, grâce à des fonctions implémentées efficacement en C/C++). Le fait qu’il existe plusieurs façons de représenter les matrices en Python, la méthode :code:`np.matrix` étant obsolète et remplacée par :code:`np.ndarray`, n’arrange rien. Dans cette section, nous proposons une brève introduction aux calculs matriciels en Python avec NumPy, afin que vous soyez plus à l’aise avec les exemples DOA.
 
-Commençons  par   aborder  l’aspect  le  plus   complexe  des  calculs
-matriciels avec NumPy  ; Les vecteurs sont traités  comme des tableaux
-unidimensionnels (1D), il est donc impossible de distinguer un vecteur
-ligne  d'un vecteur  colonne  (par  défaut, il  sera  traité comme  un
-vecteur  ligne). En  revanche,  en  MATLAB, un  vecteur  est un  objet
-bidimensionnel (2D). En  Python, vous pouvez créer  un nouveau vecteur
-avec :code:`a = np.array([2,3,4,5])` ou convertir une liste en vecteur avec :code:`mylist = [2, 3, 4, 5]` puis :code:`a = np.asarray(mylist)`. Cependant, dès que vous effectuez des calculs matriciels, l'orientation est importante et les vecteurs seront interprétés comme des vecteurs lignes. Transposer ce vecteur, par exemple avec :code:`a.T`, ne le transformera pas en vecteur colonne ! Pour convertir un vecteur :code:`a` en vecteur colonne, utilisez code:`a = a.reshape(-1,1)`. Le paramètre :code:`-1` indique à NumPy de calculer automatiquement la taille de cette dimension, tout en conservant la longueur de la seconde dimension égale à 1. Techniquement, cela crée un tableau 2D, mais comme la seconde dimension est de longueur 1, il s'agit essentiellement d'un tableau 1D d'un point de vue mathématique. Cela ne représente qu'une ligne supplémentaire, mais peut considérablement perturber le flux de code lors de calculs matriciels.
+Commençons  par   aborder  l’aspect  le  plus   complexe  des  calculs matriciels avec NumPy  ; Les vecteurs sont traités  comme des tableaux unidimensionnels (1D), il est donc impossible de distinguer un vecteur ligne  d'un vecteur  colonne  (par  défaut, il  sera  traité comme  un vecteur  ligne). En  revanche,  en  MATLAB, un  vecteur  est un  objet
+bidimensionnel (2D). En  Python, vous pouvez créer  un nouveau vecteur avec :code:`a = np.array([2,3,4,5])` ou convertir une liste en vecteur avec :code:`mylist = [2, 3, 4, 5]` puis :code:`a = np.asarray(mylist)`. Cependant, dès que vous effectuez des calculs matriciels, l'orientation est importante et les vecteurs seront interprétés comme des vecteurs lignes. Transposer ce vecteur, par exemple avec :code:`a.T`, ne le transformera pas en vecteur colonne ! Pour convertir un vecteur :code:`a` en vecteur colonne, utilisez code:`a = a.reshape(-1,1)`. Le paramètre :code:`-1` indique à NumPy de calculer automatiquement la taille de cette dimension, tout en conservant la longueur de la seconde dimension égale à 1. Techniquement, cela crée un tableau 2D, mais comme la seconde dimension est de longueur 1, il s'agit essentiellement d'un tableau 1D d'un point de vue mathématique. Cela ne représente qu'une ligne supplémentaire, mais peut considérablement perturber le flux de code lors de calculs matriciels.
 
 
 Voici un  exemple rapide de  calcul matriciel en Python  : multiplions

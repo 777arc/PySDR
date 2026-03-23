@@ -46,14 +46,7 @@ Différents types de réseaux
 Les réseaux d'antennes à commande de phase se divisent en trois catégories :
 1. **Analogiques**, également appelés réseaux passifs à balayage électronique (PESA) ou réseaux à commande de phase traditionnels, utilisent des déphaseurs analogiques pour orienter le faisceau. À la réception, tous les éléments sont additionnés après déphasage (et éventuellement gain ajustable) et convertis en un canal de signal, puis abaissés en fréquence avant d'être reçus. À l'émission, le processus est inverse : un signal numérique unique est émis par la partie numérique, tandis que des déphaseurs et des étages de gain sont utilisés côté analogique pour produire le signal destiné à chaque antenne. Ces déphaseurs numériques ont une résolution limitée en bits et contrôlent la latence.
 2. **Numériques**, également appelés réseaux actifs à balayage électronique (AESA), où chaque élément possède son propre étage d'entrée RF et où la formation du faisceau est entièrement réalisée numériquement. Cette approche est la plus coûteuse, car les composants RF sont onéreux, mais elle offre une flexibilité et une vitesse bien supérieures aux PESA. Les antennes numériques sont couramment utilisées avec les SDR, bien que le nombre de canaux de réception ou d'émission du SDR limite le nombre d'éléments de l'antenne.
-3. **Hybrides**,    composés    de    nombreux    sous-réseaux    qui,
-   individuellement,  ressemblent à  des antennes  analogiques, chaque
-   sous-réseau possédant son propre étage  d'entrée RF, comme pour les
-   antennes numériques.  Ils constituent  l'approche la  plus courante
-   pour les  antennes à commande  de phase modernes. Elles  offrent en
-   effet le meilleur des deux mondes.
-
-Il convient de noter que les termes PESA et AESA sont principalement utilisés dans le contexte des radars, et leur définition exacte reste parfois ambiguë. Par conséquent, l'utilisation des termes « antenne analogique/numérique/hybride » est plus claire et applicable à tout type d'application.
+3. **Hybrides**,    composés    de    nombreux    sous-réseaux    qui, individuellement,  ressemblent à  des antennes  analogiques, chaque sous-réseau possédant son propre étage  d'entrée RF, comme pour les antennes numériques.   Ils constituent l'approche la  plus courante pour les  antennes à commande  de phase modernes. Elles  offrent en effet le meilleur des deux mondes.Il convient de noter que les termes PESA et AESA sont principalement utilisés dans le contexte des radars, et leur définition exacte reste parfois ambiguë. Par conséquent, l'utilisation des termes « antenne analogique/numérique/hybride » est plus claire et applicable à tout type d'application.
 
 Un exemple concret pour chaque type est présenté ci-dessous :
 
@@ -91,19 +84,13 @@ Introduction aux calculs matriciels en Python/Numpy
 **************************************
 Python présente de nombreux avantages par rapport à MATLAB : il est gratuit et open source, offre une grande diversité d’applications, une communauté dynamique, les indices commencent à 0 comme dans tous les langages, il est utilisé en IA/ML et il existe une bibliothèque pour presque tout. Cependant, son point faible réside dans la manière dont la manipulation des matrices est codée/représentée (en termes de performances, c’est très rapide, grâce à des fonctions implémentées efficacement en C/C++). Le fait qu’il existe plusieurs façons de représenter les matrices en Python, la méthode :code:`np.matrix` étant obsolète et remplacée par :code:`np.ndarray`, n’arrange rien. Dans cette section, nous proposons une brève introduction aux calculs matriciels en Python avec NumPy, afin que vous soyez plus à l’aise avec les exemples DOA.
 
-Commençons  par   aborder  l’aspect  le  plus   complexe  des  calculs matriciels avec NumPy  ; Les vecteurs sont traités  comme des tableaux unidimensionnels (1D), il est donc impossible de distinguer un vecteur ligne  d'un vecteur  colonne  (par  défaut, il  sera  traité comme  un vecteur  ligne). En  revanche,  en  MATLAB, un  vecteur  est un  objet
-bidimensionnel (2D). En  Python, vous pouvez créer  un nouveau vecteur avec :code:`a = np.array([2,3,4,5])` ou convertir une liste en vecteur avec :code:`mylist = [2, 3, 4, 5]` puis :code:`a = np.asarray(mylist)`. Cependant, dès que vous effectuez des calculs matriciels, l'orientation est importante et les vecteurs seront interprétés comme des vecteurs lignes. Transposer ce vecteur, par exemple avec :code:`a.T`, ne le transformera pas en vecteur colonne ! Pour convertir un vecteur :code:`a` en vecteur colonne, utilisez code:`a = a.reshape(-1,1)`. Le paramètre :code:`-1` indique à NumPy de calculer automatiquement la taille de cette dimension, tout en conservant la longueur de la seconde dimension égale à 1. Techniquement, cela crée un tableau 2D, mais comme la seconde dimension est de longueur 1, il s'agit essentiellement d'un tableau 1D d'un point de vue mathématique. Cela ne représente qu'une ligne supplémentaire, mais peut considérablement perturber le flux de code lors de calculs matriciels.
+Commençons  par   aborder  l’aspect  le  plus   complexe  des  calculs
+matriciels avec NumPy ; Les vecteurs sont traités comme des tableaux unidimensionnels (1D), il est donc impossible de distinguer un vecteur ligne  d'un vecteur  colonne  (par  défaut, il  sera  traité comme  un vecteur  ligne). En  revanche,  en  MATLAB, un  vecteur  est un  objet bidimensionnel (2D). En  Python, vous pouvez créer  un nouveau vecteur
+avec :code:`a = np.array([2,3,4,5])` ou convertir une liste en vecteur avec   :code:`mylist   =    [2,   3,   4,   5]`    puis   :code:`a = np.asarray(mylist)`.  Cependant, dès  que vous  effectuez des  calculs matriciels,  l'orientation  est  importante  et  les  vecteurs  seront interprétés  comme des  vecteurs  lignes. Transposer  ce vecteur,  par exemple avec :code:`a.T`, ne le  transformera pas en vecteur colonne !
+Pour  convertir  un vecteur  :code:`a`  en  vecteur colonne,  utilisez code:`a = a.reshape(-1,1)`. Le paramètre :code:`-1` indique à NumPy de calculer  automatiquement  la  taille  de  cette  dimension,  tout  en conservant    la   longueur    de   la    seconde   dimension    égale à 1.  Techniquement, cela crée  un tableau  2D, mais comme  la seconde dimension est de longueur 1, il s'agit essentiellement d'un tableau 1D d'un  point  de vue  mathématique.  Cela  ne représente  qu'une  ligne supplémentaire, mais  peut considérablement perturber le  flux de code lors de calculs matriciels.
 
 
-Voici un  exemple rapide de  calcul matriciel en Python  : multiplions
-une matrice  :code:`3x10` par une matrice  :code:`10x1`. Rappelons que
-:code:`10x1` signifie 10 lignes et  1 colonne, soit un vecteur colonne
-puisqu'il  ne  contient qu'une  seule  colonne.  Depuis nos  premières
-années d'école,  nous savons que cette  multiplication matricielle est
-valide  car  les  dimensions  internes  correspondent  et  la  matrice
-résultante  a  la  même  taille  que  les  dimensions  externes,  soit
-:code:`3x1`.        Par        commodité,       nous       utiliserons
-      :code:`np.random.randn()` pour créer le tableau :code:`3x10` et :code:`np.arange()` pour créer le tableau :code:`10x1` : 
+Voici un exemple rapide de  calcul matriciel en Python : multiplions une matrice  :code:`3x10`  par  une matrice  :code:`10x1`.  Rappelons  que :code:`10x1` signifie 10 lignes et  1 colonne, soit un vecteur colonne puisqu'il  ne   contient  qu'une  seule  colonne.    Depuis  nos premières années d'école, nous savons que cette multiplication matricielle est valide car les dimensions internes correspondent et la matrice résultante a la même taille que les dimensions externes, soit :code:`3x1`.  Par commodité, nous utiliserons :code:`np.random.randn()` pour créer le tableau :code:`3x10` et :code:`np.arange()` pour créer le tableau :code:`10x1` : 
 
 .. code-block:: python
  A = np.random.randn(3,10) # 3x10
@@ -119,12 +106,7 @@ résultante  a  la  même  taille  que  les  dimensions  externes,  soit
 Après avoir  effectué des calculs matriciels,  votre résultat pourrait
 ressembler à ceci : :code:`[[ 0.  0.125  0.251  -0.376  -0.251 ...]]`. Ce tableau ne contient qu'une seule dimension de données, mais si vous tentez de le représenter graphiquement, vous obtiendrez soit une erreur, soit un graphique incohérent. Le résultat ne s'affiche pas. En effet, il s'agit techniquement d'un tableau 2D, qu'il faut convertir en tableau 1D à l'aide de :code:`a.squeeze()`. Cette fonction supprime les dimensions de longueur 1 et s'avère très utile pour les calculs matriciels en Python. Dans l'exemple ci-dessus, le résultat serait : :code:`[ 0.  0.125  0.251  -0.376  -0.251 ...]` (notez l'absence des deuxièmes parenthèses). Ce tableau peut être tracé ou utilisé dans d'autres portions de code Python qui attendent des données 1D.
 
-Lors  de   la  programmation  de  calculs   matriciels,  la  meilleure
-vérification consiste à afficher  les dimensions (avec :code:`A.shape`) pour
-s'assurer qu'elles correspondent  à vos attentes. Pensez  à ajouter la
-forme du tableau en commentaire après chaque ligne pour vous y référer
-ultérieurement ;  cela facilitera la vérification  des dimensions lors
-de multiplications matricielles ou élément par élément.
+Lors  de   la  programmation  de  calculs   matriciels,  la  meilleure vérification consiste à afficher  les dimensions (avec :code:`A.shape`) pour s'assurer qu'elles correspondent  à vos attentes. Pensez  à ajouter la forme du tableau en commentaire après chaque ligne pour vous y référer ultérieurement ;  cela facilitera la vérification  des dimensions lors de multiplications matricielles ou élément par élément.
 
 Voici quelques opérations courantes en MATLAB et en Python, sous forme de pense-bête :
 
@@ -515,10 +497,7 @@ Essayons de faire varier l'angle d'arrivée (AoA) de -90 à +90 degrés au lieu 
 
 À l'approche de l'axe du réseau (lorsque le signal arrive sur ou près de cet axe), les performances diminuent. On observe deux dégradations principales : 1) le lobe principal s'élargit et 2) une ambiguïté apparaît, empêchant de déterminer si le signal provient de la gauche ou de la droite. Cette ambiguïté s'ajoute à l'ambiguïté à 180° évoquée précédemment, où un lobe supplémentaire apparaît à 180° - θ, ce qui peut entraîner, pour certains angles d'arrivée, la présence de trois lobes de taille sensiblement égale. Cette ambiguïté liée à l'axe du réseau est toutefois logique : les déphasages entre les éléments sont identiques, que le signal arrive de la gauche ou de la droite par rapport à l'axe du réseau. Tout comme pour l'ambiguïté à 180°, la solution consiste à utiliser un réseau 2D ou deux réseaux 1D positionnés à des angles différents. En général, la formation de faisceau est optimale lorsque l'angle est proche de l'axe de visée.
 
-À partir  de maintenant, nous n'afficherons  que les degrés -90  à +90
-dans nos  graphiques polaires, car  le motif sera  toujours symétrique
-par rapport à l'axe du réseau,  du moins pour les réseaux linéaires 1D
-(qui sont tous ceux que nous abordons dans ce chapitre).
+À partir  de maintenant, nous n'afficherons  que les degrés -90  à +90 dans nos  graphiques polaires, car  le motif sera  toujours symétrique par rapport à l'axe du réseau,  du moins pour les réseaux linéaires 1D (qui sont tous ceux que nous abordons dans ce chapitre).
 
 *******************
 Diagramme de rayonnement
@@ -588,15 +567,7 @@ La première largeur de faisceau nul (FNBW), la largeur du lobe principal d'un p
 
  \text{FNBW} \approx \frac{4}{N_r} \text{ [radians]} \qquad \text{when } d = \lambda/2
 
-Utilisons  le   code  précédent,  mais  augmentons   :code:`Nr`  à  16
-éléments. D'après  les équations ci-dessus,  la largeur de  faisceau à
-mi-puissance (HPBW) pour  un angle de 20 degrés  (0,35 radian) devrait
-être  d'environ  0,12  radian,  soit **6,8  degrés**.  La  largeur  de
-faisceau au point mort haut (FNBW) devrait être d'environ 0,25 radian,
-soit  **14,3  degrés**. Effectuons  une  simulation  pour vérifier  la
-précision  des résultats.  Pour visualiser  les largeurs  de faisceau,
-nous utilisons  généralement des graphiques rectangulaires  plutôt que
-polaires.  Les résultats sont présentés ci-dessous, la HPBW est indiquée en vert et la FNBW en rouge :
+Utilisons  le   code  précédent,  mais  augmentons   :code:`Nr`  à  16 éléments. D'après  les équations ci-dessus,  la largeur de  faisceau à mi-puissance (HPBW) pour  un angle de 20 degrés  (0,35 radian) devrait être  d'environ  0,12  radian,  soit **6,8  degrés**.  La  largeur  de faisceau au point mort haut (FNBW) devrait être d'environ 0,25 radian, soit  **14,3  degrés**. Effectuons  une  simulation  pour vérifier  la précision  des résultats.  Pour visualiser  les largeurs  de faisceau, nous utilisons  généralement des graphiques rectangulaires  plutôt que polaires.  Les résultats sont présentés ci-dessous, la HPBW est indiquée en vert et la FNBW en rouge :
 
 .. image:: ../_images/doa_quiescent_beamwidth.svg
    :align: center
@@ -611,10 +582,7 @@ Quand d n'est pas égal à λ/2
 
 Jusqu'à présent, nous avons utilisé une distance entre les éléments, d, égale à une demi-longueur d'onde. Par exemple, un réseau conçu pour le Wi-Fi 2,4 GHz avec un espacement de λ/2 aurait un espacement de 3 × 10⁸ / 2,4 × 10⁹ / 2 = 12,5 cm, soit environ 5 pouces. Cela signifie qu'un réseau 4 × 4 éléments aurait des dimensions d'environ 15 pouces × 15 pouces × la hauteur des antennes. Il arrive qu'un réseau ne puisse pas atteindre exactement un espacement de λ/2, par exemple lorsque l'espace est limité ou lorsque le même réseau doit fonctionner sur différentes fréquences porteuses.
 
-Examinons le cas où l'espacement  est supérieur à λ/2, c'est-à-dire un
-espacement  excessif,  en faisant  varier  d  entre  λ/2 et  4λ.  Nous
-supprimerons la moitié inférieure du diagramme polaire puisqu'elle est
-de toute façon l'image miroir de la partie supérieure.
+Examinons le cas où l'espacement  est supérieur à λ/2, c'est-à-dire un espacement  excessif,  en faisant  varier  d  entre  λ/2 et  4λ.  Nous supprimerons la moitié inférieure du diagramme polaire puisqu'elle est de toute façon l'image miroir de la partie supérieure.
 
 .. image:: ../_images/doa_d_is_large_animation.gif
    :scale: 100 %
@@ -622,26 +590,7 @@ de toute façon l'image miroir de la partie supérieure.
    :alt: Animation de la direction d'arrivée (DOA) illustrant ce qui se produit lorsque la distance d est bien supérieure à la moitié de la longueur d'onde
 
          
-Comme vous pouvez le constater, outre l'ambiguïté à 180 degrés évoquée
-précédemment,  une ambiguïté  supplémentaire  apparaît, qui  s'aggrave
-lorsque   d  augmente   (apparition   de   lobes  supplémentaires   ou
-incorrects).  Ces  lobes  supplémentaires, appelés  lobes  de  réseau,
-résultent du repliement de spectre spatial. Comme nous l'avons vu dans
-le   chapitre   sur    :ref:`sampling-chapter`,   un   échantillonnage
-insuffisant entraîne  un repliement de  spectre. Le même  phénomène se
-produit  dans  le domaine  spatial  :  si  les  éléments ne  sont  pas
-suffisamment espacés  par rapport  à la  fréquence porteuse  du signal
-observé, l'analyse aboutit à des  résultats erronés. On peut assimiler
-l'espacement  des antennes  à  l'espace d'échantillonnage  ! Dans  cet
-exemple, les lobes de réseau ne posent pas de problème majeur tant que
-d >  λ, mais  ils apparaissent  dès que  l'espacement dépasse  λ/2. En
-effet, le  théorème de  Nyquist stipule  qu'il faut  échantillonner au
-moins  deux  fois   plus  vite  que  le  signal   observé,  soit  deux
-échantillons  par cycle.  Nous mesurons  notre taux  d'échantillonnage
-spatial  en  échantillons  par  mètre, et  comme  l'équivalent  de  la
-fréquence  radiane dans  l'espace est  de 2π/λ  radians par  mètre, et
-sachant qu'il y  a 2π radians (360 degrés) dans  un cycle, nous devons
-échantillonner l'espace au moins à :
+Comme vous pouvez le constater, outre l'ambiguïté à 180 degrés évoquée précédemment,  une ambiguïté  supplémentaire  apparaît, qui  s'aggrave lorsque   d  augmente   (apparition   de   lobes  supplémentaires   ou incorrects).  Ces  lobes  supplémentaires, appelés  lobes  de  réseau, résultent du repliement de spectre spatial. Comme nous l'avons vu dans le   chapitre   sur    :ref:`sampling-chapter`,   un   échantillonnage insuffisant entraîne  un repliement de  spectre. Le même  phénomène se produit  dans  le domaine  spatial  :  si  les  éléments ne  sont  pas suffisamment espacés  par rapport  à la  fréquence porteuse  du signal observé, l'analyse aboutit à des  résultats erronés. On peut assimiler l'espacement  des antennes  à  l'espace d'échantillonnage  ! Dans  cet exemple, les lobes de réseau ne posent pas de problème majeur tant que d >  λ, mais  ils apparaissent  dès que  l'espacement dépasse  λ/2. En effet, le  théorème de  Nyquist stipule  qu'il faut  échantillonner au moins  deux  fois   plus  vite  que  le  signal   observé,  soit  deux échantillons  par cycle.  Nous mesurons  notre taux  d'échantillonnage spatial  en  échantillons  par  mètre, et  comme  l'équivalent  de  la fréquence  radiane dans  l'espace est  de 2π/λ  radians par  mètre, et sachant qu'il y  a 2π radians (360 degrés) dans  un cycle, nous devons échantillonner l'espace au moins à :
 
 
 .. math::
@@ -708,15 +657,24 @@ En dessous de λ/4, il n'est plus possible de distinguer les deux trajets, et le
 Ajustement spatial
 **********************
 
-L'ajustement spatial est une  technique utilisée conjointement avec le
-formateur  de   faisceau  conventionnel.   Elle  consiste   à  ajuster
-l'amplitude  des   pondérations  pour  obtenir   des  caractéristiques
-spécifiques.  Même si  vous n'utilisez  pas le  formateur de  faisceau
-conventionnel,   il   est   important   de   comprendre   le   concept
-d'ajustement. Rappelons que le calcul des pondérations du formateur de
-faisceau conventionnel  s'effectuait à  l'aide d'une série  de nombres
-complexes  dont  l'amplitude  était  égale  à  un.  Avec  l'ajustement
-spatial, nous multiplions  les pondérations par des  scalaires afin de
-modifier leur  amplitude. Voyons ce  qui se passe si  nous multiplions
-les pondérations par des valeurs aléatoires comprises entre 0 et 1 :
+L'ajustement spatial est une  technique utilisée conjointement avec le formateur  de   faisceau  conventionnel.   Elle  consiste   à  ajuster l'amplitude  des   pondérations  pour  obtenir   des  caractéristiques spécifiques.  Même si  vous n'utilisez  pas le  formateur de  faisceau conventionnel,   il   est   important   de   comprendre   le   concept d'ajustement. Rappelons que le calcul des pondérations du formateur de faisceau conventionnel  s'effectuait à  l'aide d'une série  de nombres complexes  dont  l'amplitude  était  égale  à  un.  Avec  l'ajustement spatial, nous multiplions  les pondérations par des  scalaires afin de modifier leur  amplitude. Voyons ce  qui se passe si  nous multiplions les pondérations par des valeurs aléatoires comprises entre 0 et 1 :
+
+
+
+
+
+
+
+**********************
+Formation de faisceaux adaptative
+**********************
+
+
+Le formateur de faisceaux conventionnel présenté précédemment est une méthode simple et efficace, mais il présente certaines limitations. Par exemple, il est peu performant en présence de plusieurs signaux provenant de directions différentes ou lorsque le niveau de bruit est élevé. Dans ces cas, il est nécessaire d'utiliser des techniques de formation de faisceaux plus avancées, souvent qualifiées de « adaptatives ». Le principe de la formation de faisceaux adaptative est d'utiliser le signal reçu pour calculer les pondérations, au lieu d'utiliser un ensemble fixe de pondérations comme avec le formateur de faisceaux conventionnel. Cela permet au formateur de faisceaux de s'adapter à l'environnement et d'offrir de meilleures performances, car les pondérations sont désormais basées sur les statistiques des données reçues.
+
+Les techniques de formation de faisceaux adaptatives se divisent en deux catégories : les méthodes classiques et les méthodes basées sur les sous-espaces. Les méthodes de sous-espaces telles que MUSIC et ESPRIT sont très puissantes, mais elles nécessitent d'estimer le nombre de signaux présents et requièrent au moins trois éléments pour fonctionner (quatre étant recommandés).
+
+La première technique de formation de faisceaux adaptatifs que nous allons étudier est MVDR, qui tend à être l'algorithme de référence lorsque l'on parle de formation de faisceaux adaptatifs.
+
+
 

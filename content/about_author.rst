@@ -8,7 +8,7 @@ Dr. Marc Lichtman is a wireless communications researcher who specializes in SDR
 
 Marc is also one of the leads for the `GNU Radio project <https://www.gnuradio.org/>`_ , an open source SDR framework widely used in academia and defense related research.  GNU Radio can be used to implement advanced DSP apps, and a GNU Radio app or individual block is very easy to share with others.
 
-Marc currently lives in the DC area with his wife and their many cats and dogs.  His hobbies include woodworking, machining, lasercutting, clarinet/sax, sailing, gardening, and pinball.
+Marc currently lives in the DC area with his wife and their many cats and dogs.  His hobbies include woodworking, machining, laser cutting, clarinet/sax, sailing, gardening, and pinball.
 
 Email: marc@pysdr.org
 
@@ -19,4 +19,3 @@ University of Maryland faculty page: `cs.umd.edu/people/sdr <https://www.cs.umd.
    :align: center
    :alt: Photo of Marc Lichtman, the author of PySDR, with his cat in a silly pose
    
-

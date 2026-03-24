@@ -82,7 +82,7 @@ As a signal moves through the air (or vacuum), it reduces in strength.  Imagine 
    :scale: 80 % 
    :align: center 
 
-Free Space Path Loss (FSPL) tells us the path loss when there are no obstacles for a given distance.  In its general form, :math:`\mathrm{FSPL} = ( 4\pi d / \lambda )^2`. Google Friis transmission formula for more info.  (Fun fact: signals encounter 377 ohms impedance moving through free space.)  For generating link budgets, we can use this same equation but converted to dB:
+Free Space Path Loss (FSPL) tells us the path loss when there are no obstacles for a given distance.  In its general form, :math:`\mathrm{FSPL} = ( 4\pi d / \lambda )^2`. See the Friis transmission formula for more info.  (Fun fact: signals encounter 377 ohms impedance moving through free space.)  For generating link budgets, we can use this same equation but converted to dB:
 
 .. math::
  \mathrm{FSPL}_{dB} = 20 \log_{10} d + 20 \log_{10} f - 147.55 \left[ dB \right]

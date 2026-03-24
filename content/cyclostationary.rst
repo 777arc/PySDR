@@ -821,6 +821,17 @@ The FSM and TSM techniques presented earlier work great, especially when you wan
 
 The minimal Python code to implement the FAM is actually fairly simple, although because we are no longer looping over alpha it is not as easy to tie back to the math.  Just like the TSM, we break the signal into a bunch of time windows, with some overlap.  A Hanning window is applied to each chunk of samples.  There are two stages of FFTs performed as part of the FAM algorithm, and within the code note that the first FFT is performed on a 2D array, so it's doing a bunch of FFTs in one line of code.  After a frequency shift, we do a second FFT to build the SCF (we then take the magnitude squared).  For a more thorough explanation of the FAM, refer to the external resources at the end of this section.
 
+.. mermaid::
+
+   flowchart TD
+      A[Input samples] --> B[Split into overlapping windows]
+      B --> C[Apply Hanning window]
+      C --> D[First FFT across each window]
+      D --> E[Frequency shift]
+      E --> F[Second FFT]
+      F --> G[Magnitude squared]
+      G --> H[SCF estimate]
+
 .. code-block:: python
 
     N = 2**14

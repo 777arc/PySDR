@@ -128,14 +128,14 @@ Performance Analysis: ROC Curves and Pd vs. SNR Curves
 
 To quantify how well a correlator detector performs in the presence of noise, engineers rely on two primary visualizations: the Receiver Operating Characteristic (ROC) curve and the Probability of Detection (:math:`P_{d}`) vs. SNR curve.
 
-The ROC curve plots the Probability of Detection (:math:`P_{d}`) against the Probability of False Alarm (:math:`P_{fa}`) for a fixed SNR. By adjusting the detection threshold at the correlator output, you choose a point on this curve, so it is fundamentally a trade-off. A lower threshold increases :math:`P_{d}` by finding more real signals, but it also increases :math:`P_{fa}` by triggering more often on noise. The bow of the curve toward the top-left corner indicates a better detector. A perfect detector reaches the top-left corner, with 100% :math:`P_{d}` and 0% :math:`P_{fa}`; a diagonal line represents random guessing.
+The ROC curve plots the Probability of Detection (:math:`P_{D}`) against the Probability of False Alarm (:math:`P_{FA}`) for a fixed SNR. By adjusting the detection threshold at the correlator output, you choose a point on this curve, so it is fundamentally a trade-off. A lower threshold increases :math:`P_{D}` by finding more real signals, but it also increases :math:`P_{FA}` by triggering more often on noise. The bow of the curve toward the top-left corner indicates a better detector. A perfect detector reaches the top-left corner, with 100% :math:`P_{D}` and 0% :math:`P_{FA}`; a diagonal line represents random guessing.
 
 .. image:: ../_images/detection_pd_vs_snr.svg
    :align: center 
    :target: ../_images/detection_pd_vs_snr.svg
    :alt: Pd vs SNR Curve and ROC curve
 
-Taken together, the equations and intuition show that the preamble length :math:`L` is a critical design parameter because it directly controls processing gain and therefore detection performance. For a fixed threshold and SNR, :math:`P_{D}` increases with :math:`L`. A longer preamble lets us collect more signal energy, making it easier to distinguish the signal from the background noise. This improvement is called processing gain, usually measured in dB as :math:`10\log_{10}(L)`. It is crucial for detecting weak signals that would otherwise be missed. By integrating energy over more samples, we can pull signals out of noise even when they are below the noise floor.
+Taken together, the equations and intuition show that the preamble length :math:`L` is a critical design parameter because it directly controls processing gain and therefore detection performance. For a fixed threshold and SNR, :math:`P_{D}` increases with :math:`L`. A longer preamble lets us collect more signal energy, making it easier to distinguish the signal from the background noise. This improvement is called processing gain, usually measured in dB as :math:`10\log_{10}(L)`. It is crucial for detecting weak signals that would otherwise be missed. By integrating energy over more samples, we can pull signals out of noise even when they are below the noise floor. GPS is a good real-world example of that effect, because the receiver has to recover very weak signals with a known code structure.
 
 ****************************************************
 Example: Detecting GPS Signals Below the Noise Floor
@@ -241,7 +241,7 @@ Make sure to change the :code:`filename` to match the location where you downloa
     #iq = np.fromfile(filename, dtype=np.int16, count=n_needed * 2)
     #iq = (iq[0::2] + 1j * iq[1::2]).astype(np.complex64)
 
-    # Loop through satellites performing acquisition
+    # Search each satellite across Doppler and code phase
     results = []
     detected = []
     print(f"  {'SV':>3}  {'Doppler (Hz)':>13}  {'Phase (chips)':>14}"
@@ -251,17 +251,17 @@ Make sure to change the :code:`filename` to match the location where you downloa
         corr_map = np.zeros((len(doppler_bins), samples_per_code))
         n_total = samples_per_code * num_integrations
         for di, f_d in enumerate(doppler_bins):
-            t = np.arange(n_total) / sample_rate # time vector
-            mixed = iq[:n_total] * np.exp(-2j*np.pi*float(f_d)*t) # freq shift
+            t = np.arange(n_total) / sample_rate # Time vector
+            mixed = iq[:n_total] * np.exp(-2j*np.pi*float(f_d)*t) # Apply the frequency shift
 
-            # Non-coherent integration: accumulate squared correlation magnitude
+            # Accumulate squared correlation magnitude non-coherently
             for k in range(num_integrations):
                 blk = mixed[k * samples_per_code:(k + 1) * samples_per_code]
                 sig_fft = np.fft.fft(blk)
-                corr = np.fft.ifft(sig_fft * template_signals[sv]) # cross-correlation in freq domain
+                corr = np.fft.ifft(sig_fft * template_signals[sv]) # Frequency-domain correlation
                 corr_map[di] += np.abs(corr)**2
 
-        # Normalize by mean and convert to dB
+        # Normalize by the mean and convert to dB
         peak_val = float(np.max(corr_map))
         mean_val = float(np.mean(corr_map))
         pmr_db = 10.0 * np.log10(peak_val / mean_val)
@@ -283,7 +283,7 @@ Make sure to change the :code:`filename` to match the location where you downloa
         }
         results.append(r)
 
-        # Print row
+        # Print the result row
         delay_us = r['code_phase_samp'] / sample_rate * 1e6
         flag = "  ← DETECTED" if r['detected'] else ""
         print(f"  {sv:>3}  {r['doppler_hz']:>+13.0f}  {r['code_phase_chip']:>14.2f}"
@@ -352,7 +352,7 @@ Let's try plotting the results for satellite 11; the first one we detected.  The
     plt.legend(fontsize=8, loc='upper right')
     plt.colorbar(im, label="Correlation Power")
 
-    # code-phase slice at best Doppler
+    # Code-phase slice at the best Doppler
     best_di = int(np.argmin(np.abs(d_bins - r['doppler_hz'])))
     plt.figure(1, figsize=(10, 6))
     plt.plot(chips_axis, cmap[best_di], lw=1, color='steelblue')
@@ -425,7 +425,7 @@ As a way to play around with our own CFAR detector, we'll first simulate a scena
         gap_len = 100
         full_signal = []
         
-        # Pre-calculate preamble upsampled for correlation
+    # Precompute the upsampled preamble for correlation
         upsampled_preamble = np.repeat(preamble, sps)
         
         for _ in range(num_packets):
@@ -436,12 +436,12 @@ As a way to play around with our own CFAR detector, we'll first simulate a scena
         
         return np.array(full_signal), upsampled_preamble
 
-    # Setup Parameters
+    # Simulation parameters
     sps = 4
     preamble_syms = np.array([1+1j, 1+1j, -1-1j, -1-1j, 1-1j, -1+1j]) / np.sqrt(2)
     tx_signal, ref_preamble = generate_qpsk_packets(5, sps, preamble_syms)
 
-    # Channel: Time-Varying Noise Floor
+    # Time-varying noise floor
     t = np.arange(len(tx_signal))
     noise_env = 0.05 + 0.3 * np.sin(2 * np.pi * 0.0003 * t)**2
     noise = (np.random.randn(len(tx_signal)) + 1j*np.random.randn(len(tx_signal))) * noise_env
@@ -451,7 +451,7 @@ The first step is doing a single correlation of the received signal against the 
 
 .. code-block:: python
 
-    # Preamble Correlation, Correlation spike occurs when the reference matches the received segment
+    # Correlation spike appears when the reference matches the received segment
     corr_out = correlate(rx_signal, ref_preamble, mode='same')
     corr_power = np.abs(corr_out)**2
 
@@ -461,7 +461,7 @@ Now we will implement the CFAR detector, apply it to the correlator output, and 
 
 .. code-block:: python
 
-    # CFAR Detection on Correlator Output
+    # CFAR detection on the correlator output
     def ca_cfar_adaptive(data, num_train, num_guard, pfa):
         num_cells = len(data)
         thresholds = np.zeros(num_cells)
@@ -469,20 +469,20 @@ Now we will implement the CFAR detector, apply it to the correlator output, and 
         half_window = (num_train + num_guard) // 2
         guard_half = num_guard // 2
         for i in range(half_window, num_cells - half_window):
-            # Extract training cells (excluding guard cells and CUT)
+            # Build the training set around the cell under test (CUT)
             lagging_win = data[i - half_window : i - guard_half]
             leading_win = data[i + guard_half + 1 : i + half_window + 1]
             noise_floor_est = np.mean(np.concatenate([lagging_win, leading_win]))
             thresholds[i] = alpha * noise_floor_est
         return thresholds
 
-    # Detect on correlator power
+    # Detect peaks in correlator power
     cfar_thresholds = ca_cfar_adaptive(corr_power, num_train=60, num_guard=20, pfa=1e-5)
     detections = np.where(corr_power > cfar_thresholds)[0]
-    # Filter detections to only include those where threshold is non-zero (avoid edges)
+    # Remove edge detections where the threshold is undefined
     detections = detections[cfar_thresholds[detections] > 0]
 
-    # Subplot 1: Received Signal and Raw Power
+    # Subplot 1: received signal and raw power
     plt.figure(figsize=(14, 8))
     plt.subplot(2, 1, 1)
     plt.plot(np.abs(rx_signal)**2, color='gray', alpha=0.4, label='Rx Signal Power ($|r(t)|^2$)')
@@ -491,11 +491,11 @@ Now we will implement the CFAR detector, apply it to the correlator output, and 
     plt.legend()
     plt.grid(True, alpha=0.3)
 
-    # Subplot 2: Correlator Output vs Adaptive Threshold
+    # Subplot 2: correlator output vs adaptive threshold
     plt.subplot(2, 1, 2)
     plt.plot(corr_power, label='Correlator Output $|r(t) * p^*(-t)|^2$', color='blue')
     plt.plot(cfar_thresholds, label='CFAR Adaptive Threshold', color='red', linestyle='--', linewidth=1.5)
-    if len(detections) > 0: # Overlay detections
+    if len(detections) > 0: # Overlay the detections
         plt.scatter(detections, corr_power[detections], color='lime', edgecolors='black', label='Detections (Preamble Found)', zorder=5)
     plt.title("Preamble Correlator Output with Adaptive CFAR Threshold")
     plt.xlabel("Sample Index")
@@ -579,7 +579,7 @@ TODO: Explain this plot and add some portion of the Python to the section
 Detecting Direct Sequence Spread Spectrum (DSSS) Signals
 *****************************************************************
 
-In a Direct Sequence Spread Spectrum (DSSS) system, the correlator detector is the link that pulls a meaningful signal out of what initially looks like random noise. By using a high-rate chip sequence, or chipping code, the system spreads the signal energy across a much wider bandwidth than the original data requires. Because the total power stays constant, spreading it over a broader frequency range lowers the power spectral density (PSD). This spectral thinning effect can drive the signal level below the thermal noise floor, making it nearly invisible to conventional narrow-band receivers. To the intended receiver, however, the same chip sequence can be applied to de-spread the signal, concentrating the energy back into the original narrow bandwidth while also spreading out narrow-band interference. That is what allows reliable detection even in very noisy environments.
+In a Direct Sequence Spread Spectrum (DSSS) system, the correlator detector is the link that pulls a meaningful signal out of what initially looks like random noise. By using a high-rate chip sequence, or chipping code, the system spreads the signal energy across a much wider bandwidth than the original data requires. Because the total power stays constant, spreading it over a broader frequency range lowers the power spectral density (PSD). This spectral thinning effect can drive the signal level below the thermal noise floor, making it nearly invisible to conventional narrow-band receivers. To the intended receiver, however, the same chip sequence can be applied to de-spread the signal, concentrating the energy back into the original narrow bandwidth while also spreading out narrow-band interference. That is what allows reliable detection even in very noisy environments. The next subsection looks at the timing side of that problem.
 
 The Role of Auto-Correlation Properties
 ########################################
@@ -608,18 +608,18 @@ In a DSSS system, the receiver's ability to recover data depends entirely on syn
     import numpy as np
     import matplotlib.pyplot as plt
 
-    # Barker 11 sequence: +1, -1, +1, +1, -1, +1, +1, +1, -1, -1, -1
+    # Barker 11 sequence
     barker11 = np.array([1, -1, 1, 1, -1, 1, 1, 1, -1, -1, -1])
     samples_per_chip = 100
 
-    # Upsample the sequence to simulate continuous-ish time
+    # Upsample the sequence to simulate continuous time
     sig = np.repeat(barker11, samples_per_chip)
 
     offsets = np.linspace(-1.5, 1.5, 500) # Fractional chip offsets
     peaks = []
 
     for offset in offsets:
-        # Shift the signal by a fractional number of chips (converted to samples)
+        # Shift the signal by a fractional number of chips, converted to samples
         shift_samples = int(offset * samples_per_chip)
         if shift_samples > 0:
             shifted_sig = np.pad(sig, (shift_samples, 0))[:len(sig)]
@@ -628,7 +628,7 @@ In a DSSS system, the receiver's ability to recover data depends entirely on syn
         else:
             shifted_sig = sig
             
-        # Compute normalized correlation at zero lag for this specific offset
+        # Compute normalized correlation at zero lag for this offset
         correlation = np.vdot(sig, shifted_sig) / np.vdot(sig, sig)
         peaks.append(np.abs(correlation))
 

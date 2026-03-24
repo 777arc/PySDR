@@ -38,6 +38,25 @@ make fast-html
 - Inspect the generated HTML in `_build/` to verify the result.
 - Keep changes minimal and aligned with the existing textbook style.
 
+## Writing Style
+
+Note to humans- This guidance is provided to AI to help edit, not actually write material, Marc's writes everything himself then uses AI for catching grammar issues and such.
+
+PySDR's prose is intentionally instructional, conversational, and example-driven. When editing chapter text, match these patterns:
+
+- Start with intuition before formalism. Explain the idea in plain language first, then introduce equations or code.
+- Prefer short, direct paragraphs. Long sections are acceptable, but they should be broken up with transitions, examples, or figures.
+- Use first-person plural sparingly but naturally (`we`, `let's`) to guide the reader through the material.
+- Keep the tone approachable and lightly informal, but not casual or chatty.
+- Use rhetorical questions and plain-English restatements when they help clarify a concept.
+- Explain why a step matters, not just what the step is.
+- Preserve the textbook’s teaching rhythm: concept, example, code, result, takeaway.
+- Keep technical terminology precise, but avoid sounding overly academic or formal.
+- When a section already has figures or code, make the surrounding prose point the reader to them and explain what they should notice.
+- Avoid hype, filler, and motivational fluff.
+
+When in doubt, read the surrounding chapter aloud mentally and aim for the same cadence and readability rather than a generic documentation voice.
+
 ## Notes
 
 - This project uses Sphinx and a custom `conf.py`.

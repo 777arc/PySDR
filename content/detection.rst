@@ -374,7 +374,7 @@ Let's try plotting the results for satellite 11; the first one we detected.  The
    :target: ../_images/detection_gps_code_phase_slice.svg
    :alt: Code-Phase Slice
 
-We won't get into the process of trilateration here, but the precise position of that spike is ultimately what allows the GPS receiver to determine how far the satellite is, and when combined with the same information from 4 or more satellites, it can determine its position on Earth.
+We will not get into trilateration here, but the precise position of that spike is ultimately what allows the GPS receiver to determine how far the satellite is. Combined with the same information from four or more satellites, it can determine its position on Earth.
 
 ****************************************************
 CFAR Detectors: Thriving in Changing Environments
@@ -385,7 +385,7 @@ While the Neyman-Pearson detector is optimal for a fixed noise level, real-world
 CFAR detectors are the workhorses of systems where an unpredictable background makes a fixed threshold impossible to maintain:
 
 - Radar and Sonar are used to detect targets (planes, submarines) against "clutter"—reflections from waves, rain, or land that change as the sensor moves.
-- Wireless Communications, such as Cognitive Radio and LTE/5G systems, use CFAR to help identify available spectrum or detect incoming packets when interference from other devices is burst-y and unpredictable.
+- Wireless Communications, such as Cognitive Radio and LTE/5G systems, use CFAR to help identify available spectrum or detect incoming packets when interference from other devices is bursty and unpredictable.
 - Medical Imaging applies CFAR in automated ultrasound or MRI analysis to distinguish actual tissue features from varying levels of electronic noise.
 
 The "C" in CFAR stands for Constant because the goal is to keep the Probability of False Alarm (:math:`P_{FA}`) at a steady, predictable level.

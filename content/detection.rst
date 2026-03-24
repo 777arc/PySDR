@@ -8,7 +8,7 @@ Detection using Correlation
 
  <span style="display: table; margin: 0 auto; font-size: 20px;">Co-authored by <a href="https://www.linkedin.com/in/samuel-brown-vt">Sam Brown</a></span>
 
-In this chapter, we learn how to detect the presence of signals and recover their timing by cross-correlating received samples with a portion of the signal known to us, such as the preamble of a packet. This method inherently leads to a simple form of classification, using a bank of correlators. We introduce the fundamental concepts of signal detection, focusing on how to decide if a specific signal is present or absent in a noisy environment. We explore the theoretical foundations and practical techniques for making optimal decisions amidst uncertainty.
+In this chapter, we learn how to detect the presence of signals and recover their timing by cross-correlating received samples with a portion of the signal that is already known to us, such as a packet preamble. That naturally leads to a simple form of classification using a bank of correlators. We introduce the core ideas of signal detection, focusing on how to decide whether a specific signal is present or absent in a noisy environment. Along the way, we cover the theory and the practical techniques used to make good decisions under uncertainty.
 
 ****************************************************
 Signal Detection and Correlator Basics
@@ -16,18 +16,18 @@ Signal Detection and Correlator Basics
 
 Signal detection is the task of deciding whether an observed energy spike is a meaningful signal or just background noise.
 
-The Challenge - In systems like radar or sonar, noise is everywhere. If the detector is too sensitive, it creates "False Alarms." If it's not sensitive enough, it "Misses" the actual target.
+The challenge: in systems like radar or sonar, noise is everywhere. If the detector is too sensitive, it creates false alarms. If it is not sensitive enough, it misses the actual target.
 
-The Solutions - The first and simplest option is the Neyman-Pearson Detector, which provides a mathematical "sweet spot" by maximizing the chance of finding a signal while keeping false alarms below a strictly defined limit. CFAR detectors expand upon Neyman Pearson detectors by making them adaptive to changes in the noise level. More specifically, CFAR detectors are used in situations where the noise statistics are not stationary; i.e., the noise floor and noise distribution change due to interference and evolving channel conditions. The goal is to automatically adjust the detection threshold as the background noise fluctuates so as to guarantee a set false-alarm rate. This involves estimating the noise floor over time.
+The solution starts with the Neyman-Pearson detector, which provides a mathematical sweet spot by maximizing the chance of finding a signal while keeping false alarms below a defined limit. CFAR detectors build on that idea by adapting to changes in the noise level. They are especially useful when the noise statistics are not stationary, meaning the noise floor and noise distribution change because of interference or evolving channel conditions. The goal is to adjust the detection threshold automatically as the background noise fluctuates, while maintaining a chosen false-alarm rate. That requires estimating the noise floor over time.
 
-Once a system knows something is there, it needs to find exactly where the data starts. Digital packets in LTE, 5G, or WiFi begin with a "preamble"—a known, repeated digital pattern. A Preamble Correlator acts like a "lock and key" mechanism wherein the "key" is some sequence of symbols known at the receiver that is unique to the signal being recovered. By sliding a copy of the preamble sequence over the incoming signal and performing a dot product at every delay, the receiver can measure the similarity between the template sequence and the received sequence at that delay. When the template and the received signal line up near-perfectly, a sharp spike occurs, telling the receiver exactly when to start reading the data. Advanced versions even account for frequency offsets caused by the slight tuning differences between your phone and a cell tower or Doppler shifts.
+Once a system knows that something is present, it still needs to find exactly where the data starts. Digital packets in LTE, 5G, or WiFi begin with a preamble, which is a known repeated digital pattern. A preamble correlator acts like a lock-and-key mechanism: the key is a sequence of symbols known at the receiver and unique to the signal being recovered. By sliding a copy of the preamble over the incoming signal and taking a dot product at every delay, the receiver measures how similar the template is to the received samples at each position. When the two line up closely, a sharp spike appears and tells the receiver where to start reading the data. More advanced versions also account for frequency offsets caused by small tuning differences between a phone and a cell tower, or by Doppler shifts.
 
-When a known signal, or preamble, is transmitted over a channel corrupted only by Additive White Gaussian Noise (AWGN), the task is to decide if the signal is present. This is the simplest yet most fundamental detection problem.
+When a known signal, or preamble, is transmitted over a channel corrupted only by Additive White Gaussian Noise (AWGN), the task is to decide whether the signal is present. This is the simplest and most fundamental detection problem.
 
 The Cross-Correlation Function
 ###############################
 
-A correlator in its simplest form is just a cross-correlation between a received signal and a template of what to search for.  A cross-correlation is a dot product between two vectors as one vector slides across the other.  If you learned about the convolution operation, it's exactly the same except you don't flip the second vector, so it's actually slightly simpler.  For complex signals, which is what we'll be dealing with, you also have to complex conjugate one of the inputs.  In Python this can be implemented as follows:
+A correlator in its simplest form is a cross-correlation between a received signal and a template. Cross-correlation is just a dot product between two vectors as one vector slides across the other. If you learned about convolution, it is almost the same operation except that you do not flip the second vector, so it is slightly simpler. For complex signals, which is what we will be dealing with, one of the inputs must also be complex conjugated. In Python, this can be implemented as follows:
 
 .. code-block:: python
 
@@ -47,12 +47,12 @@ A correlator in its simplest form is just a cross-correlation between a received
     v = [0+1j, 1+0j, 0.5-0.5j]
     correlate(a, v)
 
-Note how we slide :code:`a` and complex conjugate :code:`v`, and how the loop involving :code:`j` and :code:`s` is actually just a vector dot product.  Luckily we don't have to implement a cross-correlation from scratch, in Python we can use NumPy's :code:`correlate` function (there is also a SciPy version that you're welcome to play with).  
+Note how we slide :code:`a` while complex conjugating :code:`v`, and how the loop involving :code:`j` and :code:`s` is really just a vector dot product. Luckily, we do not have to implement cross-correlation from scratch; in Python, we can use NumPy's :code:`correlate` function. There is also a SciPy version if you want to experiment with it.
 
 Python Example of a Cross-Correlation
 ########################################################
 
-In order to put together a basic Python example of a correlator, we first need to create an example signal with a known preamble embedded in noise. We will use a Zadoff-Chu sequence as our known preamble due to its excellent auto-correlation properties and common use in communication systems.  We won't bother with any other "data" portion of the signal, but in most systems there will be unknown data following the known preamble.  We can generate a Zadoff-Chu sequence as follows:
+To build a basic Python example of a correlator, we first need an example signal with a known preamble embedded in noise. We will use a Zadoff-Chu sequence as the preamble because of its excellent auto-correlation properties and common use in communication systems. We will not bother with any other data portion of the signal, but in most systems there would be unknown data following the known preamble. A Zadoff-Chu sequence can be generated as follows:
 
 .. code-block:: python
 
@@ -63,7 +63,7 @@ In order to put together a basic Python example of a correlator, we first need t
     t = np.arange(N)
     zadoff_chu = np.exp(-1j * np.pi * u * t * (t + 1) / N)
 
-The resulting sequence *is* a signal, the IQ samples of :code:`zadoff_chu` represent a baseband complex signal similar to many signals we have dealt with in this textbook, it just doesn't represent bits.  We can emulate a real scenario by adding this Zadoff-Chu signal into a longer stream of AWGN at a random offset:
+The resulting sequence is itself a signal. The IQ samples in :code:`zadoff_chu` represent a baseband complex signal similar to many signals we have already seen in this textbook, but it does not represent bits. We can emulate a realistic scenario by adding the Zadoff-Chu signal into a longer stream of AWGN at a random offset:
 
 .. code-block:: python
 
@@ -75,20 +75,20 @@ The resulting sequence *is* a signal, the IQ samples of :code:`zadoff_chu` repre
     signal = np.sqrt(noise_power/2) * (np.random.randn(signal_length) + 1j * np.random.randn(signal_length))
     signal[offset:offset+N] += zadoff_chu # place our ZC signal at the random offset
 
-Note that we are using a *very* low SNR, in fact it's so low that if you look at the time domain signal you won't be able to see the Zadoff-Chu sequence at all!  Our Zadoff-Chu sequence is 839 samples long, out of the ~8000 simulated samples, and it's buried so deep into the noise that you can't even see a slight increase in signal magnitude.
+Note that we are using a very low SNR. In fact, it is so low that if you look at the time-domain signal, you will not be able to see the Zadoff-Chu sequence at all. Our sequence is 839 samples long, out of roughly 8,000 simulated samples, and it is buried so deeply in the noise that you cannot even see a slight increase in signal magnitude.
 
 .. image:: ../_images/detection_basic_1.svg
    :align: center 
    :target: ../_images/detection_basic_1.svg
    :alt: Time Domain Signal with Zadoff-Chu Sequence
 
-Now we can implement the correlator by performing a cross-correlation of the received signal against our known Zadoff-Chu sequence, using :code:`np.correlate()`.  This assumes the receiver is aware of the exact preamble that was used; :code:`zadoff_chu` in our code initially was created to simulate a scenario, but now it's also going to represent a template preamble that the receiver uses in its correlator.  The correlator can be implemented in one line of Python:
+Now we can implement the correlator by cross-correlating the received signal against our known Zadoff-Chu sequence with :code:`np.correlate()`. This assumes the receiver knows the exact preamble that was used. In the code above, :code:`zadoff_chu` was originally created to simulate the signal, but it now also represents the template preamble used by the receiver. The correlator can be implemented in one line of Python:
 
 .. code-block:: python
 
  correlation = np.correlate(signal, zadoff_chu, mode='valid')
 
-The :code:`valid` portion will be addressed shortly.  We will also normalize the output by the length of the sequence, and take the magnitude squared to get the power, although you could also just take the magnitude and leave it at that, and it would work fine, the important part is the :code:`np.correlate()` operation.
+The :code:`valid` mode will be addressed shortly. We also normalize the output by the length of the sequence and take the magnitude squared to get the power, although taking only the magnitude would also work. The important part is the :code:`np.correlate()` operation itself.
 
 .. code-block:: python
 
@@ -101,19 +101,19 @@ Below we plot the magnitude squared and annotate the actual starting position of
    :target: ../_images/detection_basic_2.svg
    :alt: Correlator Output
 
-Even though the SNR is very low, we can see a very clear spike in the correlator output exactly where the Zadoff-Chu sequence was placed!  This shows us the *start* of the sequence; the 839 samples starting at that spike contain the sequence.  This is the power of correlation-based detection, combined with a very long preamble.  Note that we have not yet set any sort of threshold for how to decide if this spike is our signal of interest or just noise, instead we are visually inspecting the output, to automate the process we would need a threshold.  However, the bulk of this chapter revolves around how to come up with the best threshold, especially when the noise floor and background interference is constantly changing.
+Even though the SNR is very low, the correlator output shows a clear spike exactly where the Zadoff-Chu sequence was placed. That spike marks the start of the sequence, so the 839 samples beginning there contain the preamble. This is the power of correlation-based detection combined with a long preamble. At this point we have not yet set a threshold to decide whether the spike is our signal of interest or just noise; we are only inspecting the output visually. The rest of the chapter is about automating that decision, especially when the noise floor and background interference are changing.
 
 Valid, Same, Full Modes
 #######################################
 
-You may have noticed that the :code:`np.correlate()` function, as well as :code:`np.convolve()`, have three different modes: :code:`valid`, :code:`same`, and :code:`full`.  These modes determine the length of the output array compared to the input arrays.  In our case, we used :code:`valid`, which means that the output only contains points where the two input arrays fully overlap.  This results in an output length of :code:`len(signal) - len(zadoff_chu) + 1`.  If we had used :code:`same`, the output would be the same length as the (longer) input signal, and if we had used :code:`full`, the output would be the full discrete linear convolution, resulting in a slightly longer output array of length :code:`max(M, N) - min(M, N) + 1` where :code:`M` and :code:`N` are the lengths of the two input arrays.  In a lot of RF signal processing, we use a convolution to apply an FIR filter, and it is convenient when the input and output are the same length, so we often use :code:`same` in those cases.  However, for correlation-based detection, we typically want to use :code:`valid`, since we only care about the points where the preamble fully overlaps with the received signal, especially if we assume that the signal does not start until after we start receiving.
+You may have noticed that both :code:`np.correlate()` and :code:`np.convolve()` support three modes: :code:`valid`, :code:`same`, and :code:`full`. These modes determine the length of the output array relative to the input arrays. In our case, we used :code:`valid`, which means the output only contains points where the two input arrays fully overlap. This results in an output length of :code:`len(signal) - len(zadoff_chu) + 1`. If we had used :code:`same`, the output would be the same length as the longer input signal. If we had used :code:`full`, the output would be the full discrete linear convolution, which gives a slightly longer array of length :code:`max(M, N) - min(M, N) + 1`, where :code:`M` and :code:`N` are the input lengths. In RF signal processing, convolution is often used to apply an FIR filter, where having the input and output at the same length is convenient, so :code:`same` is common in that context. For correlation-based detection, however, we usually want :code:`valid` because we only care about the points where the preamble fully overlaps the received signal, especially if we assume the signal starts after we begin receiving.
 
 The Neyman-Pearson Detector
 ############################
 
-The gold standard for deciding on a good threshold to compare our correlator output against is the Neyman-Pearson detector. This powerful piece of theory helps us make an optimal decision under a specific constraint: it finds a decision threshold that maximizes the probability of detection, :math:`P_{D}`, for a fixed, acceptable level of the probability of false alarm, :math:`P_{FA}`. In simple terms, you decide the maximum number of false detections you can tolerate (e.g., one false alarm per hour), and the Neyman-Pearson detector tells you the best threshold to use to catch the most actual signals possible. For detecting a known preamble in AWGN, this detector uses a simple approach: it computes a correlation value between the received signal and the known preamble pattern. If this value exceeds a predetermined threshold :math:`\tau`, it declares the signal is present, otherwise it assumes only noise is present.
+The gold standard for choosing a threshold for our correlator output is the Neyman-Pearson detector. This theory helps us make an optimal decision under a specific constraint: it finds the threshold that maximizes the probability of detection, :math:`P_{D}`, for a fixed and acceptable probability of false alarm, :math:`P_{FA}`. In simple terms, you decide how many false detections you can tolerate, such as one false alarm per hour, and the Neyman-Pearson detector gives you the best threshold for catching as many real signals as possible. For detecting a known preamble in AWGN, it uses a straightforward approach: it computes the correlation between the received signal and the known preamble pattern. If that value exceeds a predetermined threshold :math:`\tau`, it declares that the signal is present; otherwise, it assumes only noise is present.
 
-The performance of this detector, measured by :math:`P_{D}` and :math:`P_{FA}`, depends on the threshold :math:`\tau`, the SNR, and the preamble length :math:`L`. The probability of a false alarm is a function of the threshold and the noise variance, :math:`\sigma_n^2`:
+The performance of this detector, measured by :math:`P_{D}` and :math:`P_{FA}`, depends on the threshold :math:`\tau`, the SNR, and the preamble length :math:`L`. The probability of a false alarm depends on the threshold and the noise variance, :math:`\sigma_n^2`:
 
 :math:`P_{FA} = Q\left(\frac{\tau}{\sigma_n}\right)`
 
@@ -128,14 +128,14 @@ Performance Analysis: ROC Curves and Pd vs. SNR Curves
 
 To quantify how well a correlator detector performs in the presence of noise, engineers rely on two primary visualizations: the Receiver Operating Characteristic (ROC) curve and the Probability of Detection (:math:`P_{d}`) vs. SNR curve.
 
-The ROC curve plots the Probability of Detection (:math:`P_{d}`) against the Probability of False Alarm (:math:`P_{fa}`) for a fixed SNR. By adjusting the detection threshold at the correlator output, you choose a point on this curve, it's a trade-off. A lower threshold increases :math:`P_{d}` (finding the signal) but also increases :math:`P_{fa}` (triggering on noise). The "bow" of the curve toward the top-left corner indicates detector quality. A perfect detector reaches the top-left (100% :math:`P_{d}`, 0% :math:`P_{fa}`), while a diagonal line represents a random guess.
+The ROC curve plots the Probability of Detection (:math:`P_{d}`) against the Probability of False Alarm (:math:`P_{fa}`) for a fixed SNR. By adjusting the detection threshold at the correlator output, you choose a point on this curve, so it is fundamentally a trade-off. A lower threshold increases :math:`P_{d}` by finding more real signals, but it also increases :math:`P_{fa}` by triggering more often on noise. The bow of the curve toward the top-left corner indicates a better detector. A perfect detector reaches the top-left corner, with 100% :math:`P_{d}` and 0% :math:`P_{fa}`; a diagonal line represents random guessing.
 
 .. image:: ../_images/detection_pd_vs_snr.svg
    :align: center 
    :target: ../_images/detection_pd_vs_snr.svg
    :alt: Pd vs SNR Curve and ROC curve
 
-Based on the above equations (also, intuition), we can see that the preamble length :math:`L` is a critical design parameter because it directly controls a system's processing gain and, therefore, its detection performance.  :math:`P_{D}` increases with :math:`L` for a fixed threshold and SNR. A longer preamble means more signal energy can be collected, making it easier to distinguish the signal from the background noise.  The increase in performance due to a longer preamble is known as the "processing gain". It is often measured in dB, as :math:`10\log_{10}(L)`. This gain is crucial for detecting weak signals that might otherwise be missed. In essence, by integrating energy over more samples, we can pull signals out of noise that are even below the noise floor.
+Taken together, the equations and intuition show that the preamble length :math:`L` is a critical design parameter because it directly controls processing gain and therefore detection performance. For a fixed threshold and SNR, :math:`P_{D}` increases with :math:`L`. A longer preamble lets us collect more signal energy, making it easier to distinguish the signal from the background noise. This improvement is called processing gain, usually measured in dB as :math:`10\log_{10}(L)`. It is crucial for detecting weak signals that would otherwise be missed. By integrating energy over more samples, we can pull signals out of noise even when they are below the noise floor.
 
 ****************************************************
 Example: Detecting GPS Signals Below the Noise Floor
@@ -144,33 +144,33 @@ Example: Detecting GPS Signals Below the Noise Floor
 Quick Primer on GPS Signals
 ###############################
 
-As of March 2026, there are 31 operational satellites in the U.S. GPS constellation, flying around the Earth in medium Earth orbit (MEO), each circling the Earth twice a day.  All satellites transmit a signal centered at 1575.42 MHz (called L1); this signal is always on and all satellites use the same frequency.  By the time the signal reaches the surface of the Earth, it is extremely weak, and way below the noise floor. Orthogonality between signals is achieved by each satellite being assigned a unique 1023-chip pseudo-random noise (PRN) code, called the C/A code, you might see the signal referred to as "L1 C/A". These C/A codes use "Gold codes" and are carefully designed so that any two of them are nearly orthogonal; if you correlate any two satellite's codes against each other you get almost zero output. The C/A code runs at 1.023 million chips per second and is only 1023 chips long, so it repeats every exactly 1 ms. On top of that repeating code, each satellite slowly modulates navigation data (its orbital position, clock corrections, etc.) at just 50 bits/second, so one data bit spans 20 full code repetitions.  This process of using a different code per transmitter is known as CDMA (Code Division Multiple Access), the same idea behind 3G cell phones.
+As of March 2026, there are 31 operational satellites in the U.S. GPS constellation, flying in medium Earth orbit (MEO) and circling the Earth twice per day. All satellites transmit a signal centered at 1575.42 MHz, called L1, and they all use the same carrier frequency. By the time the signal reaches the surface of the Earth, it is extremely weak and well below the noise floor. Orthogonality between satellites is achieved by assigning each one a unique 1023-chip pseudo-random noise (PRN) code, called the C/A code, which is why you may see the signal referred to as L1 C/A. These C/A codes use Gold codes and are carefully designed so that any two of them are nearly orthogonal; if you correlate any two satellites' codes against each other, you get almost zero output. The C/A code runs at 1.023 million chips per second and is only 1023 chips long, so it repeats every 1 ms. On top of that repeating code, each satellite slowly modulates navigation data, such as orbital position and clock corrections, at only 50 bits per second, so one data bit spans 20 full code repetitions. This use of a different code per transmitter is known as CDMA (Code Division Multiple Access), the same idea used in 3G cell phones.
 
-On the receiver side of things, to find one of the 31 satellites the receiver uses that satellite's code, and generates a local copy of that satellite's PRN sequence.  It then uses a correlator to find the start of the sequence, which can be thought of as the start of the packet/frame, although in the case of GPS it's always transmitting.  The precise peak of the correlation is also used to determine how far the signal has traveled before reaching the receiver; when this value is calculated for 4 or more satellites, the receiver can trilaterate its position on Earth.  Lastly, because the satellites are moving so fast, there is significant Doppler shift because satellites are moving at ~4 km/s relative to you, so the receiver must also perform a search across a grid of possible frequency offsets to find the best correlation peak, think of it like a 2D search.  The maximum Doppler is about +/-20 kHz (:code:`4e3 / 3e8 * 1.575e9`).  This whole process repeats every 1 ms, although the receiver tracks the delay and Doppler so it doesn't have to do a full search every time.  The process of initially finding each satellite is called "acquisition", and the process of tracking the satellite's signal after acquisition is called "tracking".  Acquisition is the more computationally intensive part, and it can take minutes if the receiver is in a "cold start" scenario where it has no prior information about which satellites are visible or their approximate Doppler shifts, or the receiver's location.
+On the receiver side, finding one of the 31 satellites means generating a local copy of that satellite's PRN sequence and using a correlator to find the start of the code period. In GPS, that start can be treated like the start of a packet or frame, even though the system transmits continuously. The precise peak of the correlation is also used to estimate how far the signal has traveled before reaching the receiver; once that is known for four or more satellites, the receiver can trilaterate its position on Earth. Because the satellites are moving at about 4 km/s relative to you, the receiver must also search across a grid of possible frequency offsets to find the best correlation peak. Think of it as a 2-D search. The maximum Doppler is about +/-20 kHz (:code:`4e3 / 3e8 * 1.575e9`). This process repeats every 1 ms, although the receiver tracks delay and Doppler so it does not need to perform a full search every time. The initial search for each satellite is called acquisition, and the process of following the signal after that is called tracking. Acquisition is the more computationally expensive part, and it can take minutes if the receiver starts from scratch with no prior information about visible satellites, Doppler shifts, or its own location.
 
 Correlation Approach
 ###############################
 
-We will cross-correlate the incoming signal (in our case, a recording of L1) against a locally generated replica of each satellite's code.  A large correlation peak means that satellite is visible and gives us the start of the 1 ms code period.  To also search across frequency, in order to take into account Doppler, we will use an FFT to perform the correlation in the frequency domain, which allows us to efficiently test multiple frequency offsets by simply shifting the FFT bins of the local code replica.  Lastly, power (correlation magnitude squared) is accumulated over multiple 1 ms blocks to improve SNR, this is known as a non-coherent integration, and it helps to detect these GPS signals received below the noise floor.  What we threshold against is the correlation output divided by the average correlation power across all delays, as a way to normalize.
+We cross-correlate the incoming signal, in this case a recording of L1, against a locally generated replica of each satellite's code. A large correlation peak means the satellite is visible and gives us the start of the 1 ms code period. To search across frequency as well, we use an FFT-based correlation in the frequency domain, which lets us test multiple frequency offsets efficiently by shifting the FFT bins of the local code replica. Finally, we accumulate correlation magnitude squared over multiple 1 ms blocks to improve SNR. This is called non-coherent integration, and it helps detect GPS signals that are received below the noise floor. We threshold the result against the correlation output divided by the average correlation power across all delays, which normalizes the result.
 
 Example Recording
 ###############################
 
-We will use an example recording of GPS provided by Daniel Estévez, which you can `download here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/GPS_L1_recording_10ms_4MHz_cf32.iq>`_.  It's a complex float32 datatype at 4 MHz sample rate and centered at 1575.42 MHz.
+We will use an example GPS recording provided by Daniel Estévez, which you can `download here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/GPS_L1_recording_10ms_4MHz_cf32.iq>`_. It is a complex float32 file sampled at 4 MHz and centered at 1575.42 MHz.
 
-Below shows the spectrogram of the recording, there is not much to see, the vertical line is not the actual GPS signal, it's likely narrowband interference.  The actual GPS L1 signals use a chip rate of 1.023 MHz with a very low data rate signal modulated on top, so the signal ends up being about 2 MHz wide, which we simply don't see in the spectrogram.  This is a good example of how these GPS signals are received well below the noise floor, and how we need to use correlation-based detection to find them.
+Below is the spectrogram of the recording. There is not much to see, and the vertical line is not the actual GPS signal; it is likely narrowband interference. The actual GPS L1 signals use a chip rate of 1.023 MHz with a very low-rate data signal modulated on top, so the signal ends up being about 2 MHz wide, which we simply do not see in the spectrogram. This is a good example of how GPS signals are received well below the noise floor, and why we need correlation-based detection to find them.
 
 .. image:: ../_images/detection_gps_spectrogram.svg
    :align: center 
    :target: ../_images/detection_gps_spectrogram.svg
    :alt: Spectrogram of GPS L1 Recording
 
-For those interested, this recording is a small portion of a much larger file hosted on `IQEngine <https://iqengine.org/>`_ under :code:`estevez/GPS and other GNSS` and look for the recording called :code:`GPS-L1-2022-03-27`.  On IQEngine it's an int16 in SigMF format.
+For those interested, this recording is a small portion of a much larger file hosted on `IQEngine <https://iqengine.org/>`_ under :code:`estevez/GPS and other GNSS`; look for the recording called :code:`GPS-L1-2022-03-27`. On IQEngine, it is an int16 file in SigMF format.
 
 Python Example
 #####################
 
-Make sure to change the :code:`filename` to match where you downloaded the IQ file.  Note that the :code:`num_integrations` will determine how much of the IQ recording we read in and process, whatever this number times 1 ms is (with 10 being the max value for the shorter recording).
+Make sure to change the :code:`filename` to match the location where you downloaded the IQ file. Note that :code:`num_integrations` determines how much of the recording we read in and process; the total duration is simply this number times 1 ms, with 10 being the maximum value for the shorter recording.
 
 .. code-block:: python
 
@@ -514,13 +514,13 @@ Now we will implement the CFAR detector, apply it to the correlator output, and 
 Frequency Offset Resilient Preamble Correlators
 ####################################################
 
-Detecting a preamble becomes a multi-dimensional search problem when the center frequency is unknown. In a perfectly synchronized system, a coherent correlator acts as a matched filter, maximizing the SNR. However, frequency offsets introduce a time-varying phase rotation that decorrelates the signal from the local template, leading to a catastrophic loss of detection sensitivity.
+Detecting a preamble becomes a multi-dimensional search problem when the center frequency is unknown. In a perfectly synchronized system, a coherent correlator acts as a matched filter and maximizes SNR. However, frequency offsets introduce a time-varying phase rotation that decorrelates the signal from the local template, leading to a major loss of detection sensitivity.
 
 The impact of frequency offset :math:`\Delta f` depends on its magnitude relative to the preamble duration (:math:`T_{p}`):
 
-Slightly Shifted (Doppler/Clock Drift): Typically caused by local oscillator (LO) ppm inaccuracies or low-velocity motion. Here, :math:`\Delta f \cdot T_{p} \ll 1`. The correlation peak is slightly attenuated, but the timing can still be recovered.
+Slightly shifted signals, such as those affected by Doppler or clock drift, are typically caused by local oscillator (LO) ppm inaccuracies or low-velocity motion. In this case, :math:`\Delta f \cdot T_{p} \ll 1`. The correlation peak is slightly attenuated, but the timing can still be recovered.
 
-In cases where the frequency offset is completely unknown, such as in "cold start" satellite acquisitions or high-dynamic UAV links, if the phase rotates by more than :math:`180^{\circ}` over the preamble (:math:`\Delta f > 1/(2T_{p})`), the coherent sum can actually null out to zero, making detection impossible regardless of the SNR.
+When the frequency offset is completely unknown, such as in cold-start satellite acquisition or high-dynamic UAV links, the coherent sum can null out to zero if the phase rotates by more than :math:`180^{\circ}` over the preamble (:math:`\Delta f > 1/(2T_{p})`). In that case, detection becomes impossible regardless of SNR.
 
 The loss in correlation magnitude due to a frequency offset is described by the Dirichlet kernel (or the periodic sinc function). As the frequency offset increases, the coherent sum of rotated vectors follows this sinc-like roll-off.
 
@@ -534,7 +534,7 @@ Where:
    - :math:`T_{s}`: Symbol period.
    - :math:`\Delta f`: Frequency offset in Hz.
 
-As :math:`\Delta f` increases, the numerator oscillates while the denominator grows, creating "nulls" in the detector's sensitivity. For a standard correlator, the first null occurs at :math:`\Delta f = 1/(N T_{s})`. If your offset is half of the bin width, you suffer approximately 3.9 dB of loss, significantly degrading your effective SNR and :math:`P_{d}`. 
+As :math:`\Delta f` increases, the numerator oscillates while the denominator grows, creating nulls in the detector's sensitivity. For a standard correlator, the first null occurs at :math:`\Delta f = 1/(N T_{s})`. If your offset is half of the bin width, you lose approximately 3.9 dB, which significantly degrades your effective SNR and :math:`P_{d}`.
 
 Methods for Resilience to Frequency Offsets
 ###########################################
@@ -566,7 +566,7 @@ Frequency-Domain (FFT) Processing: To perform a search, you take the FFT of the 
 The "Frequency Shift Trick": To test different frequency offsets, you don't need multiple FFTs. You can simply circularly shift the FFT bins of the preamble relative to the signal before performing the point-wise multiplication and IFFT.
 For continuous streams, chunking methods such as Overlap-Save or Overlap-Add are used to process data in chunks without losing the correlation peaks at the edges of the FFT windows. 
 
-Frequency offset resilience is a trade-off between processing gain and computational complexity. Non-coherent segmented correlation is the most robust for high-uncertainty environments but requires a higher link margin. Coherent segmented and brute-force FFT searches provide superior sensitivity but require significantly more hardware resources. Understanding the Dirichlet-driven loss is critical for determining the necessary "bin density" in any frequency-searching receiver. 
+Frequency-offset resilience is a trade-off between processing gain and computational complexity. Non-coherent segmented correlation is the most robust choice for high-uncertainty environments, but it requires a higher link margin. Coherent segmented and brute-force FFT searches provide better sensitivity, but they require significantly more hardware resources. Understanding the Dirichlet-driven loss is critical when choosing the bin density for any frequency-searching receiver.
 
 TODO: Explain this plot and add some portion of the Python to the section
 
@@ -579,18 +579,18 @@ TODO: Explain this plot and add some portion of the Python to the section
 Detecting Direct Sequence Spread Spectrum (DSSS) Signals
 *****************************************************************
 
-In a Direct Sequence Spread Spectrum (DSSS) system, the correlator detector acts as the vital link that pulls a meaningful signal out of what appears to be random noise. By leveraging a high-rate chip sequence (or "chipping code"), the system spreads the signal's energy across a much wider bandwidth than the original data requires. Because the total power remains constant, spreading it over a broad frequency range drastically lowers the Power Spectral Density (PSD).  This "spectral thinning" effect can drive the signal level below the thermal noise floor, making it nearly invisible to conventional narrow-band receivers.  While the signal looks like background noise to others, a correlator detector at the intended receiver applies the same chip sequence to "de-spread" the energy, concentrating it back into the original narrow bandwidth while simultaneously spreading out any narrow-band interference, allowing for reliable detection even in extremely noisy environments (both for the intended receiver and for eavesdroppers who are aware of the chip sequence).
+In a Direct Sequence Spread Spectrum (DSSS) system, the correlator detector is the link that pulls a meaningful signal out of what initially looks like random noise. By using a high-rate chip sequence, or chipping code, the system spreads the signal energy across a much wider bandwidth than the original data requires. Because the total power stays constant, spreading it over a broader frequency range lowers the power spectral density (PSD). This spectral thinning effect can drive the signal level below the thermal noise floor, making it nearly invisible to conventional narrow-band receivers. To the intended receiver, however, the same chip sequence can be applied to de-spread the signal, concentrating the energy back into the original narrow bandwidth while also spreading out narrow-band interference. That is what allows reliable detection even in very noisy environments.
 
 The Role of Auto-Correlation Properties
 ########################################
 
-Choosing the right sequence is critical for synchronization and multipath rejection. Ideally, a sequence should have perfect auto-correlation; a high peak when perfectly aligned and near-zero values at any other time offset. Sharp auto-correlation peaks allow the receiver to lock onto the signal with sub-chip timing accuracy.  If a signal reflects off a building and arrives late, good auto-correlation ensures the receiver treats the delayed version as uncorrelated noise rather than destructive interference, thus mitigating multipath.
+Choosing the right sequence is critical for synchronization and multipath rejection. Ideally, a sequence should have perfect auto-correlation: a high peak when perfectly aligned and near-zero values at any other time offset. Sharp auto-correlation peaks allow the receiver to lock onto the signal with sub-chip timing accuracy. If a signal reflects off a building and arrives late, good auto-correlation ensures the receiver treats the delayed version as uncorrelated noise rather than destructive interference, which helps mitigate multipath.
 
 
 Common Spreading Sequences
 ##########################
 
-Different applications require different mathematical properties in their sequences. Some examples include:
+Different applications require different mathematical properties in their spreading sequences. Some examples include:
 
 - Barker Codes, which are known for having the best possible auto-correlation properties for short lengths (up to 13), and are famously used in 802.11b Wi-Fi.
 - M-Sequences (Maximal Length), generated using linear-feedback shift registers (LFSRs), provide excellent randomness and auto-correlation over very long periods.
@@ -601,7 +601,7 @@ Different applications require different mathematical properties in their sequen
 Chip-Timing Synchronization in DSSS
 ####################################################
 
-In a DSSS system, the receiver's ability to recover data is entirely dependent on its synchronization with the incoming chip sequence. Because chips are much shorter than data bits, even a small fractional timing error—where the receiver samples "between" chips—can significantly degrade the correlation peak. We can play around with the impact of a fractional timing offset by simulating a simple DSSS system and plotting the correlation output as we vary the timing offset from 0 to 1 chip.  Note that we don't do a full correlation here, we just do a dot product at 0 lag, because we know that will be the position of the peak.
+In a DSSS system, the receiver's ability to recover data depends entirely on synchronization with the incoming chip sequence. Because chips are much shorter than data bits, even a small fractional timing error, where the receiver samples between chips, can significantly reduce the correlation peak. We can explore the impact of a fractional timing offset by simulating a simple DSSS system and plotting the correlation output as the timing offset varies from 0 to 1 chip. Note that we do not do a full correlation here; we just take a dot product at 0 lag because we already know that is where the peak will be.
 
 .. code-block:: python
 
@@ -648,32 +648,32 @@ In a DSSS system, the receiver's ability to recover data is entirely dependent o
    :target: ../_images/detection_dsss.svg
    :alt: DSSS
 
-The peak occurs at zero offset as expected, and it drops linearly, i.e. it gets to half the peak value at a half-chip offset.  After more than one chip offset the correlation might seem like it's going back up, but the actual peak will be low because it's not aligned to the sequence anymore.
+The peak occurs at zero offset as expected, and it drops linearly, reaching half the peak value at a half-chip offset. After more than one chip of offset, the correlation might appear to rise again, but the actual peak is low because the signal is no longer aligned to the sequence.
 
 ****************************************************
 Real-Time Packet Detection in Continuous IQ Streams
 ****************************************************
 
-So far we have explored the theoretical foundations of signal detection, from correlators to CFAR detectors to spread spectrum systems. Now we bring it all together to solve a common practical problem: **detecting intermittent packets in a continuous stream of IQ samples from an SDR**.  Consider this scenario: You have a modem or IoT device that transmits a data packet once per second (or at irregular intervals). Your SDR is continuously receiving samples at, say, 1 MHz. The packets arrive at unpredictable times, buried in noise and interference. You need to:
+So far we have explored the theoretical foundations of signal detection, from correlators to CFAR detectors to spread-spectrum systems. Now we bring them together to solve a common practical problem: **detecting intermittent packets in a continuous stream of IQ samples from an SDR**. Consider this scenario: a modem or IoT device transmits a data packet once per second, or at irregular intervals. Your SDR is continuously receiving samples at, say, 1 MHz. The packets arrive at unpredictable times, buried in noise and interference. You need to:
 
 1. Detect when a packet arrives
 2. Determine the exact sample index where it starts
 3. Extract the packet for further processing (demodulation, decoding, etc.)
 4. Do this in real-time without missing packets
 
-This is fundamentally different from processing a pre-recorded IQ file where you can analyze the entire signal at once. Here, samples arrive continuously, and you must make decisions in real-time with limited computational resources.  We will combine several techniques covered in this chapter:
+This is fundamentally different from processing a pre-recorded IQ file, where you can analyze the entire signal at once. Here, samples arrive continuously, and you must make decisions in real time with limited computational resources. We will combine several techniques covered in this chapter:
 
 1. **Cross-Correlation**: To find the known preamble pattern
 2. **CFAR Detection**: To adaptively set thresholds despite varying noise
 3. **Buffer Management**: To handle continuous streaming data
 4. **Peak Detection**: To extract precise packet timing
 
-To operate in real-time, we will accumulate samples in **buffers** (chunks of, say, 100,000 samples), run our detector on each buffer, and maintain state across buffer boundaries to avoid missing packets that span two buffers.
+To operate in real time, we accumulate samples in **buffers** of, say, 100,000 samples, run the detector on each buffer, and maintain state across buffer boundaries so that packets spanning two buffers are not missed.
 
 Implementation
 ##############
 
-Our detector will follow this workflow:
+Our detector follows this workflow:
 
 .. mermaid::
 
@@ -686,9 +686,9 @@ Our detector will follow this workflow:
     F("Packet Extraction & Validation")
     A --> B --> C --> D --> E --> F
 
-To avoid missing packets that straddle buffer boundaries, we use an **overlap-save** approach, where each buffer includes the last ``N_preamble`` samples from the previous buffer.  This ensures any packet starting near the end of buffer ``i`` will be fully contained in buffer ``i+1``.  This requires a small additional computational overhead but we don't want to miss packets just because they straddle buffer boundaries.
+To avoid missing packets that straddle buffer boundaries, we use an **overlap-save** approach, where each buffer includes the last ``N_preamble`` samples from the previous buffer. This ensures that any packet starting near the end of buffer ``i`` will be fully contained in buffer ``i+1``. It adds a small amount of computational overhead, but that is preferable to missing packets at the buffer edge.
 
-Let's build a complete packet detector in Python one step at a time.  We'll use a Zadoff-Chu preamble as introduced earlier, but with a shorter length, and implement an adaptive CFAR detector.
+Let's build a complete packet detector in Python one step at a time. We will use a shorter Zadoff-Chu preamble than before and implement an adaptive CFAR detector.
 
 Step 1: Define the Preamble and Parameters
 *******************************************
@@ -1059,46 +1059,46 @@ Practical Considerations and Tuning
 Buffer Size Trade-offs
 ***********************
 
-**Larger buffers (e.g., 1M samples):**
+**Larger buffers**, for example 1M samples:
 
 - ✅ Better CFAR noise estimation (more training cells)
 - ✅ Lower computational overhead (fewer processing calls)
 - ❌ Higher latency (must wait for buffer to fill)
 - ❌ More memory required
 
-**Smaller buffers (e.g., 10k samples):**
+**Smaller buffers**, for example 10k samples:
 
 - ✅ Lower latency (faster response)
 - ✅ Less memory usage
 - ❌ CFAR performance degrades (fewer training cells)
 - ❌ Higher CPU usage (more frequent processing)
 
-**Recommendation**: Start with buffer size = 10× to 100× your preamble length. For a 63-sample preamble at 1 Msps, try 10k-100k samples.
+**Recommendation**: Start with a buffer size of 10x to 100x your preamble length. For a 63-sample preamble at 1 Msps, try 10k to 100k samples.
 
 CFAR Parameter Tuning
 **********************
 
 The three CFAR parameters control detector behavior:
 
-**num_guard** (guard cells):
+**num_guard**: guard cells
 
-- Purpose: Prevents signal leakage into noise estimate
-- Too small: Signal leaks into training region → raised threshold → missed detections
-- Too large: Fewer training cells → poor noise estimate
-- **Rule of thumb**: Set to ~0.5 to 1.0× preamble length
+- Prevents signal leakage into the noise estimate
+- Too small: signal leaks into the training region, raising the threshold and causing missed detections
+- Too large: fewer training cells and a poorer noise estimate
+- Rule of thumb: set this to about 0.5 to 1.0x the preamble length
 
-**num_train** (training cells):
+**num_train**: training cells
 
-- Purpose: Estimates local noise floor
-- Too small: Noisy threshold → false alarms or missed detections
-- Too large: Threshold doesn't adapt quickly enough to noise changes
-- **Rule of thumb**: Set to ~3 to 5× preamble length
+- Estimates the local noise floor
+- Too small: noisy threshold and more false alarms or missed detections
+- Too large: threshold does not adapt quickly enough to noise changes
+- Rule of thumb: set this to about 3 to 5x the preamble length
 
-**pfa** (probability of false alarm):
+**pfa**: probability of false alarm
 
-- Purpose: Controls detection sensitivity
-- Too high (e.g., 1e-2): Many false alarms
-- Too low (e.g., 1e-10): Misses weak packets
-- **Rule of thumb**: Start with 1e-5 for per-lag PFA, then adjust based on system-level false alarm rate
+- Controls detection sensitivity
+- Too high, for example 1e-2: many false alarms
+- Too low, for example 1e-10: missed weak packets
+- Rule of thumb: start with 1e-5 for per-lag PFA, then adjust based on the system-level false-alarm rate
 
-Remember the relationship between per-lag and system-level false alarm rates from earlier in the chapter!
+Remember the relationship between per-lag and system-level false-alarm rates from earlier in the chapter.

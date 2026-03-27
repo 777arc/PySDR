@@ -317,3 +317,5 @@ Springer
 Napolitano
 trilaterate
 Estévez
+trilateration
+bursty

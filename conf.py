@@ -23,7 +23,7 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     #'sphinxcontrib.tikz', #added for dutch
     "sphinxcontrib.mermaid"
-]
+] # NOTE YOU ALSO HAVE TO ADD NEW EXTENSIONS TO MAKEFILE!
 
 mathjax_path = "mathjax/tex-mml-chtml.js" # so that the textbook can work offline
 

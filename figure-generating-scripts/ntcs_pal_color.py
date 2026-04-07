@@ -48,13 +48,6 @@ chroma_sig = np.convolve(chroma_sig, sp_signal.firwin(301, 1e6, fs=fs), 'same')
 luma_sig = np.convolve(sig, sp_signal.firwin(301, 3e6, fs=fs), 'same')
 luma_sig = np.abs(luma_sig)
 
-# Resample to exactly samples_per_line samples per line
-resample_ratio = samples_per_line / (fs / line_rate)
-luma_sig = sp_signal.resample(luma_sig, int(len(luma_sig) * resample_ratio))
-chroma_sig = sp_signal.resample(chroma_sig, int(len(chroma_sig) * resample_ratio))
-fs = samples_per_line * line_rate
-sync_positions = np.array([int(j * resample_ratio) for j in sync_positions])
-
 # Extract color burst info from each line
 burst_delay = 6
 burst_length = 22
@@ -85,20 +78,18 @@ for k in range(len(sync_positions)):
 sync_positions = good_sync_positions
 color_freq_offsets = good_freq_offsets
 
-# Determine even/odd line start from burst phase alternation
-phase0 = burst_angles[0] % (2 * np.pi)
-phase1 = burst_angles[1] % (2 * np.pi)
-phase_diff = phase0 - phase1
-if (phase_diff > 0 and phase_diff >= np.pi) or (phase_diff <= 0 and (-phase_diff) < np.pi):
-    print("Starting on odd line, shifting by 1")
-    sync_positions = sync_positions[1:]
-    burst_angles = burst_angles[1:]
-    color_freq_offsets = color_freq_offsets[1:]
+# Determine line parity from burst phase (robust to filtered-out lines)
+line_parities = []
+for k in range(len(burst_angles)):
+    angle_deg = (burst_angles[k] * 180 / np.pi) % 360
+    dist_225 = min(abs(angle_deg - 225), 360 - abs(angle_deg - 225))
+    dist_135 = min(abs(angle_deg - 135), 360 - abs(angle_deg - 135))
+    line_parities.append(0 if dist_225 < dist_135 else 1)
 
-# Compute per-line phase correction
+# Compute per-line phase correction based on detected parity
 phase_corrections = []
 for k in range(len(burst_angles)):
-    if k % 2 == 0:
+    if line_parities[k] == 0:
         adjusted = burst_angles[k] - 225 / 180 * np.pi
     else:
         adjusted = burst_angles[k] - 135 / 180 * np.pi
@@ -126,7 +117,7 @@ for ln in range(len(sync_positions)):
     chroma_segment = chroma_segment * np.exp(1j * phase_corrections[ln])
     i_signal = chroma_segment.real
     q_signal = chroma_segment.imag
-    if ln % 2 == 0:
+    if line_parities[ln] == 0:
         q_signal *= -1
 
     i_signal *= 4.5

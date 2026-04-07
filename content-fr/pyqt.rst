@@ -649,7 +649,7 @@ Code complet :
         sdr = adi.Pluto("ip:192.168.1.10")
         sdr.rx_lo = int(center_freq)
         sdr.sample_rate = int(sample_rate)
-        sdr.rx_rf_bandwidth = int(sample_rate*0.8) # antialiasing filter bandwidth
+        sdr.rx_rf_bandwidth = int(sample_rate*0.8) # bande-passante du filtre anti-repliement
         sdr.rx_buffer_size = int(fft_size)
         sdr.gain_control_mode_chan0 = 'manual'
         sdr.rx_hardwaregain_chan0 = gain # dB

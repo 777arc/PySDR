@@ -196,7 +196,7 @@ bande de base : :math:`x(t)` ; il  est émis à une fréquence porteuse :
  x(t - \Delta t) e^{2j \pi f_c (t - \Delta t)}
 
 .. math::
- \mathrm{where} \quad \Delta t = d_m \sin(\theta) / c
+ \mathrm{où} \quad \Delta t = d_m \sin(\theta) / c
 
 Rappelons que lorsqu'il y a un décalage temporel, celui-ci est soustrait de l'argument temporel.
 
@@ -224,32 +224,27 @@ x[n] e^{-2j \pi f_c \Delta t}
 Nous avons presque terminé, mais heureusement, il nous reste une simplification à effectuer. Rappelons la relation entre la fréquence centrale et la longueur d'onde : :math:`\lambda = \frac{c}{f_c}`, ou inversement, :math:`f_c = \frac{c}{\lambda}`. En remplaçant ces valeurs, on obtient :
 
 .. math::
- x[n] e^{-2j \pi d_m \sin(\theta) / \lambda}
+   x[n] e^{-2j \pi d_m \sin(\theta) / \lambda}
 
 En formation de faisceaux et en orientation de la direction d'arrivée (DOA), on préfère représenter la distance entre éléments adjacents, :math:`d`, comme une fraction de longueur d'onde (plutôt qu'en mètres). La valeur la plus courante de :math:`d` lors de la conception d'un réseau d'antennes est la moitié de la longueur d'onde. Quelle que soit la valeur de :math:`d`, nous la représenterons désormais comme une fraction de longueur d'onde plutôt qu'en mètres, ce qui simplifie les équations et le code. Autrement dit, :math:`d` (sans l'indice :math:`m`) représente la distance normalisée et est égal à :math:`d = d_m / \lambda`. Cela signifie que nous pouvons simplifier l'équation ci-dessus comme suit :
 
 .. math::
-
-x[n] e^{-2j \pi d \sin(\theta)}
+   x[n] e^{-2j \pi d \sin(\theta)}
 
 Cette équation est spécifique aux éléments adjacents. Pour le signal reçu par le k-ième élément, il suffit de multiplier d par k :
 
 .. math::
-
-x[n] e^{-2j \pi d k \sin(\theta)}
+   x[n] e^{-2j \pi d k \sin(\theta)}
 
 Considérons maintenant la convention de coordonnées que nous souhaitons utiliser. Dans cet ouvrage, 0 degré représentera la tangente à la matrice (c'est-à-dire la ligne sur laquelle se trouvent les éléments), comme illustré dans le schéma ci-dessus, et θ augmentera dans le sens horaire. L'élément de référence sera l'élément le plus à gauche, et chaque élément suivant sera situé à une distance d_m vers la droite. Ceci est l'inverse de notre diagramme précédent, nous devons donc inverser le sens du déphasage, c'est-à-dire supprimer le signe négatif :
 
 .. math::
-
-x[n] e^{2j \pi d k \sin(\theta)}
+   x[n] e^{2j \pi d k \sin(\theta)}
 
 Nous pouvons représenter cela sous forme matricielle en réarrangeant simplement l'équation ci-dessus pour tous les :code:`Nr` éléments du tableau, de :math:`k = 0, 1, ... , N-1` :
 
 .. math::
-
-
-\begin{bmatrix}
+   \begin{bmatrix}
 
 e^{2j \pi d (0) \sin(\theta)} \\
 
@@ -264,9 +259,7 @@ e^{2j \pi d (N_r - 1) \sin(\theta)} \\
 où :math:`x` est le vecteur ligne unidimensionnel contenant le signal émis, et le vecteur colonne est ce que l'on appelle le « vecteur de direction » (souvent noté :math:`s` et :code:`s` dans le code). Ce vecteur est représenté par un tableau, par exemple un tableau unidimensionnel pour un réseau d'antennes unidimensionnel. Comme :math:`e^{0} = 1`, le premier élément du vecteur de direction vaut toujours 1, et les suivants représentent les déphasages relatifs. Au premier élément :
 
 .. math::
-
-s =
-
+   s =
 \begin{bmatrix}
 
 1 \\
@@ -301,7 +294,6 @@ Réception d'un signal
 Utilisons le concept de vecteur de direction pour simuler un signal arrivant sur un réseau d'antennes. Pour le signal d'émission, nous utiliserons simplement une tonalité pour l'instant :
 
 .. code-block:: python
-
  import numpy as np
  import matplotlib.pyplot as plt
  
@@ -318,9 +310,9 @@ alignées, séparées par une demi-longueur d'onde (ou « espacement d'une
 demi-longueur  d'onde  »). Nous  simulerons  le  signal de  l'émetteur
 arrivant sur  ce réseau sous  un angle  donné, θ. La  compréhension du
 vecteur de direction :code:`s` (voir le code ci-dessous) justifie tous les
-calculs précédents.  
-.. code-block:: python
+calculs précédents.
 
+.. code-block:: python
  d = 0.5 # espacement d'une demi-longueur d'onde
  Nr = 3
  theta_degrees = 20 # direction d'arrivée  (N'hésitez pas à modifier cela, c'est arbitraire.)
@@ -341,7 +333,6 @@ une transposition  (imaginez une rotation  de 90 degrés) afin  que les
 dimensions internes de la multiplication matricielle correspondent.
 
 .. code-block:: python
-
  s = s.reshape(-1,1) # modifie s en vecteur colonne
  print(s.shape) # 3x1
  tx = tx.reshape(1,-1) # modifie tx en vecteur ligne
@@ -353,7 +344,6 @@ dimensions internes de la multiplication matricielle correspondent.
 À ce stade, :code:`X` est un tableau 2D de taille 3 x 10 000, car nous avons trois éléments et 10 000 échantillons simulés. Nous utilisons la majuscule :code:`X` pour indiquer qu'il s'agit de la combinaison (empilement) de plusieurs signaux reçus. Nous pouvons extraire chaque signal individuellement et tracer les 200 premiers échantillons ; ci-dessous, nous ne représenterons que la partie réelle, mais il existe également une partie imaginaire, comme pour tout signal en bande de base. Un aspect fastidieux du calcul matriciel en Python est la nécessité d'utiliser la fonction :code:`.squeeze()`, qui supprime toutes les dimensions de longueur 1, pour obtenir un tableau NumPy 1D standard, compatible avec les tracés et autres opérations.
  
 .. code-block:: python
-
  plt.plot(np.asarray(X[0,:]).squeeze().real[0:200]) # l' asarray et le
  squeeze ne sont  que des désagréments que nous devons  subit car l'on
  provient d'une matrice
@@ -375,7 +365,6 @@ car  un signal  AWGN (Arbitrary  White  Gaussion Noise  = Bruit  blanc
 gaussien arbitraire) avec déphasage reste un signal AWGN).
 
 .. code-block:: python
-
  n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
  X = X + 0.1*n # X et n sont tous les 2 de taille 3x10000
 
@@ -387,38 +376,16 @@ gaussien arbitraire) avec déphasage reste un signal AWGN).
 Formation conventionnelle de faisceaux (conventionnal beamforming) et direction d'arrivée (DOA) 
 ******************************
 
-Nous  allons   maintenant  traiter  ces  échantillons   :code:`X`,  en
-supposant que nous ignorons l'angle  d'arrivée, et effectuer le calcul
-de la direction d'arrivée (DOA). Cette opération consiste à estimer le
-ou les angles  d'arrivée à l'aide d'un traitement  numérique du signal
-(DSP) et  d'un peu de code  Python. Comme évoqué précédemment  dans ce
-chapitre, la  formation de  faisceaux et  le calcul  du DOA  sont très
-similaires et reposent souvent sur les mêmes techniques. Dans la suite
-de   ce   chapitre,   nous   étudierons   différents   formateurs   de
-faisceaux.  Pour   chacun  d'eux,   nous  commencerons  par   le  code
-mathématique qui calcule les pondérations, :math:`w`. Ces pondérations peuvent
-être  appliquées  au signal  entrant  :code:`X`  grâce  à la  simple  équation
-suivante  :  :math:`w^H  X`,  ou, en  Python,  à  :code:`w.conj().T  @
-X`.   Dans   l'exemple   ci-dessus,    :code:`X`   est   une   matrice
-:code:`3x10000`, mais après application des pondérations, il ne reste qu'une matrice :code:`1x10000`, comme si notre récepteur ne possédait qu'une seule antenne. Nous pouvons alors utiliser un DSP RF classique pour traiter le signal. Une fois le formateur de faisceaux développé, nous l'appliquerons au problème du DOA.
+Nous  allons   maintenant  traiter  ces  échantillons   :code:`X`,  en supposant que nous ignorons l'angle  d'arrivée, et effectuer le calcul de la direction d'arrivée (DOA). Cette opération consiste à estimer le ou les angles  d'arrivée à l'aide d'un traitement  numérique du signal (DSP) et  d'un peu de code  Python. Comme évoqué précédemment  dans ce chapitre, la  formation de  faisceaux et  le calcul  du DOA  sont très similaires et reposent souvent sur les mêmes techniques. Dans la suite de   ce   chapitre,   nous   étudierons   différents   formateurs   de faisceaux.  Pour   chacun  d'eux,   nous  commencerons  par   le  code mathématique qui calcule les pondérations, :math:`w`. Ces pondérations peuvent être  appliquées  au signal  entrant  :code:`X`  grâce  à la  simple  équation suivante  :  :math:`w^H  X`,  ou, en  Python,  à  :code:`w.conj().T  @ X`.   Dans   l'exemple   ci-dessus,    :code:`X`   est   une   matrice :code:`3x10000`, mais après application des pondérations, il ne reste qu'une matrice :code:`1x10000`, comme si notre récepteur ne possédait qu'une seule antenne. Nous pouvons alors utiliser un DSP RF classique pour traiter le signal. Une fois le formateur de faisceaux développé, nous l'appliquerons au problème du DOA.
 
-Nous  allons  commencer par  l'approche  de  formation de  faisceau  «
-classique », également appelée formation  de faisceau par sommation et
-retard. Notre  vecteur de pondération  :code:`w` doit être  un tableau
-unidimensionnel pour un réseau linéaire  uniforme ; dans notre exemple
-à trois éléments, :code:`w` est un tableau :code:`3x1` de pondérations
-complexes.  Avec la  formation  de faisceau  classique, nous  laissons
-l'amplitude des  pondérations à 1 et  ajustons les phases afin  que le
-signal  s'additionne  de manière  constructive  dans  la direction  du
-signal souhaité, que nous appellerons : :math:`\theta`. Il s'avère que c'est exactement le même calcul que celui effectué précédemment : nos pondérations constituent notre vecteur de direction !
+Nous  allons  commencer par  l'approche  de  formation de  faisceau  « classique », également appelée formation  de faisceau par sommation et retard. Notre  vecteur de pondération  :code:`w` doit être  un tableau unidimensionnel pour un réseau linéaire  uniforme ; dans notre exemple à trois éléments, :code:`w` est un tableau :code:`3x1` de pondérations complexes.  Avec la  formation  de faisceau  classique, nous  laissons l'amplitude des  pondérations à 1 et  ajustons les phases afin  que le signal  s'additionne  de manière  constructive  dans  la direction  du signal souhaité, que nous appellerons : :math:`\theta`. Il s'avère que c'est exactement le même calcul que celui effectué précédemment : nos pondérations constituent notre vecteur de direction !
 
 .. math::
  w_{conv} = e^{2j \pi d k \sin(\theta)}
 
-or in Python:
+ou in Python:
 
 .. code-block:: python
-
  w  =  np.exp(2j *  np.pi  *  d  *  np.arange(Nr) *  np.sin(theta))  # Formation de faisceaux conventionnelle ou à sommation et delai
  X_weighted = w.conj().T @ X # Exemple d'application des pondérations au signal reçu (formation de faisceau)
  print(X_weighted.shape) # 1x10000
@@ -428,7 +395,6 @@ où :code:`Nr` est le nombre d'éléments de notre réseau linéaire uniforme  a
 Mais comment déterminer l'angle d'intérêt :code:`theta` ? Il faut commencer par effectuer une analyse de la direction d'arrivée (DOA), qui consiste à balayer (échantillonner) toutes les directions d'arrivée de -π à +π (-180° à +180°), par exemple par incréments de 1°. Pour chaque direction, nous calculons les pondérations à l'aide d'un formateur de faisceau ; nous commencerons par utiliser le formateur de faisceau conventionnel. L'application des pondérations à notre signal :code:`X` nous donne un tableau unidimensionnel d'échantillons, comme si nous l'avions reçu avec une antenne directionnelle. Nous pouvons ensuite calculer la puissance du signal en calculant sa variance avec :code:`np.var()`, et répéter l'opération pour chaque angle de balayage. Nous visualiserons les résultats graphiquement, mais la plupart des logiciels de traitement numérique du signal RF déterminent l'angle de puissance maximale (grâce à un algorithme de détection de pics) et l'appellent l'estimation de la direction d'arrivée (DOA).
 
 .. code-block:: python
-
  theta_scan  =  np.linspace(-1*np.pi,  np.pi,   1000)  #  1000  thetas
  différents compris entre -180 et +180 degrés
  results = []
@@ -459,7 +425,6 @@ Nous avons trouvé notre signal ! Vous commencez sans doute à comprendre le pri
 Si vous préférez visualiser les résultats de la direction d'arrivée sur un diagramme polaire, utilisez le code suivant :
 
 .. code-block:: python
-
  fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
  ax.plot(theta_scan, results) # SOYEZ SURE D'UTILISEZTO USE RADIAN FOR POLAR
  ax.set_theta_zero_location('N') # Orienter le point 0 degré vers le haut
@@ -508,13 +473,11 @@ Les graphiques présentés jusqu'à présent correspondent aux résultats de la 
 Rappelons que notre vecteur de pointage, que nous voyons régulièrement,
 
 .. code-block:: python
-
 np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta))
 
 encapsule la géométrie du réseau linéaire uniforme (ULA), et son seul autre paramètre est la direction de pointage souhaitée. Nous pouvons calculer et tracer le diagramme de rayonnement au repos (réponse du réseau) lorsqu'il est pointé dans une direction donnée, ce qui nous indiquera la réponse naturelle du réseau si nous n'effectuons aucun formage de faisceau supplémentaire. Ceci peut être réalisé en effectuant la FFT des poids complexes conjugués ; aucune boucle n'est nécessaire ! La difficulté réside dans le remplissage pour augmenter la résolution et dans la conversion des intervalles de la sortie FFT en angles en radians ou en degrés, ce qui implique un arcsinus comme vous pouvez le voir dans l'exemple complet ci-dessous :       
 
 .. code-block:: python
-
 Nr = 3
 d = 0.5
 N_fft = 512

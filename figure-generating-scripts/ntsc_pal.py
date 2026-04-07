@@ -20,6 +20,11 @@
 - They use VSB and not SSB because they have a DC component and SSB would filter that out
 - remember that hacktv can also produce fm modulated pal, as well as the different variants of pal
 - http://martin.hinner.info/vga/pal.html
+
+Create example color recording using hacktv:
+sudo apt install hacktv
+download https://minibaud.com/pscroll.php?b=1&d=7&fn=6985
+hacktv -o file:/tmp/pal_color_hacktv.fc32 -t float -m i /mnt/c/Users/marclichtman/Downloads/Free_Test_Data_1.21MB_MKV.mkv -s 16000000 --filter
 '''
 
 import numpy as np
@@ -38,12 +43,12 @@ Python code adapted from Dani's GRCon '22 CTF solution https://destevez.net/2022
 A big thanks to Dani, Gonzalo, and Clayton for their help and resources
 '''
 
-if False:
+if True:
     format_type = 'ntsc'
     # ATSC recording from 2022 GNU Radio Conference CTF-
     # https://ctf-2022.gnuradio.org/files/5d51c1bb8774333af7e87ecf19f8b664/never_the_same_color.sigmf-meta
     # https://ctf-2022.gnuradio.org/files/bccb3de9c758a0760146aa86e610fa02/never_the_same_color.sigmf-data
-    ntsc_example = '/mnt/d/never_the_same_color.sigmf-data' # cf32, 8M sample rate
+    ntsc_example = '/mnt/c/Users/marclichtman/Downloads/never_the_same_color.sigmf-data' # cf32, 8M sample rate
     samples_to_process = 10000000
     x = np.fromfile(ntsc_example, dtype=np.complex64, count=samples_to_process)
     sample_rate = 8e6
@@ -55,19 +60,23 @@ if False:
     color_subcarrier_freq = 3.579545e6 # higher than luma carrier, not relative to center freq
     relative_audio_subcarrier_freq = 3.5e6
 else:
+    '''
     samples_to_process = 10000000
     format_type = 'pal'
-    #pal_example = '/mnt/d/SDRSharp_20170122_171736Z_179100000Hz_IQ.wav' # used in this SIGIDWIKI entry https://www.sigidwiki.com/wiki/PAL_Broadcast#google_vignette
-    #x = read(pal_example)
-    #sample_rate = x[0]
-    #print("Sample Rate:", sample_rate)
-    #fc = 179.1e6 # taken from filename
-    #sample_offset = 200 + 512*55 # in samples. specific to recording
-    #pal_example2 = '/mnt/d/pal_color_hacktv.fc32' # ./hacktv -o file:/mnt/d/pal_color_hacktv.fc32 -t float -m i /mnt/c/Users/marclichtman/Downloads/Free_Test_Data_1.21MB_MKV.mkv -s 16000000 --filter
-    pal_example2 = '/mnt/d/pal_color_hacktv_colourbars.fc32' # same as above but used test:colourbars instead of mkv file
-    sample_rate = 16e6
-    x = np.fromfile(pal_example2, dtype=np.complex64, count=samples_to_process)
-    sample_offset = 15 + 0*55 # in samples. specific to recording
+    pal_example = '/mnt/c/Users/marclichtman/Downloads/SDRSharp_20170122_171736Z_179100000Hz_IQ.wav' # used in this SIGIDWIKI entry https://www.sigidwiki.com/wiki/PAL_Broadcast#google_vignette
+    x = read(pal_example)
+    sample_rate = x[0]
+    print("Sample Rate:", sample_rate)
+    fc = 179.1e6 # taken from filename
+    sample_offset = 200 + 512*55 # in samples. specific to recording
+    '''
+    
+    #pal_example2 = '/tmp/pal_color_hacktv.fc32' # ./hacktv -o file:/mnt/d/pal_color_hacktv.fc32 -t float -m i /mnt/c/Users/marclichtman/Downloads/Free_Test_Data_1.21MB_MKV.mkv -s 16000000 --filter
+    #pal_example2 = '/mnt/d/pal_color_hacktv_colourbars.fc32' # same as above but used test:colourbars instead of mkv file
+    #sample_rate = 16e6
+    #x = np.fromfile(pal_example2, dtype=np.complex64, count=samples_to_process)
+    #sample_offset = 15 + 0*55 # in samples. specific to recording
+    
     color_subcarrier_freq = 4.43361875e6 # higher than luma carrier, not relative to center freq
     relative_audio_subcarrier_freq = 3.5e6 # relative to luma carrier, leave positive even if its negative
 

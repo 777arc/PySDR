@@ -303,12 +303,6 @@ Le premier widget que nous allons aborder est le :code:`QPushButton`, un simple 
 Le :code:`QSlider` est un widget qui permet à l'utilisateur de sélectionner une valeur dans une plage de valeurs. Le :code:`QSlider` possède plusieurs propriétés, notamment :code:`minimum`, :code:`maximum`, :code:`value` et :code:`orientation`. Le composant :code:`QSlider` possède également plusieurs signaux, notamment :code:`valueChanged`, :code:`sliderPressed` et :code:`sliderReleased`. Il dispose aussi d'une méthode :code:`setValue()` qui permet de définir la valeur du curseur ; nous l'utiliserons fréquemment. La documentation de :code:`QSlider` est disponible ici : `<https://doc.qt.io/qtforpython/PySide6/QtWidgets/QSlider.html>`_.
 
 
-***************
-:code:`QSlider`
-***************
-
-The :code:`QSlider` is a widget that allows the user to select a value from a range of values.  The :code:`QSlider` has a few properties, including :code:`minimum`, :code:`maximum`, :code:`value`, and :code:`orientation`.  The :code:`QSlider` also has a few signals, including :code:`valueChanged`, :code:`sliderPressed`, and :code:`sliderReleased`.  The :code:`QSlider` also has a method called :code:`setValue()` which sets the value of the slider, we will be using this a lot.  The documentation page for `QSlider is here <https://doc.qt.io/qtforpython/PySide6/QtWidgets/QSlider.html>`_.
-
 Pour notre application d'analyseur de spectre, nous utiliserons des curseurs QSlider pour ajuster la fréquence centrale et le gain du récepteur SDR. Voici un extrait du code final de l'application qui crée le curseur de gain :
 
 .. code-block:: python

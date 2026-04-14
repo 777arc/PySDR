@@ -55,7 +55,7 @@ Un exemple concret pour chaque type est présenté ci-dessous :
    :target: ../_images/beamforming_examples.svg
    :alt: Exemples  de réseaux  à commande  phase comprenant  un réseau PESA (Passive  electronically scanned array), un  réseau AESA (Active  electronically scanned  array), un réseau hybride, soit un Raytheon MIM-104 Patriot Radar, un Radal Multi-Mission israélien ELM-2084 , Un terminal utilisateur Starlink Dishy
 
-En plus de ces trois types,  il faut également considérer la géométrie d'un  réseau. La  géométrie  la  plus simple  est  le réseau  linéaire uniforme (ULA = Uniform Linear Array), où les antennes sont alignées et équidistantes (c'est-à-dire disposées selon  une seule dimension). Les ULA souffrent d'une ambiguïté de  180 degrés, que nous aborderons plus loin. Une  solution consiste à  disposer les  antennes en cercle  : on parle  alors de  réseau  circulaire uniforme  (UCA).  Enfin, pour  les faisceaux 2D, on utilise généralement un réseau rectangulaire uniforme (URA = Uniform Rectangular Array), où les antennes sont disposées en grille.
+En plus de ces trois types,  il faut également considérer la géométrie d'un  réseau. La  géométrie  la  plus simple  est  le réseau  linéaire uniforme (ULA = Uniform Linear Array), où les antennes sont alignées et équidistantes (c'est-à-dire disposées selon  une seule dimension). Les ULA souffrent d'une ambiguïté de  180 degrés, que nous aborderons plus loin. Une  solution consiste à  disposer les  antennes en cercle  : on parle  alors de  réseau  circulaire uniforme  (Uniform Circular Array).  Enfin, pour  les faisceaux 2D, on utilise généralement un réseau rectangulaire uniforme (URA = Uniform Rectangular Array), où les antennes sont disposées en grille.
 Dans ce chapitre, nous nous concentrons sur les réseaux numériques, car ils sont plus adaptés à la simulation et au traitement numérique du signal (DSP), mais les concepts s'appliquent également aux réseaux analogiques et hybrides. Le chapitre suivant sera consacré à la manipulation du SDR « Phaser » d'Analog Devices, qui intègre un réseau analogique de 8 éléments fonctionnant à 10 GHz, avec des déphaseurs et des convertisseurs de gain, connecté à un Pluto et un Raspberry Pi. Nous nous concentrerons également sur la géométrie ULA car elle offre les mathématiques et le code les plus simples, mais tous les concepts s'appliquent à d'autres géométries, et à la fin du chapitre, nous aborderons la géométrie UCA.
 
 *******************
@@ -824,21 +824,23 @@ Si l'on remplace la sommation par l'opérateur d'espérance et que l'on substitu
 Ce qui signifie que nous n'avons pas besoin d'appliquer les pondérations. Cette dernière équation de puissance ci-dessus peut être utilisée directement dans notre analyse DOA, ce qui nous permet d'économiser des calculs :
 
 .. code-block:: python
-    def power_mvdr(theta, X):
-                s = np.exp(2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # vecteur de direction dans la direction souhaitée theta
-                s = s.reshape(-1,1) # transformation en vecteur colonne (taille 3x1)
-                R = (X @ X.conj().T)/X.shape[1] # Calcul de la matrice de covariance. Donne une matrice de covariance Nr x Nr des échantillons
-                Rinv = np.linalg.pinv(R) # 3x3. La pseudo-inverse est généralement plus performante que l'inverse exacte.
-                return 1/(s.conj().T @ Rinv @ s).squeeze()
+
+   def power_mvdr(theta, X):
+       s = np.exp(2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # vecteur de direction dans la direction souhaitée theta
+       s = s.reshape(-1,1) # transformation en vecteur colonne (taille 3x1)
+       R = (X @ X.conj().T)/X.shape[1] # Calcul de la matrice de covariance. Donne une matrice de covariance Nr x Nr des échantillons
+       Rinv = np.linalg.pinv(R) # 3x3. La pseudo-inverse est généralement plus performante que l'inverse exacte.
+       return 1/(s.conj().T @ Rinv @ s).squeeze()
 
 Pour utiliser cette fonction dans la simulation précédente, au sein de la boucle for, il suffit d'effectuer le calcul suivant :code:`10*np.log10()`. C'est terminé ! Aucun poids n'est à appliquer ; nous avons omis de les calculer.
 
 Il existe de nombreux autres formateurs de faisceaux, mais nous allons maintenant examiner l'influence du nombre d'éléments sur la formation de faisceaux et la détermination de la direction d'arrivée (DOA).
 
-*********************
+
+**********************
 Matrice de covariance
 **********************
-   
+
 Prenons un instant pour aborder la matrice de covariance spatiale, concept clé du *beamforming adaptatif*. Une matrice de covariance est une représentation mathématique de la similarité entre paires d'éléments d'un vecteur aléatoire (dans notre cas, les éléments de notre réseau, d'où le terme de matrice de covariance *spatiale*). Une matrice de covariance est toujours carrée, et les valeurs de sa diagonale correspondent à la covariance de chaque élément avec lui-même. Nous calculons une estimation de la matrice de covariance spatiale ; il ne s'agit que d'une estimation, compte tenu du nombre limité d'échantillons.
 
 De manière générale, la matrice de covariance est définie comme suit :
@@ -875,7 +877,8 @@ Remarquez que les éléments diagonaux sont réels et sensiblement identiques. E
 
 Dans le cadre de la formation de faisceaux adaptative, vous observerez un motif où l'on calcule l'inverse de la matrice de corrélation spatiale. Cette inverse indique la relation entre deux éléments après avoir éliminé l'influence des autres éléments. On l'appelle « matrice de précision » en statistiques et « matrice de blanchiment » en radar.
 
-*********************
+
+**********************
 Formateur de faisceaux LCMV
 **********************
 
@@ -1019,7 +1022,7 @@ Il existe un cas d'utilisation particulier de LCMV auquel vous avez peut-être d
 
 Le faisceau et le point d'annulation sont répartis sur la plage demandée ! Essayez de modifier le nombre de θ pour le faisceau principal et/ou le point d'annulation, ainsi que le nombre d'éléments, afin de vérifier si les pondérations résultantes permettent d'obtenir la réponse souhaitée.
 
-******************
+*******************
 Orientation du point d'annulation
 *******************
 
@@ -1029,75 +1032,370 @@ Les poids pour la suppression des zéros sont calculés en partant d'un formateu
 
 .. math::
 
- w_{\text{new}} = w_{\text{orig}} - \frac{w_{\text{null}}^H w_{\text{orig}}}{w_{\text{null}}^H w_{\text{null}}} w_{\text{null}}
+   w_{\text{new}} = w_{\text{orig}} - \frac{w_{\text{null}}^H w_{\text{orig}}}{w_{\text{null}}^H w_{\text{null}}} w_{\text{null}}
 
 
+où :math:`w_{\text{null}}` représente le vecteur de direction dans la direction du point nul que l'on souhaite ajouter à :math:`w_{\text{orig}}`. Les pondérations sont mises à jour en soustrayant le vecteur de direction du point nul, mis à l'échelle, des pondérations actuelles. Le facteur d'échelle est calculé en projetant les pondérations actuelles sur le vecteur de direction du point nul, puis en divisant par la projection de ce vecteur sur lui-même. Cette opération est ensuite répétée pour chaque direction de point nul (:math:`w_{\text{orig}}` correspond initialement aux pondérations de formation de faisceau conventionnelles, mais est mis à jour après l'ajout de chaque point nul). Le processus complet se présente comme suit :
+
+.. math::
+
+   & \text{1:} \qquad w_{\text{orig}} = e^{2j \pi d k \sin(\theta_{SOI})} \qquad
    
+   & \text{2:} \qquad w_{\text{null}} = e^{2j \pi d k \sin(\theta_{null})} \qquad
+   
+   & \text{3:} \qquad w_{\text{new}} = w_{\text{orig}} - \frac{w_{\text{null}}^H w_{\text{orig}}}{w_{\text{null}}^H w_{\text{null}}} w_{\text{null}}
+   
+   & \text{4:} \qquad w_{\text{orig}} = w_{\text{new}} \qquad \qquad \qquad
+   
+   & \text{5:} \qquad \text{Aller à 2: pour ajouter le prochain élément nul}
+
+Simulons un tableau de 8 éléments et insérons quatre éléments nuls :   
+
+.. code-block:: python
+    
+    d = 0.5
+    Nr = 8
+
+    theta_soi = 30 / 180 * np.pi # convert to radians
+    nulls_deg = [-60, -30, 0, 60] # degrees
+    nulls_rad = np.asarray(nulls_deg) / 180 * np.pi
+
+    # Start out with conventional beamformer pointed at theta_soi
+    w = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1)
+
+    # Loop through nulls
+    for null_rad in nulls_rad:
+        # weights equal to steering vector in target null direction
+        w_null = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(null_rad)).reshape(-1,1)
+
+        # scaling_factor (complex scalar) for w at nulled direction
+        scaling_factor = w_null.conj().T @ w / (w_null.conj().T @ w_null)
+        print("scaling_factor:", scaling_factor, scaling_factor.shape)
+
+       # Update weights to include the null
+       w = w - w_null @ scaling_factor # sidelobe-canceler equation
+
+    # Plot beam pattern
+    N_fft = 1024
+    w_padded = np.concatenate((w.squeeze(), np.zeros(N_fft - Nr))) # zero pad to N_fft elements to get more resolution in the FFT
+    w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # magnitude of fft in dB
+    w_fft_dB -= np.max(w_fft_dB) # normalize to 0 dB at peak
+    theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Map the FFT bins to angles in radians
+
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(theta_bins, w_fft_dB)
+    # Add dots where nulls and SOI are
+    for null_rad in nulls_rad:
+        ax.plot([null_rad], [0], 'or')
+    ax.plot([theta_soi], [0], 'og')
+    ax.set_theta_zero_location('N') # make 0 degrees point up
+    ax.set_theta_direction(-1) # increase clockwise
+    ax.set_thetagrids(np.arange(-90, 105, 15)) # it's in degrees
+    ax.set_rlabel_position(55) # Move grid labels away from other labels
+    ax.set_thetamin(-90) # only show top half
+    ax.set_thetamax(90)
+    ax.set_ylim([-40, 1]) # because there's no noise, only go down -40 dB
+    plt.show()
 
 
 
+On obtient le diagramme de rayonnement suivant. Vous remarquerez peut-être des zones sans interférence à des endroits non spécifiés ; c’est normal et dû au nombre limité d’éléments. Avec un nombre d’éléments insuffisant, il se peut également que les zones sans interférence ou le faisceau ne soient pas positionnés exactement comme prévu, ou que le diagramme ne réponde pas du tout aux critères en raison d’un manque de degrés de liberté (nombre d’éléments moins 1).
+
+.. image:: ../_images/null_steering.svg
+   :align: center 
+   :target: ../_images/null_steering.svg
+   :alt: Example of null steering beamforming
+
+*******************
+MUSIC
+*******************
+
+Nous allons maintenant aborder un autre type de formateur de faisceau. Tous les précédents appartenaient à la catégorie « retard et sommation », mais nous allons maintenant explorer les méthodes de « sous-espace ». Celles-ci consistent à diviser le sous-espace du signal et le sous-espace du bruit, ce qui implique d'estimer le nombre de signaux reçus par le réseau pour obtenir un bon résultat. La classification multiple de signaux (MUSIC) est une méthode de sous-espace très répandue qui consiste à calculer les vecteurs propres de la matrice de covariance (une opération gourmande en ressources de calcul). Nous divisons les vecteurs propres en deux groupes : le sous-espace du signal et le sous-espace du bruit, puis nous projetons les vecteurs de direction dans le sous-espace du bruit et nous orientons le faisceau vers les zéros. Cela peut paraître complexe au premier abord, ce qui explique en partie pourquoi MUSIC semble parfois relever de la magie noire !
+
+L'équation fondamentale de MUSIC est la suivante :
+
+.. math::
+
+   \hat{\theta} = \mathrm{argmax}\left(\frac{1}{s^H V_n V^H_n s}\right)
+
+où :math:`V_n` est la liste des vecteurs propres du sous-espace de bruit mentionnée précédemment (une matrice 2D). On la détermine en calculant d'abord les vecteurs propres de :math:`R`, ce qui se fait simplement avec :code:`w, v = np.linalg.eig(R)` en Python, puis en divisant les vecteurs (:code:`w`) en fonction du nombre de signaux que l'on estime reçus par le réseau. Il existe une astuce pour estimer ce nombre de signaux, que nous aborderons plus loin, mais il doit être compris entre 1 et :code:`Nr - 1`. Autrement dit, lors de la conception d'un réseau, le nombre d'éléments doit être supérieur de 1 au nombre de signaux attendus. Il est important de noter que, dans l'équation ci-dessus, V_n ne dépend pas du vecteur de direction s ; nous pouvons donc le précalculer avant de parcourir l'angle θ. Voici le code MUSIC complet :
+
+.. code-block:: python
+
+ num_expected_signals = 3 # Try changing this!
+ 
+ # part that doesn't change with theta_i
+ R = np.cov(X) # Calcul de la matrice de covariance gives a Nr x Nr covariance matrix
+ w, v = np.linalg.eig(R) # Décomposition en valeurs propres, v[:,i] est le vecteur propre correspondant à la valeur propre w[i]
+ eig_val_order = np.argsort(np.abs(w)) # find order of magnitude of eigenvalues
+ v = v[:, eig_val_order] # sort eigenvectors using this order
+ # We make a new eigenvector matrix representing the "noise subspace", it's just the rest of the eigenvalues
+ V = np.zeros((Nr, Nr - num_expected_signals), dtype=np.complex64)
+ for i in range(Nr - num_expected_signals):
+    V[:, i] = v[:, i]
+ 
+ theta_scan = np.linspace(-1*np.pi, np.pi, 1000) # -180 to +180 degrees
+ results = []
+ for theta_i in theta_scan:
+     s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_i)) # Steering Vector
+     s = s.reshape(-1,1)
+     metric = 1 / (s.conj().T @ V @ V.conj().T @ s) # The main MUSIC equation
+     metric = np.abs(metric.squeeze()) # take magnitude
+     metric = 10*np.log10(metric) # convert to dB
+     results.append(metric) 
+ 
+ results /= np.max(results) # normalize
+
+En appliquant cet algorithme au scénario complexe que nous avons utilisé, nous obtenons les résultats très précis suivants, qui démontrent la puissance de MUSIC :
+
+.. image:: ../_images/doa_music.svg
+   :align: center 
+   :target: ../_images/doa_music.svg
+   :alt: Exemple de direction d'arrivée (DOA) avec l'algorithme de formation de faisceaux MUSIC
+
+Et si l'on ignorait le nombre de signaux présents ? Il existe une astuce : trier les amplitudes des valeurs propres par ordre décroissant et les représenter graphiquement (en dB, cela peut être utile).
+
+.. code-block:: python
+
+ plot(10*np.log10(np.abs(w)),'.-')
+
+.. image:: ../_images/doa_eigenvalues.svg
+   :align: center 
+   :target: ../_images/doa_eigenvalues.svg
+
+Les valeurs propres associées au sous-espace de bruit seront les plus petites et tendront toutes vers la même valeur. On peut donc considérer ces faibles valeurs comme un « plancher de bruit », et toute valeur propre supérieure à ce plancher représente un signal. Ici, on observe clairement la réception de trois signaux, et l'algorithme MUSIC doit être ajusté en conséquence. Si le nombre d'échantillons IQ à traiter est faible ou si le rapport signal/bruit (SNR) des signaux est faible, leur nombre peut être moins évident. N'hésitez pas à expérimenter en ajustant :code:`num_expected_signals` entre 1 et 7. Vous constaterez qu'une sous-estimation entraînera la perte de signaux, tandis qu'une surestimation n'aura qu'un impact mineur sur les performances.
+
+Une autre expérience intéressante à tenter avec MUSIC consiste à déterminer la distance angulaire minimale à laquelle deux signaux peuvent arriver tout en conservant leur distinction ; les techniques de sous-espace sont particulièrement performantes dans ce cas. L'animation ci-dessous illustre un exemple, avec un signal à 18 degrés et un autre dont l'angle d'arrivée varie lentement.
+
+.. image:: ../_images/doa_music_animation.gif
+   :scale: 100 %
+   :align: center
 
 
 
+***
+LMS
+***
 
 
+Le formateur de faisceau LMS (Least Mean Squares) est un formateur de faisceau à faible complexité introduit par Bernard Widrow. Il se distingue des autres formateurs de faisceau présentés jusqu'ici par deux aspects : 1) il requiert la connaissance du signal d'intérêt (SOI), ou au moins d'une partie de celui-ci (par exemple, une séquence de synchronisation, des signaux pilotes, etc.) ; 2) il est itératif, ce qui signifie que les pondérations sont affinées au fil d'un certain nombre d'itérations. Son fonctionnement repose sur la minimisation de l'erreur quadratique moyenne entre le signal désiré (le SOI) et la sortie du formateur de faisceau (c'est-à-dire les pondérations appliquées aux échantillons reçus). L'implémentation classique du LMS consiste à traiter chaque échantillon reçu comme une nouvelle étape du processus itératif, en appliquant les pondérations actuelles à cet échantillon et en calculant l'erreur. Cette erreur sert ensuite à affiner les pondérations, et le processus se répète. Le formateur de faisceau LMS peut être utilisé aussi bien pour la formation de faisceaux analogiques que numériques. L'algorithme LMS est défini par l'équation suivante :
+
+.. math::
+
+ w_{n+1} = w_n + \mu \underbrace{\left(y_n -  w_{n}^H x_n\right)^*}_{erreur} x_n
+
+ 
+où :math:`w_n` représente le vecteur de poids à l'itération/échantillon :math:`n`,  :math:`\mu` est le pas d'intégration, :math:`x_n` est l'échantillon reçu à :math:`n`, :math:`y_n` est la valeur attendue à cette itération (c'est-à-dire le SOI connu), et est le conjugué complexe. Ne vous laissez pas impressionner par :math:`w_{n}^H x_n`, il s'agit simplement de l'application des poids actuels au signal d'entrée, ce qui correspond à l'équation standard de formation de faisceau. Le pas d'intégration :math:`\mu` contrôle la vitesse de convergence des poids vers leurs valeurs optimales. Une petite valeur :math:`\mu` de ce pas entraînera une convergence lente (par exemple, vous risquez de ne pas atteindre les poids optimaux avant la disparition du signal connu), tandis qu'une grande valeur peut engendrer une instabilité de l'algorithme. L'algorithme LMS est un outil puissant pour la formation de faisceaux adaptative, mais il présente certaines limitations. Il nécessite un SOI connu, qui n'est pas toujours disponible en pratique, et une synchronisation temporelle et fréquentielle est nécessaire dans le cadre du processus LMS afin que le modèle du SOI soit aligné avec les échantillons reçus.
+
+Dans l'exemple de code Python ci-dessous, nous simulons un réseau à 8 éléments avec un signal d'intérêt (SOI) composé d'un code Gold répétitif transmis en BPSK. Les codes Gold sont utilisés en 5G et GPS et possèdent d'excellentes propriétés de corrélation croisée, ce qui les rend idéaux pour les signaux de synchronisation. La simulation inclut également deux sources d'interférence tonale, à 60° et -50°. Notez que cette simulation ne prend pas en compte les décalages temporels ou fréquentiels ; si tel était le cas, une synchronisation au SOI serait nécessaire dans le cadre du processus LMS (c'est-à-dire une formation de faisceau conjointe avec synchronisation). L'animation suivante illustre le balayage de l'angle d'arrivée du SOI et la représentation du diagramme de rayonnement généré par LMS après 10 000 échantillons. Observez comment LMS maintient le gain vers le SOI à 0 dB (sauf en présence d'une source d'interférence), tout en créant des zéros au niveau des sources d'interférence.
+
+.. image:: ../_images/doa_lms_animation.gif
+   :scale: 100 %
+   :align: center
+
+.. code-block:: python
+
+ # Scénario
+ sample_rate = 1e6
+ d = 0.5 # espacement d'une demi longueur d'onde
+ N = 100000 # nombre d'échantillons à simuler
+ Nr = 8 # éléments
+ theta_soi = 20 / 180 * np.pi # conversion en radians
+ theta2    = 60 / 180 * np.pi
+ theta3   = -50 / 180 * np.pi
+ t = np.arange(N)/sample_rate # vecteur temps
+ s1 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta_soi)).reshape(-1,1) # 8x1
+ s2 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta2)).reshape(-1,1)
+ s3 = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta3)).reshape(-1,1)
+
+ # SOI est un gold_code, répété , de longueur 127
+ gold_code = np.array([-1, 1, 1, -1, 1, 1, 1, 1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1, 1, 1, 1, -1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, 1, -1, -1, -1, -1, -1, -1, 1, 1, -1, 1, -1, 1, -1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, 1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, 1, 1, 1, 1, -1, 1, 1, 1, -1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1, -1, -1, 1, 1])
+ soi_samples_per_symbol = 8
+ soi = np.repeat(gold_code, soi_samples_per_symbol)
+ num_sequence_repeats = int(N / soi.shape[0]) + 1 # nombre de fois où répéter la séquence pour N échantillons
+ soi = np.tile(soi, num_sequence_repeats)[:N] # répétition de la séquence pour remplir le temps simulé, puis tronquez-la.
+ soi = soi.reshape(1, -1) # 1xN
+
+ # Interférences, par exemple brouilleurs de tonalité, provenant de différentes directions
+ tone2 = np.exp(2j*np.pi*0.02e6*t).reshape(1,-1)
+ tone3 = np.exp(2j*np.pi*0.03e6*t).reshape(1,-1)
+
+ # simulation du signal reçu
+ r = s1 @ soi + s2 @ tone2 + s3 @ tone3
+ n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
+ r = r + 0.5*n # 8xN
+
+ # LMS, ne connaissant pas la direction du SOI mais connaissant le signal SOI lui-même
+ mu = 0.5e-5 # taille du pas LMS
+ w_lms = np.zeros((Nr, 1), dtype=np.complex128) # commencer par des zéros
+
+ # Boucle sur les échantillons reçus
+ error_log = []
+ for i in range(N):
+    r_sample = r[:, i].reshape(-1, 1) # 8x1
+    soi_sample = soi[0, i] # scalar
+    y = w_lms.conj().T @ r_sample # application des poids
+    y = y.squeeze() # conversion en scalaire
+    error = soi_sample - y
+    error_log.append(np.abs(error)**2)
+    w_lms += mu * np.conj(error) * r_sample # Les poids restent de taille 8x1
+ 
+ w_lms /= np.linalg.norm(w_lms) # normalisation des poids
+
+ plt.plot(error_log)
+ plt.xlabel('Iteration')
+ plt.ylabel('Erreur des Moindre carrés')
+ plt.show()
+
+ # Tracer le diagramme de rayonnement comme indiqué précédemment
 
 
+Essayez de modifier :code:`theta_soi`, la quantité de bruit (c'est-à-dire :code:`0.5*n`) et la taille du pas :code:`mu` pour voir comment l'algorithme LMS fonctionne.
 
 
+*******************************
+Données d'entraînement
+*******************************
+
+Dans le cadre du traitement d'antennes, le concept d'« entraînement » consiste à établir la matrice de covariance R avant l'apparition potentielle d'une source d'intérêt (SOI). Cette approche est particulièrement utile en radar, où, la plupart du temps, aucune SOI n'est présente et où le processus de détection repose sur le test d'une série d'angles pour vérifier sa présence. Le calcul de R avant l'apparition de la SOI permet de calculer les pondérations, à l'aide de méthodes telles que MVDR, en ne considérant dans la matrice de covariance que les interférences et le bruit ambiant. Ainsi, MVDR ne risque pas de placer un zéro à proximité de la direction de la SOI. Les pondérations sont ensuite appliquées au signal reçu pour déterminer si la SOI est présente à cet angle.
+
+Pour illustrer l'intérêt des données d'entraînement, nous appliquerons MVDR à un enregistrement provenant d'une antenne réelle à 16 éléments (utilisant la plateforme QUAD-MxFE d'Analog Devices). Nous commencerons par effectuer une analyse MVDR classique, en utilisant l'intégralité du signal reçu pour calculer R et les pondérations. Nous utiliserons ensuite un enregistrement distinct, effectué avant l'activation du SOI, pour calculer R et les pondérations.
+
+Ces enregistrements ont été réalisés à une fréquence radio de 3,3 GHz, avec un réseau d'antennes espacées de 0,045 mètre, soit d = 0,495. Une fréquence d'échantillonnage de 30 MHz a été utilisée. Nous désignerons les trois signaux par A, B et C. Le signal C correspond au SOI, tandis que les signaux A et B représentent les interférences. Par conséquent, nous avons besoin d'un enregistrement contenant uniquement les séquences A et B afin de créer les données d'entraînement, sans que A et B ne se déplacent entre l'acquisition des données d'entraînement et l'enregistrement incluant C. Vous trouverez ci-dessous les liens vers les deux enregistrements nécessaires :
+
+https://github.com/777arc/777arc.github.io/raw/master/3p3G_A_B.npy
+
+https://github.com/777arc/777arc.github.io/raw/master/3p3G_A_B_C.npy
+
+Commençons par effectuer une reconstruction multivariée (MVDR) classique avec l'enregistrement A_B_C. Nous pouvons charger cet enregistrement, au format :code:`np.save()`, contenant un tableau 2D. La première dimension correspond au nombre d'éléments du tableau, et la seconde au nombre d'échantillons.
+
+.. code-block:: python
+
+   import matplotlib.pyplot as plt
+   import numpy as np
+
+   # Array params
+   center_freq = 3.3e9
+   sample_rate = 30e6
+   d = 0.045 * center_freq / 3e8
+   print("d:", d)
+
+   # Incluant les trois signaux, nous appellerons C notre SOI
+   filename = '3p3G_A_B_C.npy'
+   X = np.load(filename)
+   Nr = X.shape[0]
+
+Nous allons ensuite effectuer une analyse DOA de base avec MVDR, afin d'identifier les angles d'arrivée des trois signaux :
+
+.. code-block:: python
+
+   # Perform DOA to find angle of arrival of C
+   theta_scan = np.linspace(-1*np.pi/2, np.pi/2, 10000) # between -90 and +90 degrees
+   results = []
+   R = X @ X.conj().T # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
+   Rinv = np.linalg.pinv(R) # pseudo-inverse tends to work better than a true inverse
+   for theta_i in theta_scan:
+      a = np.exp(2j * np.pi * d * np.arange(X.shape[0]) * np.sin(theta_i)) # steering vector in the desired direction theta_i
+      a = a.reshape(-1,1) # make into a column vector
+      power = 1/(a.conj().T @ Rinv @ a).squeeze() # MVDR power equation
+      power_dB = 10*np.log10(np.abs(power)) # power in signal, in dB so its easier to see small and large lobes at the same time
+      results.append(power_dB)
+   results -= np.max(results) # normalize to 0 dB at peak
+
+Dans ce cas précis, il est plus simple d'utiliser un diagramme rectangulaire plutôt qu'un diagramme polaire. Nous avons nommé les signaux A, B et C.
+
+.. image:: ../_images/DOA_without_training.svg
+   :align: center 
+   :target: ../_images/DOA_without_training.svg
+   :alt: DOA sans données d'entraînement
+
+Ensuite, si nous voulons appeler C notre SOI et utiliser MVDR pour créer des pondérations qui annuleront A et B tout en préservant C, nous devons connaître l'angle d'arrivée exact de C. Nous allons le faire en utilisant un argmax sur les résultats DOA que nous venons de créer, mais seulement après avoir annulé les angles correspondant à A et B (nous faisons cela en fixant les 60 % supérieurs de nos résultats DOA à une valeur très faible). 
+
+.. code-block:: python
+
+   # Pull out angle of C, after zeroing out the angles that include the interferers
+   results_temp = np.array(results)
+   results_temp[int(len(results)*0.4):] = -9999*np.ones(int(len(results)*0.6))
+   max_angle = theta_scan[np.argmax(results_temp)] # radians
+   print("max_angle:", max_angle)
+
+Il s'avère que C vaut -0,3407 radians ; c'est donc cette valeur qu'il faut utiliser pour calculer les pondérations MVDR. Vous avez déjà effectué cette opération à maintes reprises, il s'agit simplement de l'équation MVDR.
+
+.. code-block:: python
+
+   # Calcul des poids MVDR
+   s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(max_angle)) # steering vector in the desired direction theta
+   s = s.reshape(-1,1) # make into a column vector
+   w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
+
+Enfin, traçons le diagramme de rayonnement des pondérations MVDR que nous venons de calculer, ainsi que les résultats DOA obtenus précédemment, et une ligne verte pointillée à :code:`max_angle`:
+
+.. raw:: html
+
+   <details>
+   <summary>Expand this for the plotting code (it's nothing new)</summary>
+
+.. code-block:: python
+
+   # Calcul du modèle de faisceau
+   w = w.squeeze()
+   N_fft = 2048
+   w_padded = np.concatenate((w, np.zeros(N_fft - Nr))) # zero padding à N_fft élémentspour améliorer la résolution de la FFT
+   w_fft_dB = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(w_padded)))**2) # amplitude of fft in dB
+   w_fft_dB -= np.max(w_fft_dB) # normalisation du maximum à  0 dB
+   theta_bins = np.arcsin(np.linspace(-1, 1, N_fft)) # Conversion des échantillons de la FFT en angles en radians
+
+   # Tracer le diagramme de rayonnement et les résultats de la direction d'arrivée
+   plt.plot(theta_bins * 180 / np.pi, w_fft_dB) # ASSUREZ-VOUS D'UTILISER LE RADIAN POUR LES REPRESENTATIONS POLAIRES
+   plt.plot(theta_scan * 180 / np.pi, results, 'r')
+   plt.vlines(ymax=np.max(results), ymin=np.min(results) , x=max_angle*180/np.pi, color='g', linestyle='--')
+   plt.xlabel("Angle [deg]")
+   plt.ylabel("Amplitude [dB]")
+   plt.title("Diagramme de faisceau et résultats de DOA, sans formation")
+   plt.grid()
+   plt.show()
+
+.. raw:: html
+
+   </details>
+
+.. image:: ../_images/DOA_without_training_pattern.svg
+   :align: center 
+   :target: ../_images/DOA_without_training_pattern.svg
+   :alt: DOA sans données d'entraînement, DOA et diagramme de faisceau MVDR
+
+Nous avons réussi à créer des zéros aux points A et B. Au point C (ligne pointillée verte), nous n'observons pas de zéro, ni de lobe principal apparent ; il s'agit plutôt d'un lobe réduit. Ceci est dû en partie à l'absence quasi totale d'énergie provenant des directions autres que A, B et C. Par conséquent, même si certains lobes sont visibles (par exemple autour de -70, 25 et 40 degrés), ils sont négligeables car aucun signal ne provient de cette direction. Une autre raison de la faible intensité du lobe en C est que le lobe principal est en quelque sorte en conflit avec les zéros qui auraient été créés par le MVDR si nous n'avions pas été pointés précisément dans cette direction. Cela étant dit, il serait souhaitable d'avoir un lobe principal marqué à notre position :code:`max_angle`, et pour ce faire, nous devrons utiliser des **données d'entraînement**.
+
+Nous allons maintenant charger l'enregistrement des points A et B uniquement, afin de créer les données d'entraînement. Dans une situation radar, cela équivaut à calculer :code:`R` avant de transmettre une impulsion radar (idéalement, très peu de temps avant).
+
+.. code-block:: python
+
+   # Load "training data" which is just A and B, then calc Rinv
+   filename = '3p3G_A_B.npy'
+   X_A_B = np.load(filename)
+   R_training = X_A_B @ X_A_B.conj().T # Calc covariance matrix
+   Rinv_training = np.linalg.pinv(R_training)
 
 
+Cette fois, la principale différence réside dans l'utilisation de :code:`Rinv_training` pour le calcul des poids MVDR. Nous réutiliserons :code:`max_angle`, valeur déjà déterminée. Ainsi, nous orientons le signal vers C sans pour autant l'intégrer au signal reçu utilisé pour le calcul de :code:`R` et :code:`R_inv`.
 
+.. code-block:: python
 
+   # Calcul des poids MVDR en utilisant Rinv_training
+   s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(max_angle)) # Vecteur de direction dans la direction souhaitée θ
+   s = s.reshape(-1,1) # Conversion en vecteur colonne (taille 3x1)
+   w = (Rinv_training @ s)/(s.conj().T @ Rinv_training @ s) # équation MVDR/Capon
 
+En utilisant la même méthode de représentation graphique, on obtient :
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.. image:: ../_images/DOA_with_training.svg
+   :align: center 
+   :target: ../_images/DOA_with_training.svg
+   :alt: DOA avec données d'entraînement, DOA et diagramme de faisceau MVDR
 
 Notez que nous obtenons toujours des zéros provenant de A et B (le zéro de B est plus faible, mais B correspond également à un signal plus faible), mais cette fois-ci, un lobe principal important est dirigé vers notre angle d'intérêt, C. C'est là toute la puissance des données d'apprentissage, et pourquoi elles sont si importantes dans les applications radar.
 
-******************************
+*******************************
 Simulation d'interférences à large bande
 *******************************
 
@@ -1174,7 +1472,7 @@ Enfin, il est conseillé de balayer de 0 à 360 degrés, et non seulement de -90
 
 Pour les réseaux 2D (par exemple, rectangulaires), consultez le chapitre :ref:`2d-beamforming-chapter`.
 
-************************
+*************************
 Conclusion et références
 *************************
 
@@ -1189,4 +1487,4 @@ L'ensemble du code Python, y compris celui utilisé pour générer les figures e
 
 .. |br| raw:: html
 
-<br>
+   <br>

@@ -12,6 +12,7 @@ by :ref:`Dr. Marc Lichtman<author-chapter>`
    content-fr/frequency_domain
    content-fr/sampling
    content-fr/digital_modulation
+   content-fr/hackrf
    content-fr/pluto
    content-fr/usrp
    content-fr/noise

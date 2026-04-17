@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
+from PIL import Image
 
 # Spikes after FM demod
 # 3.579545e6 Color NTSC
@@ -71,15 +72,15 @@ else:
     # the phase of the colour burst alternates between 135º and -135º relative to B-Y
 
 if format_type == 'ntsc':
-    L = 508 # samples per line
+    samples_per_line = 508
     lines_per_frame = 525
-    refresh_Hz = 29.97 # not exactly 30 Hz!! makes difference.  it's actually 30/1.001
+    refresh_Hz = 30.0/1.001 # almost exactly 29.97 # not exactly 30 Hz!! makes difference
 else: # PAL
-    L = 512 # samples per line
+    samples_per_line = 512
     lines_per_frame = 625 # (576 visible lines)
     refresh_Hz = 25
 
-samples_per_frame = L * lines_per_frame # samples per frame
+samples_per_frame = samples_per_line * lines_per_frame # samples per frame
 print("Samples per frame:", samples_per_frame)
 line_Hz = refresh_Hz * lines_per_frame
 
@@ -137,7 +138,8 @@ h = signal.firwin(301, 3e6, fs=sample_rate) # LPF
 x_luma = np.convolve(x_demod, h, 'same')
 
 # Resample luma and chroma to exactly L samples per line
-resampling_rate = L / (sample_rate / line_Hz)
+resampling_rate = samples_per_line / (sample_rate / line_Hz)
+resampling_rate *= 1.00003 # fixes the drift, not 100% sure where it comes from, perhaps sample clock offset
 x_luma = signal.resample(x_luma, int(len(x_luma)*resampling_rate))
 print("Resampling rate:", resampling_rate)
 
@@ -147,14 +149,17 @@ if False:
     plt.xlabel("Sample")
     plt.show()
 
-# reshape into lines
-num_lines = len(x_luma) // L
-x_luma = x_luma[:num_lines * L]
-frame = x_luma.reshape(num_lines, L) # type: ignore
+# reshape into 2D
+x_luma = x_luma[:len(x_luma) - (len(x_luma) % samples_per_line)] # trim to multiple of samples_per_line
+frame = x_luma.reshape(-1, samples_per_line) # type: ignore
 
-# Display as single image
-plt.imshow(frame, cmap='gray', aspect='auto')
+# Normalize to 0-255 and convert to uint8
+frame_norm = frame - np.min(frame)
+frame_norm = frame_norm / np.max(frame_norm)
+frame_uint8 = (frame_norm * 255).astype(np.uint8)
+
+# Display as single image with fixed scaling
+plt.imshow(frame_uint8, cmap='gray', aspect='auto', vmin=0, vmax=255)
 plt.axis('off')
 plt.title(f'{format_type.upper()} B&W')
 plt.show()
-

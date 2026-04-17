@@ -123,7 +123,7 @@ if False:
 
 # Filter out audio from demodded signal
 #h = signal.firwin(301, 6e6, fs=sample_rate) # LPF up to 6 MHz, audio is centered at 6.5 MHz but is pretty narrow
-h = signal.firwin(301, 4e6, fs=sample_rate) # for the 10 Mhz recording
+h = signal.firwin(301, 3e6, fs=sample_rate) # for the 10 Mhz recording
 x_demod = np.convolve(x_demod, h, 'same')
 
 if False: # nice shot of a single line using foxeer_rushfpv
@@ -134,24 +134,24 @@ if False: # nice shot of a single line using foxeer_rushfpv
     plt.show()
     exit()
 
-h = signal.firwin(301, 3e6, fs=sample_rate) # LPF
-x_luma = np.convolve(x_demod, h, 'same')
+# h = signal.firwin(301, 3e6, fs=sample_rate) # LPF
+# x_demod = np.convolve(x_demod, h, 'same')
 
 # Resample luma and chroma to exactly L samples per line
 resampling_rate = samples_per_line / (sample_rate / line_Hz)
 resampling_rate *= 1.00003 # fixes the drift, not 100% sure where it comes from, perhaps sample clock offset
-x_luma = signal.resample(x_luma, int(len(x_luma)*resampling_rate))
+x_demod = signal.resample(x_demod, int(len(x_demod)*resampling_rate))
 print("Resampling rate:", resampling_rate)
 
 # Time domain plot 
 if False:
-    plt.plot(x_luma)
+    plt.plot(x_demod)
     plt.xlabel("Sample")
     plt.show()
 
 # reshape into 2D
-x_luma = x_luma[:len(x_luma) - (len(x_luma) % samples_per_line)] # trim to multiple of samples_per_line
-frame = x_luma.reshape(-1, samples_per_line) # type: ignore
+x_demod = x_demod[:len(x_demod) - (len(x_demod) % samples_per_line)] # trim to multiple of samples_per_line
+frame = x_demod.reshape(-1, samples_per_line) # type: ignore
 
 # Normalize to 0-255 and convert to uint8
 frame_norm = frame - np.min(frame)

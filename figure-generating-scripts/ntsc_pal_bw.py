@@ -144,7 +144,7 @@ x_demod = signal.resample(x_demod, int(len(x_demod)*resampling_rate))
 print("Resampling rate:", resampling_rate)
 
 # Optionally, crop to 1 frames worth of samples
-if True:
+if False:
     manually_tuned_offset = 122250 # for both frame sync and horizontal sync
     x_demod = x_demod[manually_tuned_offset:manually_tuned_offset+samples_per_frame]
     
@@ -153,6 +153,40 @@ if False:
     plt.plot(x_demod)
     plt.xlabel("Sample")
     plt.show()
+
+# Save the vertical sync signal as a template to correlate with later
+if False:
+    v_sync_template = np.asarray(x_demod[117386:121712])
+    print(type(v_sync_template[0])) # np.float64
+    v_sync_template.tofile("/tmp/vertical_sync_template.iq")
+    plt.plot(x_demod[117386:121712])
+    plt.xlabel("Sample")
+    plt.show()
+
+# Correlate entire signal against the v-sync template, then sync to frame
+if True:
+    template = np.fromfile("/tmp/vertical_sync_template.iq", dtype=np.float64)
+    correlation = np.abs(np.correlate(x_demod, template, mode='full'))**2
+    # plt.plot(correlation)
+    # plt.xlabel("Sample")
+    # plt.ylabel("Correlation")
+    # plt.show()
+
+    frame_start = np.argmax(correlation[:150000]) # try to get one of the first ones
+    frame_start += 20
+    print("Argmax in first 150000 samples at:", frame_start)
+    x_demod = x_demod[frame_start:frame_start+samples_per_frame]
+
+# Autocorrelation, to try to file spikes at certain lags (254 for vertical sync, 508 samples per line)
+if False:
+    n_autocorr = 650
+    autocorr = np.array([np.dot(x_demod[:len(x_demod)-lag], x_demod[lag:]) for lag in range(n_autocorr)])
+    plt.plot(np.arange(n_autocorr), np.abs(autocorr))
+    plt.xlabel("Lag")
+    plt.ylabel("Autocorrelation")
+    plt.show()
+    exit()
+
 
 # reshape into 2D
 x_demod = x_demod[:len(x_demod) - (len(x_demod) % samples_per_line)] # trim to multiple of samples_per_line

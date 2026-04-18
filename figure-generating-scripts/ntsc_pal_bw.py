@@ -25,7 +25,7 @@ if True:
     # x = x[::2] + 1j*x[1::2]
 
     # ntsc_example = '/mnt/c/Users/marclichtman/Downloads/signal_recordings/color.sigmf-data' # 40M sample rate, cf32
-    ntsc_example = '/tmp/pluto_samples.iq'
+    ntsc_example = '/mnt/c/Users/marclichtman/Downloads/ntsc_remy_10MHz_5925Hz_cf32.iq'
     sample_rate = 10e6
     x = np.fromfile(ntsc_example, dtype=np.complex64, count=samples_to_process)
 
@@ -80,7 +80,7 @@ else: # PAL
     lines_per_frame = 625 # (576 visible lines)
     refresh_Hz = 25
 
-samples_per_frame = samples_per_line * lines_per_frame # samples per frame
+samples_per_frame = samples_per_line * lines_per_frame // 2 # samples per frame. WHY DO I NEED THE /2?
 print("Samples per frame:", samples_per_frame)
 line_Hz = refresh_Hz * lines_per_frame
 
@@ -143,6 +143,11 @@ resampling_rate *= 1.00003 # fixes the drift, not 100% sure where it comes from,
 x_demod = signal.resample(x_demod, int(len(x_demod)*resampling_rate))
 print("Resampling rate:", resampling_rate)
 
+# Optionally, crop to 1 frames worth of samples
+if True:
+    manually_tuned_offset = 122250 # for both frame sync and horizontal sync
+    x_demod = x_demod[manually_tuned_offset:manually_tuned_offset+samples_per_frame]
+    
 # Time domain plot 
 if False:
     plt.plot(x_demod)

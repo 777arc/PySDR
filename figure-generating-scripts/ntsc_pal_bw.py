@@ -172,6 +172,7 @@ if True:
     # plt.ylabel("Correlation")
     # plt.show()
 
+    # Sync to the start of frame we detected
     frame_start = np.argmax(correlation[:150000]) # try to get one of the first ones
     frame_start += 20
     print("Argmax in first 150000 samples at:", frame_start)

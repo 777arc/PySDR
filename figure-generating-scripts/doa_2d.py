@@ -212,7 +212,8 @@ if False:
             resp = w.conj().T @ a # scalar
             results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
     # plot_surface needs x,y,z form
-    results = 10*np.log10(results) # convert to dB
+    floor = np.percentile(results, 5)  # bottom 5% → keeps top 95%
+    results = np.maximum(results, floor)
     #results[results < -10] = -10 # crop the z axis to some level of dB
     fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
     surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore

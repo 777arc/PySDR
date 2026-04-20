@@ -34,6 +34,7 @@ def scrape_patreon():
                 names.append(f'<a href="https://www.youtube.com/@RECESSIM" style="border-bottom: 0;" target="_blank">{full_name} <img width="15px" height="12px" src="https://pysdr.org/_static/hash.svg"></a>')
                 continue
             names.append(full_name) # there's also 'first_name' which might be better for a public display name
+        names.append('<a href="https://dsp-coach.com" style="border-bottom: 0;" target="_blank">Dan Boschen</a>')
         # Patreon Supporters
         html_string = ''
         html_string += '<div style="font-size: 120%; margin-top: 5px;">A big thanks to all PySDR<br><a href="https://www.patreon.com/PySDR" target="_blank">Patreon</a> supporters:</div>'

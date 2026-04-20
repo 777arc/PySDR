@@ -198,37 +198,6 @@ if True:
     exit()
 
 
-# Visualize beam pattern when using these weights, but this time we need a 3D surface plot
-# Note that this is not a polar plot, it's using X and Y to represent the azimuth and elevation angles, and Z to represent the power in dB
-if False:
-    resolution = 100 # number of points in each direction
-    theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
-    phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
-    results = np.zeros((resolution, resolution)) # 2D array to store results
-    for i, theta_i in enumerate(theta_scan):
-        for j, phi_i in enumerate(phi_scan):
-            dir_i = get_unit_vector(theta_i, phi_i)
-            a = steering_vector(pos, dir_i) # array factor
-            resp = w.conj().T @ a # scalar
-            results[i, j] = 10*np.log10(np.abs(resp)[0,0]) # power in signal, in dB
-    # plot_surface needs x,y,z form
-    floor = np.percentile(results, 5)  # bottom 5% → keeps top 95%
-    results = np.maximum(results, floor)
-    #results[results < -10] = -10 # crop the z axis to some level of dB
-    fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
-    surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
-                                                    np.rad2deg(phi_scan[None,:]),
-                                                    results,
-                                                    cmap='viridis')
-    #ax.set_zlim(-10, results[max_idx])
-    ax.set_xlabel('Azimuth (theta)')
-    ax.set_ylabel('Elevation (phi)')
-    ax.set_zlabel('Power [dB]') # type: ignore
-    fig.savefig('../_images/2d_beamforming_3dplot.svg', bbox_inches='tight')
-    plt.show()
-    exit()
-
-
 # Let's simulate some actual samples now, we'll add two tone jammers coming it from different directions. Same 4x4 array, same element positions (pos variable)
 N = 10000 # number of samples to simulate
 

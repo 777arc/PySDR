@@ -6,12 +6,12 @@ sample_rate = 4e6
 chip_rate = 1023000 # chips / sec (part of the GPS spec)
 num_chips = 1023 # chips per C/A code period
 samples_per_code = int(round(sample_rate / chip_rate * num_chips))  # Exact number of samples in one 1 ms code period at 4 MHz
-doppler_min_hz = -5e3 # GPS Doppler ≈ ±4 kHz for stationary receiver
-doppler_max_hz = 5e3
+doppler_min_hz = -7e3
+doppler_max_hz = 7e3
 doppler_step_hz = 500 # good enough for a coarse search
 num_integrations = 10 # non-coherent power integrations (so 10 ms total), determines how much of the IQ recording we read in and process!
 detection_thresh_dB =  14.0 # Peak-to-mean ratio (PMR) threshold in dB to declare a detection, GPS C/A signals are typically 14–20 dB PMR above threshold with 10ms of integration
-gps_svs = list(range(1, 33)) # 1–32
+gps_svs = list(range(1, 33)) # 1–32 are the main ones, it's possible there are 33-37
 
 ##### C/A Code Generation #####
 # The GPS C/A code is a Gold code formed by XOR-ing two 10-stage maximal-length
@@ -19,10 +19,11 @@ gps_svs = list(range(1, 33)) # 1–32
 # specific number of chips before the XOR
 # Reference: IS-GPS-200, Table 3-Ia
 G2_DELAY = [ # G2 phase delay (chips) for gps_svs 1–32
-      5,   6,   7,   8,  17,  18, 139, 140,   #  1– 8
+      5,   6,   7,   8,  17,  18, 139, 140,   #  1–8
     141, 251, 252, 254, 255, 256, 257, 258,   #  9–16
     469, 470, 471, 472, 473, 474, 509, 512,   # 17–24
     513, 514, 515, 516, 859, 860, 861, 862,   # 25–32
+    863, 950, 947, 948, 950 # 33-37.  AI thought the last 2 were 744 and 441 for some reason
 ]
 
 """G1 LFSR: polynomial x^10 + x^3 + 1, all-ones init, output at stage 10."""
@@ -45,9 +46,9 @@ for i in range(num_chips):
 
 # 1023-chip C/A PRN code for SV sv (1-32) as float32, 1's and -1's, so BPSK
 def make_prn(sv: int) -> np.ndarray:
-    g2_delayed = np.roll(G2, G2_DELAY[sv - 1])
-    bits = G1 ^ g2_delayed           # {0, 1}
-    return (1 - 2 * bits).astype(np.float32)   # BPSK: {+1, −1}
+    g2_delayed = np.roll(G2, G2_DELAY[sv - 1]) # G2 gets delayed by an amount specified in IS-GPS-200, Table 3-Ia
+    bits = G1 ^ g2_delayed # bitwise XOR, still 0s and 1s
+    return (1 - 2 * bits).astype(np.float32) # convert to BPSK, +1s and −1s
 
 def upsample_prn(sv: int) -> np.ndarray:
     """Nearest-neighbour upsample 1023-chip C/A code → samples_per_code samples."""
@@ -86,6 +87,7 @@ detected = []
 print(f"  {'SV':>3}  {'Doppler (Hz)':>13}  {'Phase (chips)':>14}"
           f"  {'Phase (samp)':>13}  {'Delay (µs)':>11}  {'PMR (dB)':>9}")
 doppler_bins = np.arange(doppler_min_hz, doppler_max_hz + doppler_step_hz, doppler_step_hz)
+#doppler_bins = np.zeros(2) # try without freq search
 for sv in gps_svs:
     corr_map = np.zeros((len(doppler_bins), samples_per_code))
     n_total = samples_per_code * num_integrations
@@ -144,7 +146,7 @@ plt.ylabel("Doppler (Hz)")
 plt.title(f"SV {sv}  —  2-D Acquisition Map  (PMR = {r['pmr_db']:.1f} dB)")
 plt.legend(fontsize=8, loc='upper right')
 plt.colorbar(im, label="Correlation Power")
-plt.savefig('../_images/detection_gps_2d_map.png', bbox_inches='tight', dpi=300)
+#plt.savefig('../_images/detection_gps_2d_map.png', bbox_inches='tight', dpi=300)
 
 # code-phase slice at best Doppler
 best_di = int(np.argmin(np.abs(d_bins - r['doppler_hz'])))
@@ -155,7 +157,7 @@ plt.ylabel("Correlation Power")
 plt.title(f"SV {sv}  —  Code-Phase Slice  (Doppler = {r['doppler_hz']:+.0f} Hz)")
 plt.legend(fontsize=8)
 plt.grid(True, alpha=0.3)
-plt.savefig('../_images/detection_gps_code_phase_slice.svg', bbox_inches='tight')
+#plt.savefig('../_images/detection_gps_code_phase_slice.svg', bbox_inches='tight')
 
 plt.show()
 

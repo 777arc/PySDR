@@ -1,11 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import resample_poly
 
 filename = "GPS_L1_recording_10ms_4MHz_cf32.iq"
 sample_rate = 4e6
 chip_rate = 1023000 # chips / sec (part of the GPS spec)
 num_chips = 1023 # chips per C/A code period
 samples_per_code = int(round(sample_rate / chip_rate * num_chips))  # Exact number of samples in one 1 ms code period at 4 MHz
+print(f"samples_per_code: {samples_per_code}")
 doppler_min_hz = -7e3
 doppler_max_hz = 7e3
 doppler_step_hz = 500 # good enough for a coarse search
@@ -48,20 +50,18 @@ for i in range(num_chips):
 def make_prn(sv: int) -> np.ndarray:
     g2_delayed = np.roll(G2, G2_DELAY[sv - 1]) # G2 gets delayed by an amount specified in IS-GPS-200, Table 3-Ia
     bits = G1 ^ g2_delayed # bitwise XOR, still 0s and 1s
-    return (1 - 2 * bits).astype(np.float32) # convert to BPSK, +1s and −1s
-
-def upsample_prn(sv: int) -> np.ndarray:
-    """Nearest-neighbour upsample 1023-chip C/A code → samples_per_code samples."""
-    code = make_prn(sv)
-    idx = (np.arange(samples_per_code) * num_chips / samples_per_code).astype(int)
-    return code[idx]
+    return (1 - 2.0 * bits) # convert to BPSK, +1s and −1s
 
 # Pre-compute template signals - conjugate FFTs of all upsampled PRN codes
-template_signals = {sv: np.conj(np.fft.fft(upsample_prn(sv))) for sv in gps_svs}
+template_signals = {}
+for sv in gps_svs:
+    code = make_prn(sv)
+    samples = resample_poly(code, samples_per_code, num_chips) # upsample to match our sample rate
+    template_signals[sv] = np.conj(np.fft.fft(samples))
 
 # Read in IQ file
 n_needed = samples_per_code * num_integrations
-iq = np.fromfile(filename, dtype=np.complex64, count=n_needed)
+x = np.fromfile(filename, dtype=np.complex64, count=n_needed)
 # For the full version from IQEngine use the following instead
 #iq = np.fromfile(filename, dtype=np.int16, count=n_needed * 2)
 #iq = (iq[0::2] + 1j * iq[1::2]).astype(np.complex64)
@@ -69,12 +69,12 @@ iq = np.fromfile(filename, dtype=np.complex64, count=n_needed)
 # Create a spectrogram to show how the signals are under the noise floor
 if False:
     fft_size = 512
-    num_rows = len(iq) // fft_size # // is an integer division which rounds down
+    num_rows = len(x) // fft_size # // is an integer division which rounds down
     spectrogram = np.zeros((num_rows, fft_size))
     for i in range(num_rows):
-        spectrogram[i,:] = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(iq[i*fft_size:(i+1)*fft_size])))**2)
+        spectrogram[i,:] = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x[i*fft_size:(i+1)*fft_size])))**2)
     plt.figure(2)
-    plt.imshow(spectrogram, aspect='auto', extent = [sample_rate/-2/1e6, sample_rate/2/1e6, len(iq)/sample_rate, 0])
+    plt.imshow(spectrogram, aspect='auto', extent = [sample_rate/-2/1e6, sample_rate/2/1e6, len(x)/sample_rate, 0])
     plt.xlabel("Frequency [MHz]")
     plt.ylabel("Time [s]")
     plt.savefig('../_images/detection_gps_spectrogram.svg', bbox_inches='tight')
@@ -93,7 +93,7 @@ for sv in gps_svs:
     n_total = samples_per_code * num_integrations
     for di, f_d in enumerate(doppler_bins):
         t = np.arange(n_total) / sample_rate # time vector
-        mixed = iq[:n_total] * np.exp(-2j*np.pi*float(f_d)*t) # freq shift
+        mixed = x[:n_total] * np.exp(-2j*np.pi*float(f_d)*t) # freq shift
 
         # Non-coherent integration: accumulate squared correlation magnitude
         for k in range(num_integrations):

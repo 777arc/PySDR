@@ -4,6 +4,8 @@ from scipy.signal import resample_poly
 
 #### STEP 1: Generate PRN for each satellite ####
 
+# Don't get too caught up in how generate_PRN() works, first try to understand the input and output
+
 chip_rate = 1.023e6 # chips / sec (part of the GPS spec)
 num_chips = 1023 # chips per C/A code period
 gps_svs = list(range(1, 33)) # 1–32 are the main ones, it's possible there are 33-37

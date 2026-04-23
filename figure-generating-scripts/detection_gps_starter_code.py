@@ -58,7 +58,7 @@ if False:
 
 #### STEP 2: Read in example IQ recording of GPS ####
 
-filename = "GPS_L1_recording_10ms_4MHz_cf32.iq"
+filename = "/home/marc/PySDR/figure-generating-scripts/GPS_L1_recording_10ms_4MHz_cf32.iq"
 sample_rate = 4e6
 samples_per_code = int(round(sample_rate / chip_rate * num_chips))  # Exact number of samples in one 1 ms code period at 4 MHz
 print(f"samples_per_code: {samples_per_code}")

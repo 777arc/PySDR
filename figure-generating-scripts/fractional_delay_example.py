@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import lfilter
+from scipy.signal import lfilter, freqz
 
 fs = 1e6
 N = 512
@@ -58,6 +58,24 @@ axes[2].set_xlabel("time (us)")
 axes[2].set_ylabel("amplitude")
 axes[2].legend()
 axes[2].grid(True)
+
+plt.tight_layout()
+
+w, H = freqz(h, worN=2048, fs=fs)
+
+fig2, (ax_mag, ax_phase) = plt.subplots(2, 1, figsize=(9, 6))
+ax_mag.plot(w / 1e3, 20 * np.log10(np.abs(H) + 1e-12))
+ax_mag.set_title("frequency response - magnitude")
+ax_mag.set_xlabel("frequency (kHz)")
+ax_mag.set_ylabel("magnitude (dB)")
+ax_mag.set_ylim(-80, 5)
+ax_mag.grid(True)
+
+ax_phase.plot(w / 1e3, np.unwrap(np.angle(H)))
+ax_phase.set_title("frequency response - phase")
+ax_phase.set_xlabel("frequency (kHz)")
+ax_phase.set_ylabel("phase (rad)")
+ax_phase.grid(True)
 
 plt.tight_layout()
 plt.show()

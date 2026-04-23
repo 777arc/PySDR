@@ -28,6 +28,7 @@ if True:
     ntsc_example = '/mnt/c/Users/marclichtman/Downloads/ntsc_remy_10MHz_5925Hz_cf32.iq'
     sample_rate = 10e6
     x = np.fromfile(ntsc_example, dtype=np.complex64, count=samples_to_process)
+    print(len(x))
 
     #sample_rate = 40e6
     #fc = 441e6 # taken from metadata file
@@ -83,6 +84,7 @@ else: # PAL
 samples_per_frame = samples_per_line * lines_per_frame // 2 # samples per frame. WHY DO I NEED THE /2?
 print("Samples per frame:", samples_per_frame)
 line_Hz = refresh_Hz * lines_per_frame
+print("Line rate (Hz):", line_Hz)
 
 # PSD of raw RF
 if False:
@@ -164,7 +166,7 @@ if False:
     plt.show()
 
 # Correlate entire signal against the v-sync template, then sync to frame
-if True:
+if False:
     template = np.fromfile("/tmp/vertical_sync_template.iq", dtype=np.float64)
     correlation = np.abs(np.correlate(x_demod, template, mode='full'))**2
     # plt.plot(correlation)

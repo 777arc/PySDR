@@ -126,7 +126,7 @@ To return to the time domain from frequency is almost the same, aside from a neg
 .. math::
    x(t) = \int X(f) e^{j2\pi ft} df
 
-Note that a lot of textbooks and other resources use :math:`w` in place of the :math:`2\pi f`, where :math:`w` is angular frequency in radians per second, while :math:`f` is in Hz.  All you have to know is that
+Note that a lot of textbooks and other resources use :math:`\omega` in place of the :math:`2\pi f`, where :math:`\omega` is angular frequency in radians per second, while :math:`f` is in Hz.  All you have to know is that
 
 .. math::
    \omega = 2 \pi f

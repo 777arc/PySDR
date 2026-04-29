@@ -455,7 +455,40 @@ The first step is doing a single correlation of the received signal against the 
     corr_out = correlate(rx_signal, ref_preamble, mode='same')
     corr_power = np.abs(corr_out)**2
 
-TODO: look at just the raw output of this step
+We can visualize the received complex baseband signal (its I and Q components) alongside the matched-filter correlation power. This may help build intuition for how the detector identifies the preamble in time, showing how alignment produces sharp peaks and how noise or fading influences detection performance.
+
+.. code-block:: python
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(10, 6))
+
+    # Colors
+    color_I = "tab:blue"
+    color_Q = "tab:green"
+    color_corr = "tab:orange"
+    
+    # --- Top: Received signal (I and Q) ---
+    ax1.plot(np.real(rx_signal), color=color_I, alpha=0.7, label="Re{rx_signal} (I)")
+    ax1.plot(np.imag(rx_signal), color=color_Q, alpha=0.7, linestyle="--", label="Im{rx_signal} (Q)")
+    ax1.set_ylabel("Amplitude")
+    ax1.set_title("Received Signal (I/Q) and Correlation Output")
+    ax1.grid(True)
+    ax1.legend(loc="upper right")
+    
+    # --- Bottom: Correlation power ---
+    ax2.plot(corr_power, color=color_corr, label="Correlation Power (dB)")
+    ax2.set_ylabel("Correlation Power (dB)")
+    ax2.set_xlabel("Sample Index")
+    ax2.grid(True)
+    ax2.legend(loc="upper right")
+    
+    plt.tight_layout()
+    plt.show()
+
+.. image:: ../_images/correlation_plot.svg
+   :align: center
+   :target: ../_images/correlation_plot.svg
+   :alt: Received I/Q signal and matched-filter correlation power showing preamble detection peaks
+
 
 Now we will implement the CFAR detector, apply it to the correlator output, and visualize the results:
 

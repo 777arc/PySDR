@@ -1,12 +1,17 @@
 import numpy as np
-from scipy.signal import firwin2
+from scipy.signal import remez
 import matplotlib.pyplot as plt
 
 sample_rate = 1e6  # Hz
 
-freqs = [0, 100e3, 110e3, 190e3, 200e3, 300e3, 310e3, 500e3]
-gains = [1, 1,     0,     0,     0.5,   0.5,   0,     0]
-h = firwin2(101, freqs, gains, fs=sample_rate)
+# remez takes band edges and one desired gain per band
+bands   = [0, 100e3, 110e3, 190e3, 200e3, 300e3, 310e3, 500e3]
+desired = [1,        0,            0.5,          0]
+h = remez(101, bands, desired, fs=sample_rate)
+
+# for plotting, expand the band-edge spec into a step-like requested response
+freqs = bands
+gains = [desired[i // 2] for i in range(len(bands))]
 
 N_fft = 4096
 f = np.linspace(-sample_rate / 2, sample_rate / 2, N_fft) / 1e3  # kHz

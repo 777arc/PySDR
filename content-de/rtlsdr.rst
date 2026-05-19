@@ -4,7 +4,9 @@
 RTL-SDR in Python
 ##################
 
-Das RTL-SDR ist mit einem Preis von etwa 30 USD das bei weitem günstigste SDR und ein hervorragender Einstieg in die Welt der Software-Defined Radios. Obwohl es nur zum Empfangen geeignet ist und nur bis zu etwa 1,75 GHz abstimmen kann, gibt es zahlreiche Anwendungsmöglichkeiten. In diesem Kapitel lernen wir, wie man die RTL-SDR-Software einrichtet und dessen Python-API verwendet.
+Das RTL-SDR ist mit einem Preis von etwa 30 USD das bei weitem günstigste SDR und ein hervorragender Einstieg in die Welt der Software-Defined Radios.
+Obwohl es nur zum Empfangen geeignet ist und nur bis zu etwa 1,75 GHz abstimmen kann, gibt es zahlreiche Anwendungsmöglichkeiten. 
+In diesem Kapitel lernen wir, wie man die RTL-SDR-Software einrichtet und wie man dessen Python-API verwendet.
 
 .. image:: ../_images/rtlsdrs.svg
    :align: center
@@ -15,7 +17,8 @@ Das RTL-SDR ist mit einem Preis von etwa 30 USD das bei weitem günstigste SDR u
 Hintergrund zum RTL-SDR
 ********************************
 
-Das RTL-SDR entstand um das Jahr 2010, als Enthusiasten herausfanden, dass sie günstige DVB-T-Dongles hacken konnten, die den Realtek RTL2832U-Chip enthielten. DVB-T ist ein digitaler Fernsehstandard, der hauptsächlich in Europa verwendet wird. Das Besondere am RTL2832U war, dass die rohen IQ-Samples direkt abgerufen werden konnten, was es ermöglichte, den Chip als universelles Empfangs-SDR zu nutzen.
+Das RTL-SDR entstand um das Jahr 2010, als Enthusiasten herausfanden, dass sie günstige DVB-T-Dongles hacken konnten, die den Realtek RTL2832U-Chip enthielten. DVB-T ist ein digitaler Fernsehstandard, der hauptsächlich in Europa verwendet wird. 
+Das Besondere am RTL2832U war, dass die rohen IQ-Samples direkt abgerufen werden konnten, was es ermöglichte, den Chip als universelles Empfangs-SDR zu nutzen.
 
 Der RTL2832U-Chip enthält den Analog-Digital-Wandler (ADC) und den USB-Controller, muss jedoch mit einem HF-Tuner kombiniert werden. Verbreitete Tuner-Chips sind der Rafael Micro R820T, R828D und Elonics E4000. Der abstimmbare Frequenzbereich hängt vom Tuner-Chip ab und liegt typischerweise bei etwa 50 – 1700 MHz. Die maximale Abtastrate hingegen wird vom RTL2832U und dem USB-Bus des Computers bestimmt und beträgt ohne zu viele fehlende Samples üblicherweise etwa 2,4 MHz. Diese Tuner sind extrem günstig und weisen eine sehr schlechte HF-Empfindlichkeit auf; daher ist es oft notwendig, einen rauscharmen Verstärker (LNA) und einen Bandpassfilter hinzuzufügen, um schwache Signale zu empfangen.
 
@@ -99,7 +102,7 @@ Wenn die Software-Einrichtung erfolgreich war, sollte folgender Test ausführbar
 
     rtl_sdr /tmp/recording.iq -s 2e6 -f 100e6 -n 1e6
 
-Falls die Meldung :code:`No supported devices found` erscheint, auch beim Hinzufügen von :code:`sudo`, kann Linux das RTL-SDR überhaupt nicht erkennen. Falls es mit :code:`sudo` funktioniert, liegt ein Problem mit den udev-Regeln vor – in diesem Fall den Computer nach der oben beschriebenen udev-Einrichtung neu starten. Alternativ kann :code:`sudo` für alles verwendet werden, einschließlich der Ausführung von Python.
+Falls die Meldung :code:`No supported devices found` erscheint (auch beim Hinzufügen von :code:`sudo`) dann kann Linux das RTL-SDR überhaupt nicht erkennen. Falls es mit :code:`sudo` funktioniert, liegt ein Problem mit den udev-Regeln vor. In diesem Fall den Computer nach der oben beschriebenen udev-Einrichtung neu starten. Alternativ kann :code:`sudo` für alles verwendet werden, einschließlich der Ausführung von Python.
 
 Die Erkennung des RTL-SDR durch Python kann mit folgendem Skript getestet werden:
 

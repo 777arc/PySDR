@@ -163,7 +163,7 @@ Beachte, dass die Funktion :code:`randn()` standardmäßig Mittelwert = 0 und Va
    :alt: Beispiel für in Python simuliertes weißes Rauschen
    :target: ../_images_de/noise_python.png
 
-Du kannst dann die flache PSD, die wir in GNU Radio hatten, erzeugen, indem du den Logarithmus nimmst und viele davon mittelst. Das Signal, das wir erzeugt und dessen FFT wir berechnet haben, war ein reelles Signal (im Gegensatz zu einem komplexen), und die FFT eines reellen Signals hat übereinstimmende negative und positive Teile; deshalb haben wir nur den positiven Teil der FFT-Ausgabe gespeichert (die zweite Hälfte). Aber warum haben wir nur „reelles" Rauschen erzeugt, und wie spielen komplexe Signale dabei eine Rolle?
+Du kannst dann die flache PSD, die wir in GNU Radio hatten, erzeugen, indem du den Logarithmus nimmst und viele davon mittelst. Das Signal, das wir erzeugen und dessen FFT wir berechnet haben, war ein reelles Signal (im Gegensatz zu einem komplexen), und die FFT eines reellen Signals hat übereinstimmende negative und positive Teile; deshalb haben wir nur den positiven Teil der FFT-Ausgabe gespeichert (die zweite Hälfte). Aber warum haben wir nur „reelles" Rauschen erzeugt, und wie spielen komplexe Signale dabei eine Rolle?
 
 *************************
 Komplexes Rauschen

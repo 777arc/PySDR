@@ -347,14 +347,19 @@ Next we will perform DOA estimation using the MUSIC algorithm.  We will use the 
 			music_metric = np.abs(music_metric).squeeze()
 			music_metric = np.clip(music_metric, 0, 2) # Useful for ABCD one
 			results[i, j] = music_metric
+	
+	results = 10*np.log10(results) # convert to dB
+	
+	# Keep the top 95%
+	floor = np.percentile(results, 5)
+	print("floor:", floor)
+	results = np.maximum(results, floor)
 
 Our results are in 2D, because the array is 2D, so we must either use a 3D plot or a 2D heatmap plot.  Let's try both. First, we will do a 3D plot that has elevation on one axis and azimuth on the other:
 
 .. code-block:: python
 
 	# 3D az-el DOA results
-	results = 10*np.log10(results) # convert to dB
-	results[results < -20] = -20 # crop the z axis to some level of dB
 	fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
 	surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
 							np.rad2deg(phi_scan[None,:]),

@@ -62,6 +62,7 @@ Gracias a cualquiera que haya leído alguna parte de este libro de texto y haya 
 - `Daniel Versluis <https://versd.bitbucket.io/content/about.html>`_ por `traducir PySDR al Aleman <https://pysdr.org/nl/index-nl.html>`_
 - `mrbloom <https://github.com/mrbloom>`_ por `tranducir PySDR al ucraniano <https://pysdr.org/ukraine/index-ukraine.html>`_
 - `Yimin Zhao <https://github.com/doctormin>`_ por `traducir PySDR al chino simplificado <https://pysdr.org/zh/index-zh.html>`_
-- `Eduardo Chancay <https://github.com/edulchan>`_ por `traducir PySDR al español <https://pysdr.org/es/index-es.html>`_
+- `Eduardo Chancay <https://github.com/edulchan>`_ por `traducir PySDR al español <https://pysdr.org/es/index-es.html>`_ 
+- `Dipl. Ing. (FH) Viet Dang <https://www.linkedin.com/in/viet-dang-a09bb01b6/>`_ por `traducir PySDR al alemán <https://pysdr.org/es/index-de.html>`_
 
 Así como todos nuestros `PySDR Patreon <https://www.patreon.com/PySDR>`_ !

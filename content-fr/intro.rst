@@ -59,6 +59,7 @@ Nous remercions tous ceux qui ont lu une partie de ce manuel et nous ont fait pa
 - Matthew Hannon
 - James Hayek
 - Deidre Stuffer
-- `Tarik Benaddi <https://tarikbenaddi.github.io>`_ pour la `traduction de PySDR en français <https://pysdr.org/fr/index-fr.html>`_
+- `Tarik Benaddi <https://tarikbenaddi.github.io>`_ pour la `traduction de PySDR en français <https://pysdr.org/fr/index-fr.html>`_ 
+- `Dipl. Ing. (FH) Viet Dang <https://www.linkedin.com/in/viet-dang-a09bb01b6/>`_ pour la `traduction de PySDR en allemand <https://pysdr.org/es/index-de.html>`_
 
 

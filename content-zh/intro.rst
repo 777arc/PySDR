@@ -76,7 +76,8 @@
 - `Daniel Versluis <https://versd.bitbucket.io/content/about.html>`_ 将 PySDR 翻译为 `荷兰语 <https://pysdr.org/nl/index-nl.html>`_
 - `mrbloom <https://github.com/mrbloom>`_  将 PySDR 翻译为 `乌克兰语 <https://pysdr.org/ukraine/index-ukraine.html>`_
 - `Yimin Zhao <https://github.com/doctormin>`_ 将 PySDR 翻译为 `简体中文 <https://pysdr.org/zh/index-zh.html>`_
-- `Eduardo Chancay <https://github.com/edulchan>`_ 将 PySDR 翻译为 `西班牙语 <https://pysdr.org/es/index-es.html>`_
+- `Eduardo Chancay <https://github.com/edulchan>`_ 将 PySDR 翻译为 `西班牙语 <https://pysdr.org/es/index-es.html>`_ 
+- `Dipl. Ing. (FH) Viet Dang <https://www.linkedin.com/in/viet-dang-a09bb01b6/>`_ 将 PySDR 翻译为 `德语 <https://pysdr.org/es/index-de.html>`_
 - John Marcovici
 - `Vishwaksen Reddy Dhareddy <https://www.linkedin.com/in/vishwaksen-/>`_ 贡献了检测章节中的实时数据包检测部分
 

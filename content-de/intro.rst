@@ -65,7 +65,7 @@ Vielen Dank an alle, die einen Teil dieses Lehrbuchs gelesen und Feedback gegebe
 - `mrbloom <https://github.com/mrbloom>`_ für die `Übersetzung von PySDR ins Ukrainische <https://pysdr.org/ukraine/index-ukraine.html>`_
 - `Yimin Zhao <https://github.com/doctormin>`_ für die `Übersetzung von PySDR ins vereinfachte Chinesisch <https://pysdr.org/zh/index-zh.html>`_
 - `Eduardo Chancay <https://github.com/edulchan>`_ für die `Übersetzung von PySDR ins Spanische <https://pysdr.org/es/index-es.html>`_
-- `Viet Dang <https://x.com/BrainWizard2>`_ für die `Übersetzung von PySDR ins Deutsche <https://pysdr.org/es/index-de.html>`_
+- `Dipl. Ing. (FH) Viet Dang <https://www.linkedin.com/in/viet-dang-a09bb01b6/>`_ für die `Übersetzung von PySDR ins Deutsche <https://pysdr.org/es/index-de.html>`_
 - John Marcovici
 - `Vishwaksen Reddy Dhareddy <https://www.linkedin.com/in/vishwaksen-/>`_ für den Beitrag zum Abschnitt „Echtzeit-Paketerkennung" im Erkennungskapitel
 

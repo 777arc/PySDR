@@ -1,3 +1,4 @@
+setuptools
 sphinx==4.4.0
 sphinxcontrib-tikz==0.4.20
 sphinxcontrib-spelling==8.0.0

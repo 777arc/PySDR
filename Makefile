@@ -74,6 +74,13 @@ html:
 	sed -i 's/value="Go"/value="Search"/g' $(BUILDDIR)/*/*.html
 	@echo file://wsl.localhost/Ubuntu-22.04-New/home/marc/PySDR/_build/index.html
 
+.PHONY: html-de
+html-de:
+	$(SPHINXBUILD) -b html -D project="Ein Guide zu SDR und DSV mit Python"        -D exclude_patterns=_build,index.rst,content/*,index-nl.rst,content-nl/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/*,index-ja.rst,content-ja/* -D master_doc=index-de $(EXTENSIONS) . $(BUILDDIR)/de/
+	@echo
+	@echo "German Build finished. The HTML pages are in $(BUILDDIR)/de/html."
+
+
 .PHONY: html-es
 html-es:
 	$(SPHINXBUILD) -b html -D project="PySDR: Guia de uso para SDR/DSP con Python"        -D exclude_patterns=_build,index.rst,content/*,index-nl.rst,content-nl/*,index-fr.rst,content-fr/*,index-ukraine.rst,content-ukraine/*,index-zh.rst,content-zh/*,index-ja.rst,content-ja/* -D master_doc=index-es $(EXTENSIONS) . $(BUILDDIR)/es/

@@ -1,0 +1,59 @@
+<h1 style="text-align: center">PySDR: Ein Leitfaden zu SDR und DSP mit Python</h1>
+
+<p style="text-align: center">
+  von
+  <a class="reference internal" href="content/about_author.html#author-chapter">
+    <span class="std std-ref">Dr. Marc Lichtman</span>
+  </a>
+  -
+  <a class="reference external" href="mailto:pysdr&#37;&#52;&#48;vt&#46;edu" rel="noopener noreferrer" target="_blank">
+    pysdr<span>&#64;</span>vt<span>&#46;</span>edu
+  </a>
+</p>
+
+<h4 style="line-height: 1.4">
+  Willkommen bei PySDR, einem kostenlosen Online-Lehrbuch (keine Python-Bibliothek!), das eine sanfte Einführung in die drahtlose Kommunikation und Software-Defined Radio (SDR) bietet – mit zahlreichen Diagrammen, Animationen und Python-Codebeispielen. Von FFTs über Filter bis hin zu digitaler Modulation sowie dem Empfangen und Senden mit SDRs in Python – PySDR hat alles abgedeckt!
+</h4>
+
+<h4 style="line-height: 1.4">
+  Das Ziel von PySDR ist es, den Zugang zu Themen zu erleichtern, die traditionell auf sehr mathematische Weise und nur an einer kleinen Anzahl von Universitäten gelehrt werden. Alle Inhalte, die zur Erstellung von PySDR verwendet werden, sind Open Source und können
+  <a class="reference external" href="https://github.com/777arc/PySDR" rel="noopener noreferrer" target="_blank">hier</a> gefunden werden.
+</h4>
+
+<h4>
+  Siehe
+  <a class="reference internal" href="content-de/intro.html#intro-chapter"><span class="std std-ref">Kapitel 1: Einführung</span></a>
+  für den Zweck und die Zielgruppe des Lehrbuchs.
+</h4>
+
+<h4>
+  Für einen ersten Einblick in die HF-Signalverarbeitung kann mit der folgenden Simulation gespielt werden, die den Frequenz- und Zeitbereich eines Signals zeigt, das aus einem Ton und weißem Gaußschem Rauschen besteht.
+</h4>
+
+<div>
+  <input type="range" min="-0.4" max="0.4" step="0.0001" value="0.01" class="slider" id="freq" style="width:50%;"/>
+  <span id="freq_value"></span>
+  <label>[Hz] - Tonfrequenz</label>
+</div>
+<div>
+  <input type="range" min="-20" max="10" step="0.1" value="0" class="slider" id="noise_ampl_dB" style="width:50%;"/>
+  <span id="noise_value"></span>
+  <label>[dB] - Rauschpegel</label>
+</div>
+<div>
+  <canvas width="2048" height="800" id="freq_plot" style="width: 66%; min-width: 512px; border: 0px; image-rendering: auto"></canvas>
+</div>
+<br />
+<br />
+<div>
+  <canvas width="2048" height="800" id="time_plot" style="width: 66%; min-width: 512px; border: 0px; image-rendering: auto"></canvas>
+</div>
+
+<script>
+  const de_labels = { "frequency"   : "Frequenz",
+                      "time"        : "Zeit"
+                    };
+  homepage_app(de_labels);
+</script>
+
+<br />

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="571.20001"
+   height="235.2"
+   overflow="hidden"
+   version="1.1"
+   id="svg35"
+   sodipodi:docname="multipath.svg"
+   style="overflow:hidden"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
+  <metadata
+     id="metadata39">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1962"
+     inkscape:window-height="1048"
+     id="namedview37"
+     showgrid="false"
+     inkscape:zoom="0.4252451"
+     inkscape:cx="285.6"
+     inkscape:cy="117.6"
+     inkscape:window-x="72"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg35" />
+  <defs
+     id="defs5">
+    <clipPath
+       id="clip0">
+      <rect
+         x="0"
+         y="0"
+         width="816"
+         height="336"
+         id="rect2" />
+    </clipPath>
+  </defs>
+  <g
+     clip-path="url(#clip0)"
+     id="g33"
+     transform="scale(0.7)">
+    <rect
+       x="0"
+       y="0"
+       width="816"
+       height="336"
+       id="rect7"
+       style="fill:#ffffff" />
+    <path
+       d="M 148,55 120.5,180 93,55 Z"
+       stroke-miterlimit="8"
+       id="path9"
+       inkscape:connector-curvature="0"
+       style="fill:#4472c4;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-miterlimit:8" />
+    <path
+       d="M 121,180 V 334.105"
+       stroke-miterlimit="8"
+       id="path11"
+       inkscape:connector-curvature="0"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-miterlimit:8" />
+    <path
+       d="M 82,332 H 745.579"
+       stroke-miterlimit="8"
+       id="path13"
+       inkscape:connector-curvature="0"
+       style="fill:none;fill-rule:evenodd;stroke:#00b050;stroke-width:4;stroke-miterlimit:8" />
+    <path
+       d="M 732,51 704,176 676,51 Z"
+       stroke-miterlimit="8"
+       id="path15"
+       inkscape:connector-curvature="0"
+       style="fill:#4472c4;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-miterlimit:8" />
+    <path
+       d="M 704,176 V 330.105"
+       stroke-miterlimit="8"
+       id="path17"
+       inkscape:connector-curvature="0"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-miterlimit:8" />
+    <text
+       font-weight="400"
+       font-size="32"
+       transform="translate(16.6,32)"
+       id="text23"
+       style="font-weight:400;font-size:32px;font-family:'Times New Roman', 'Times New Roman_MSFontService', sans-serif">Sendeantenne<tspan
+   font-size="32"
+   x="577.38702"
+   y="0"
+   id="tspan19"
+   style="font-size:32px">Receive Antenna</tspan>
+<tspan
+   font-size="32"
+   x="326.03101"
+   y="68"
+   id="tspan21"
+   style="font-size:32px">Direktweg</tspan>
+</text>
+    <path
+       d="m 148,110 h 495.368 v 8 H 148 Z m 491.368,-8 24,12 -24,12 z"
+       id="path25"
+       inkscape:connector-curvature="0"
+       style="fill:#ff0000" />
+    <path
+       d="m 150.353,130.766 254.355,185.075 -4.707,6.469 -254.354,-185.076 z m 255.827,176.252 12.346,23.824 -26.466,-4.417 z"
+       id="path27"
+       inkscape:connector-curvature="0"
+       style="fill:#ff0000" />
+    <path
+       d="M 2.40654,-3.19508 240.537,176.165 235.724,182.555 -2.40654,3.19508 Z M 242.154,167.368 l 11.951,24.024 -26.39,-4.854 z"
+       transform="matrix(1,0,0,-1,422,325.392)"
+       id="path29"
+       inkscape:connector-curvature="0"
+       style="fill:#ff0000" />
+    <text
+       font-weight="400"
+       font-size="32"
+       transform="translate(350.976,264)"
+       id="text31"
+       style="font-weight:400;font-size:32px;font-family:'Times New Roman', 'Times New Roman_MSFontService', sans-serif">Mehrwegausbreitung</text>
+  </g>
+</svg>

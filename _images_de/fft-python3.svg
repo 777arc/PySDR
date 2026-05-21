@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="330.87427"
+   height="124.07785"
+   overflow="hidden"
+   version="1.1"
+   id="svg65"
+   sodipodi:docname="fft-python3.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <metadata
+     id="metadata69">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="2159"
+     inkscape:window-height="1105"
+     id="namedview67"
+     showgrid="false"
+     inkscape:zoom="1.6041667"
+     inkscape:cx="-3.069651"
+     inkscape:cy="12.519767"
+     inkscape:window-x="72"
+     inkscape:window-y="30"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg65" />
+  <defs
+     id="defs5">
+    <clipPath
+       id="clip0">
+      <rect
+         x="0"
+         y="0"
+         width="384"
+         height="144"
+         id="rect2" />
+    </clipPath>
+  </defs>
+  <g
+     clip-path="url(#clip0)"
+     id="g63"
+     transform="scale(0.86165173)">
+    <rect
+       x="0"
+       y="0"
+       width="384"
+       height="144"
+       fill="#ffffff"
+       id="rect7" />
+    <path
+       d="M 18.5459,42.4043 H 58.9748 V 81.3376 H 18.5459 Z"
+       fill="#a5a5a5"
+       fill-rule="evenodd"
+       id="path9" />
+    <path
+       d="M 58.9748,42.4043 H 98.0365 V 81.3376 H 58.9748 Z"
+       fill="#b4c7e7"
+       fill-rule="evenodd"
+       id="path11" />
+    <path
+       d="M 98.0365,42.4043 H 139.833 V 81.3376 H 98.0365 Z"
+       fill="#b4c7e7"
+       fill-rule="evenodd"
+       id="path13" />
+    <path
+       d="m 139.833,42.4043 h 40.428 v 38.9333 h -40.428 z"
+       fill="#b4c7e7"
+       fill-rule="evenodd"
+       id="path15" />
+    <path
+       d="M 180.261,42.4043 H 220.69 V 81.3376 H 180.261 Z"
+       fill="#ffff00"
+       fill-rule="evenodd"
+       id="path17" />
+    <path
+       d="m 220.69,42.4043 h 40.429 V 81.3376 H 220.69 Z"
+       fill="#ffc000"
+       fill-rule="evenodd"
+       id="path19" />
+    <path
+       d="m 261.119,42.4043 h 40.429 v 38.9333 h -40.429 z"
+       fill="#ffc000"
+       fill-rule="evenodd"
+       id="path21" />
+    <path
+       d="m 301.548,42.4043 h 40.429 v 38.9333 h -40.429 z"
+       fill="#ffc000"
+       fill-rule="evenodd"
+       id="path23" />
+    <path
+       d="m 58.9748,41.7376 v 41.6"
+       stroke="#ffffff"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path25" />
+    <path
+       d="m 98.0365,41.7376 v 41.6"
+       stroke="#ffffff"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path27" />
+    <path
+       d="m 139.833,41.7376 v 41.6"
+       stroke="#ffffff"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path29" />
+    <path
+       d="m 180.261,41.7376 v 41.6"
+       stroke="#ffffff"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path31" />
+    <path
+       d="m 220.69,41.7376 v 41.6"
+       stroke="#ffffff"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path33" />
+    <path
+       d="m 261.119,41.7376 v 41.6"
+       stroke="#ffffff"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path35" />
+    <path
+       d="m 301.548,41.7376 v 41.6"
+       stroke="#ffffff"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path37" />
+    <path
+       d="m 18.5459,41.7376 v 41.6"
+       stroke="#ffffff"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path39" />
+    <path
+       d="m 341.977,41.7376 v 41.6"
+       stroke="#ffffff"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path41" />
+    <path
+       d="M 17.8793,42.4043 H 342.644"
+       stroke="#ffffff"
+       stroke-width="1.33333"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path43" />
+    <path
+       d="M 17.8793,81.3376 H 342.644"
+       stroke="#ffffff"
+       stroke-width="4"
+       stroke-linejoin="round"
+       stroke-miterlimit="10"
+       fill="none"
+       fill-rule="evenodd"
+       id="path45" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(33.3047,104)"
+       id="text61">0<tspan
+   x="-18.6667"
+   y="29"
+   id="tspan47">(DC)</tspan><tspan
+   x="271.36899"
+   y="4"
+   id="tspan49">N</tspan><tspan
+   x="288.702"
+   y="4"
+   id="tspan51">-</tspan>1<tspan
+   x="149.246"
+   y="4"
+   id="tspan53">N/2</tspan><tspan
+   x="18.2327"
+   y="-72"
+   id="tspan55">+ frequencies</tspan><tspan
+   x="173.569"
+   y="-73"
+   id="tspan57">-</tspan><tspan
+   x="187.569"
+   y="-73"
+   id="tspan59">frequencies</tspan></text>
+  </g>
+</svg>

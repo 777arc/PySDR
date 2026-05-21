@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="514.49994"
+   height="165.33125"
+   overflow="hidden"
+   version="1.1"
+   id="svg31"
+   sodipodi:docname="tx_rx_system.svg"
+   style="overflow:hidden"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
+  <metadata
+     id="metadata35">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="2099"
+     inkscape:window-height="1311"
+     id="namedview33"
+     showgrid="false"
+     inkscape:zoom="0.39187386"
+     inkscape:cx="203.74982"
+     inkscape:cy="12.571875"
+     inkscape:window-x="72"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg31" />
+  <defs
+     id="defs5">
+    <clipPath
+       id="clip0">
+      <rect
+         x="0"
+         y="0"
+         width="816"
+         height="336"
+         id="rect2" />
+    </clipPath>
+  </defs>
+  <g
+     id="g4578"
+     transform="matrix(0.7,0,0,0.7,-32.900069,-27.86875)">
+    <text
+       y="64"
+       x="57.717098"
+       font-weight="400"
+       font-size="32"
+       id="text11"
+       style="font-weight:400;font-size:32px;font-family:'Times New Roman', 'Times New Roman_MSFontService', sans-serif">Sender<tspan
+   font-size="32"
+   x="646.86609"
+   y="61"
+   id="tspan9"
+   style="font-size:32px">Empfänger</tspan>
+</text>
+    <path
+       d="m 223.482,95.6852 c 10.511,13.7698 11.116,34.0588 1.351,45.3168 -2.061,2.376 -4.494,4.226 -7.189,5.466 l -2.143,-5.501 c 9.725,-4.723 13.267,-19.697 7.91,-33.447 -1.02,-2.619 -2.327,-5.08 -3.87,-7.291 z"
+       id="path13"
+       inkscape:connector-curvature="0"
+       style="fill:#4472c4;fill-rule:evenodd" />
+    <path
+       d="m 232.804,78.2572 c 16.373,10.833 22.333,40.4298 13.312,66.1068 -3.218,9.159 -8.09,16.973 -14.003,22.46 l -1.91,-5.137 c 13.939,-14.519 19.091,-42.827 11.506,-63.2277 -2.486,-6.6867 -6.165,-11.9562 -10.646,-15.2465 z"
+       id="path15"
+       inkscape:connector-curvature="0"
+       style="fill:#4472c4;fill-rule:evenodd" />
+    <path
+       d="M 160,84 142,166 124,84 Z"
+       stroke-miterlimit="8"
+       id="path17"
+       inkscape:connector-curvature="0"
+       style="fill:#4472c4;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-miterlimit:8" />
+    <path
+       d="m 142,166 v 61.038"
+       stroke-miterlimit="8"
+       id="path19"
+       inkscape:connector-curvature="0"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-miterlimit:8" />
+    <rect
+       x="48.500099"
+       y="191.5"
+       width="124"
+       height="83"
+       stroke-miterlimit="8"
+       id="rect21"
+       style="fill:#4472c4;stroke:#000000;stroke-width:3;stroke-miterlimit:8" />
+    <path
+       d="m 667,84 18,82 18,-82 z"
+       stroke-miterlimit="8"
+       id="path23"
+       inkscape:connector-curvature="0"
+       style="fill:#4472c4;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-miterlimit:8" />
+    <path
+       d="m 685,166 -10e-5,61.0376"
+       stroke-miterlimit="8"
+       id="path25"
+       inkscape:connector-curvature="0"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:4;stroke-miterlimit:8" />
+    <rect
+       x="-780.5"
+       y="191.5"
+       width="124"
+       height="83"
+       stroke-miterlimit="8"
+       transform="scale(-1,1)"
+       id="rect27"
+       style="fill:#4472c4;stroke:#000000;stroke-width:3;stroke-miterlimit:8" />
+  </g>
+</svg>

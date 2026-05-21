@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="598.37939"
+   height="278.23438"
+   overflow="hidden"
+   version="1.1"
+   id="svg79"
+   sodipodi:docname="ethernet.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <metadata
+     id="metadata83">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1742"
+     inkscape:window-height="959"
+     id="namedview81"
+     showgrid="false"
+     inkscape:zoom="1.2963624"
+     inkscape:cx="289.2044"
+     inkscape:cy="101.20606"
+     inkscape:window-x="72"
+     inkscape:window-y="30"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg79" />
+  <defs
+     id="defs5">
+    <clipPath
+       id="clip0">
+      <rect
+         x="0"
+         y="0"
+         width="672"
+         height="336"
+         id="rect2" />
+    </clipPath>
+  </defs>
+  <path
+     d="m 128.99039,210 h 411.104"
+     stroke="#bfbfbf"
+     stroke-width="2"
+     stroke-miterlimit="8"
+     stroke-dasharray="2, 2"
+     fill="none"
+     fill-rule="evenodd"
+     id="path9" />
+  <path
+     d="m 129.99039,146 h 411.104"
+     stroke="#bfbfbf"
+     stroke-width="2"
+     stroke-miterlimit="8"
+     stroke-dasharray="2, 2"
+     fill="none"
+     fill-rule="evenodd"
+     id="path11" />
+  <path
+     d="m 127.99039,82 h 411.104"
+     stroke="#bfbfbf"
+     stroke-width="2"
+     stroke-miterlimit="8"
+     stroke-dasharray="2, 2"
+     fill="none"
+     fill-rule="evenodd"
+     id="path13" />
+  <path
+     d="m 129.99039,17 411.104,10e-5"
+     stroke="#bfbfbf"
+     stroke-width="2"
+     stroke-miterlimit="8"
+     stroke-dasharray="2, 2"
+     fill="none"
+     fill-rule="evenodd"
+     id="path15" />
+  <path
+     d="m 120.99039,113 h 419.501 v 2 h -419.501 z m 418.167,-3 8,4 -8,4 z"
+     id="path17" />
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="24px"
+     id="text19"
+     x="556.59033"
+     y="122">Zeit</text>
+  <path
+     d="M 120.99039,0 V 227.586"
+     stroke="#000000"
+     stroke-width="2"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path21" />
+  <path
+     d="m 111.99039,17 18.207,10e-5"
+     stroke="#000000"
+     stroke-width="2"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path23" />
+  <path
+     d="m 111.99039,81 h 18.207"
+     stroke="#000000"
+     stroke-width="2"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path25" />
+  <path
+     d="m 111.99039,146 h 18.207"
+     stroke="#000000"
+     stroke-width="2"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path27" />
+  <path
+     d="m 111.99039,211 h 18.207"
+     stroke="#000000"
+     stroke-width="2"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path29" />
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="24px"
+     id="text39"
+     x="16.804688"
+     y="25">+1V = 00<tspan
+   x="324.34369"
+   y="278"
+   id="tspan31">8 ns</tspan><tspan
+   x="-1.1953125"
+   y="89"
+   id="tspan33">+0.5V = 01</tspan><tspan
+   x="4.3046875"
+   y="153"
+   id="tspan35">-</tspan>0.5V = 10<tspan
+   x="23.198017"
+   y="219"
+   id="tspan37">-</tspan>1V = 11</text>
+  <path
+     d="m 130.49039,81.5 h 46.667"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path41" />
+  <path
+     d="m 225.49039,17.5001 46.667,10e-5"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path43" />
+  <path
+     d="m 416.49039,146.5 h 46.667"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path45" />
+  <path
+     d="m 320.49039,210.5 h 46.667"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path47" />
+  <path
+     d="m 178.49039,146.5 h 46.667"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path49" />
+  <path
+     d="m 368.49039,17.5001 46.667,10e-5"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path51" />
+  <path
+     d="m 273.49039,81.5 h 46.667"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path53" />
+  <path
+     d="m 463.49039,17.5001 46.667,10e-5"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path55" />
+  <path
+     d="m 178.49039,82.5 v 64.296"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path57" />
+  <path
+     d="M 224.49039,17.5001 V 146.519"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path59" />
+  <path
+     d="M 273.49039,18.5001 V 82.041"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path61" />
+  <path
+     d="M 319.49039,82.5 V 210.524"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path63" />
+  <path
+     d="M 367.49039,17.5001 V 210.367"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path65" />
+  <path
+     d="M 415.49039,17.5001 V 146.519"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path67" />
+  <path
+     d="M 462.49039,17.5001 V 146.519"
+     stroke="#00b0f0"
+     stroke-width="3"
+     stroke-linecap="round"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path69" />
+  <path
+     d="m 319.49039,210.5 v 42.947"
+     stroke="#000000"
+     stroke-width="1.33333"
+     stroke-miterlimit="8"
+     stroke-dasharray="4, 1.33333"
+     fill="none"
+     fill-rule="evenodd"
+     id="path71" />
+  <path
+     d="m 367.49039,211.5 v 42.947"
+     stroke="#000000"
+     stroke-width="1.33333"
+     stroke-miterlimit="8"
+     stroke-dasharray="4, 1.33333"
+     fill="none"
+     fill-rule="evenodd"
+     id="path73" />
+  <path
+     d="m 328.15739,252.167 h 31.665 v 0.666 h -31.665 z m 1.333,4.333 -8,-4 8,-4 z m 28.998,-8 8,4 -8,4 z"
+     id="path75" />
+</svg>

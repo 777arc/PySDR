@@ -64,7 +64,8 @@ Thank you to anyone who has read any portion of this textbook and provided feedb
 - `Daniel Versluis <https://versd.bitbucket.io/content/about.html>`_ for `translating PySDR to Dutch <https://pysdr.org/nl/index-nl.html>`_
 - `mrbloom <https://github.com/mrbloom>`_ for `translating PySDR to Ukrainian <https://pysdr.org/ukraine/index-ukraine.html>`_
 - `Yimin Zhao <https://github.com/doctormin>`_ for `translating PySDR to Simplified Chinese <https://pysdr.org/zh/index-zh.html>`_
-- `Eduardo Chancay <https://github.com/edulchan>`_ for `translating PySDR to Spanish <https://pysdr.org/es/index-es.html>`_
+- `Eduardo Chancay <https://github.com/edulchan>`_ for `translating PySDR to Spanish <https://pysdr.org/es/index-es.html>`_ 
+- `Dipl. Ing. (FH) Viet Dang <https://www.linkedin.com/in/viet-dang-a09bb01b6/>`_ for `translating PySDR to German <https://pysdr.org/es/index-de.html>`_
 - John Marcovici
 - `Vishwaksen Reddy Dhareddy <https://www.linkedin.com/in/vishwaksen-/>`_ for contributing the Detection Chapter section on real-time packet detection
 

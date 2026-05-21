@@ -87,7 +87,8 @@ textbook <https://www.analog.com/en/education/education-library/software-defined
 - `Daniel Versluis <https://versd.bitbucket.io/content/about.html>`_ за `переклад PySDR нідерландською <https://pysdr.org/nl/index-nl.html>`_
 - `mrbloom <https://github.com/mrbloom>`_ за `переклад PySDR українською <https://pysdr.org/ukraine/index-ukraine.html>`_
 - `Yimin Zhao <https://github.com/doctormin>`_ за `переклад PySDR спрощеною китайською <https://pysdr.org/zh/index-zh.html>`_
-- `Eduardo Chancay <https://github.com/edulchan>`_ за `переклад PySDR іспанською <https://pysdr.org/es/index-es.html>`_
+- `Eduardo Chancay <https://github.com/edulchan>`_ за `переклад PySDR іспанською <https://pysdr.org/es/index-es.html>`_ 
+- `Dipl. Ing. (FH) Viet Dang <https://www.linkedin.com/in/viet-dang-a09bb01b6/>`_ за `переклад PySDR німецькою <https://pysdr.org/es/index-de.html>`_
 - John Marcovici
 
 А також усім прихильникам `PySDR Patreon <https://www.patreon.com/PySDR>`_!

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="492.62582"
+   height="154.10503"
+   overflow="hidden"
+   version="1.1"
+   id="svg84"
+   sodipodi:docname="differential_coding2.svg"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs88" />
+  <sodipodi:namedview
+     id="namedview86"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.658138"
+     inkscape:cx="196.90762"
+     inkscape:cy="107.95241"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg84" />
+  <path
+     d="M 41.276272,50.936914 H 66.77432 v 2.91068 H 41.276272 Z m 24.042708,-2.910682 8.732041,4.366021 -8.732041,4.366022 z"
+     id="path4"
+     style="stroke-width:0.485114" />
+  <path
+     d="m 74.263989,52.149697 c 0,-11.922487 9.556252,-21.587548 21.344988,-21.587548 11.788743,0 21.344993,9.665061 21.344993,21.587548 0,11.922633 -9.55625,21.587549 -21.344993,21.587549 -11.788736,0 -21.344988,-9.664916 -21.344988,-21.587549 z"
+     stroke="#000000"
+     stroke-width="0.97023"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path6" />
+  <path
+     d="M 95.608977,30.562149 V 73.342364"
+     stroke="#000000"
+     stroke-width="0.97023"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path8" />
+  <path
+     d="M 74.263989,52.392253 H 117.0442"
+     stroke="#000000"
+     stroke-width="0.97023"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path10" />
+  <path
+     d="m 116.95397,50.936914 h 96.98388 v 2.91068 h -96.98388 z m 95.52854,-2.910682 8.73204,4.366021 -8.73204,4.366022 z"
+     id="path12"
+     style="stroke-width:0.485114" />
+  <rect
+     x="116.95398"
+     y="84.894852"
+     width="54.332706"
+     height="42.689983"
+     stroke="#000000"
+     stroke-width="0.97023"
+     stroke-miterlimit="8"
+     fill="none"
+     id="rect14" />
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="17.9492px"
+     id="text16"
+     x="122.56432"
+     y="113.03143"
+     style="stroke-width:0.485114">Verzögerung</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="17.9492px"
+     id="text18"
+     x="-0.44697714"
+     y="56.758278"
+     style="stroke-width:0.485114">Eingang</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="17.9492px"
+     id="text20"
+     x="223.19382"
+     y="57.243389"
+     style="stroke-width:0.485114">Ausgang</text>
+  <path
+     d="M 373.46546,37.67789 V 154.10502"
+     stroke="#000000"
+     stroke-width="0.646816"
+     stroke-linejoin="round"
+     stroke-miterlimit="10"
+     fill="none"
+     fill-rule="evenodd"
+     id="path22" />
+  <path
+     d="M 433.04516,37.67789 V 154.10502"
+     stroke="#000000"
+     stroke-width="0.646816"
+     stroke-linejoin="round"
+     stroke-miterlimit="10"
+     fill="none"
+     fill-rule="evenodd"
+     id="path24" />
+  <path
+     d="M 313.88625,60.963238 H 492.62582"
+     stroke="#000000"
+     stroke-width="0.646816"
+     stroke-linejoin="round"
+     stroke-miterlimit="10"
+     fill="none"
+     fill-rule="evenodd"
+     id="path26" />
+  <path
+     d="M 313.88625,84.248682 H 492.62582"
+     stroke="#000000"
+     stroke-width="0.646816"
+     stroke-linejoin="round"
+     stroke-miterlimit="10"
+     fill="none"
+     fill-rule="evenodd"
+     id="path28" />
+  <path
+     d="M 313.88625,107.53413 H 492.62582"
+     stroke="#000000"
+     stroke-width="0.646816"
+     stroke-linejoin="round"
+     stroke-miterlimit="10"
+     fill="none"
+     fill-rule="evenodd"
+     id="path30" />
+  <path
+     d="M 313.88625,130.81958 H 492.62582"
+     stroke="#000000"
+     stroke-width="0.646816"
+     stroke-linejoin="round"
+     stroke-miterlimit="10"
+     fill="none"
+     fill-rule="evenodd"
+     id="path32" />
+  <g
+     id="g36"
+     transform="matrix(0.48511344,0,0,0.48511344,-6.2648454,-6.3064732)">
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="700"
+       font-size="32px"
+       transform="translate(917.156,126)"
+       id="text34">Ausgang</text>
+  </g>
+  <g
+     id="g40"
+     transform="matrix(0.48511344,0,0,0.48511344,-6.2648454,-6.3064732)">
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="700"
+       font-size="32px"
+       transform="translate(793.841,126)"
+       id="text38">Eingang 2</text>
+  </g>
+  <g
+     id="g44"
+     transform="matrix(0.48511344,0,0,0.48511344,-6.2648454,-6.3064732)">
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="700"
+       font-size="32px"
+       transform="translate(671.025,126)"
+       id="text42">Eingang 1</text>
+  </g>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text46"
+     x="458.95407"
+     y="78.103264"
+     style="stroke-width:0.485114">0</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text48"
+     x="399.37439"
+     y="78.103264"
+     style="stroke-width:0.485114">0</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text50"
+     x="339.7952"
+     y="78.103264"
+     style="stroke-width:0.485114">0</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text52"
+     x="458.95407"
+     y="101.38871"
+     style="stroke-width:0.485114">1</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text54"
+     x="399.37439"
+     y="101.38871"
+     style="stroke-width:0.485114">1</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text56"
+     x="339.7952"
+     y="101.38871"
+     style="stroke-width:0.485114">0</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text58"
+     x="458.95407"
+     y="124.67415"
+     style="stroke-width:0.485114">1</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text60"
+     x="399.37439"
+     y="124.67415"
+     style="stroke-width:0.485114">0</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text62"
+     x="339.7952"
+     y="124.67415"
+     style="stroke-width:0.485114">1</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text64"
+     x="458.95407"
+     y="147.95959"
+     style="stroke-width:0.485114">0</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text66"
+     x="399.37439"
+     y="147.95959"
+     style="stroke-width:0.485114">1</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.5236px"
+     id="text68"
+     x="339.7952"
+     y="147.95959"
+     style="stroke-width:0.485114">1</text>
+  <path
+     d="m 359.51069,14.310848 c 0,-7.6357341 6.19005,-13.82573301 13.82573,-13.82573301 7.63569,0 13.82574,6.18999891 13.82574,13.82573301 0,7.635735 -6.19005,13.825734 -13.82574,13.825734 -7.63568,0 -13.82573,-6.189999 -13.82573,-13.825734 z"
+     stroke="#000000"
+     stroke-width="0.97023"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path70" />
+  <path
+     d="M 373.09386,0.48511499 V 27.999925"
+     stroke="#000000"
+     stroke-width="0.97023"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path72" />
+  <path
+     d="m 359.51069,14.068292 27.51466,4.8e-5"
+     stroke="#000000"
+     stroke-width="0.97023"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path74" />
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="23.2854px"
+     id="text76"
+     x="398.66855"
+     y="21.830107"
+     style="stroke-width:0.485114">XOR</text>
+  <path
+     d="m 195.93189,52.392253 v 55.667737 h -17.36851 v -2.91068 h 15.91318 l -1.45535,1.45534 V 52.392253 Z m -15.91317,58.578417 -8.73204,-4.36602 8.73204,-4.36602 z"
+     id="path78"
+     style="stroke-width:0.485114" />
+  <path
+     d="M 116.99908,108.01487 H 94.153639 V 81.013949 h 2.910683 v 25.545591 l -1.455345,-1.45534 h 21.390103 z m -25.756124,-25.545583 4.366021,-8.732041 4.36602,8.732041 z"
+     id="path80"
+     style="stroke-width:0.485114" />
+</svg>

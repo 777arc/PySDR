@@ -4,19 +4,19 @@
   <img width="200" src="https://raw.githubusercontent.com/777arc/PySDR/master/_images/fft_logo_wide.gif" />
 </p>
 
-[PySDR: A Guide to SDR and DSP using Python](https://pysdr.org) is a guide to software-defined radio (SDR) and RF signal processing using Python code examples, live at https://pysdr.org.  It is a free online textbook that provides a gentle introduction to wireless communications and SDR using an abundance of diagrams, animations, and code examples. From FFTs to filters to digital modulation to receiving and transmitting from SDRs in Python, PySDR has you covered!  This repo specifically contains the source content used to generate the textbook, including the body text and Python scripts to generate the figures.  For questions/comments/suggestions feel free to submit an issue at the top of this page, or if you want to propose a change to the textbook (e.g. fix or improvement), you can use a Pull Request.  Those who submit valuable feedback/fixes be permanently added to the acknowledgments section.  Not good at Git but have changes to suggest?  Feel free to email Marc at marc@pysdr.org.
+[PySDR: Ein Leitfaden zu SDR und DSP mit Python](https://pysdr.org) ist ein Leitfaden zur softwaredefinierten Funktechnik (SDR) und HF-Signalverarbeitung mit Python-Codebeispielen, verfügbar unter https://pysdr.org. Es handelt sich um ein kostenloses Online-Lehrbuch, das eine sanfte Einführung in drahtlose Kommunikation und SDR bietet – mit zahlreichen Diagrammen, Animationen und Codebeispielen. Von FFTs über Filter bis hin zu digitaler Modulation sowie dem Empfangen und Senden über SDRs in Python – PySDR hat alles abgedeckt! Dieses Repository enthält speziell den Quellinhalt zur Generierung des Lehrbuchs, einschließlich des Haupttexts und der Python-Skripte zur Erzeugung der Abbildungen. Bei Fragen, Anmerkungen oder Vorschlägen können Sie oben auf dieser Seite ein Issue einreichen. Wenn Sie eine Änderung am Lehrbuch vorschlagen möchten (z. B. eine Korrektur oder Verbesserung), können Sie einen Pull Request verwenden. Wer wertvolles Feedback oder Korrekturen einreicht, wird dauerhaft im Danksagungsabschnitt aufgeführt. Nicht vertraut mit Git, aber Änderungen vorschlagen? Schreiben Sie Marc gerne eine E-Mail an marc@pysdr.org.
 
-You can also support PySDR through the [PySDR Patreon page](https://www.patreon.com/c/PySDR) or a [one-time donation](https://www.paypal.com/donate/?hosted_button_id=FH3LQCJRUVPWL).
+Sie können PySDR auch über die [PySDR Patreon-Seite](https://www.patreon.com/c/PySDR) oder eine [Einmalspende](https://www.paypal.com/donate/?hosted_button_id=FH3LQCJRUVPWL) unterstützen.
 
-## Building
+## Erstellen
 
-Note that the website is now automatically built and deployed with each push/merge into master branch, using the GitHub action [build-and-deploy.yml](https://github.com/777arc/PySDR/blob/master/.github/workflows/build-and-deploy.yml) and the GitHub pages system for hosting the actual textbook.
+Die Website wird nun bei jedem Push/Merge in den Master-Branch automatisch erstellt und bereitgestellt, mithilfe der GitHub-Aktion [build-and-deploy.yml](https://github.com/777arc/PySDR/blob/master/.github/workflows/build-and-deploy.yml) und dem GitHub Pages-System zum Hosten des eigentlichen Lehrbuchs.
 
-For testing changes to the textbook locally, you can build using the following steps:
+Um Änderungen am Lehrbuch lokal zu testen, kann mit folgenden Schritten gebaut werden:
 
 ### Ubuntu/Debian
 
-Look at `.github/workflows/build-and-deploy.yml` and run the apt/pip installs, then:
+Schauen Sie sich `.github/workflows/build-and-deploy.yml` an und führen Sie die apt/pip-Installationen aus, dann:
 
 ```bash
 make html
@@ -27,35 +27,36 @@ make html-zh
 make html-ja
 ```
 
-In _build there should be an index.html that represents the main page of the English site
+In `_build` sollte eine `index.html` vorhanden sein, die die Hauptseite der englischen Website darstellt.
 
-Note: on one machine I had to add `~/.local/bin` to PATH
+Hinweis: Auf einem Rechner musste ich `~/.local/bin` zum PATH hinzufügen.
 
 ### Windows
 
-Install pre-requisite software with:
+Installieren Sie die erforderliche Software wie folgt:
 
-1. From the Microsoft Store install Python 3.10 (3.8-3.12 is fine too if you already have it installed).
-1. In a PowerShell terminal (click start menu then type powershell, or open a terminal in VSCode) run `pip install sphinx sphinxcontrib-tikz patreon setuptools`
-1. `cd` to the directory you cloned PySDR
+1. Installieren Sie Python 3.10 aus dem Microsoft Store (3.8–3.12 ist ebenfalls in Ordnung, falls bereits installiert).
+1. Führen Sie in einem PowerShell-Terminal (Startmenü öffnen, dann „powershell" eingeben, oder ein Terminal in VSCode öffnen) den Befehl `pip install sphinx sphinxcontrib-tikz patreon setuptools` aus.
+1. Wechseln Sie mit `cd` in das Verzeichnis, in das Sie PySDR geklont haben.
 
-Build the English version only using:
+Erstellen Sie nur die englische Version mit:
 
 ```
 python -m sphinx.cmd.build -b html . _build
 ```
 
-The first time running this it might take a while because it has to download LaTeX packages.
+Beim ersten Ausführen kann dies etwas länger dauern, da LaTeX-Pakete heruntergeladen werden müssen.
 
-Test the javascript part with the following to avoid CORS errors:
+Testen Sie den JavaScript-Teil mit folgendem Befehl, um CORS-Fehler zu vermeiden:
+
 ```
 cd _build
 python -m http.server
 ```
 
-## Creating a PDF Export
+## PDF-Export erstellen
 
-Not fully working yet due to animated gifs, they all need to be removed for this to not error out:
+Noch nicht vollständig funktionsfähig aufgrund animierter GIFs – diese müssen alle entfernt werden, damit kein Fehler auftritt:
 
 ```
 sudo apt-get install -y latexmk
@@ -63,15 +64,15 @@ sphinx-build -b latex . _build/latex
 make latexpdf
 ```
 
-## Misc
+## Sonstiges
 
-Ideas for future chapters:
+Ideen für zukünftige Kapitel:
 
-* Equalization, would be the last step needed to finish the end-to-end communications link
-* OFDM, simulating OFDM and CP, show via Python how it turns freq selective fading into flat fading
-* How to create real-time SDR apps with GUIs in Python using pyqt and pyqtgraph, or even just matplotlib with updating
-* Python code that lets the Pluto (or RTL-SDR) act as an FM receiver, like with sound output
-* End-to-end example that shows how to detect start of packet and other concepts not covered in RDS chapter
-* Intro to radar
+* Entzerrung – wäre der letzte fehlende Schritt zum Abschluss der Ende-zu-Ende-Kommunikationsstrecke
+* OFDM – Simulation von OFDM und CP, Darstellung per Python, wie frequenzselektives Fading in flaches Fading umgewandelt wird
+* Erstellung von Echtzeit-SDR-Anwendungen mit GUIs in Python mithilfe von pyqt und pyqtgraph oder sogar mit aktualisierendem matplotlib
+* Python-Code, der den Pluto (oder RTL-SDR) als UKW-Empfänger mit Audioausgabe betreibt
+* End-to-End-Beispiel, das zeigt, wie der Paketanfang erkannt wird und andere Konzepte, die im RDS-Kapitel nicht behandelt werden
+* Einführung in Radar
 
-<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 Unported License</a>.
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons Lizenz" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a><br />Dieses Werk ist lizenziert unter einer <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Namensnennung-NichtKommerziell-WeitergebeUnterGleichenBedingungen 4.0 International Lizenz</a>.

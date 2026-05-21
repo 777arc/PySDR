@@ -1,0 +1,610 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="480.48001"
+   height="813.12"
+   overflow="hidden"
+   version="1.1"
+   id="svg181"
+   sodipodi:docname="receiver_arch_diagram.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <metadata
+     id="metadata185">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="2058"
+     inkscape:window-height="1307"
+     id="namedview183"
+     showgrid="false"
+     inkscape:zoom="0.85227273"
+     inkscape:cx="-47.813333"
+     inkscape:cy="406.56"
+     inkscape:window-x="72"
+     inkscape:window-y="30"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg181"
+     inkscape:document-rotation="0" />
+  <defs
+     id="defs5">
+    <clipPath
+       id="clip0">
+      <rect
+         x="0"
+         y="0"
+         width="624"
+         height="1056"
+         id="rect2" />
+    </clipPath>
+  </defs>
+  <g
+     clip-path="url(#clip0)"
+     id="g179"
+     transform="scale(0.77)">
+    <rect
+       x="0"
+       y="0"
+       width="624"
+       height="1056"
+       fill="#ffffff"
+       id="rect7" />
+    <path
+       d="m 153,123 v 46.286"
+       stroke="#4472c4"
+       stroke-width="4"
+       stroke-linecap="round"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path9" />
+    <path
+       d="m 154,168 h 32.39 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 154 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 30.39,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path11" />
+    <path
+       d="m 270,168 h 46.312 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 270 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 44.312,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path13" />
+    <path
+       d="m 55,334 1e-4,46.286"
+       stroke="#4472c4"
+       stroke-width="4"
+       stroke-linecap="round"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path15" />
+    <path
+       d="m 56,379 h 32.3896 c 1.1046,0 2,0.896 2,2 0,1.105 -0.8954,2 -2,2 H 56 c -1.1046,0 -2,-0.895 -2,-2 0,-1.105 0.8954,-2 2,-2 z m 30.3896,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path17" />
+    <path
+       d="m 172,379 h 46.312 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 172 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 44.312,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path19" />
+    <path
+       d="M 187,382 V 525.565"
+       stroke="#4472c4"
+       stroke-width="4"
+       stroke-linecap="round"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path21" />
+    <path
+       d="m 187,523 h 32.39 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 187 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 30.39,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path23" />
+    <path
+       d="M 2,-6.06562e-6 2.00007,24.617 c 1e-5,1.1046 -0.89542,2 -1.9999892756,2 C -1.10449,26.617 -1.99992,25.7216 -1.99993,24.617 L -2,6.06562e-6 C -2,-1.10456 -1.10458,-2 -6.06562e-6,-2 1.10456,-2 2,-1.10458 2,-6.06562e-6 Z M 6.00007,22.617 1.04987e-4,34.617 -5.99993,22.617 Z"
+       fill="#4472c4"
+       transform="matrix(1,0,0,-1,265,452.617)"
+       id="path25" />
+    <path
+       d="M 64,453 H 265.402"
+       stroke="#4472c4"
+       stroke-width="4"
+       stroke-linecap="round"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path27" />
+    <path
+       d="m 64,453 1e-4,127.188"
+       stroke="#4472c4"
+       stroke-width="4"
+       stroke-linecap="round"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path29" />
+    <path
+       d="m 100,616 h 32.39 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 100 c -1.1046,0 -2,-0.895 -2,-2 0,-1.105 0.8954,-2 2,-2 z m 30.39,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path31" />
+    <path
+       d="m 216,619 h 48.677"
+       stroke="#4472c4"
+       stroke-width="4"
+       stroke-linecap="round"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path33" />
+    <path
+       d="M 2,-3.72065e-6 2.00009,46.4347 c 0,1.1046 -0.89543,2 -1.9999998957,2 C -1.10448,48.4347 -1.99991,47.5393 -1.99991,46.4347 L -2,3.72065e-6 C -2,-1.10457 -1.10457,-2 -3.72065e-6,-2 1.10457,-2 2,-1.10457 2,-3.72065e-6 Z M 6.00008,44.4347 1.04987e-4,56.4347 -5.99992,44.4348 Z"
+       fill="#4472c4"
+       transform="matrix(1,0,0,-1,265,618.435)"
+       id="path35" />
+    <path
+       d="m 302,523 h 50.008 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 302 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 48.008,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path37" />
+    <path
+       d="m 302,380 h 50.008 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 302 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 48.008,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path39" />
+    <path
+       d="m 427,380 h 50.008 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 427 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 48.008,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path41" />
+    <path
+       d="m 427,523 h 50.008 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 427 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 48.008,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path43" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="700"
+       font-size="24px"
+       transform="translate(136.1,38)"
+       id="text49">Direktabtastung (auch: Direct RF)<tspan
+   fill="#4472c4"
+   font-weight="400"
+   x="75.893303"
+   y="29"
+   id="tspan45">very</tspan><tspan
+   fill="#4472c4"
+   font-weight="400"
+   x="124.56"
+   y="29"
+   id="tspan47">teurer ADC</tspan></text>
+    <path
+       d="m 212.333,69.7217 h 42 v 1 h -42 z"
+       fill="#4472c4"
+       fill-rule="evenodd"
+       id="path51" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="700"
+       font-size="24px"
+       transform="translate(137.433,290)"
+       id="text63">Direktmischung (auch: Zero IF)<tspan
+   fill="#4472c4"
+   font-weight="400"
+   x="41.013302"
+   y="29"
+   id="tspan53">e.g. USRP B200,</tspan><tspan
+   fill="#4472c4"
+   font-weight="400"
+   x="210.787"
+   y="29"
+   id="tspan55">PlutoSDR</tspan><tspan
+   x="86.7799"
+   y="463"
+   id="tspan57">Überlagerungsempfänger</tspan><tspan
+   fill="#4472c4"
+   font-weight="400"
+   x="35.899899"
+   y="492"
+   id="tspan59">e.g.</tspan><tspan
+   fill="#4472c4"
+   font-weight="400"
+   x="76.566597"
+   y="492"
+   id="tspan61">UKW-Radio im alten Auto</tspan></text>
+    <path
+       d="m 39,804 1e-4,46.286"
+       stroke="#4472c4"
+       stroke-width="4"
+       stroke-linecap="round"
+       stroke-miterlimit="8"
+       fill="none"
+       fill-rule="evenodd"
+       id="path65" />
+    <path
+       d="m 39,850 h 32.3896 c 1.1046,0 2,0.896 2,2 0,1.105 -0.8954,2 -2,2 H 39 c -1.1046,0 -2,-0.895 -2,-2 0,-1.105 0.8954,-2 2,-2 z m 30.3896,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path67" />
+    <path
+       d="m 223,850 h 46.312 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 223 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 44.312,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path69" />
+    <path
+       d="M 2,-2.99406e-6 2.00009,60.1302 c 0,1.1045 -0.89543,2 -1.9999969894,2 C -1.10448,62.1302 -1.99991,61.2347 -1.99991,60.1302 L -2,2.99406e-6 C -2,-1.10457 -1.10457,-2 -2.99406e-6,-2 1.10457,-2 2,-1.10457 2,-2.99406e-6 Z M 6.00009,58.1302 l -5.999985013,12 -6.000014987,-12 z"
+       fill="#4472c4"
+       transform="matrix(1,0,0,-1,316,959.13)"
+       id="path71" />
+    <path
+       d="m 313,850 h 50.008 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 313 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 48.008,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path73" />
+    <path
+       d="m 412,850 h 50.008 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 412 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 48.008,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path75" />
+    <path
+       d="m 125,850 h 46.312 c 1.104,0 2,0.896 2,2 0,1.105 -0.896,2 -2,2 H 125 c -1.105,0 -2,-0.895 -2,-2 0,-1.105 0.895,-2 2,-2 z m 44.312,-4 12,6 -12,6 z"
+       fill="#4472c4"
+       id="path77" />
+    <path
+       d="M 0,74 41.5,0 83,74 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#c5e0b4"
+       fill-rule="evenodd"
+       transform="matrix(-4.37114e-8,-1,-1,4.37114e-8,270,211)"
+       id="path79" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(198.829,178)"
+       id="text81">LNA</text>
+    <path
+       d="m 476,133 v 73 H 356 L 326,169.5 356,133 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       fill-rule="evenodd"
+       id="path83" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(361.439,164)"
+       id="text87">Teuer<tspan
+   x="24.6667"
+   y="29"
+   id="tspan85">ADC</tspan></text>
+    <path
+       d="M 0,74 41,0 82,74 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#c5e0b4"
+       fill-rule="evenodd"
+       transform="matrix(-4.37114e-8,-1,-1,4.37114e-8,172,422)"
+       id="path89" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(101.187,389)"
+       id="text91">LNA</text>
+    <path
+       d="m 585,343 v 74 H 506.6 L 487,380 506.6,343 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       fill-rule="evenodd"
+       id="path93" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(515.583,389)"
+       id="text95">ADC</text>
+    <path
+       d="m 584,489 v 74 H 506.4 L 487,526 506.4,489 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       fill-rule="evenodd"
+       id="path97" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(515.189,534)"
+       id="text99">ADC</text>
+    <rect
+       x="362"
+       y="347"
+       width="73"
+       height="66"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       id="rect101" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(372.678,389)"
+       id="text103">Filter</text>
+    <rect
+       x="362"
+       y="492"
+       width="73"
+       height="66"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       id="rect105" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(372.678,534)"
+       id="text107">Filter</text>
+    <path
+       d="M 0,62 18.5,0 37,62 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       fill-rule="evenodd"
+       transform="matrix(1,0,0,-1,20,804)"
+       id="path109" />
+    <path
+       d="M 610,792 V 913 H 500.4 L 473,852.5 500.4,792 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       fill-rule="evenodd"
+       id="path111" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(524.808,818)"
+       id="text119">ADC<tspan
+   x="15.3333"
+   y="29"
+   id="tspan113">o</tspan>r<tspan
+   x="-10"
+   y="58"
+   id="tspan115">Analog</tspan><tspan
+   x="-14"
+   y="87"
+   id="tspan117">De</tspan>-mod</text>
+    <rect
+       x="373"
+       y="819"
+       width="74"
+       height="66"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       id="rect121" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(383.941,861)"
+       id="text123">Filter</text>
+    <path
+       d="m 279,852.5 c 0,-20.158 16.565,-36.5 37,-36.5 20.435,0 37,16.342 37,36.5 0,20.158 -16.565,36.5 -37,36.5 -20.435,0 -37,-16.342 -37,-36.5 z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       id="path125" />
+    <path
+       d="m 290,826 52.014,52.014"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       id="path127" />
+    <path
+       d="M 0,0 52.0135,52.0135"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       transform="matrix(1,0,0,-1,290,878.014)"
+       id="path129" />
+    <path
+       d="M 0,73 41.5,0 83,73 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#c5e0b4"
+       fill-rule="evenodd"
+       transform="matrix(-4.37114e-8,-1,-1,4.37114e-8,155,894)"
+       id="path131" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(84.4147,861)"
+       id="text133">LNA</text>
+    <rect
+       x="182"
+       y="819"
+       width="74"
+       height="66"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       id="rect135" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(192.773,861)"
+       id="text137">Filter</text>
+    <path
+       d="m 279,988 c 0,-20.435 16.565,-37 37,-37 20.435,0 37,16.565 37,37 0,20.43 -16.565,37 -37,37 -20.435,0 -37,-16.57 -37,-37 z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       id="path139" />
+    <path
+       d="m 286,987.84 c 7.324,-7.308 11.08,-12.879 17.79,-12.84 5.268,-0.019 10.769,8.446 13.813,12.726 3.84,4.683 10.987,12.364 16.334,12.273 5.346,-0.086 11.304,-8.332 15.063,-13.753"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       id="path141" />
+    <rect
+       x="143"
+       y="584"
+       width="73"
+       height="66"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       id="rect143" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(163.658,611)"
+       id="text149">90<tspan
+   font-size="16px"
+   x="24"
+   y="-7"
+   id="tspan145">o</tspan><tspan
+   x="-5.3333302"
+   y="29"
+   id="tspan147">Verschiebung</tspan></text>
+    <path
+       d="m 27,618 c 0,-20.435 16.3416,-37 36.5,-37 20.1584,0 36.5,16.565 36.5,37 0,20.435 -16.3416,37 -36.5,37 C 43.3416,655 27,638.435 27,618 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       id="path151" />
+    <path
+       d="M 33,618.354 C 40.324,610.753 44.0797,604.96 50.7905,605 c 5.2671,-0.019 10.768,8.784 13.8122,13.235 3.8399,4.871 10.9875,12.854 16.3341,12.764 5.3466,-0.089 11.304,-8.665 15.0632,-14.304"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       id="path153" />
+    <path
+       d="m 228,525 c 0,-20.435 16.565,-37 37,-37 20.435,0 37,16.565 37,37 0,20.435 -16.565,37 -37,37 -20.435,0 -37,-16.565 -37,-37 z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       id="path155" />
+    <path
+       d="m 239,499 52.014,52.014"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       id="path157" />
+    <path
+       d="M 0,0 52.0135,52.0135"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       transform="matrix(1,0,0,-1,239,551.014)"
+       id="path159" />
+    <path
+       d="m 228,381.5 c 0,-20.158 16.565,-36.5 37,-36.5 20.435,0 37,16.342 37,36.5 0,20.158 -16.565,36.5 -37,36.5 -20.435,0 -37,-16.342 -37,-36.5 z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       id="path161" />
+    <path
+       d="m 239,356 52.014,52.014"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       id="path163" />
+    <path
+       d="M 0,0 52.0135,52.0135"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#fff2cc"
+       fill-rule="evenodd"
+       transform="matrix(1,0,0,-1,239,408.014)"
+       id="path165" />
+    <path
+       d="M 0,62 19,0 38,62 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       fill-rule="evenodd"
+       transform="matrix(1,0,0,-1,134,123)"
+       id="path167" />
+    <path
+       d="M 0,62 18.5,0 37,62 Z"
+       stroke="#000000"
+       stroke-width="2"
+       stroke-miterlimit="8"
+       fill="#b4c7e7"
+       fill-rule="evenodd"
+       transform="matrix(1,0,0,-1,37,334)"
+       id="path169" />
+    <text
+       font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+       font-weight="400"
+       font-size="24px"
+       transform="translate(47.2823,677)"
+       id="text177">LO<tspan
+   x="252.189"
+   y="373"
+   id="tspan171">LO</tspan><tspan
+   x="276.48801"
+   y="-310"
+   id="tspan173">I</tspan><tspan
+   x="271.41699"
+   y="-168"
+   id="tspan175">Q</tspan></text>
+  </g>
+</svg>

@@ -76,7 +76,8 @@ Bedankt aan iedereen die dit boek heeft gelezen en van feedback heeft voorzien, 
 - Daniel Versluis voor het `vertalen van PySDR naar het Nederlands <https://pysdr.org/nl/index-nl.html>`_
 - `mrbloom <https://github.com/mrbloom>`_ voor het `vertalen van PySDR naar het Ukraiens <https://pysdr.org/ukraine/index-ukraine.html>`_
 - `Yimin Zhao <https://github.com/doctormin>`_ voor het `vertalen van PySDR naar het Chinees <https://pysdr.org/zh/index-zh.html>`_
-- `Eduardo Chancay <https://github.com/edulchan>`_ voor het `vertalen van PySDR naar het Spaans <https://pysdr.org/es/index-es.html>`_
+- `Eduardo Chancay <https://github.com/edulchan>`_ voor het `vertalen van PySDR naar het Spaans <https://pysdr.org/es/index-es.html>`_ 
+- `Dipl. Ing. (FH) Viet Dang <https://www.linkedin.com/in/viet-dang-a09bb01b6/>`_ voor het `vertalen van PySDR naar het Duits <https://pysdr.org/es/index-de.html>`_
 
 **********************
 Nederlandse vertaling

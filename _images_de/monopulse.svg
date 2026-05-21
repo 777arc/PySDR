@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="534.2298"
+   height="224.73724"
+   overflow="hidden"
+   version="1.1"
+   id="svg32"
+   sodipodi:docname="monopulse.svg"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs36" />
+  <sodipodi:namedview
+     id="namedview34"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.400463"
+     inkscape:cx="444.49586"
+     inkscape:cy="168.5157"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg32" />
+  <path
+     d="M 33.66083,190.766 C 33.215327,191.98772 211.85791,55.225624 255.51644,31.451083 299.17431,7.675822 327.24055,53.559643 290.2649,80.11213 253.2886,106.66462 34.106268,189.54362 33.66083,190.766 Z"
+     stroke="#46b1e1"
+     stroke-width="1.30665"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path4" />
+  <path
+     d="M 33.196511,191.79237 C 32.56788,192.93243 229.96812,85.279287 276.71688,68.511016 323.46564,51.742742 344.04737,101.45238 303.46079,121.99884 262.8742,142.54595 33.825207,190.65297 33.196511,191.79237 Z"
+     stroke="#46b1e1"
+     stroke-width="1.30665"
+     stroke-miterlimit="8"
+     fill="none"
+     fill-rule="evenodd"
+     id="path6" />
+  <path
+     d="M 33.006589,191.79237 410.14504,15.029074"
+     stroke="#156082"
+     stroke-width="1.30665"
+     stroke-miterlimit="8"
+     stroke-dasharray="8, 6"
+     fill="none"
+     fill-rule="evenodd"
+     id="path8" />
+  <path
+     d="m 415.20244,11.109117 c 0,-2.5257595 2.04752,-4.5732839 4.57328,-4.5732839 2.52576,0 4.57329,2.0475244 4.57329,4.5732839 0,2.525759 -2.04753,4.573284 -4.57329,4.573284 -2.52576,0 -4.57328,-2.047525 -4.57328,-4.573284 z"
+     stroke="#000000"
+     stroke-width="1.30665"
+     stroke-miterlimit="8"
+     fill-rule="evenodd"
+     id="path10" />
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="24.1731px"
+     id="text12"
+     x="447.84653"
+     y="16.335728"
+     style="stroke-width:0.653326">Ziel</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="24.1731px"
+     id="text14"
+     x="422.15775"
+     y="45.735409"
+     style="stroke-width:0.653326">Sender</text>
+  <text
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="24.1731px"
+     id="text16"
+     x="-0.18885234"
+     y="219.52019"
+     style="stroke-width:0.653326">Array</text>
+  <text
+     fill="#0b76a0"
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="24.1731px"
+     id="text18"
+     x="240.55136"
+     y="16.335728"
+     style="stroke-width:0.653326">Strahl 1</text>
+  <text
+     fill="#0b76a0"
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="24.1731px"
+     id="text20"
+     x="273.9938"
+     y="152.88091"
+     style="stroke-width:0.653326">Strahl 2</text>
+  <path
+     d="M 33.692843,191.12271 C 30.496902,184.66589 260.75024,59.67151 313.0477,37.907906 365.3445,16.144368 380.96096,53.722321 332.22282,76.646888 283.48468,99.570799 36.88885,197.57888 33.692843,191.12271 Z"
+     stroke="#ff0000"
+     stroke-width="1.30665"
+     stroke-miterlimit="8"
+     stroke-dasharray="2, 2"
+     fill="none"
+     fill-rule="evenodd"
+     id="path22" />
+  <path
+     d="m 28.433305,191.42716 c 0,-2.52576 2.047525,-4.57328 4.573284,-4.57328 2.525759,0 4.573284,2.04752 4.573284,4.57328 0,2.52576 -2.047525,4.57329 -4.573284,4.57329 -2.525759,0 -4.573284,-2.04753 -4.573284,-4.57329 z"
+     stroke="#000000"
+     stroke-width="1.30665"
+     stroke-miterlimit="8"
+     fill-rule="evenodd"
+     id="path24" />
+  <text
+     fill="#ff0000"
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.6798px"
+     id="text26"
+     x="357.0701"
+     y="75.135086"
+     style="stroke-width:0.653326">“Sum”</text>
+  <text
+     fill="#ff0000"
+     font-family="'Times New Roman', 'Times New Roman_MSFontService', sans-serif"
+     font-weight="400"
+     font-size="15.6798px"
+     id="text28"
+     x="360.11853"
+     y="94.081543"
+     style="stroke-width:0.653326">Strahl</text>
+</svg>

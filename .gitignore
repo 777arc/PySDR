@@ -33,6 +33,7 @@ tests/build/
 utils/regression_test.js
 
 node_modules/
+venv/
 
 .doctrees/
 figure-generating-scripts/fm_rds_250k_1Msamples.iq?raw=true

@@ -324,6 +324,352 @@ Signal-to-Interference-plus-noise verhouding (SINR) of signaal-tot-verstoring-pl
 
 Wat die verstoring inhoudt, verschilt per toepassing/situatie, maar meestal gaat het om een ander ongewenst signaal wat het signaal van interesse verstoort op zo'n manier dat het niet weg te filteren is.
 
+*********************************
+Diepere duik in stochastische variabelen
+*********************************
+
+Tot nu toe hebben we de wiskunde wat licht gehouden, maar nu doen we een stap terug en introduceren we het concept stochastische variabelen en hoe die in draadloze communicatie en SDR worden gebruikt. Een **stochastische variabele** is een wiskundig object dat uitkomsten van een willekeurig experiment op numerieke waarden afbeeldt. Stochastische variabelen beschrijven grootheden waarvan de waarde pas bekend is nadat je die observeert of meet, zoals onze ruissamples. Denk aan het gooien van een dobbelsteen. Voor de worp weet je niet welk getal valt. We kunnen een stochastische variabele :math:`X` definieren als de uitkomst van die worp. De waarde van :math:`X` ligt in {1, 2, 3, 4, 5, 6}, maar welke het wordt weten we pas na de worp.
+
+In draadloze communicatie en SDR zijn stochastische variabelen overal:
+   
+* Thermische ruis in een ontvanger wordt op elk tijdstip als stochastische variabele gemodelleerd
+* De amplitude van een ontvangen signaal met multipadfading is willekeurig
+* De fase-offset door een veranderend kanaal kan als stochastische variabele tussen :math:`0` en :math:`2\pi` worden gezien
+* Zelfs de databits die we verzenden kun je als stochastische variabelen beschouwen
+
+**Een sample versus veel samples**
+
+Dit onderscheid is cruciaal en zorgt vaak voor verwarring:
+
+* Een **enkele uitkomst** of **enkel sample** van een stochastische variabele is slechts een getal: een uitkomst van het willekeurige experiment
+* Om een stochastische variabele te karakteriseren (gemiddelde, spreiding, enz.) heb je **veel uitkomsten** nodig
+
+Roep je in Python ``np.random.randn()`` zonder argumenten aan, dan krijg je een enkel willekeurig getal uit een Gauss-verdeling. Met dat ene getal weet je vrijwel niets over de verdeling. Roep je ``np.random.randn(10000)`` aan en genereer je 10.000 samples, dan kun je eigenschappen zoals gemiddelde en variantie schatten.
+
+.. code-block:: python
+
+ import numpy as np
+
+ # Single sample - just one number
+ x_single = np.random.randn()
+ print(x_single)  # might be 0.534, -1.23, or any other value
+
+ # Many samples - now we can characterize the distribution
+ x_many = np.random.randn(10000)
+ print(np.mean(x_many))  # will be close to 0
+ print(np.var(x_many))   # will be close to 1
+
+Gezamenlijke verdelingen
+########################
+
+Tot nu toe keken we naar losse stochastische variabelen. Werk je met twee of meer stochastische variabelen tegelijk, dan gebruik je een **gezamenlijke verdeling**.
+
+Voor continue variabelen :math:`X` en :math:`Y` wordt dit beschreven door de **gezamenlijke PDF**:
+
+.. math::
+   f_{X,Y}(x,y)
+
+De gezamenlijke PDF vertelt hoe waarschijnlijk het is dat :math:`X` waarde :math:`x` aanneemt *en* :math:`Y` tegelijk waarde :math:`y`.
+
+Uit de gezamenlijke PDF kunnen we berekenen:
+
+* Marginale PDF's (bijv. :math:`f_X(x)` of :math:`f_Y(y)`)
+* Verwachtingswaarden zoals :math:`E[XY]`
+* Covariantie en correlatie
+* Kansen waarin beide variabelen voorkomen
+
+De marginale PDF van :math:`X` krijg je bijvoorbeeld door over :math:`Y` te integreren:
+
+.. math::
+   f_X(x) = \int_{-\infty}^{\infty} f_{X,Y}(x,y)\,dy
+
+Gezamenlijke verdelingen vormen de wiskundige basis om afhankelijkheid, correlatie en onafhankelijkheid tussen stochastische variabelen te begrijpen.
+
+
+Kansverdelingen
+###############
+
+Een **kansverdeling** beschrijft hoe waarschijnlijk verschillende waarden van een stochastische variabele zijn. Voor een continue stochastische variabele gebruiken we een **probability density function (PDF)**, genoteerd als :math:`f_X(x)`. De PDF geeft de relatieve waarschijnlijkheid van verschillende waarden.
+
+De belangrijkste verdeling in SDR en communicatie is de **Gauss- (normale) verdeling**. Een Gaussische stochastische variabele :math:`X` met gemiddelde :math:`\mu` en variantie :math:`\sigma^2` heeft de PDF:
+
+.. math::
+   f_X(x) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(x-\mu)^2}{2\sigma^2}}
+
+Dit is de bekende "klokvorm". De verdeling wordt volledig bepaald door twee parameters:
+
+* **Gemiddelde** :math:`\mu`: het centrum van de verdeling
+* **Variantie** :math:`\sigma^2`: de spreiding van de verdeling (standaardafwijking :math:`\sigma` is de wortel van de variantie)
+
+In Python genereert ``np.random.randn()`` samples uit een **standaard-Gaussverdeling** met :math:`\mu = 0` en :math:`\sigma^2 = 1`. Dat kunnen we visualiseren:
+
+.. code-block:: python
+
+ import numpy as np
+ import matplotlib.pyplot as plt
+
+ # Generate 10,000 samples from standard Gaussian
+ x = np.random.randn(10000)
+
+ # Create histogram to visualize the distribution
+ plt.hist(x, bins=50, density=True, alpha=0.7, edgecolor='black')
+ plt.xlabel('Value')
+ plt.ylabel('Probability Density')
+ plt.title('Gaussian Distribution (μ=0, σ²=1)')
+ plt.grid(True)
+ plt.show()
+
+.. image:: ../_images/gaussian_histogram.png
+   :scale: 80%
+   :align: center
+   :alt: Histogram of Gaussian distributed samples
+   :target: ../_images/gaussian_histogram.png
+
+Verwachtingswaarde (oftewel gemiddelde)
+#######################################
+
+De **verwachtingswaarde** van een stochastische variabele, genoteerd als :math:`E[X]` of :math:`\mu`, is de gemiddelde waarde over veel realisaties. Voor een continue stochastische variabele met PDF :math:`f_X(x)` is de verwachting:
+
+.. math::
+   E[X] = \int_{-\infty}^{\infty} x \cdot f_X(x) \, dx
+
+In de praktijk, met :math:`N` samples :math:`x_1, x_2, \ldots, x_N` uit de verdeling, schatten we de verwachting met het **steekproefgemiddelde**:
+
+.. math::
+   \hat{\mu} = \frac{1}{N} \sum_{n=1}^{N} x_n
+
+De verwachtingswaarde is een **lineaire operator**, dus:
+
+* :math:`E[aX + b] = aE[X] + b` voor constanten :math:`a` en :math:`b`
+* :math:`E[X + Y] = E[X] + E[Y]` voor willekeurige stochastische variabelen
+
+Die lineariteit is erg nuttig in signaalverwerking.
+
+Variantie en standaardafwijking
+###############################
+
+De **variantie** van een stochastische variabele, genoteerd als :math:`\text{Var}(X)` of :math:`\sigma^2`, meet hoe ver waarden rond het gemiddelde zijn uitgespreid. Definitie: de verwachtingswaarde van de gekwadrateerde afwijking van het gemiddelde.
+
+.. math::
+   \text{Var}(X) = E[(X - \mu)^2] = E[X^2] - (E[X])^2
+
+Met :math:`N` samples schatten we de variantie met:
+
+.. math::
+   \hat{\sigma}^2 = \frac{1}{N} \sum_{n=1}^{N} (x_n - \hat{\mu})^2
+
+De **standaardafwijking** :math:`\sigma` is de wortel van de variantie: :math:`\sigma = \sqrt{\sigma^2}`.
+
+Let op het :math:`\enspace \hat{} \enspace`-symbool ("hoedje") bij :math:`\sigma` en bij het steekproefgemiddelde. Dat geeft aan dat het om een schatting gaat. Die is niet exact gelijk aan de werkelijke waarde, maar benadert die steeds beter naarmate je meer samples gebruikt.
+
+**Belangrijke eigenschap:** Als :math:`X` variantie :math:`\sigma^2` heeft, dan:
+
+* Schalen: :math:`\text{Var}(aX) = a^2 \text{Var}(X)`
+* Verschuiven: :math:`\text{Var}(X + b) = \text{Var}(X)` (een constante optellen verandert de spreiding niet)
+
+En dus voor standaardafwijking :math:`\sigma`:
+
+* Schalen: :math:`\sigma(aX) = a\sigma(X)`
+* Verschuiven: :math:`\sigma(X+b) = \sigma(X)`
+
+.. image:: ../_images/gaussian_transformed.png
+   :scale: 80%
+   :align: center
+   :alt: Scaling and shifting the Gaussian Distribution. (notice the scales on x and y axes) 
+   :target: ../_images/gaussian_transformed.png
+
+Schalen en verschuiven van de Gaussverdeling (let op de asschalen van x en y).
+
+**Variantie en vermogen**
+
+In signaalverwerking geldt voor een **nulgemiddeld** signaal (gemiddelde ~ 0) dat de variantie gelijk is aan het **gemiddelde vermogen**. Daarom gebruiken we die termen vaak door elkaar:
+
+.. math::
+   P = \text{Var}(X) = E[X^2] \quad \text{(when } E[X] = 0\text{)}
+
+Deze relatie is fundamenteel bij analyse van ruisvermogen, signaal-ruisverhouding (SNR) en linkbudgets.
+
+.. code-block:: python
+
+ noise_power = 2.0
+ n = np.random.randn(N) * np.sqrt(noise_power)
+ print(np.var(n))  # will be approximately 2.0
+
+Covariantie
+###########
+
+De **covariantie** tussen twee stochastische variabelen :math:`X` en :math:`Y` is gedefinieerd als:
+
+.. math::
+   \text{Cov}(X,Y) = E[(X - E[X])(Y - E[Y])]
+
+Een equivalente en vaak handigere vorm is:
+
+.. math::
+   \text{Cov}(X,Y) = E[XY] - E[X]E[Y]
+
+Covariantie meet hoe twee variabelen samen variëren:
+
+* Positieve covariantie: ze nemen meestal samen toe of af
+* Negatieve covariantie: als de ene toeneemt, neemt de andere vaak af
+* Nul covariantie: ze zijn ongecorreleerd
+
+Als beide variabelen nulgemiddeld zijn, vereenvoudigt dit tot:
+
+.. math::
+   \text{Cov}(X,Y) = E[XY]
+
+Covariantie heeft een eenheid (is niet genormaliseerd), daarom gebruiken we in de praktijk vaak de **correlatiecoefficient** (of gewoon correlatie):
+
+.. math::
+   \rho_{XY} = \frac{\text{Cov}(X,Y)}{\sigma_X \sigma_Y}
+
+Dit levert een dimensieloze waarde tussen -1 en +1.
+
+Variantie van een som van variabelen
+####################################
+
+In signaalverwerking werken we vaak met sommen van stochastische variabelen, zoals signaal plus ruis:
+
+.. math::
+   Z = X + Y
+
+De variantie van die som hangt af van of :math:`X` en :math:`Y` onafhankelijk zijn (of algemener: gecorreleerd).
+
+In de algemene vorm:
+
+.. math::
+   \text{Var}(X + Y) = \text{Var}(X) + \text{Var}(Y) + 2\,\text{Cov}(X,Y)
+
+waar :math:`\text{Cov}(X,Y)` de **covariantie** tussen :math:`X` en :math:`Y` is.
+
+**Onafhankelijk geval**
+
+Als :math:`X` en :math:`Y` onafhankelijk zijn (of eenvoudiger: ongecorreleerd), dan vereenvoudigt dit tot:
+
+.. math::
+   \text{Var}(X + Y) = \text{Var}(X) + \text{Var}(Y)
+
+Dit resultaat is erg belangrijk in communicatiesystemen. Bijvoorbeeld, als een ontvangen signaal is:
+
+.. math::
+   R = S + N
+
+waar :math:`S` het signaal is en :math:`N` onafhankelijke ruis, dan is het totale vermogen simpelweg de som van signaal- en ruisvermogen.
+
+Daarom zijn SNR-berekeningen zo rechttoe rechtaan.
+
+****************************
+Complexe stochastische variabelen
+****************************
+
+In SDR werken we veel met **complexe signalen**, dus ook met complexe stochastische variabelen. Zo'n variabele heeft de vorm:
+
+.. math::
+   Z = X + jY
+
+waar :math:`X` en :math:`Y` reele stochastische variabelen zijn voor de in-phase (I) en quadratuur (Q)-component.
+
+**Complexe Gaussische ruis**
+
+De meest voorkomende complexe stochastische variabele in draadloze communicatie is **complexe Gaussische ruis**, waarbij :math:`X` en :math:`Y` onafhankelijke Gaussische variabelen met dezelfde variantie zijn.
+
+Als bijvoorbeeld :math:`X \sim \mathcal{N}(\alpha_1, \sigma_1^2)` en :math:`Y \sim \mathcal{N}(\alpha_2, \sigma_2^2)` onafhankelijk zijn, dan heeft :math:`Z = X + jY`:
+
+* Gemiddelde: :math:`E[Z] = E[X] + jE[Y] = \alpha_1 + j\alpha_2`
+* Variantie (vermogen): :math:`\text{Var}(Z) = \text{Var}(X) + \text{Var}(Y) = \sigma_1^2 + \sigma_2^2`
+
+.. image:: ../_images/gaussian_IQ.png
+   :scale: 80%
+   :align: center
+   :alt: Complex Gaussian noise visualized as two independent Gaussian random variables on the I and Q axes
+   :target: ../_images/gaussian_IQ.png
+
+Daarom gebruiken we bij complexe Gaussische ruis met eenheidsvermogen (variantie = 1):
+
+.. code-block:: python
+
+ N = 10000
+ n = (np.random.randn(N) + 1j*np.random.randn(N)) / np.sqrt(2)
+ print(np.var(n))  # ~ 1
+
+De deling door :math:`\sqrt{2}` zorgt dat het totale vermogen (som van I- en Q-variantie) gelijk is aan 1.
+
+.. code-block:: python
+
+ # Without normalization:
+ n_raw = np.random.randn(N) + 1j*np.random.randn(N)
+ print(np.var(np.real(n_raw)))  # ~ 1
+ print(np.var(np.imag(n_raw)))  # ~ 1
+ print(np.var(n_raw))            # ~ 2 (total power)
+
+ # With normalization:
+ n_norm = n_raw / np.sqrt(2)
+ print(np.var(n_norm))           # ~ 1 (unit power)
+
+****************
+Toevalsprocessen
+****************
+
+Tot nu toe bespraken we stochastische variabelen: willekeurige waarden op een enkel punt. Een **toevalsproces** (ook wel **stochastisch proces**) is een verzameling stochastische variabelen geindexeerd door de tijd:
+
+.. math::
+   X(t) \quad \text{or} \quad X[n] \text{ for discrete time}
+
+Op elk tijdstip :math:`t` is :math:`X(t)` een stochastische variabele. Zie een toevalsproces als een signaal dat in de tijd willekeurig evolueert.
+
+Voorbeelden in draadloze communicatie:
+
+* Ruis in de ontvanger: :math:`N(t)` of :math:`N[n]`
+* Een signaal met tijdsafhankelijke fading: :math:`H(t)S(t)`
+* Samples uit een SDR: elke batch is een realisatie van een toevalsproces
+
+**Stationaire processen**
+
+Een toevalsproces is **stationair** als de statistische eigenschappen niet in de tijd veranderen. In het bijzonder heeft een **wide-sense stationary (WSS)** proces:
+
+* Constant gemiddelde: :math:`E[X(t)] = \mu` voor alle :math:`t`
+* Autocorrelatie die alleen van tijdsverschil afhangt: :math:`E[X(t)X(t+\tau)]` hangt alleen van :math:`\tau` af, niet van :math:`t`
+
+Veel ruisbronnen in draadloze systemen zijn ongeveer stationair, wat de analyse sterk vereenvoudigt.
+
+**Witte ruis**
+
+**Witte ruis** is een toevalsproces waarbij samples op verschillende tijdstippen ongecorreleerd zijn en de vermogensspectrale dichtheid over alle frequenties constant is. Additive White Gaussian Noise (AWGN) is tegelijk:
+
+* **White**: ongecorreleerd in de tijd, vlak spectrum
+* **Gaussian**: elke sample is Gaussisch verdeeld
+
+Als we in Python ruis maken met ``np.random.randn(N)``, is elke van de :math:`N` samples een onafhankelijke Gaussische stochastische variabele, samen een wit-ruisproces.
+
+
+Onafhankelijkheid en correlatie
+###############################
+
+Twee stochastische variabelen :math:`X` en :math:`Y` zijn **onafhankelijk** als kennis van de ene niets zegt over de andere. Wiskundig factoriseert dan de gezamenlijke PDF:
+
+.. math::
+   f_{X,Y}(x,y) = f_X(x) \cdot f_Y(y)
+
+Onafhankelijkheid is een sterke voorwaarde. Een zwakkere voorwaarde is **ongecorreleerd**, wat betekent:
+
+.. math::
+   E[XY] = E[X]E[Y]
+
+Voor Gaussische stochastische variabelen impliceert ongecorreleerd ook onafhankelijk (een speciale eigenschap van Gaussische variabelen).
+
+Bij complexe Gaussische ruis zijn de I- en Q-component onafhankelijk:
+
+.. code-block:: python
+
+ N = 10000
+ I = np.random.randn(N)
+ Q = np.random.randn(N)
+
+ # Check independence via correlation
+ correlation = np.corrcoef(I, Q)[0, 1]
+ print(f"Correlation between I and Q: {correlation:.4f}")  # ~ 0
+
 *************************
 Extra leesmateriaal
 *************************

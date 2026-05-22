@@ -821,6 +821,18 @@ De eerder besproken FSM- en TSM-technieken werken uitstekend, vooral als je een 
 
 De minimale Python-code voor FAM is eigenlijk vrij compact, al is de koppeling met de wiskunde minder direct omdat we niet meer over alpha itereren. Net als bij TSM splitsen we het signaal op in tijdvensters met overlap. Op elk sampleblok passen we een Hanning-venster toe. In het FAM-algoritme zitten twee FFT-stappen; de eerste gebeurt op een 2D-array, dus veel FFT's worden in een regel uitgevoerd. Na een frequentieverschuiving voeren we een tweede FFT uit om de SCF op te bouwen (daarna nemen we de magnitude in het kwadraat). Voor meer detail zie de externe bronnen onderaan deze sectie.
 
+.. mermaid::
+
+   flowchart TD
+      A[Input samples] --> B[Opsplitsen in overlappende vensters]
+      B --> C[Hanning venster toepassen]
+      C --> D[Eerste FFT over elk venster]
+      D --> E[Frequentieverschuiving]
+      E --> F[Tweede FFT]
+      F --> G[Magnitude in het kwadraat nemen]
+      G --> H[SCF benadering]
+
+
 .. code-block:: python
 
     N = 2**14

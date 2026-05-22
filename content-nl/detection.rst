@@ -16,9 +16,9 @@ Basis van Signaaldetectie en Correlators
 
 Signaaldetectie is de taak waarbij wordt besloten of een waargenomen energiepiek een betekenisvol signaal is of alleen achtergrondruis.
 
-De Uitdaging - In systemen zoals radar of sonar is ruis overal aanwezig. Als de detector te gevoelig is, krijg je "valse alarmen". Is hij niet gevoelig genoeg, dan "mist" hij het echte doel.
+De Uitdaging: In systemen zoals radar of sonar is ruis overal aanwezig. Als de detector te gevoelig is, krijg je "valse alarmen". Is hij niet gevoelig genoeg, dan "mist" hij het echte doel.
 
-De Oplossingen - De eerste en eenvoudigste optie is de Neyman-Pearson-detector, die een wiskundige "sweet spot" geeft: maximale kans op detectie bij een strikt begrensde kans op vals alarm. CFAR-detectors (CFAR: Constant False Alarm Rate) bouwen hierop voort door adaptief te reageren op veranderingen in het ruisniveau. Meer specifiek worden CFAR-detectors gebruikt wanneer de ruisstatistiek niet stationair is, dus wanneer ruisvloer en ruisverdeling veranderen door interferentie en veranderende kanaalomstandigheden. Het doel is om de detectiedrempel automatisch mee te laten bewegen met de achtergrondruis, zodat een gewenste vals-alarmkans behouden blijft. Dat vereist een continue schatting van de ruisvloer.
+De oplossing begint met de Neyman-Pearson-detector, die een wiskundige "sweet spot" geeft: maximale kans op detectie bij een strikt begrensde kans op vals alarm. CFAR-detectors (CFAR: Constant False Alarm Rate) bouwen hierop voort door adaptief te reageren op veranderingen in het ruisniveau. Meer specifiek worden CFAR-detectors gebruikt wanneer de ruisstatistiek niet stationair is, dus wanneer ruisvloer en ruisverdeling veranderen door interferentie en veranderende kanaalomstandigheden. Het doel is om de detectiedrempel automatisch mee te laten bewegen met de achtergrondruis, zodat een gewenste vals-alarmkans behouden blijft. Dat vereist een continue schatting van de ruisvloer.
 
 Zodra een systeem weet dat er iets aanwezig is, moet het precies bepalen waar de data start. Digitale pakketten in LTE, 5G en wifi beginnen met een "preamble": een bekend en herhaald patroon. Een preamble-correlator werkt als een "slot-en-sleutel"-mechanisme, waarbij de sleutel een symboolreeks is die de ontvanger kent en die uniek is voor het te herstellen signaal. Door een kopie van die preamble over het inkomende signaal te schuiven en op elke vertraging een inwendig product te nemen, meet de ontvanger de overeenkomst tussen sjabloon en ontvangen reeks. Als beide bijna perfect uitlijnen, ontstaat een scherpe piek die exact aangeeft waar de data begint. Geavanceerde varianten houden ook rekening met frequentie-offset door afstemverschillen of Doppler-verschuiving.
 
@@ -136,6 +136,247 @@ De ROC-curve zet :math:`P_{d}` uit tegen :math:`P_{fa}` bij vaste SNR. Door de d
    :alt: Pd vs SNR Curve and ROC curve
 
 Uit de vergelijkingen (en intuïtie) volgt dat preamblelengte :math:`L` een cruciale ontwerpparameter is, omdat die direct de processing gain en daarmee de detectieprestatie bepaalt. Bij vaste drempel en SNR groeit :math:`P_{D}` met :math:`L`. Een langere preamble verzamelt meer signaalenergie, waardoor scheiding tussen signaal en achtergrondruis eenvoudiger wordt. Deze prestatieverbetering heet "processing gain" en wordt vaak in dB uitgedrukt als :math:`10\log_{10}(L)`. Dit is essentieel voor zwakke signalen die anders gemist worden. Door energie over meer samples te integreren kun je signalen detecteren die onder de ruisvloer liggen.
+
+
+****************************************************
+Voorbeeld: GPS-signalen detecteren onder de ruisvloer
+****************************************************
+
+Korte introductie tot GPS-signalen
+##################################
+
+In maart 2026 waren er 31 operationele satellieten in de Amerikaanse GPS-constellatie. Ze vliegen in medium Earth orbit (MEO) rond de aarde en doen ongeveer twee omwentelingen per dag. Alle satellieten zenden een signaal uit rond 1575.42 MHz (L1); dit signaal staat continu aan en gebruikt voor alle satellieten dezelfde draagfrequentie. Tegen de tijd dat het signaal het aardoppervlak bereikt is het extreem zwak, ruim onder de ruisvloer. Orthogonaliteit tussen satellieten wordt bereikt doordat elke satelliet een unieke PRN-code (pseudo-random noise) van 1023 chips krijgt, de C/A-code. Daarom zie je dit signaal ook vaak als "L1 C/A". Deze C/A-codes zijn Gold-codes en zo ontworpen dat twee verschillende codes vrijwel orthogonaal zijn; correleer je twee verschillende satellietcodes met elkaar, dan krijg je bijna nul. De C/A-code loopt op 1.023 miljoen chips per seconde en is 1023 chips lang, dus herhaalt exact elke 1 ms. Boven op die herhalende code moduleert elke satelliet langzaam navigatiedata (baaninformatie, klokcorrecties, enz.) met slechts 50 bits/s, waardoor een databit 20 volledige coderepetities beslaat. Dit principe van een andere code per zender heet CDMA (Code Division Multiple Access), hetzelfde idee als achter 3G.
+
+Aan de ontvangerkant gebruikt de ontvanger, om een van de 31 satellieten te vinden, de code van die satelliet en genereert lokaal een kopie van de PRN-sequentie. Vervolgens gebruikt hij een correlator om het begin van de sequentie te vinden, vergelijkbaar met het begin van een pakket/frame, al zendt GPS in de praktijk continu uit. De exacte correlatiepiek wordt ook gebruikt om te bepalen hoe ver het signaal heeft afgelegd voor het de ontvanger bereikt. Als je dit voor 4 of meer satellieten doet, kan de ontvanger via trilateratie zijn positie op aarde bepalen. Omdat satellieten zo snel bewegen (ongeveer 4 km/s relatief), is er bovendien aanzienlijke Dopplerverschuiving. Daarom moet de ontvanger ook over een raster van mogelijke frequentie-offsets zoeken naar de beste correlatiepiek, feitelijk een 2D-zoekprobleem. De maximale Dopplerverschuiving is ongeveer +/-20 kHz (:code:`4e3 / 3e8 * 1.575e9`). Dit proces herhaalt elke 1 ms, al houdt de ontvanger de tijdsverschillen en Dopplerverschuiving daarna bij zodat niet telkens een volledige zoekactie nodig is. Het eerste vinden van een satelliet heet "acquisition", en het daarna volgen van het signaal heet "tracking". Acquisition is rekenintensiever en kan minuten duren bij een "cold start", wanneer de ontvanger nog geen informatie heeft over zichtbare satellieten, hun Doppler of de eigen locatie.
+
+Correlatie-aanpak
+#################
+
+We kruiscorreleren het binnenkomende signaal (hier: een L1-opname) met een lokaal gegenereerde replica van de code van elke satelliet. Een grote correlatiepiek betekent dat die satelliet zichtbaar is en geeft de start van de 1 ms codeperiode. Om ook over frequentie te zoeken en Doppler mee te nemen, gebruiken we een FFT en voeren we de correlatie uit in het frequentiedomein. Daardoor kunnen we efficient meerdere frequentie-offsets testen door de FFT-bins van de lokale codereplica te verschuiven. Tot slot accumuleren we vermogen (correlatiemagnitude in het kwadraat) over meerdere 1 ms-blokken om de SNR te verbeteren. Dat heet non-coherente integratie en helpt om GPS-signalen onder de ruisvloer te detecteren. In het tijddomein zoeken we de pieken in de correlatie-uitgang gedeeld door het gemiddelde correlatievermogen over alle delays, als normalisatie.
+
+Voorbeeldopname
+###############
+
+We gebruiken een voorbeeldopname van GPS van Daniel Estevez, die je `hier kunt downloaden <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/GPS_L1_recording_10ms_4MHz_cf32.iq>`_. Het bestand is complex float32 met 4 MHz samplerate en gecentreerd op 1575.42 MHz.
+
+Hieronder zie je het spectrogram van de opname; er is niet veel zichtbaar. De verticale lijn is niet het GPS-signaal zelf, maar waarschijnlijk smalbandige interferentie. De werkelijke GPS L1-signalen gebruiken een chiprate van 1.023 MHz met daarbovenop een signaal met zeer lag datarate, waardoor de totale signaalbandbreedte ongeveer 2 MHz is. Dat zie je hier nauwelijks terug in het spectrogram. Dit is een goed voorbeeld van hoe GPS-signalen ruim onder de ruisvloer binnenkomen en waarom correlatiegebaseerde detectie noodzakelijk is.
+
+.. image:: ../_images/detection_gps_spectrogram.svg
+   :align: center 
+   :target: ../_images/detection_gps_spectrogram.svg
+    :alt: Spectrogram van GPS L1-opname
+
+Voor wie verder wil kijken: deze opname is een klein deel van een veel groter bestand op `IQEngine <https://iqengine.org/>`_, onder :code:`estevez/GPS and other GNSS`, met opname :code:`GPS-L1-2022-03-27`. Op IQEngine staat die als int16 in SigMF-formaat.
+
+Python-voorbeeld
+################
+
+Pas :code:`filename` aan naar de locatie waar je het IQ-bestand hebt opgeslagen. Let op dat :code:`num_integrations` bepaalt hoeveel van de IQ-opname wordt ingelezen en verwerkt: die waarde maal 1 ms (bij deze korte opname is 10 de maximale waarde).
+
+.. code-block:: python
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    filename = "GPS_L1_recording_10ms_4MHz_cf32.iq"
+    sample_rate = 4e6
+    chip_rate = 1023000 # chips / sec (part of the GPS spec)
+    num_chips = 1023 # chips per C/A code period
+    samples_per_code = int(round(sample_rate / chip_rate * num_chips))  # Exact number of samples in one 1 ms code period at 4 MHz
+    doppler_min_hz = -5e3 # GPS Doppler ≈ ±4 kHz for stationary receiver
+    doppler_max_hz = 5e3
+    doppler_step_hz = 500 # good enough for a coarse search
+    num_integrations = 10 # non-coherent power integrations (so 10 ms total), determines how much of the IQ recording we read in and process!
+    detection_thresh_dB =  14.0 # Peak-to-mean ratio (PMR) threshold in dB to declare a detection, GPS C/A signals are typically 14–20 dB PMR above threshold with 10ms of integration
+    gps_svs = list(range(1, 33)) # 1–32
+
+    ##### C/A Code Generation #####
+    # The GPS C/A code is a Gold code formed by XOR-ing two 10-stage maximal-length
+    # shift registers (G1 and G2).  G2 is effectively delayed by a satellite-
+    # specific number of chips before the XOR
+    # Reference: IS-GPS-200, Table 3-Ia
+    G2_DELAY = [ # G2 phase delay (chips) for gps_svs 1–32
+        5,   6,   7,   8,  17,  18, 139, 140,   #  1– 8
+        141, 251, 252, 254, 255, 256, 257, 258,   #  9–16
+        469, 470, 471, 472, 473, 474, 509, 512,   # 17–24
+        513, 514, 515, 516, 859, 860, 861, 862,   # 25–32
+    ]
+
+    """G1 LFSR: polynomial x^10 + x^3 + 1, all-ones init, output at stage 10."""
+    reg = np.ones(10, dtype=np.int8)
+    G1 = np.empty(num_chips, dtype=np.int8)
+    for i in range(num_chips):
+        G1[i] = reg[9]
+        fb = reg[2] ^ reg[9] # stages 3 and 10 (0-indexed: 2 and 9)
+        reg = np.roll(reg, 1)
+        reg[0] = fb
+
+    """G2 LFSR: polynomial x^10+x^9+x^8+x^6+x^3+x^2+1, all-ones init."""
+    reg = np.ones(10, dtype=np.int8)
+    G2 = np.empty(num_chips, dtype=np.int8)
+    for i in range(num_chips):
+        G2[i] = reg[9]
+        fb = reg[1]^reg[2]^reg[5]^reg[7]^reg[8]^reg[9]  # taps 2,3,6,8,9,10
+        reg = np.roll(reg, 1)
+        reg[0] = fb
+
+    # 1023-chip C/A PRN code for SV sv (1-32) as float32, 1's and -1's, so BPSK
+    def make_prn(sv: int) -> np.ndarray:
+        g2_delayed = np.roll(G2, G2_DELAY[sv - 1])
+        bits = G1 ^ g2_delayed           # {0, 1}
+        return (1 - 2 * bits).astype(np.float32)   # BPSK: {+1, −1}
+
+    def upsample_prn(sv: int) -> np.ndarray:
+        """Nearest-neighbour upsample 1023-chip C/A code → samples_per_code samples."""
+        code = make_prn(sv)
+        idx = (np.arange(samples_per_code) * num_chips / samples_per_code).astype(int)
+        return code[idx]
+
+    # Pre-compute template signals - conjugate FFTs of all upsampled PRN codes
+    template_signals = {sv: np.conj(np.fft.fft(upsample_prn(sv))) for sv in gps_svs}
+
+    # Read in IQ file
+    n_needed = samples_per_code * num_integrations
+    iq = np.fromfile(filename, dtype=np.complex64, count=n_needed)
+    # For the full version from IQEngine use the following instead
+    #iq = np.fromfile(filename, dtype=np.int16, count=n_needed * 2)
+    #iq = (iq[0::2] + 1j * iq[1::2]).astype(np.complex64)
+
+    # Loop through satellites performing acquisition
+    results = []
+    detected = []
+    print(f"  {'SV':>3}  {'Doppler (Hz)':>13}  {'Phase (chips)':>14}"
+            f"  {'Phase (samp)':>13}  {'Delay (µs)':>11}  {'PMR (dB)':>9}")
+    doppler_bins = np.arange(doppler_min_hz, doppler_max_hz + doppler_step_hz, doppler_step_hz)
+    for sv in gps_svs:
+        corr_map = np.zeros((len(doppler_bins), samples_per_code))
+        n_total = samples_per_code * num_integrations
+        for di, f_d in enumerate(doppler_bins):
+            t = np.arange(n_total) / sample_rate # time vector
+            mixed = iq[:n_total] * np.exp(-2j*np.pi*float(f_d)*t) # freq shift
+
+            # Non-coherent integration: accumulate squared correlation magnitude
+            for k in range(num_integrations):
+                blk = mixed[k * samples_per_code:(k + 1) * samples_per_code]
+                sig_fft = np.fft.fft(blk)
+                corr = np.fft.ifft(sig_fft * template_signals[sv]) # cross-correlation in freq domain
+                corr_map[di] += np.abs(corr)**2
+
+        # Normalize by mean and convert to dB
+        peak_val = float(np.max(corr_map))
+        mean_val = float(np.mean(corr_map))
+        pmr_db = 10.0 * np.log10(peak_val / mean_val)
+
+        peak_idx = np.unravel_index(np.argmax(corr_map), corr_map.shape)
+        best_doppler_hz   = float(doppler_bins[peak_idx[0]])
+        best_phase_samp   = int(peak_idx[1])
+        best_phase_chips  = best_phase_samp * num_chips / samples_per_code
+
+        r = {
+            "sv": sv,
+            "detected": pmr_db >= detection_thresh_dB,
+            "doppler_hz": best_doppler_hz,
+            "code_phase_samp": best_phase_samp, # sample offset = "start of packet"
+            "code_phase_chip": best_phase_chips,
+            "pmr_db": pmr_db,
+            "corr_map": corr_map,
+            "doppler_bins": doppler_bins,
+        }
+        results.append(r)
+
+        # Print row
+        delay_us = r['code_phase_samp'] / sample_rate * 1e6
+        flag = "  ← DETECTED" if r['detected'] else ""
+        print(f"  {sv:>3}  {r['doppler_hz']:>+13.0f}  {r['code_phase_chip']:>14.2f}"
+            f"  {r['code_phase_samp']:>13d}  {delay_us:>11.3f}  {r['pmr_db']:>9.1f}{flag}")
+
+Dit zou de volgende uitvoer moeten geven:
+
+.. code-block::
+
+   SV   Doppler (Hz)   Phase (chips)   Phase (samp)   Delay (µs)   PMR (dB)
+    1          -3000          757.79           2963      740.750        5.6
+    2          +1500          264.19           1033      258.250        9.1
+    3          -2000          316.62           1238      309.500        5.8
+    4          +5000          577.48           2258      564.500        5.0
+    5          +1000           64.96            254       63.500        5.3
+    6          +1500          511.76           2001      500.250        5.0
+    7          -4000          763.41           2985      746.250        5.0
+    8          +3500          961.62           3760      940.000        5.4
+    9          +3500          118.67            464      116.000        4.9
+   10             +0          890.52           3482      870.500        5.4
+   11          +2500          837.33           3274      818.500       14.6  ← GEDETECTEERD
+   12           -500          871.60           3408      852.000       16.4  ← GEDETECTEERD
+   13          +1000          137.85            539      134.750        5.9
+   14          +2500          287.72           1125      281.250        5.0
+   15          -5000          908.68           3553      888.250        5.3
+   16          +1500          292.58           1144      286.000        5.9
+   17           +500          994.61           3889      972.250        5.3
+   18          +4500         1005.61           3932      983.000        5.4
+   19          +5000          588.48           2301      575.250        5.0
+   20             +0          768.53           3005      751.250        5.4
+   21          -3000          749.60           2931      732.750        5.0
+   22          +2500          558.05           2182      545.500       14.4  ← GEDETECTEERD
+   23          -5000          390.02           1525      381.250        5.3
+   24          +2500          955.48           3736      934.000        5.9
+   25          +1500          597.94           2338      584.500       15.5  ← GEDETECTEERD
+   26          -1500          239.89            938      234.500        6.2
+   27          -2500          488.74           1911      477.750        4.7
+   28          +3000          858.81           3358      839.500        5.2
+   29          -4000          998.70           3905      976.250        5.2
+   30          -2000          937.58           3666      916.500        5.2
+   31          +5000          463.42           1812      453.000       15.9  ← GEDETECTEERD
+   32          +1000          342.45           1339      334.750       16.2  ← GEDETECTEERD
+
+Zoals je ziet detecteren we 6 satellieten. Hoewel onze drempel op 14.0 staat, kun je uit de lijst vrij duidelijk afleiden dat de meeste andere satellieten niet zichtbaar waren, met mogelijk uitzondering van SV-2, die waarschijnlijk net onder de drempel bleef. Voor wie dit wil verifiëren: de opname is gemaakt op 2022-03-27T11:32:04 ergens in Spanje.
+
+Plotten
+#######
+
+Laten we de resultaten van satelliet 11, de eerste die we detecteerden, plotten. De eerste plot is de 2D-correlatiekaart over Doppler en tijd/delay. De tweede plot is een doorsnede van die correlatiekaart bij de beste Doppler-bin, en toont correlatievermogen over de tijd zoals in de vorige sectie.
+
+.. code-block:: python
+
+    # Plotting
+    sv = 11 # we detected 11, 12, 22, 25, 31, 32 although try looking at one we didnt find as well!
+    r = results[sv - 1] # print the dict of results for this SV to see what we got
+    cmap = r['corr_map'] # 2-D array of correlation power vs Doppler and code phase
+    d_bins = r['doppler_bins'] # Doppler bins corresponding
+    chips_axis = np.arange(samples_per_code) * num_chips / samples_per_code
+
+    # 2-D Doppler × code-phase map
+    plt.figure(0, figsize=(10, 6))
+    im = plt.pcolormesh(chips_axis, d_bins, cmap, shading='auto', cmap='viridis')
+    plt.xlabel("Code Phase (chips)")
+    plt.ylabel("Doppler (Hz)")
+    plt.title(f"SV {sv}  —  2-D Acquisition Map  (PMR = {r['pmr_db']:.1f} dB)")
+    plt.legend(fontsize=8, loc='upper right')
+    plt.colorbar(im, label="Correlation Power")
+
+    # code-phase slice at best Doppler
+    best_di = int(np.argmin(np.abs(d_bins - r['doppler_hz'])))
+    plt.figure(1, figsize=(10, 6))
+    plt.plot(chips_axis, cmap[best_di], lw=1, color='steelblue')
+    plt.xlabel("Code Phase (chips)")
+    plt.ylabel("Correlation Power")
+    plt.title(f"SV {sv}  —  Code-Phase Slice  (Doppler = {r['doppler_hz']:+.0f} Hz)")
+    plt.legend(fontsize=8)
+    plt.grid(True, alpha=0.3)
+
+    plt.show()
+
+.. image:: ../_images/detection_gps_2d_map.png
+   :align: center 
+   :width: 700px
+    :alt: 2D-acquisitiekaart
+
+.. image:: ../_images/detection_gps_code_phase_slice.svg
+   :align: center 
+   :target: ../_images/detection_gps_code_phase_slice.svg
+    :alt: Doorsnede van codefase
+
+We gaan hier niet dieper in op het trilateratieproces, maar juist de exacte positie van die piek maakt het mogelijk om de afstand tot de satelliet te bepalen. Combineer je die informatie van 4 of meer satellieten, dan kan de ontvanger zijn positie op aarde berekenen.
+
 
 ****************************************************
 CFAR-detectors: Robuust in Veranderende Omgevingen
@@ -436,40 +677,16 @@ Implementatie
 
 Onze detector volgt deze workflow:
 
-.. code-block:: text
+.. mermaid::
 
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Continue IQ-stroom van SDR (bijv. 1 MHz sample rate)       │
-    └────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Buffer-opbouw (bijv. 100k samples = 0,1 s)                 │
-    └────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Kruiscorrelatie met bekende preamble                       │
-    │  → Levert correlatie versus sample-index op                 │
-    └────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  CFAR-drempelberekening                                     │
-    │  → Adaptieve drempel die de ruisvloer volgt                 │
-    └────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Piekdetectie (correlatie > drempel)                        │
-    │  → Lijst met kandidaat startindices van pakketten           │
-    └────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  Pakketextractie & validatie                                │
-    │  → Samples uitknippen, doorgeven aan demodulator            │
-    └─────────────────────────────────────────────────────────────┘
+ flowchart TD
+    A("Continue IQ-stroom van SDR  <br/>(1 MHz sample rate)")
+    B("Buffer-opbouw <br/> (bijv. 100k samples = 0,1 s)")
+    C("Kruiscorrelatie met bekende preamble")
+    D("CFAR-drempelberekening")
+    E("Piekdetectie<br/>(correlatie > drempel)")
+    F("Pakketextractie & validatie")
+    A --> B --> C --> D --> E --> F
 
 Om pakketten die over buffergrenzen gaan niet te missen gebruiken we een **overlap-save**-aanpak, waarbij elke buffer de laatste ``N_preamble`` samples van de vorige buffer bevat. Zo zit elk pakket dat aan het einde van buffer ``i`` start volledig in buffer ``i+1``. Dat kost iets extra rekentijd, maar voorkomt gemiste pakketten op buffergrenzen.
 
@@ -825,7 +1042,7 @@ Stap 7: Visualiseer Resultaten
     axes[2].legend()
     
     plt.tight_layout()
-    plt.savefig('../_images/detection_realtime.svg', bbox_inches='tight')
+    
     plt.show()
 
 De visualisatie zou het volgende moeten laten zien:
@@ -834,10 +1051,10 @@ De visualisatie zou het volgende moeten laten zien:
 2. **Middelste plot**: correlatie-output met adaptieve CFAR-drempel die de ruisvloer volgt
 3. **Onderste plot**: gedetecteerde pakketten gemarkeerd als pieken boven de drempel
 
-.. image:: ../_images/detection_realtime.svg
-   :align: center 
-   :target: ../_images/detection_realtime.svg
-    :alt: Realtime pakketdetectieresultaten
+.. image:: ../_images/detection_realtime.png
+   :align: center
+   :scale: 50 % 
+   :alt: Real-time packet detection results
 
 Praktische Overwegingen en Tuning
 ####################################

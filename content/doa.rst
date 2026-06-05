@@ -1072,9 +1072,9 @@ We get the following beam pattern.  You may notice nulls in positions that you d
    :target: ../_images/null_steering.svg
    :alt: Example of null steering beamforming
 
-*******************
+*****
 MUSIC
-*******************
+*****
 
 We will now change gears and talk about a different kind of beamformer. All of the previous ones have fallen in the "delay-and-sum" category, but now we will dive into "sub-space" methods.  These involve dividing the signal subspace and noise subspace, which means we must estimate how many signals are being received by the array, to get a good result.  MUltiple SIgnal Classification (MUSIC) is a very popular sub-space method that involves calculating the eigenvectors of the covariance matrix (which is a computationally intensive operation by the way).  We split the eigenvectors into two groups: signal sub-space and noise-subspace, then project steering vectors into the noise sub-space and steer for nulls.  That might seem confusing at first, which is part of why MUSIC seems like black magic!
 
@@ -1135,6 +1135,71 @@ Another experiment worth trying with MUSIC is to see how close two signals can a
 .. image:: ../_images/doa_music_animation.gif
    :scale: 100 %
    :align: center
+
+**********
+Root MUSIC
+**********
+
+Every DOA technique we have covered so far, including conventional beamforming, MVDR, and MUSIC itself, works by sweeping through a grid of candidate angles and computing a metric at each one (often in parallel).  Root MUSIC eliminates that scan entirely!  Instead of searching for peaks in a spectrum, it finds the signal directions analytically by solving for the roots of a polynomial.  This gives Root MUSIC potential to be both faster and more precise than spectral MUSIC, since the peak location is no longer limited by the angular resolution of your scan grid.  One limitation of Root MUSIC is that it only works for a ULA; for 2D arrays or non-ULA 1D arrays there are variations/extensions of Root MUSIC that can be used, but they are far more complex.  We also still need :code:`num_expected_signals` just like in MUSIC, which can be seen as a limitation.
+
+Root MUSIC takes advantage of the fact that a ULA's steering vector has a clean Vandermonde structure, which is any vector (or matrix) where each row is built by taking successive powers of some base value, e.g. :code:`[1, x, x², x³, ..., x^(n-1)]`.  With half-wavelength element spacing the steering vector elements are just consecutive powers of a single complex number :math:`z = e^{j\pi\sin\theta}`, as we saw at the beginning of this chapter.
+
+To perform Root MUSIC, we form a polynomial from the noise-subspace projection matrix.  We use the same MUSIC cost function as in the previous section, but now it takes the form:
+
+.. math::
+ P(z) = z^{N_r-1} \, s^H(z) \, V_n V_n^H \, s(z)
+
+where :math:`V_n` is the noise-subspace matrix from the eigendecomposition of the covariance matrix :math:`R`, exactly as in MUSIC.  Expanding the product yields a polynomial of degree :math:`2(N_r-1)`.  Wherever :math:`P(z)` has a root on the unit circle :math:`|z|=1`, the MUSIC cost would be infinite, meaning that point is a signal direction.  In practice, with finite samples, the roots don't land exactly on the unit circle but cluster just inside it, so we look for the :math:`D` roots (where :math:`D` is the number of expected signals) that are closest to the unit circle.
+
+The polynomial coefficients are built by summing the diagonals of the noise-subspace projection matrix :math:`D = V_n V_n^H`:
+
+.. math::
+ p_k = \sum_{\substack{m,n=0 \\ n-m = k-(N_r-1)}}^{N_r-1} [D]_{m,n}, \quad k = 0, 1, \ldots, 2(N_r-1)
+
+which is simply the sum along the :math:`(k-(N_r-1))`-th diagonal of :math:`D`.  Once we have the polynomial :math:`P(z) = p_0 + p_1 z + \cdots + p_{2(N_r-1)} z^{2(N_r-1)}`, we extract its roots numerically and convert the signal roots back to angles:
+
+.. math::
+ \hat{\theta} = \arcsin\!\left(\frac{\angle z}{2\pi d}\right)
+
+The full Root MUSIC code, using the same received signal :code:`X` and parameters from the MUSIC example, is:
+
+.. code-block:: python
+
+ num_expected_signals = 3
+
+ # Same eigendecomposition as MUSIC
+ R = np.cov(X)
+ w, v = np.linalg.eig(R)
+ eig_val_order = np.argsort(np.abs(w))
+ v = v[:, eig_val_order]
+ V = v[:, :Nr - num_expected_signals]  # noise subspace eigenvectors
+
+ # Build the Root MUSIC polynomial from diagonals of noise-subspace projection
+ D = V @ V.conj().T
+ p = np.zeros(2*Nr - 1, dtype=np.complex128)
+ for k in range(2*Nr - 1):
+     p[k] = np.sum(np.diag(D, k - (Nr - 1)))
+
+ # Find roots, keep those inside the unit circle, pick the num_expected_signals roots closest to the unit circle
+ roots = np.roots(p[::-1])  # np.roots expects highest-degree coefficient first
+ roots = roots[np.abs(roots) <= 1.0]
+ roots = roots[np.argsort(-np.abs(roots))]  # sort closest-to-unit-circle first
+ doa_roots = roots[:num_expected_signals]
+
+ # Convert roots to angles in degrees
+ doas_deg = np.sort(np.arcsin(np.angle(doa_roots) / (2 * np.pi * d)) * 180 / np.pi)
+ print("Estimated DOAs (degrees):", doas_deg)
+
+Running this on the same three-signal scenario produces pretty accurate estimated angles, with no sweep, resolution, or peak-finding required:
+
+.. code-block:: console
+
+ Estimated DOAs (degrees): [-39.98674197  19.99724883  25.00387589]
+ True DOAs (degrees):      [-40.  20.  25.]
+
+Compare that to spectral MUSIC, which required a thousand-point theta sweep to find those same three peaks.  The accuracy you get from Root MUSIC is essentially limited only by the covariance matrix estimate, not by any grid spacing you chose.  The computational savings are especially noticeable when :code:`Nr` is large, since building and solving a degree-:math:`2(N_r-1)` polynomial is far cheaper than iterating the MUSIC equation over thousands of steering angles.
+
+One thing to keep in mind: Root MUSIC inherits the same requirements as MUSIC.  You still need to know (or estimate) the number of signals, and you still need enough elements that :math:`N_r > D`.  The eigenvalue plot trick described in the MUSIC section works just as well here for estimating the signal count before running Root MUSIC.
 
 ***
 LMS

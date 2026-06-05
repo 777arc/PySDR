@@ -1149,7 +1149,7 @@ To perform Root MUSIC, we form a polynomial from the noise-subspace projection m
 .. math::
  P(z) = z^{N_r-1} \, s^H(z) \, V_n V_n^H \, s(z)
 
-where :math:`V_n` is the noise-subspace matrix from the eigendecomposition of the covariance matrix :math:`R`, exactly as in MUSIC.  Expanding the product yields a polynomial of degree :math:`2(N_r-1)`.  Wherever :math:`P(z)` has a root on the unit circle :math:`|z|=1`, the MUSIC cost would be infinite, meaning that point is a signal direction.  In practice, with finite samples, the roots don't land exactly on the unit circle but cluster just inside it, so we look for the :math:`D` roots (where :math:`D` is the number of expected signals) that are closest to the unit circle.
+where :math:`V_n` is the noise-subspace matrix from the eigendecomposition of the covariance matrix :math:`R`, exactly as in MUSIC.  Expanding the product yields a polynomial of degree :math:`2(N_r-1)`.  Wherever :math:`P(z)` has a root on the unit circle :math:`|z|=1`, the MUSIC cost would be infinite, meaning that point is a signal direction.  In practice, with finite samples, the roots don't land exactly on the unit circle but cluster near it, so we look for the :math:`D` roots (where :math:`D` is the number of expected signals) that are closest to the unit circle.
 
 The polynomial coefficients are built by summing the diagonals of the noise-subspace projection matrix :math:`D = V_n V_n^H`:
 
@@ -1182,13 +1182,15 @@ The full Root MUSIC code, using the same received signal :code:`X` and parameter
 
  # Find roots, keep those inside the unit circle, pick the num_expected_signals roots closest to the unit circle
  roots = np.roots(p[::-1])  # np.roots expects highest-degree coefficient first
- roots = roots[np.abs(roots) <= 1.0]
+ roots = roots[np.abs(roots) <= 1.0] # remove the conjugate-reciprocal partners which correspond to the same DOA estimate anyway
  roots = roots[np.argsort(-np.abs(roots))]  # sort closest-to-unit-circle first
  doa_roots = roots[:num_expected_signals]
 
  # Convert roots to angles in degrees
  doas_deg = np.sort(np.arcsin(np.angle(doa_roots) / (2 * np.pi * d)) * 180 / np.pi)
  print("Estimated DOAs (degrees):", doas_deg)
+
+The heavy lifting is done by NumPy's :code:`np.roots()` function, which uses the companion matrix method to find the roots of the polynomial.
 
 Running this on the same three-signal scenario produces pretty accurate estimated angles, with no sweep, resolution, or peak-finding required:
 

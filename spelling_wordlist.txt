@@ -319,3 +319,6 @@ trilaterate
 Estévez
 trilateration
 bursty
+Vandermonde
+eigendecomposition
+ULA

@@ -208,7 +208,14 @@ The code for this section can be found `here <https://github.com/777arc/PySDR/bl
 Processing Signals from an Actual 2D Array
 **********************************************
 
-In this section we work with some actual data recorded from a 3x5 array made out of a `QUAD-MxFE <https://www.analog.com/en/resources/evaluation-hardware-and-software/evaluation-boards-kits/quad-mxfe.html#eb-overview>`_ platform from Analog Devices which supports up to 16 transmit and receive channels (we only used 15 and only in receive mode).  Two recordings are provided below, the first one contains one emitter located at boresight to the array, which we will use for calibration.  The second recording contains two emitters at different directions, which we will use for beamforming and DOA testing.
+In this section we work with some actual data recorded by `Jon Kraft <https://www.youtube.com/@jonkraft>`_ using a 3x5 digital array made out of a `QUAD-MxFE <https://www.analog.com/en/resources/evaluation-hardware-and-software/evaluation-boards-kits/quad-mxfe.html#eb-overview>`_ platform from Analog Devices which supports up to 16 transmit and receive channels (we only used 15 and only in receive mode).  Below are some pictures showing the setup, with transmitters labeled.
+
+.. image:: ../_images/2d_array_ladder_pic.png
+   :align: center 
+   :target: ../_images/2d_array_ladder_pic.png
+   :alt: Images showing the 3x5 array used to record the data, which was made using a QUAD-MxFE platform from Analog Devices
+
+Two downloadable recordings are provided below, the first one contains one emitter located at boresight to the array, which we will use for calibration.  The second recording contains two emitters at different directions, which we will use for beamforming and DOA testing.
 
 - `IQ recording of just C <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/C_only_capture1.npy>`_ (used for calibration, as C is at boresight)
 - `IQ recording of B and D <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/DandB_capture1.npy>`_ (used for beamforming/DOA testing)

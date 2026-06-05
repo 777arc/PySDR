@@ -16,11 +16,7 @@ Marc uses AI to help create the JavaScript mini-apps and solve issues like when 
 
 ## How to build locally
 
-- Activate the project virtual environment:
-
-```bash
-source /home/marc/venvs/pysdr/bin/activate
-```
+- Activate the project virtual environment which should be in the root of this repo under .venv
 
 - Build the site using:
 

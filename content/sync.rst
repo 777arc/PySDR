@@ -63,11 +63,12 @@ Let's examine Python code for simulating a non-integer delay and a frequency off
 
 We will leave out the plotting-related code because by now you have probably learned how to plot any signal you want.  Making the plots look pretty, as they often do in this textbook, requires a lot of extra code that is not necessary to understand.
 
+Next, we must simulate the delay a signal experiences as it travels through the wireless channel.  We can easily simulate a delay by shifting samples, but it only simulates a delay that is an integer multiple of our sample period.  In the real world the delay will be some fraction of a sample period, so to simulate that we need to create a "fractional delay" filter.
 
-Adding a Delay
-##############
+Fractional Delay Filters
+########################
 
-We can easily simulate a delay by shifting samples, but it only simulates a delay that is an integer multiple of our sample period.  In the real world the delay will be some fraction of a sample period.  We can simulate the delay of a fraction of a sample by making a "fractional delay" filter, which passes all frequencies but delays the samples by some amount that isn't limited to the sample interval.  You can think of it as an all-pass filter that applies the same phase shift to all frequencies.  (Recall that a time delay and phase shift are equivalent.)  The Python code to create this filter is shown below:
+A fractional delay filter is a type of all-pass filter which (ideally) passes all frequencies but delays the samples by some amount, typically between -0.5 and 0.5 of a sample period, because you can perform the integer portion of delay through simple indexing.  It applies a constant time delay to the entire signal, which in the frequency domain corresponds to a linear phase shift (phase that increases proportionally with frequency). Every frequency component gets delayed by the same amount of time, so the signal's shape is preserved, it just arrives later.  This is in contrast to doing a phase shift which shifts all frequencies by a constant phase; low frequencies get delayed more and high frequencies get delayed less.  The Python code to create a fractional delay filter is shown below, using the windowed-sinc method:
 
 .. code-block:: python
 
@@ -87,7 +88,6 @@ If we plot the "before" and "after" of filtering a signal, we can observe the fr
 .. image:: ../_images/fractional-delay-filter.svg
    :align: center
    :target: ../_images/fractional-delay-filter.svg
-
 
 
 Adding a Frequency Offset

@@ -259,3 +259,117 @@ Here is another example of a poor sample time, somewhere in between our ideal an
    :align: center 
    
 Remember that our Q values are not shown on the time domain plot because they are roughly zero, allowing the IQ plots to spread horizontally only.
+
+
+*************
+OQPSK and MSK
+*************
+
+Regular QPSK can contain large amplitude swings, as a result of the I and Q components changing at the same time, which can be a problem for some power amplifiers that work best with a less variable envelope. Below we show an example of QPSK using raised-cosine pulse shaping, on the top shows the time domain baseband I and Q separately, and then the bottom shows the magnitude.  Notice the large swings in magnitude due to the near-zero crossings when both I and Q change at the same time.  Note the vertical dashed lines, which represent the symbol boundaries, both I and Q are exactly 1 or -1 at those points.  Also note how the magnitude gets very close to zero at certain points.
+
+.. image:: ../_images/qpsk_magnitude.svg
+   :align: center 
+   :target: ../_images/qpsk_magnitude.svg
+   :alt: Example of QPSK magnitude showing large swings due to near-zero crossings0
+
+**Offset QPSK (OQPSK)** is a small variation on standard QPSK that addresses this issue.  It works by delaying the Q component by half a symbol period, so I and Q never change simultaneously.  The result is that the signal only makes 90-degree phase transitions at any given moment (instead of potential 180-degree jumps), keeping the envelope much more stable.  Below shows OQPSK this time, we have added vertical dashed lines at intervals offset by half a symbol period to show where the Q component changes (i.e., the center of the symbol).
+
+.. image:: ../_images/oqpsk_magnitude.svg
+   :align: center 
+   :target: ../_images/oqpsk_magnitude.svg
+   :alt: Example of OQPSK magnitude showing much smaller swings due to the offset between I and Q
+
+The Python code to generate OQPSK with raised-cosine pulse shaping is as follows:
+
+.. code-block:: python
+
+   # Parameters
+   num_symbols = 200
+   sps = 32         # samples per symbol
+   beta = 0.35      # roll-off factor
+   span = 6         # filter span in symbols (each side)
+
+   # Generate QPSK symbols
+   bits = np.random.randint(0, 4, num_symbols)
+   symbols = np.exp(1j * (np.pi/4 + bits * np.pi/2)).astype(complex)  # points at 45°, 135°, 225°, 315°
+
+   # RC filter
+   t = np.arange(-span * sps, span * sps + 1) / sps  # in symbol periods
+   h = np.sinc(t) * np.cos(np.pi * beta * t) / (1 - (2 * beta * t)**2 + 1e-20)
+
+   # Delay Q impulses by half a symbol before filtering so the pulse shaping  filter handles the ramp-up naturally (no post-filter roll/zero-fill artifact)
+   half = sps // 2
+   I_up = np.zeros(num_symbols * sps)
+   Q_up = np.zeros(num_symbols * sps)
+   I_up[::sps] = np.real(symbols)
+   Q_up[half::sps] = np.imag(symbols)
+   I_filt = np.convolve(I_up, h, mode='same')
+   Q_filt = np.convolve(Q_up, h, mode='same')
+   signal = I_filt + 1j * Q_filt
+
+We can take this one step further; if we swap out the raised-cosine pulse shaping for a new type of pulse shaping, called half-sine, we can get a perfectly constant envelope!  The half-sine pulse shaping filter is defined as :math:`h(t) = \sin\left(\frac{\pi t}{T}\right)`, and it's shape smoothly tapers each symbol so that the phase changes continuously and linearly from one symbol to the next.  The result is called **Minimum Shift Keying (MSK)** and it's a special case of OQPSK.  If we take the previous code, but swap out the raised-cosine filter with the following half-sine filter code, we get MSK:
+
+.. code-block:: python
+
+ # ...
+
+ # Half-sine pulse shape (insert this in place of the RC Filter lines)
+ t = np.arange(sps)
+ h = np.sin(np.pi * t / sps)
+
+ # ...
+
+.. image:: ../_images/msk_magnitude.svg
+   :align: center 
+   :target: ../_images/msk_magnitude.svg
+   :alt: Example of MSK magnitude showing a constant envelope
+
+The envelope printed above will be essentially constant, which is the hallmark of MSK.
+
+Note that with OQPSK and MSK, the "symbol period" and "samples per symbol" can potentially be confusing terms because a symbol could either refer to a full I + Q portion of time, or just the length of time between changes in the I or Q component (so half as long).  In the above code, we are using the former definition, so a symbol is the full I + Q portion of time, but that may not always be the case, and you may find factors of 2 in equations like the half-sine definition.
+
+A quick look into the frequency domain (power spectral density) shape of these signals.  For QPSK or OQPSK with raised-cosine pulse shaping, the spectrum is the same; it's very compact and rolls off according to the roll-off factor, which is why raised-cosine pulse shaping is so popular.
+
+.. image:: ../_images/qpsk_psd.svg
+   :align: center 
+   :target: ../_images/qpsk_psd.svg
+   :alt: Example of QPSK or OQPSK PSD when an RC filter is used for pulse shaping
+
+For MSK, the raised-sine shape causes the main lobe to be much wider, and the signal has much higher sidelobes.  For low SNR signals you won't even see the sidelobes though, because they will be under the noise floor, since they are over 20 dB down.  The trade-off is that we get a perfectly constant envelope.  
+
+.. image:: ../_images/msk_psd.svg
+   :align: center 
+   :target: ../_images/msk_psd.svg
+   :alt: Example of MSK PSD which uses a raised-sine filter for pulse shaping
+
+MSK is often used in applications like satellite communications and deep-space communications, where the constant envelope allows for more efficient power amplification, and reducing spectrum occupancy isn't as critical as maximizing power efficiency.  Both OQPSK and MSK will require a slightly more complicated receiver, compared to regular QPSK, because of the offset between I and Q.
+
+MSK can also be derived from a completely different angle; as a special case of **Continuous-Phase FSK (CPFSK)**.  In CPFSK, each symbol is transmitted using one of two frequencies, and crucially the phase is never reset, it continues smoothly from where the previous symbol left off.  That continuity is what keeps the envelope constant and the spectrum compact.  MSK is CPFSK with a modulation index :math:`h = 0.5`, meaning the two tones are separated by exactly :math:`\Delta f = \frac{1}{2T}` Hz, where :math:`T` is the symbol period.  The baseband signal is:
+
+.. math::
+
+  s(t) = e^{j 2\pi \frac{h}{2T} \int_{-\infty}^{t} d(\tau)\, d\tau}
+
+where :math:`d(\tau) \in \{-1, +1\}` is the NRZ data stream.  In practice the integral just accumulates phase: each bit rotates the phase by :math:`\pm \frac{\pi}{2}` over one symbol period.  The Python code to generate MSK using the CPFSK approach is as follows.  Note that :code:`sps` has been divided by 2 everywhere because the symbol period is half as long when we use the CPFSK approach, since each symbol corresponds to a change in either I or Q, not both.
+
+.. code-block:: python
+
+   bits = np.random.randint(0, 2, num_symbols)
+   symbols = 2 * bits - 1 # map {0,1} → {-1, +1}
+
+   # Build the instantaneous frequency deviation
+   mod_index = 0.5
+   t = np.arange(num_symbols * sps / 2) / (sps / 2)
+   freq_dev = np.zeros(num_symbols * sps // 2)
+   for k, a in enumerate(symbols):
+      freq_dev[k * sps // 2 : (k + 1) * sps // 2] = a * mod_index / 2.0
+
+   phase = 2.0 * np.pi * np.cumsum(freq_dev) / (sps / 2) # accumulate phase
+   signal = np.exp(1j * phase)
+
+And as you can see, it looks exactly like our MSK from before, but generated using a completely different approach.
+
+.. image:: ../_images/cpfsk_magnitude.svg
+   :align: center 
+   :target: ../_images/cpfsk_magnitude.svg
+   :alt: Example of CPFSK magnitude showing how it matches MSK

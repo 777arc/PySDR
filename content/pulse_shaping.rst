@@ -272,7 +272,7 @@ Regular QPSK can contain large amplitude swings, as a result of the I and Q comp
    :target: ../_images/qpsk_magnitude.svg
    :alt: Example of QPSK magnitude showing large swings due to near-zero crossings0
 
-**Offset QPSK (OQPSK)** is a small variation on standard QPSK that addresses this issue.  It works by delaying the Q component by half a symbol period, so I and Q never change simultaneously.  The result is that the signal only makes 90-degree phase transitions at any given moment (instead of potential 180-degree jumps), keeping the envelope much more stable.  Below shows OQPSK this time, we have added vertical dashed lines at intervals offset by half a symbol period to show where the Q component changes (i.e., the center of the symbol).
+**Offset QPSK (OQPSK)** is a small variation on standard QPSK that addresses this issue.  It works by delaying the Q component by half a symbol period, so I and Q never change simultaneously.  The result is that the signal only makes 90-degree phase transitions at any given moment (instead of potential 180-degree jumps), keeping the envelope much more stable, without changing the shape of the spectrum.  Below shows OQPSK this time, we have added vertical dashed lines at intervals offset by half a symbol period to show where the Q component changes (i.e., the center of the symbol).
 
 .. image:: ../_images/oqpsk_magnitude.svg
    :align: center 
@@ -343,6 +343,13 @@ For MSK, the raised-sine shape causes the main lobe to be much wider, and the si
    :alt: Example of MSK PSD which uses a raised-sine filter for pulse shaping
 
 MSK is often used in applications like satellite communications and deep-space communications, where the constant envelope allows for more efficient power amplification, and reducing spectrum occupancy isn't as critical as maximizing power efficiency.  Both OQPSK and MSK will require a slightly more complicated receiver, compared to regular QPSK, because of the offset between I and Q.
+
+Here's a comparison on the same plot, also including rectangular pulse QPSK for reference.  Remember, OQPSK and QPSK when using the same pulse shaping filter (e.g., raised cosine) have the same spectrum.
+
+.. image:: ../_images/msk_vs_qpsk_spectrum.svg
+   :align: center 
+   :target: ../_images/msk_vs_qpsk_spectrum.svg
+   :alt: Example of MSK vs QPSK spectrum comparison
 
 MSK can also be derived from a completely different angle; as a special case of **Continuous-Phase FSK (CPFSK)**.  In CPFSK, each symbol is transmitted using one of two frequencies, and crucially the phase is never reset, it continues smoothly from where the previous symbol left off.  That continuity is what keeps the envelope constant and the spectrum compact.  MSK is CPFSK with a modulation index :math:`h = 0.5`, meaning the two tones are separated by exactly :math:`\Delta f = \frac{1}{2T}` Hz, where :math:`T` is the symbol period.  The baseband signal is:
 

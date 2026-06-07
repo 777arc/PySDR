@@ -525,7 +525,7 @@ The most common complex random variable in wireless communications is **complex 
 For example, if :math:`X \sim \mathcal{N}(\alpha_1, \sigma_1^2)` and :math:`Y \sim \mathcal{N}(\alpha_2, \sigma_2^2)` are independent, then the complex random variable :math:`Z = X + jY` has:
 
 * Mean: :math:`E[Z] = E[X] + jE[Y] = \alpha_1 + j\alpha_2`
-* Variance (Power): :math:`\text{Var}(Z) = \text{Var}(X) + \text{Var}(Y) = \sigma_1^2 + \sigma_2^2`
+* Variance: :math:`\text{Var}(Z) = \text{Var}(X) + \text{Var}(Y) = \sigma_1^2 + \sigma_2^2`
 
 .. image:: ../_images/gaussian_IQ.png
    :scale: 80%
@@ -577,7 +577,7 @@ Examples in wireless communications:
 A random process is **stationary** if its statistical properties don't change over time. In particular, a **wide-sense stationary (WSS)** process has:
 
 * Constant mean: :math:`E[X(t)] = \mu` for all :math:`t`
-* Autocorrelation that depends only on time difference: :math:`E[X(t)X(t+\tau)]` depends only on :math:`\tau`, not :math:`t`
+* Autocorrelation that depends only on time difference: :math:`E[X(t)X^*(t+\tau)]` depends only on :math:`\tau`, not :math:`t`
 
 Many noise sources in wireless systems are approximately stationary, which simplifies analysis significantly.
 

@@ -131,7 +131,7 @@ For most filters we will see (known as FIR, or Finite Impulse Response, type fil
 Example Use-Case
 ########################
 
-To learn how filters are used, let's look an an example where we tune our SDR to a frequency of an existing signal, and we want to isolate it from other signals.  Remember that we tell our SDR which frequency to tune to, but the samples that the SDR captures are at baseband, meaning the signal will display as centered around 0 Hz. We will have to keep track of which frequency we told the SDR to tune to.  Here is what we might receive:
+To learn how filters are used, let's look at an example where we tune our SDR to a frequency of an existing signal, and we want to isolate it from other signals.  Remember that we tell our SDR which frequency to tune to, but the samples that the SDR captures are at baseband, meaning the signal will display as centered around 0 Hz. We will have to keep track of which frequency we told the SDR to tune to.  Here is what we might receive:
 
 .. image:: ../_images/filter_use_case.png
    :scale: 70 % 
@@ -387,7 +387,7 @@ Now that we are starting to understand convolution, I will present the mathemati
 
  (f * g)(t) = \int f(\tau) g(t - \tau) d\tau
  
-In this above expression, :math:`g(t)` is the signal or input that is flipped and slides across :math:`f(t)`, but :math:`g(t)` and :math:`f(t)` can be swapped and it's still the same expression.  Typically, the shorter array will be used as :math:`g(t)`.  Convolution is equal to a cross-correlation, defined as :math:`\int f(\tau) g(t+\tau)`, when :math:`g(t)` is symmetrical, i.e., it doesn't change when flipped about the origin.
+In this above expression, :math:`g(t)` is the signal or input that is flipped and slides across :math:`f(t)`, but :math:`g(t)` and :math:`f(t)` can be swapped and it's still the same expression.  Typically, the shorter array will be used as :math:`g(t)`.  Convolution is equal to a cross-correlation, defined as :math:`\int f(\tau) g(t+\tau) d\tau`, when :math:`g(t)` is symmetrical, i.e., it doesn't change when flipped about the origin.
 
 
 *************************
@@ -523,7 +523,7 @@ The above code shows basic usage of these four methods, but you may be wondering
    :align: center 
    :target: ../_images/convolve_comparison_100000.svg
 
-As you can see, :code:`scipy.signal.convolve` actually switches its method to FFT-based automatically at a certain input size.  Either way, :code:`fftconvolve` is the clear winner for these size taps and inputs, which represent fairly typical sizes in RF applications.  A lot of the code within PySDR actually uses :code:`np.convolve:` simply because it's one less import and the performance difference is negligible for low data rate or non-real-time applications.
+As you can see, :code:`scipy.signal.convolve` actually switches its method to FFT-based automatically at a certain input size.  Either way, :code:`fftconvolve` is the clear winner for these size taps and inputs, which represent fairly typical sizes in RF applications.  A lot of the code within PySDR actually uses :code:`np.convolve` simply because it's one less import and the performance difference is negligible for low data rate or non-real-time applications.
 
 Lastly, we will show the output in the frequency domain, so we can finally check whether the firwin2 method gave us a filter that matched our design parameters.  Starting from the code above that gave us :code:`h2`:
 
@@ -661,7 +661,7 @@ We will use these taps shown above as our filter.  We know that the impulse resp
    :scale: 70 % 
    :align: center 
 
-See how the frequency response not very straight... it doesn't match our original very well, if you recall the shape that we initially wanted to make a filter for.  A big reason is because our impulse response isn't done decaying, i.e., the left and right sides don't reach zero.  We have two options that will allow it to decay to zero:
+See how the frequency response is not very straight... it doesn't match our original very well, if you recall the shape that we initially wanted to make a filter for.  A big reason is because our impulse response isn't done decaying, i.e., the left and right sides don't reach zero.  We have two options that will allow it to decay to zero:
 
 **Option 1:** We "window" our current impulse response so that it decays to 0 on both sides.  It involves multiplying our impulse response with a "windowing function" that starts and ends at zero.
 
@@ -699,7 +699,7 @@ See how the frequency response not very straight... it doesn't match our origina
    :scale: 50 % 
    :align: center 
 
-Both options worked.  Which one would you choose?  The second method resulted in more taps, but the first method resulted in a frequency response that wasn't very sharp and had a falling edge wasn't very steep.  There are numerous ways to design a filter, each with their own trade-offs along the way. Many consider filter design an art.
+Both options worked.  Which one would you choose?  The second method resulted in more taps, but the first method resulted in a frequency response that wasn't very sharp and had a falling edge that wasn't very steep.  There are numerous ways to design a filter, each with their own trade-offs along the way. Many consider filter design an art.
 
 *************************
 Intro to Pulse Shaping

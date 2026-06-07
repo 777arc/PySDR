@@ -32,7 +32,7 @@ The following taxonomy attempts to categorize the many areas of beamforming whil
 Direction-of-Arrival Overview
 ******************************
 
-Direction-of-Arrival (DOA) within DSP/SDR refers to the process of using an array of antennas to detect and estimate the directions of arrival of one or more signals received by that array (versus beamforming, which is focused on the process of receiving a signal while rejecting as much noise and interference).  Although DOA certainly falls under the beamforming topic umbrella, the two terms can get confusing.  Some techniques such as Conventional and MVDR beamforming can apply to both DOA and beamforming, because the same technique used for beamforming is used to perform DOA by sweeping the angle of interest and performing the beamforming operation at each angle, then looking for peaks in the result (each peak is a signal, but we don't know whether it is the signal of interest, an interferer, or even a multipath bounce from the signal of interest). You can think of these DOA techniques as a wrapper around a specific beamformer.  Other beamformers are unable to be simply wrapped into a DOA routine, such as due to extra inputs that won't be available within the context of DOA.  There are also DOA techniques such as MUSIC and ESPIRT which are strictly for the purpose of DOA and are not beamformers.  Because most beamforming techniques assume you know the angle of arrival of the signal of interest, if the target is moving, or the array is moving, you will have to continuously perform DOA as an intermediate step, even if your primary goal is to receive and demodulate the signal of interest.
+Direction-of-Arrival (DOA) within DSP/SDR refers to the process of using an array of antennas to detect and estimate the directions of arrival of one or more signals received by that array (versus beamforming, which is focused on the process of receiving a signal while rejecting as much noise and interference).  Although DOA certainly falls under the beamforming topic umbrella, the two terms can get confusing.  Some techniques such as Conventional and MVDR beamforming can apply to both DOA and beamforming, because the same technique used for beamforming is used to perform DOA by sweeping the angle of interest and performing the beamforming operation at each angle, then looking for peaks in the result (each peak is a signal, but we don't know whether it is the signal of interest, an interferer, or even a multipath bounce from the signal of interest). You can think of these DOA techniques as a wrapper around a specific beamformer.  Other beamformers are unable to be simply wrapped into a DOA routine, such as due to extra inputs that won't be available within the context of DOA.  There are also DOA techniques such as MUSIC and ESPRIT which are strictly for the purpose of DOA and are not beamformers.  Because most beamforming techniques assume you know the angle of arrival of the signal of interest, if the target is moving, or the array is moving, you will have to continuously perform DOA as an intermediate step, even if your primary goal is to receive and demodulate the signal of interest.
 
 Phased arrays and beamforming/DOA find use in all sorts of applications, although you will most often see them used in multiple forms of radar, newer WiFi standards, mmWave communication within 5G, satellite communications, and jamming. Generally, any applications that require a high-gain antenna, or require a rapidly moving high-gain antenna, are good candidates for phased arrays.
 
@@ -42,7 +42,7 @@ Types of Arrays
 
 Phased arrays can be broken down into three types:
 
-1. **Analog**, a.k.a. passive electronically scanned array (PESA) or traditional phased arrays, where analog phase shifters are used to steer the beam.  On the receive side, all elements are summed after phase shifting (and optionally, adjustable gain) and turned into a signal channel which is downconverted and received.  On the transmit side the inverse takes place; a single digital signal is outputted from the digital side, and on the analog side phase shifters and gain stages are used to produce the output going to each antenna.  These digital phase shifters will have a limited number of bits of resolution, and control latency.  A huge advantage of analog beamforming is that strong interferers can be nulled out in the analog domain before the ADC, which can prevent saturating the receiver.
+1. **Analog**, a.k.a. passive electronically scanned array (PESA) or traditional phased arrays, where analog phase shifters are used to steer the beam.  On the receive side, all elements are summed after phase shifting (and optionally, adjustable gain) and turned into a single channel which is downconverted and received.  On the transmit side the inverse takes place; a single digital signal is outputted from the digital side, and on the analog side phase shifters and gain stages are used to produce the output going to each antenna.  These digital phase shifters will have a limited number of bits of resolution, and control latency.  A huge advantage of analog beamforming is that strong interferers can be nulled out in the analog domain before the ADC, which can prevent saturating the receiver.
 2. **Digital**, a.k.a. active electronically scanned array (AESA), where every single element has its own RF front end, and the beamforming is done entirely in the digital domain.  This is the most expensive approach, as RF components are expensive, but it provides much more flexibility and speed than PESAs, and allows for using the adaptive beamforming techniques we will discuss later in this chapter.  Digital arrays are popular with SDRs, although the number of receive or transmit channels of the SDR limits the number of elements in your array.
 3. **Hybrid**, where the array consists of many subarrays that individually resemble analog arrays, where each subarray has its own RF front-end just like with digital arrays.  This is the most common approach for modern phased arrays, as it provides the best of both worlds.  A hybrid array allows for adaptive techniques, and can also null out strong interferers in the analog domain before the ADC, which is especially important for radar applications where the target is often much weaker than the interferers, or communications in hostile wireless environments.
 
@@ -163,7 +163,7 @@ If you recall SOH CAH TOA, in this case we are interested in the "adjacent" side
 
 We must solve for adjacent, as that is what will tell us how far the signal must travel between hitting the first and second element, so it becomes adjacent :math:`= d \cos(90 - \theta)`.  Now there is a trig identity that lets us convert this to adjacent :math:`= d \sin(\theta)`.  This is just a distance though, we need to convert this to a time, using the speed of light: time elapsed :math:`= d \sin(\theta) / c` seconds.  This equation applies between any adjacent elements of our array, although we can multiply the whole thing by an integer to calculate between non-adjacent elements since they are uniformly spaced (we'll do this later).  
 
-Now to connect this trig and speed of light math to the signal processing world.  Let's denote our transmit signal at baseband :math:`x(t)` and it's being transmitting at some carrier, :math:`f_c` , so the transmit signal is :math:`x(t) e^{2j \pi f_c t}`.  We'll use :math:`d_m` to refer to antenna spacing in meters.  Lets say this signal hits the first element at time :math:`t = 0`, which means it hits the next element after :math:`d_m \sin(\theta) / c` seconds, like we calculated above.  This means the 2nd element receives:
+Now to connect this trig and speed of light math to the signal processing world.  Let's denote our transmit signal at baseband :math:`x(t)` and it is being transmitted at some carrier, :math:`f_c` , so the transmit signal is :math:`x(t) e^{2j \pi f_c t}`.  We'll use :math:`d_m` to refer to antenna spacing in meters.  Lets say this signal hits the first element at time :math:`t = 0`, which means it hits the next element after :math:`d_m \sin(\theta) / c` seconds, like we calculated above.  This means the 2nd element receives:
 
 .. math::
  x(t - \Delta t) e^{2j \pi f_c (t - \Delta t)}
@@ -173,7 +173,7 @@ Now to connect this trig and speed of light math to the signal processing world.
 
 recall that when you have a time shift, it is subtracted from the time argument.
 
-When the receiver or SDR does the downconversion process to receive the signal, its essentially multiplying it by the carrier but in the reverse direction, so after doing downconversion the receiver sees:
+When the receiver or SDR does the downconversion process to receive the signal, it's essentially multiplying it by the carrier but in the reverse direction, so after doing downconversion the receiver sees:
 
 .. math::
  x(t - \Delta t) e^{2j \pi f_c (t - \Delta t)} e^{-2j \pi f_c t}
@@ -181,7 +181,7 @@ When the receiver or SDR does the downconversion process to receive the signal, 
 .. math::
  = x(t - \Delta t) e^{-2j \pi f_c \Delta t}
 
-Now we can do a little trick to simplify this even further; consider how when we sample a signal it can be modeled by substituting :math:`t` for :math:`nT` where :math:`T` is sample period and :math:`n` is just 0, 1, 2, 3...  Substituting this in we get :math:`x(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. Well, :math:`nT` is so much greater than :math:`\Delta t` that we can get rid of the first :math:`\Delta t` term and we are left with :math:`x(nT) e^{-2j \pi f_c \Delta t}`.  If the sample rate ever gets fast enough to approach the speed of light over a tiny distance, we can revisit this, but remember that our sample rate only needs to be a bit larger than the signal of interest's bandwidth.
+Now we can do a little trick to simplify this even further; consider how when we sample a signal it can be modeled by substituting :math:`t` for :math:`nT` where :math:`T` is sample period and :math:`n` is just 0, 1, 2, 3...  Substituting this in we get :math:`x(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. For a narrowband signal, the signal envelope changes slowly enough over the propagation delay :math:`\Delta t` that we can approximate :math:`x(nT - \Delta t) \approx x(nT)`, leaving us with :math:`x(nT) e^{-2j \pi f_c \Delta t}`.  If the sample rate ever gets fast enough to approach the speed of light over a tiny distance, we can revisit this, but remember that our sample rate only needs to be a bit larger than the signal of interest's bandwidth.
 
 Let's keep going with this math but we'll start representing things in discrete terms so that it will better resemble our Python code.  The last equation can be represented as the following, let's plug back in :math:`\Delta t`:
 
@@ -279,7 +279,7 @@ Now let's simulate an array consisting of three omnidirectional antennas in a li
  s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Steering Vector
  print(s) # note that it's 3 elements long, it's complex, and the first element is 1+0j
 
-To apply the steering vector we have to do a matrix multiplication of :code:`s` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`ourarray.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
+To apply the steering vector we have to do a matrix multiplication of :code:`s` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into column vectors using :code:`ourarray.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
 
 .. code-block:: python
 
@@ -680,7 +680,7 @@ where:
 
  \frac{\partial L}{\partial \mathbf{w}^*} = 2\mathbf{R}\mathbf{w} - \lambda \mathbf{s} = 0
 
- \mathbf{w} = \lambda \mathbf{s} \mathbf{{R^{-1}}}
+ \mathbf{w} = \lambda \mathbf{R}^{-1} \mathbf{s}
 
 
 To solve for :math:`\lambda`, apply the constraint :math:`\mathbf{w}^H \mathbf{s} = 1`:
@@ -1083,7 +1083,7 @@ The core MUSIC equation is the following:
 .. math::
  \hat{\theta} = \mathrm{argmax}\left(\frac{1}{s^H V_n V^H_n s}\right)
 
-where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2D matrix).  It is found by first calculating the eigenvectors of :math:`R`, which is done simply by :code:`w, v = np.linalg.eig(R)` in Python, and then splitting up the vectors (:code:`w`) based on how many signals we think the array is receiving.  There is a trick for estimating the number of signals that we'll talk about later, but it must be between 1 and :code:`Nr - 1`.  I.e., if you are designing an array, when you are choosing the number of elements you must have one more than the number of anticipated signals.  One thing to note about the equation above is :math:`V_n` does not depend on the steering vector :math:`s`, so we can precalculate it before we start looping through theta.  The full MUSIC code is as follows:
+where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2D matrix).  It is found by first calculating the eigenvectors of :math:`R`, which is done simply by :code:`w, v = np.linalg.eig(R)` in Python, and then splitting up the eigenvectors (:code:`v`) based on how many signals we think the array is receiving.  There is a trick for estimating the number of signals that we'll talk about later, but it must be between 1 and :code:`Nr - 1`.  I.e., if you are designing an array, when you are choosing the number of elements you must have one more than the number of anticipated signals.  One thing to note about the equation above is :math:`V_n` does not depend on the steering vector :math:`s`, so we can precalculate it before we start looping through theta.  The full MUSIC code is as follows:
 
 .. code-block:: python
 

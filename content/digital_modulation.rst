@@ -236,7 +236,7 @@ Given the difficulty discerning modulation schemes in the time domain, we prefer
 Frequency Shift Keying (FSK)
 ****************************
 
-Last on the list is Frequency Shift Keying (FSK).  FSK is fairly simple to understand--we just shift between N frequencies where each frequency is one possible symbol.  However, because we are modulating a carrier, it's really our carrier frequency +/- these N frequencies. E.g.. we might be at a carrier of 1.2 GHz and shift between these four frequencies:
+Last on the list is Frequency Shift Keying (FSK).  FSK is fairly simple to understand--we just shift between N frequencies where each frequency is one possible symbol.  However, because we are modulating a carrier, it's really our carrier frequency +/- these N frequencies. E.g., we might be at a carrier of 1.2 GHz and shift between these four frequencies:
 
 1. 1.2001 GHz
 2. 1.2003 GHz
@@ -296,7 +296,7 @@ As an example of encoding, consider transmitting the 10 bits [1, 1, 0, 0, 1, 1, 
  Input:     1 1 0 0 1 1 1 1 1 0
  Output:  1
 
-Next you build the output by comparing the input bit with the previous **output** bit, and apply the XOR operation shown in the table above.  The next output bit is therefore a 0, because 1 and 1 match:
+Next you build the output by comparing the input bit with the previous **output** bit, and apply the XOR operation.  The next output bit is therefore a 0, because 1 and 1 match:
 
 .. code-block::
 

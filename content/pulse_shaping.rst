@@ -60,7 +60,7 @@ To split a filter in half you can take the square root of the frequency response
 .. math::
  X(f) = X_H(f) X_H(f) \quad \mathrm{where} \quad X_H(f) = \sqrt{X(f)}
 
-Below shows a simplified diagram of a transmit and receive chain, with a Raised Cosine (RC) filter being split into two Root Raised Cosine (RRC) filters; the one on the transmit side is the pulse shaping filter, and the one on the received side is the matched filter.  Together, they cause the pulses at the demodulator to appear as if they had been pulse shaped with a single RRC filter.
+Below shows a simplified diagram of a transmit and receive chain, with a Raised Cosine (RC) filter being split into two Root Raised Cosine (RRC) filters; the one on the transmit side is the pulse shaping filter, and the one on the received side is the matched filter.  Together, they cause the pulses at the demodulator to appear as if they had been pulse shaped with a single RC filter.
 
 .. image:: ../_images/splitting_rc_filter.svg
    :align: center 
@@ -185,7 +185,7 @@ At this point our symbols are still 1's and -1's.  Don't be caught up in the fac
  BPSK symbols: [-1, 1, 1, 1, 1, -1, -1, -1, 1, 1]
  Applying 8 samples per symbol: [-1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, ...]
 
-We will create a raised-cosine filter using a :math:`\beta` of 0.35, and we will make it 101 taps long to give the signal enough time to decay to zero.  While the raised cosine equation asks for our symbol period and a time vector :math:`t`, we can assume a **sample** period of 1 second to "normalize" our simulation.  It means our symbol period :math:`Ts` is 8 because we have 8 samples per symbol.  Our time vector then will be a list of integers.  With the way the raised-cosine equation works, we want :math:`t=0` to be in the center.  We will generate the 101-length time vector starting at -51 and ending at +51.
+We will create a raised-cosine filter using a :math:`\beta` of 0.35, and we will make it 101 taps long to give the signal enough time to decay to zero.  While the raised cosine equation asks for our symbol period and a time vector :math:`t`, we can assume a **sample** period of 1 second to "normalize" our simulation.  It means our symbol period :math:`Ts` is 8 because we have 8 samples per symbol.  Our time vector then will be a list of integers.  With the way the raised-cosine equation works, we want :math:`t=0` to be in the center.  We will generate the 101-length time vector starting at -50 and ending at +50.
 
 .. code-block:: python
 
@@ -307,7 +307,7 @@ The Python code to generate OQPSK with raised-cosine pulse shaping is as follows
    Q_filt = np.convolve(Q_up, h, mode='same')
    signal = I_filt + 1j * Q_filt
 
-We can take this one step further; if we swap out the raised-cosine pulse shaping for a new type of pulse shaping, called half-sine, we can get a perfectly constant envelope!  The half-sine pulse shaping filter is defined as :math:`h(t) = \sin\left(\frac{\pi t}{T}\right)`, and it's shape smoothly tapers each symbol so that the phase changes continuously and linearly from one symbol to the next.  The result is called **Minimum Shift Keying (MSK)** and it's a special case of OQPSK.  If we take the previous code, but swap out the raised-cosine filter with the following half-sine filter code, we get MSK:
+We can take this one step further; if we swap out the raised-cosine pulse shaping for a new type of pulse shaping, called half-sine, we can get a perfectly constant envelope!  The half-sine pulse shaping filter is defined as :math:`h(t) = \sin\left(\frac{\pi t}{T}\right)`, and its shape smoothly tapers each symbol so that the phase changes continuously and linearly from one symbol to the next.  The result is called **Minimum Shift Keying (MSK)** and it's a special case of OQPSK.  If we take the previous code, but swap out the raised-cosine filter with the following half-sine filter code, we get MSK:
 
 .. code-block:: python
 
@@ -335,7 +335,7 @@ A quick look into the frequency domain (power spectral density) shape of these s
    :target: ../_images/qpsk_psd.svg
    :alt: Example of QPSK or OQPSK PSD when an RC filter is used for pulse shaping
 
-For MSK, the raised-sine shape causes the main lobe to be much wider, and the signal has much higher sidelobes.  For low SNR signals you won't even see the sidelobes though, because they will be under the noise floor, since they are over 20 dB down.  The trade-off is that we get a perfectly constant envelope.  
+For MSK, the half-sine shape causes the main lobe to be much wider, and the signal has much higher sidelobes.  For low SNR signals you won't even see the sidelobes though, because they will be under the noise floor, since they are over 20 dB down.  The trade-off is that we get a perfectly constant envelope.  
 
 .. image:: ../_images/msk_psd.svg
    :align: center 

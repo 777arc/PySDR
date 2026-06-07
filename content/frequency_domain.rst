@@ -444,7 +444,7 @@ If you are afraid of choosing the wrong window, don't be.  The difference betwee
 FFT Sizing
 *******************
 
-The last thing to note is FFT sizing.  The best FFT size is always an order of 2 because of the way the FFT is implemented.  You can use a size that is not an order of 2, but it will be slower. Common sizes are between 128 and 4,096, although you can certainly go larger.  In practice we may have to process signals that are millions or billions of samples long, so we need to break up the signal and do many FFTs.  That means we will get many outputs. We can either average them up or plot them over time (especially when our signal is changing over time).  You don't have to put *every* sample of a signal through an FFT to get a good frequency domain representation of that signal. For example you could only FFT 1,024 out of every 100k samples in a signal and it will still probably look fine, as long as the signal is always on.
+The last thing to note is FFT sizing.  The best FFT size is always a power of 2 because of the way the FFT is implemented.  You can use a size that is not an order of 2, but it will be slower. Common sizes are between 128 and 4,096, although you can certainly go larger.  In practice we may have to process signals that are millions or billions of samples long, so we need to break up the signal and do many FFTs.  That means we will get many outputs. We can either average them up or plot them over time (especially when our signal is changing over time).  You don't have to put *every* sample of a signal through an FFT to get a good frequency domain representation of that signal. For example you could only FFT 1,024 out of every 100k samples in a signal and it will still probably look fine, as long as the signal is always on.
 
 .. _spectrogram-section:
 
@@ -529,7 +529,7 @@ or
 
    y_1 = x_0 - x_1 w^k_N
 
-where :math:`w^k_N = e^{j2\pi k/N}` are known as twiddle factors (:math:`N` is the size of the sub-FFT and :math:`k` is the index).  Note that the input and output is intended to be complex, e.g., :math:`x_0` might be 0.6123 - 0.5213j, and the sums/multiplies are complex.
+where :math:`w^k_N = e^{-j2\pi k/N}` are known as twiddle factors (:math:`N` is the size of the sub-FFT and :math:`k` is the index).  Note that the input and output is intended to be complex, e.g., :math:`x_0` might be 0.6123 - 0.5213j, and the sums/multiplies are complex.
 
 The algorithm is recursive and breaks itself in half until all that is left is a series of butterflies, this is depicted below using a size 8 FFT:
 

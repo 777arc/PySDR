@@ -4,5 +4,6 @@
         "master"
     ],
     "python.analysis.typeCheckingMode": "basic",
-    "editor.formatOnSave": false
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "on"
 }

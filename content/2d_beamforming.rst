@@ -181,7 +181,7 @@ Instead of looking at the beam pattern in the crummy 3D plot, we'll use an alter
  resp = w.conj().T @ a # scalar
  print("Power in direction we are pointing:", 10*np.log10(np.abs(resp)[0,0]), 'dB')
 
-This outputs 0 dB, which is what we expect because MVDR's goal is to achieve unit power in the desired direction.  Now let's check the power in the directions of the two jammers, as well as a random direction and a direction that is one degree off of our desired direction (the same code is used, just update :code:`dir`).  The results are shown in the table below:
+This outputs 0 dB, which is what we expect because MVDR's goal is to achieve unit gain in the desired direction.  Now let's check the power in the directions of the two jammers, as well as a random direction and a direction that is one degree off of our desired direction (the same code is used, just update :code:`dir`).  The results are shown in the table below:
 
 .. list-table::
    :widths: 70 30

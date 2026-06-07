@@ -18,7 +18,7 @@ Cyclostationary signal processing (a.k.a., CSP or simply cyclostationary process
 
 If after reading through this chapter and playing around in Python, you want to dive deeper into CSP, check out William Gardner's 1994 textbook `Cyclostationarity in Communications and Signal Processing <https://faculty.engineering.ucdavis.edu/gardner/wp-content/uploads/sites/146/2014/05/Cyclostationarity.pdf>`_, his 1987 textbook `Statistical Spectral Analysis <https://faculty.engineering.ucdavis.edu/gardner/wp-content/uploads/sites/146/2013/02/Statistical_Spectral_Analysis_A_Nonprobabilistic_Theory.pdf>`_, or Chad Spooner's `collection of blog posts <https://cyclostationary.blog/>`_.
 
-One resource that you will find here and in no other textbook: at the end of the SCF chapter you will be rewarded with an interactive JavaScript app that allows you to play around with the SCF of an example signal, to see how the SCF changes with different signal and SCF parameters, all in your browser!  While these interactive demos are free for everyone, they are largely made possible by the support of PySDR's `Patreon <https://www.patreon.com/PySDR>`_ members.
+One resource that you will find here and in no other textbook: at the end of the SCF section you will be rewarded with an interactive JavaScript app that allows you to play around with the SCF of an example signal, to see how the SCF changes with different signal and SCF parameters, all in your browser!  While these interactive demos are free for everyone, they are largely made possible by the support of PySDR's `Patreon <https://www.patreon.com/PySDR>`_ members.
 
 *************************
 Review of Autocorrelation
@@ -681,7 +681,7 @@ Up until this point, we have been using the following formulas for the CAF and t
     R_x(\tau,\alpha) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt \\
     S_X(f,\alpha) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X^*(t,f - \alpha/2) dt
 
-There is, however, an alternate form for the CAF and SCF in which there is no conjugate included. These forms are called the *conjugate CAF* and the *conjugate SCF*, respectively.  The naming convention it's a little confusing, but the main thing to remember is that there's a "normal" version of the CAF/SCF, and a conjugate version.  The conjugate version is useful when you want to extract more information from the signal, but it's not always necessary depending on the signal.  The conjugate CAF and SCF are defined as:
+There is, however, an alternate form for the CAF and SCF in which there is no conjugate included. These forms are called the *conjugate CAF* and the *conjugate SCF*, respectively.  The naming convention is a little confusing, but the main thing to remember is that there's a "normal" version of the CAF/SCF, and a conjugate version.  The conjugate version is useful when you want to extract more information from the signal, but it's not always necessary depending on the signal.  The conjugate CAF and SCF are defined as:
 
 .. math::
     R_{x^*}(\tau,\alpha) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x(t - \tau/2)e^{-j2\pi \alpha t}dt \\
@@ -914,7 +914,7 @@ External Resources on FAM:
 OFDM
 ********************************
 
-Cyclostationarity is especially strong in OFDM signals due to OFDM's use of a cyclic prefix (CP), which is where the last several samples of each OFDM symbol is copied and added to the beginning of the OFDM symbol.  This leads to a strong cyclic frequency corresponding to the OFDM symbol length (which is equal to the inverse of the subcarrier spacing, plus CP duration). 
+Cyclostationarity is especially strong in OFDM signals due to OFDM's use of a cyclic prefix (CP), which is where the last several samples of each OFDM symbol is copied and added to the beginning of the OFDM symbol.  This leads to a strong cyclic frequency equal to the inverse of the OFDM symbol duration (which is the inverse of the subcarrier spacing, plus CP duration). 
 
 Let's play around with an OFDM signal.  Below is the simulation of an OFDM signal with a CP using 64 subcarriers, 25% CP, and QPSK modulation on each subcarrier.  We'll interpolate by 2x to simulate receiving at a reasonable sample rate, so that means the OFDM symbol length in number of samples will be (64 + (64*0.25)) * 2 = 160 samples.  That means we should get spikes at alphas that are an integer multiple of 1/160, or 0.00625, 0.0125, 0.01875, etc. We will simulate 200k samples which corresponds to 1250 OFDM symbols (recall that each OFDM symbol is fairly long).  
 

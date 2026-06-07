@@ -175,11 +175,11 @@ A popular and simple formulation for the noise budget uses the "kTB" approach:
 .. math::
  P_{noise} = kTB
 
-- :math:`k` – Boltzmann’s constant = 1.38 x 10-23 J/K = **-228.6 dBW/K/Hz**.  For anyone curious, Boltzmann’s constant is a physical constant relating the average kinetic energy of particles in a gas with the temperature of the gas.
+- :math:`k` – Boltzmann’s constant = 1.38 x 10\ :sup:`-23` J/K = **-228.6 dBW/K/Hz**.  For anyone curious, Boltzmann’s constant is a physical constant relating the average kinetic energy of particles in a gas with the temperature of the gas.
 - :math:`T` – System noise temperature in K (cryocoolers anyone?), largely based on our amplifier.  This is the term that is most difficult to find, and is usually very approximate.  You might pay more for an amplifier with a lower noise temperature. 
 - :math:`B` – Signal bandwidth in Hz, assuming you filter out the noise around your signal.  So an LTE downlink signal that is 10 MHz wide will have :math:`B` set to 10 MHz, or 70 dBHz.
 
-Multiplying out (or adding in dB) kTB gives our noise power, i.e., the bottom term of of our SNR equation.
+Multiplying out (or adding in dB) kTB gives our noise power, i.e., the bottom term of our SNR equation.
 
 *************************
 SNR
@@ -211,7 +211,7 @@ The Physical (PHY) Layer of ADS-B has the following characteristics:
 - Signal bandwidth around 2 MHz
 - PPM modulation
 - Data rate of 1 Mbit/s, with messages between 56 - 112 microseconds
-- Messages carry 15 bytes of data each, so multiple messages are usually needed for the entire aircraft information
+- Messages carry around a dozen bytes of data each, so multiple messages are usually needed for the entire aircraft information
 - Multiple access is achieved by having messages broadcast with a period that ranges randomly between 0.4 and 0.6 seconds.  This randomization is designed to prevent aircraft from having all of their transmissions on top of each other (some may still collide but that's fine)
 - ADS-B antennas are vertically polarized
 - Transmit power varies, but should be in the ballpark of 100 W (20 dBW)

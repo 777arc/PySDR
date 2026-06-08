@@ -324,9 +324,9 @@ Signal-to-Interference-plus-noise verhouding (SINR) of signaal-tot-verstoring-pl
 
 Wat die verstoring inhoudt, verschilt per toepassing/situatie, maar meestal gaat het om een ander ongewenst signaal wat het signaal van interesse verstoort op zo'n manier dat het niet weg te filteren is.
 
-*********************************
+****************************************
 Diepere duik in stochastische variabelen
-*********************************
+****************************************
 
 Tot nu toe hebben we de wiskunde wat licht gehouden, maar nu doen we een stap terug en introduceren we het concept stochastische variabelen en hoe die in draadloze communicatie en SDR worden gebruikt. Een **stochastische variabele** is een wiskundig object dat uitkomsten van een willekeurig experiment op numerieke waarden afbeeldt. Stochastische variabelen beschrijven grootheden waarvan de waarde pas bekend is nadat je die observeert of meet, zoals onze ruissamples. Denk aan het gooien van een dobbelsteen. Voor de worp weet je niet welk getal valt. We kunnen een stochastische variabele :math:`X` definieren als de uitkomst van die worp. De waarde van :math:`X` ligt in {1, 2, 3, 4, 5, 6}, maar welke het wordt weten we pas na de worp.
 
@@ -559,9 +559,9 @@ waar :math:`S` het signaal is en :math:`N` onafhankelijke ruis, dan is het total
 
 Daarom zijn SNR-berekeningen zo rechttoe rechtaan.
 
-****************************
+*********************************
 Complexe stochastische variabelen
-****************************
+*********************************
 
 In SDR werken we veel met **complexe signalen**, dus ook met complexe stochastische variabelen. Zo'n variabele heeft de vorm:
 

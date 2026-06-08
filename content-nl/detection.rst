@@ -138,9 +138,9 @@ De ROC-curve zet :math:`P_{d}` uit tegen :math:`P_{fa}` bij vaste SNR. Door de d
 Uit de vergelijkingen (en intuïtie) volgt dat preamblelengte :math:`L` een cruciale ontwerpparameter is, omdat die direct de processing gain en daarmee de detectieprestatie bepaalt. Bij vaste drempel en SNR groeit :math:`P_{D}` met :math:`L`. Een langere preamble verzamelt meer signaalenergie, waardoor scheiding tussen signaal en achtergrondruis eenvoudiger wordt. Deze prestatieverbetering heet "processing gain" en wordt vaak in dB uitgedrukt als :math:`10\log_{10}(L)`. Dit is essentieel voor zwakke signalen die anders gemist worden. Door energie over meer samples te integreren kun je signalen detecteren die onder de ruisvloer liggen.
 
 
-****************************************************
+*****************************************************
 Voorbeeld: GPS-signalen detecteren onder de ruisvloer
-****************************************************
+*****************************************************
 
 Korte introductie tot GPS-signalen
 ##################################
@@ -368,12 +368,12 @@ Laten we de resultaten van satelliet 11, de eerste die we detecteerden, plotten.
 .. image:: ../_images/detection_gps_2d_map.png
    :align: center 
    :width: 700px
-    :alt: 2D-acquisitiekaart
+   :alt: 2D-acquisitiekaart
 
 .. image:: ../_images/detection_gps_code_phase_slice.svg
    :align: center 
    :target: ../_images/detection_gps_code_phase_slice.svg
-    :alt: Doorsnede van codefase
+   :alt: Doorsnede van codefase
 
 We gaan hier niet dieper in op het trilateratieproces, maar juist de exacte positie van die piek maakt het mogelijk om de afstand tot de satelliet te bepalen. Combineer je die informatie van 4 of meer satellieten, dan kan de ontvanger zijn positie op aarde berekenen.
 

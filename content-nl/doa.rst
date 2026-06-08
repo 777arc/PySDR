@@ -4,52 +4,70 @@
 DOA en Bundelvorming
 ####################################
 
-In dit hoofdstuk behandelen we bundelvorming, direction-of-arrival (DOA, aankomstrichting) en phased arrays. Met Python-simulatievoorbeelden bespreken we technieken zoals Capon en MUSIC. Ook vergelijken we bundelvorming met DOA en behandelen we twee soorten phased arrays (passief en actief).
+In dit hoofdstuk behandelen we bundelvorming, direction-of-arrival (DOA, aankomstrichting) en phased arrays in het algemeen. We vergelijken verschillende arraytypen en geometrieen, en laten zien waarom elementafstand een cruciale rol speelt. Technieken zoals MVDR/Capon en MUSIC worden geintroduceerd en gedemonstreerd met Python-simulaties.
 **N.B. Dit hoofdstuk wordt momenteel vertaald en kan nog fouten bevatten.** 
 
+***********************
+Bundelvorming Overzicht
+***********************
+
+Een phased array, ook wel elektronisch gestuurde array genoemd, is een verzameling antennes die je aan zend- en ontvangstzijde kunt gebruiken in communicatie- en radarsystemen. Je ziet phased arrays op de grond, in de lucht en op satellieten. De antennes in de array noemen we meestal elementen, en soms wordt de volledige array ook een sensor genoemd. Deze elementen zijn vaak omnidirectionele antennes, gelijkmatig verdeeld in een lijn of over twee dimensies.
+
+Bundelvorming is een signaalverwerkingstechniek voor antenne-arrays waarmee je een *ruimtelijk* filter maakt: signalen uit ongewenste richtingen worden onderdrukt en gewenste richtingen versterkt. Je kunt bundelvorming gebruiken om de SNR van gewenste signalen te verhogen, stoorzenders te nullen, bundelpatronen te vormen, of zelfs meerdere datastromen op dezelfde tijd en frequentie te verzenden/ontvangen. Hiervoor gebruiken we gewichten (coefficienten) per array-element, digitaal of analoog. Door deze gewichten te sturen vorm je bundels en nullen, vandaar de naam bundelvorming. Dat sturen gaat extreem snel; veel sneller dan mechanisch gimbal-antennes, die je als alternatief kunt zien. In dit hoofdstuk behandelen we bundelvorming vooral vanuit communicatielinks, waar de ontvanger een of meer signalen met zo hoog mogelijke SNR wil ontvangen. In radar speelt bundelvorming eveneens een grote rol, met als doel detectie en tracking van doelen.
+
+.. image:: ../_images/doa_complex_scenario.svg
+   :align: center 
+   :target: ../_images/doa_complex_scenario.svg
+   :alt: Diagram van een complex scenario met meerdere signalen die op een array invallen
+
+Bundelvormingstechnieken kun je grofweg in drie categorieen indelen: conventioneel, adaptief en blind. Conventionele bundelvorming is vooral nuttig wanneer je de aankomstrichting van het gewenste signaal al kent; je kiest gewichten die de arraygain in die richting maximaliseren. Dat kan aan zend- en ontvangstzijde. Adaptieve bundelvorming past de gewichten aan op basis van de invoer van de bundelvormer om een criterium te optimaliseren (bijvoorbeeld een stoorzender nullen of meerdere hoofdbundels vormen). Door de gesloten lus wordt adaptieve bundelvorming meestal aan ontvangstzijde gebruikt, waarbij de invoer van de bundelvormer simpelweg het ontvangen signaal is, en de gewichten op statistiek van die ontvangen data worden bijgewerkt.
+
+De onderstaande taxonomie probeert de verschillende deelgebieden binnen bundelvorming te ordenen en tegelijk voorbeeldtechnieken te tonen:
+
+.. image:: ../_images/beamforming_taxonomy.svg
+   :align: center 
+   :target: ../_images/beamforming_taxonomy.svg
+   :alt: Taxonomie van bundelvorming met conventionele, adaptieve en blinde methoden en de plaats van DOA-schatting
+
 ************************
-Overzicht en termen
+DOA Overzicht
 ************************
 
-Een phased array, ook wel een elektronisch gestuurd array genoemd, is een array van antennes die aan de zend- of ontvangstkant kan worden gebruikt om (elektronische) bundels op een bepaalde richting op te focussen. 
-Deze techniek wordt gebruikt in communicatie- en radartoepassingen. 
+Direction-of-Arrival (DOA) in DSP/SDR is het proces waarbij je met een antenne-array de aankomstrichtingen van een of meer ontvangen signalen detecteert en schat. Dat verschilt van bundelvorming, waar de nadruk ligt op het ontvangen van een signaal terwijl ruis en interferentie zo veel mogelijk worden onderdrukt. Hoewel DOA duidelijk onder het bundelvormingsdomein valt, raken de termen in de praktijk snel door elkaar. Sommige technieken, zoals conventionele en MVDR-bundelvorming, kun je zowel voor bundelvorming als DOA gebruiken. Voor DOA sweep je dan over hoeken, voer je per hoek de bundelvormingsstap uit, en zoek je pieken in het resultaat. Elke piek betekent dat er een signaal is, maar niet direct of dit het gewenste signaal, een stoorzender of een multipadreflectie is. Je kunt deze DOA-methoden zien als een omhulsel rond een specifieke bundelvormer. Andere bundelvormers laten zich niet eenvoudig in een DOA-routine verpakken, bijvoorbeeld door extra invoer die je binnen DOA niet beschikbaar hebt. Daarnaast zijn er DOA-methoden zoals MUSIC en ESPRIT die strikt voor DOA bedoeld zijn en geen bundelvormer zijn. Omdat veel bundelvormingsmethoden aannemen dat je de aankomstrichting van het gewenste signaal kent, moet je bij beweging van doel of array continu DOA blijven doen als tussenstap, zelfs als je hoofddoel demodulatie van het gewenste signaal is.
 
-Phased arrays kun je grofweg in drie categorieën indelen:
+Phased arrays en bundelvorming/DOA worden breed toegepast, maar je ziet ze vooral terug in radarsystemen, nieuwere wifi-standaarden, mmWave binnen 5G, satellietcommunicatie en stoorzenders. Algemeen geldt: toepassingen die een hoge antennegain vereisen, of een snel stuurbare hoge-gain antenne, zijn goede kandidaten voor phased arrays.
 
-1. **Passive electronically scanned array (PESA)**, beter bekend als een analoge of traditionele phased array. Hierbij worden analoge faseverschuivers gebruikt om de bundelrichting aan te passen.
-   Bij de ontvanger worden alle elementen na een faseverschuiving (en eventueel versterking) opgeteld en met een mixer naar de basisband  geschoven om te verwerken.
-   Bij de zender gebeurt het tegenovergestelde; een enkel digitaal signaal wordt analoog gemaakt waarna meerdere faseverschuivers en versterkers worden gebruikt om het signaal voor elke antenne te produceren.
-2. **Active electronically scanned array (AESA)**, beter bekend als een volledig digitale array. Hier heeft elk element zijn eigen RF-componenten en het richten van de bundel gebeurt dan volledig digitaal. Vanwege de RF-componenten is dit de duurste aanpak, maar het geeft flexibiliteit en maakt hogere snelheden mogelijk. Digitale arrays zijn ideaal voor SDR's alhoewel het aantal kanalen van de SDR de grootte van de array beperkt. Wanneer er digitale faseverschuivers worden toegepast, dan hebben deze een bepaalde amplitude- en faseresolutie.
-3. **Hybride array**, Nu worden meer PESA subarrays gebruikt, waarbij elke subarray zijn eigen RF voorkant heeft net als bij AESA's. Deze aanpak geeft het beste van beide werelden enwordt het meest toegepast in moderne arrays.
+******************
+Typen Arrays
+******************
+
+Phased arrays vallen grofweg in drie typen uiteen:
+
+1. **Analoog**, ook wel passive electronically scanned array (PESA) of traditionele phased array. Hier sturen analoge faseverschuivers de bundel. Aan ontvangstzijde tel je alle elementen op na faseverschuiving (en eventueel regelbare versterking), waarna je naar een enkel kanaal omlaag converteert en ontvangt. Aan zendzijde gebeurt het omgekeerde: een enkel digitaal signaal gaat de analoge keten in, waarna faseverschuivers en gain-trappen het signaal per antenne-element vormen. Digitale faseverschuivers hebben een eindige bitresolutie en besturingslatentie. Een belangrijk voordeel van analoge bundelvorming is dat sterke stoorzenders al voor de ADC kunnen worden genuld, zodat de ontvanger niet verzadigt.
+2. **Digitaal**, ook wel active electronically scanned array (AESA), waarbij elk element een eigen RF-front-end heeft en de bundelvorming volledig digitaal plaatsvindt. Dit is doorgaans de duurste aanpak omdat RF-componenten kostbaar zijn, maar je krijgt er veel flexibiliteit en snelheid voor terug, plus toegang tot adaptieve technieken die we later behandelen. Digitale arrays passen goed bij SDR's, al begrenst het aantal SDR-kanalen het aantal elementen.
+3. **Hybride**, waarbij de array uit meerdere subarrays bestaat die afzonderlijk op analoge arrays lijken, terwijl elke subarray wel een eigen RF-front-end heeft zoals bij digitale arrays. Dit is in moderne systemen vaak de meest gebruikte aanpak omdat het een goede balans biedt. Hybride arrays kunnen adaptieve technieken gebruiken en tegelijk sterke interferentie al in het analoge domein onderdrukken voor de ADC, wat vooral in radar en in vijandige RF-omgevingen belangrijk is.
+
+Let op: de termen PESA en AESA worden vooral in radarcontext gebruikt en de precieze afbakening is niet altijd scherp. Daarom zijn de termen analoog/digitaal/hybride vaak duidelijker en breder toepasbaar.
 
 Hieronder vind je een voorbeeld van de drie typen:
 
 .. image:: ../_images/beamforming_examples.svg
    :align: center 
    :target: ../_images/beamforming_examples.svg
-   :alt: Example of phased arrays including Passive electronically scanned array (PESA), Active electronically scanned array (AESA), Hybrid array, showing Raytheon's MIM-104 Patriot Radar, ELM-2084 Israeli Multi-Mission Radar, Starlink User Terminal, aka Dishy
+   :alt: Voorbeeld van phased arrays: PESA, AESA en hybride, met o.a. Patriot-radar, ELM-2084 en Starlink-terminal
 
-We zullen in dit hoofdstuk voornamelijk focussen op de signaalbewerking voor volledig digitale arrays, omdat deze beter geschikt zijn voor simulatie en DSP toepassingen. In het volgende hoofdstuk gaan we aan de slag met de "Phaser" array en SDR van Analog Devices die 8 analoge faseverschuivers heeft aangesloten op een Pluto.
+Naast deze drie typen is ook de geometrie belangrijk. De eenvoudigste vorm is de uniforme lineaire array (ULA), waarbij antennes op een rechte lijn met gelijke afstand staan (1D). ULA's hebben een 180-gradenambiguiteit, waar we later op terugkomen. Een oplossing is antennes in een cirkel plaatsen: de uniforme cirkelarray (UCA). Voor 2D-bundels gebruiken we meestal een uniforme rechthoekige array (URA), met een rasterpatroon.
 
-We zullen de antennes die de array vormen meestal elementen noemen, en soms wordt de array ook wel een "sensor" genoemd. Deze array-elementen zijn meestal omnidirectionele antennes, die gelijkmatig verdeeld zijn in een lijn of over twee dimensies.
-
-Een bundelvormer is in wezen een ruimtelijk filter; het filtert signalen uit alle richtingen behalve de gewenste richting(en). Net als bij normale filters, gebruiken we gewichten (coefficienten) op elk element van een array. We manipuleren dan de gewichten om de bundel(s) van de array te vormen, vandaar de naam bundelvormer! We kunnen deze bundels (en nullen) extreem snel sturen; veel sneller dan mechanisch gestuurde antennes (een mogelijk alternatief). Een enkele array kan, zolang het maar genoeg elementen heeft, tegelijkertijd meerdere signalen elektronisch volgen terwijl het interferentie onderdrukt. We zullen bundelvorming meestal bespreken in de context van een communicatieverbinding, waarbij de ontvanger probeert een of meerdere signalen met een zo hoog mogelijke SNR te ontvangen.
-
-Bundelvormingstechnieken worden meestal onderverdeeld in conventionele en adaptieve technieken. Bij conventionele bundelvorming ga je er vanuit dat je al weet waar het signaal vandaan komt. De bundelvormer kiest dan gewichten om de versterking in die richting te maximaliseren. Dit kan zowel aan de ontvangende als aan de zendende kant van een communicatiesysteem worden gebruikt. Bij adaptieve bundelvorming daarentegen worden, om een bepaald criterium te optimaliseren, de gewichten voortdurend aangepast op basis van de uitgang van de bundelvormer. Vaak is het doel een interferentiebron te onderdrukken. Vanwege de gesloten lus en adaptieve aard wordt adaptieve bundelvorming typisch alleen aan de ontvangende kant gebruikt, dus de "uitgang van de bundelvormer" is gewoon je ontvangen signaal.  Adaptieve bundelvorming houdt dus in dat je de gewichten aanpast op basis van de statistieken van de ontvangen gegevens.
-
-Direction-of-Arrival (DOA) binnen DSP/SDR verwijst naar de manier waarop een array van antennes wordt gebruikt om de aankomstrichtingen van een of meerdere signalen in te schatten (in tegenstelling tot bundelvorming, dat zich richt op het ontvangen van een signaal terwijl zoveel mogelijk ruis en interferentie wordt onderdrukt). Omdat DOA zeker onder het onderwerp bundelvorming valt, kunnen de termen verwarrend zijn. 
-Dezelfde technieken die bij bundelvorming worden gebruikt, zijn ook toepasbaar bij DOA. Het vinden van de richting gebeurt op dezelfde manieren. 
-De meeste bundelvormingstechnieken gaan er van uit dat de aankomstrichting van het signaal bekend is. Wanneer de zender of ontvanger zich verplaatsten zal het alsnog continu DOA moeten uitvoeren, zelfs als het primaire doel is om het signaal te ontvangen en demoduleren.
-
-Phased arrays en bundelvorming/DOA worden gebruikt in allerlei toepassingen. Je kunt ze onder andere vinden in verschillende vormen van radar, mmWave-communicatie binnen 5G, satellietcommunicatie en voor het storen van verbindingen. Elke toepassing die een antenne met een hoge versterking vereist, of een snel bewegende antenne met een hoge versterking, zijn goede kandidaten voor phased arrays.
+In dit hoofdstuk focussen we op digitale arrays, omdat die beter aansluiten op simulatie en DSP. De concepten gelden echter ook voor analoge en hybride arrays. In het volgende hoofdstuk werken we praktisch met de "Phaser"-SDR van Analog Devices, met een 10 GHz 8-element analoge array met fase- en gain-shifters, gekoppeld aan een Pluto en Raspberry Pi. We focussen hier vooral op ULA-geometrie omdat die de eenvoudigste wiskunde en code geeft, maar de kernideeen gelden ook voor andere geometrieen; aan het einde raken we UCA kort aan.
 
 
 *******************
 Eisen SDR
 *******************
 
-Zoals besproken bestaat een analoge phased array uit een faseverschuiver (en versterker) per kanaal. Dit betekent dat er analoge hardware nodig is naast de SDR. Aan de andere kant kan elke SDR met meer dan één kanaal, waarbij alle kanelen fasegekoppeld zijn en dezelfde klok gebruiken, als een digitale array worden gebruikt. Dit is meestal het geval bij SDR's met meerdere kanalen.
-Er zijn veel SDR's die **twee** ontvangstkanalen bevatten, zoals de Ettus USRP B210 en de Analog Devices Pluto (het 2e kanaal wordt blootgesteld met een uFL-connector op het bord zelf). Helaas, als je verder gaat dan twee kanalen, kom je in het segment van SDR's van $10k+ terecht, althans in 2023, zoals de USRP N310. Het grootste probleem is dat goedkope SDR's meestal niet aan elkaar kunnen worden "gekoppeld" om het aantal kanalen te vermeerderen. De uitzondering is de KerberosSDR (4 kanalen) en KrakenSDR (5 kanalen) die meerdere RTL-SDR's gebruiken die een LO delen met een gedeelde LO om een goedkope digitale array te vormen; het nadeel is de zeer beperkte bemonsteringsfrequentie (tot 2,56 MHz) en afstemmingsbereik (tot 1766 MHz). De KrakenSDR-kaart en een antenneconfiguratievoorbeeld wordt hieronder getoond. 
+Analoge phased arrays gebruiken per kanaal/element een faseverschuiver (en vaak ook een regelbare gain-trap) in analoge RF-hardware. Dat betekent dat een analoge phased array meestal gespecialiseerde hardware is naast je SDR, of speciaal voor een toepassing wordt ontworpen. Aan de andere kant kan elke SDR met meer dan een kanaal als digitale array werken zonder extra hardware, mits de kanalen fasecoherent zijn en dezelfde klok gebruiken; dat is doorgaans zo bij SDR's met meerdere ontvangstkanalen op dezelfde print.
+
+ Er zijn veel SDR's met **twee** ontvangstkanalen, zoals de Ettus USRP B210 en Analog Devices Pluto (waar het tweede kanaal via een uFL-connector op het bord beschikbaar is). Boven twee kanalen kom je helaas vaak in het $10k+-segment terecht (stand 2023), zoals de Ettus USRP N310 of Analog Devices QuadMXFE (16 kanalen). Een belangrijk probleem is dat goedkope SDR's meestal niet eenvoudig te koppelen zijn om op te schalen in kanaalaantal. Een uitzondering is de KerberosSDR (4 kanalen) en KrakenSDR (5 kanalen), die meerdere RTL-SDR's met gedeelde LO combineren tot een betaalbare digitale array. Nadeel is de beperkte samplerate (tot 2,56 MHz) en het beperkte afstembereik (tot 1766 MHz). De KrakenSDR-print en een voorbeeld van een antenne-opstelling staan hieronder.
 
 
 .. image:: ../_images/krakensdr.jpg
@@ -57,7 +75,7 @@ Er zijn veel SDR's die **twee** ontvangstkanalen bevatten, zoals de Ettus USRP B
    :alt: The KrakenSDR
    :target: ../_images/krakensdr.jpg
 
-In dit hoofdstuk zullen we geen specifieke SDR's gebruiken; in plaats daarvan simuleren we het ontvangen van signalen met Python, en gaan we door de benodigde bewerkingen voor bundelvorming/DOA.
+In dit hoofdstuk gebruiken we geen specifieke SDR-hardware; in plaats daarvan simuleren we ontvangen signalen in Python en doorlopen we de DSP-stappen voor bundelvorming/DOA bij digitale arrays.
 
 
 ********************************************
@@ -129,11 +147,11 @@ Hier zijn enkele veelvoorkomende bewerkingen in zowel MATLAB als Python, als een
      - :code:`[A A]`
      - :code:`np.concatenate((A,A))`
 
-*******************
-Basiswiskunde
-*******************
+*********************
+Stuurvector
+*********************
 
-Voordat we met de leuke dingen beginnen zullen we eerst een beetje wiskunde moeten behandelen. Het volgende deel is wel zo geschreven dat de wiskunde extreem simpel is met figuren erbij. Alleen de meest basale goniometrische en exponentiële eigenschappen worden gebruikt. Deze basiswiskude is belangrijk om later de pythoncode te begrijpen waarmee we DOA uitvoeren.
+Voor we naar de leuke stukken gaan moeten we eerst een beetje wiskunde doen, maar dit deel is zo opgezet dat het relatief rechttoe rechtaan blijft en met figuren wordt ondersteund. We gebruiken alleen basale goniometrische en exponentiele eigenschappen. Deze basis is belangrijk om later de Python-code voor DOA goed te begrijpen.
 
 We hebben een 1 dimensionale array van antennes die uniform zijn uitgespreid:
 
@@ -174,7 +192,7 @@ De ontvanger of SDR vermenigvuldigt het signaal met de draaggolf, maar in omgeke
 .. math::
  = x(t - \Delta t) e^{-2j \pi f_c \Delta t}
 
-Met een kleine truc is dit nog verder te vereenvoudigen. Bedenk dat wanneer we een signaal samplen, we dit kunnen modelleren door :math:`t` te vervangen door :math:`nT` waar :math:`T` de sampleperiodetijd is en :math:`n` gewoon 0, 1, 2, 3... . Door dit in te vullen krijgen we :math:`x(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. Nu is :math:`nT` zoveel groter dan :math:`\Delta t` dat we de eerste :math:`\Delta t`-term weg kunnen laten en we :math:`x(nT) e^{-2j \pi f_c \Delta t}` overhouden. Als de samplefrequentie ooit snel genoeg wordt om de snelheid van het licht over een kleine afstand te benaderen, kunnen we dit opnieuw bekijken, maar onthoud dat onze samplefrequentie slechts een beetje hoger moet zijn dan de bandbreedte van het signaal van belang.
+Met een kleine truc is dit nog verder te vereenvoudigen. Wanneer we een signaal samplen, kunnen we :math:`t` vervangen door :math:`nT`, waarbij :math:`T` de sampleperiode is en :math:`n` gelijk is aan 0, 1, 2, 3... . Dan krijgen we :math:`x(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. Voor een smalbandig signaal verandert de envelop langzaam genoeg over de propagatievertraging :math:`\Delta t`, zodat we :math:`x(nT - \Delta t) \approx x(nT)` mogen aannemen. Dan blijft over: :math:`x(nT) e^{-2j \pi f_c \Delta t}`. Als de samplerate ooit hoog genoeg wordt om de lichtsnelheid over zeer kleine afstanden te benaderen, moeten we deze aanname opnieuw beoordelen. In de praktijk is de samplerate echter slechts iets hoger dan de bandbreedte van het signaal van interesse.
 
 Laten we doorgaan met deze wiskunde maar dingen in discrete termen gaan vertegenwoordigen zodat het meer op onze Python-code lijkt. De laatste vergelijking kan als volgt worden voorgesteld, laten we :math:`\Delta t` weer invullen:
 
@@ -319,7 +337,7 @@ Laten we als laatste nog wat ruis toevoegen aan dit ontvangen signaal, want elk 
 Conventionele Bundelvorming en DOA
 ***********************************
 
-We gaan deze samples :code:`X` nu verwerken alsof we de aankomstrichting niet kennen, en vervolgens DOA uitvoeren. Daarbij schatten we de aankomstrichting(en) met DSP en Python-code. Zoals eerder in dit hoofdstuk besproken zijn bundelvorming en DOA sterk aan elkaar verwant en vaak gebaseerd op dezelfde technieken. In de rest van dit hoofdstuk bekijken we verschillende "beamformers". Voor elke techniek starten we met de wiskunde/code om de gewichten, :math:`w`, te berekenen. Deze gewichten kunnen we vervolgens op het inkomende signaal :code:`X` "toepassen" met de eenvoudige vergelijking :math:`w^H X`, of in Python :code:`w.conj().T @ X`. In het voorbeeld hierboven is :code:`X` een :code:`3x10000`-matrix, maar na het toepassen van de gewichten houden we :code:`1x10000` over, alsof onze ontvanger maar één antenne heeft. Daarna kunnen we normale RF signaalbewerking toepassen op het signaal. Zodra we de beamformer hebben opgebouwd, passen we die toe op het DOA-probleem.
+We gaan deze samples :code:`X` nu verwerken alsof we de aankomstrichting niet kennen, en vervolgens DOA uitvoeren. Daarbij schatten we de aankomstrichting(en) met DSP en Python-code. Zoals eerder in dit hoofdstuk besproken zijn bundelvorming en DOA sterk aan elkaar verwant en vaak gebaseerd op dezelfde technieken. In de rest van dit hoofdstuk bekijken we verschillende bundelvormers. Voor elke techniek starten we met de wiskunde/code om de gewichten, :math:`w`, te berekenen. Deze gewichten kunnen we vervolgens op het inkomende signaal :code:`X` "toepassen" met de eenvoudige vergelijking :math:`w^H X`, of in Python :code:`w.conj().T @ X`. In het voorbeeld hierboven is :code:`X` een :code:`3x10000`-matrix, maar na het toepassen van de gewichten houden we :code:`1x10000` over, alsof onze ontvanger maar één antenne heeft. Daarna kunnen we normale RF signaalbewerking toepassen op het signaal. Zodra we de bundelvormer hebben opgebouwd, passen we die toe op het DOA-probleem.
 
 We beginnen met de "conventionele" bundelvormingsaanpak, ook wel delay-and-sum genoemd. Onze gewichtenvector :code:`w` moet voor een uniforme lineaire array een 1D-array zijn. In ons voorbeeld met drie elementen is :code:`w` een :code:`3x1`-array met complexe gewichten. Bij conventionele bundelvorming laten we de amplitudes van de gewichten op 1 staan en passen we alleen de fases aan, zodat het signaal constructief in de richting van het gewenste signaal optelt, aangeduid met :math:`\theta`. Dit blijkt exact dezelfde wiskunde te zijn als hierboven; onze gewichten zijn dus gewoon onze stuurvector.
 
@@ -336,7 +354,7 @@ of in Python:
 
 waar :code:`Nr` het aantal elementen is in onze uniforme lineaire array met een onderlinge afstand van :code:`d` golflengtefracties (meestal ~0,5). Zoals je ziet hangen de gewichten alleen af van de arraygeometrie en de gewenste hoek. Als onze array fasekalibratie nodig heeft, nemen we die kalibratiewaarden ook mee. Je ziet in de vergelijking voor :code:`w` ook dat de gewichten complex zijn en allemaal een amplitude van één (unity) hebben.
 
-Maar hoe kennen we de gewenste hoek :code:`theta`? We moeten eerst DOA uitvoeren, waarbij we alle aankomstrichtingen van -π tot +π (-180 tot +180 graden) scannen (samplen), bijvoorbeeld in stappen van 1 graad. Voor elke richting berekenen we de gewichten met een beamformer; we beginnen met de conventionele beamformer. Als we de gewichten op :code:`X` toepassen, krijgen we een 1D-array met samples, alsof we met één richtantenne ontvangen. Daarna kunnen we het signaalvermogen bepalen via de variantie met :code:`np.var()`, en dit herhalen voor elke hoek in de scan. We plotten de resultaten en beoordelen ze visueel, maar in de praktijk zoekt RF-DSP meestal de hoek met het maximale vermogen (via een piekzoekalgoritme) en noemt die de DOA-schatting.
+Maar hoe kennen we de gewenste hoek :code:`theta`? We moeten eerst DOA uitvoeren, waarbij we alle aankomstrichtingen van -π tot +π (-180 tot +180 graden) scannen (samplen), bijvoorbeeld in stappen van 1 graad. Voor elke richting berekenen we de gewichten met een bundelvormer; we beginnen met de conventionele bundelvormer. Als we de gewichten op :code:`X` toepassen, krijgen we een 1D-array met samples, alsof we met één richtantenne ontvangen. Daarna kunnen we het signaalvermogen bepalen via de variantie met :code:`np.var()`, en dit herhalen voor elke hoek in de scan. We plotten de resultaten en beoordelen ze visueel, maar in de praktijk zoekt RF-DSP meestal de hoek met het maximale vermogen (via een piekzoekalgoritme) en noemt die de DOA-schatting.
 
 .. code-block:: python
 
@@ -391,22 +409,22 @@ Laten we bespreken waarom er een tweede piek op 160 graden staat. De gesimuleerd
    :align: center 
    :target: ../_images/doa_from_behind.svg
 
-Laten we de aankomstrichting (Engels: Angle of Arrival AoA) eens sweepen van -90 tot +90 graden, in plaats van hem constant op 20 te houden:
+Laten we de aankomstrichting (Engels: Angle of Arrival, AoA) eens sweepen van -90 tot +90 graden, in plaats van hem constant op 20 te houden:
 
 .. image:: ../_images/doa_sweeping_angle_animation.gif
    :scale: 100 %
    :align: center
    :alt: Animation of direction of arrival (DOA) showing the endfire of the array
 
-Wanneer we de endfire-regio van de array naderen (dus wanneer het signaal op of dicht bij de array-as aankomt), daalt de prestatie. We zien twee belangrijke verslechteringen: 1) de hoofdlob wordt breder en 2) er ontstaat ambiguiteit, waardoor je niet weet of het signaal van links of rechts komt. Deze ambiguiteit komt boven op de eerder besproken 180-gradenambiguiteit, waarbij je een extra lob op 180 - theta krijgt. Daardoor kunnen bepaalde AoA's tot drie lobben van ongeveer gelijke grootte leiden. Deze endfire-ambiguiteit is logisch: de faseverschuivingen tussen elementen zijn identiek of het signaal nu van links of rechts van de array-as komt. Net als bij de 180-gradenambiguiteit is de oplossing een 2D-array of twee 1D-arrays onder verschillende hoeken. In het algemeen werkt beamforming het beste wanneer de hoek dichter bij de kijkrichting ligt.
+Wanneer we de endfire-regio van de array naderen (dus wanneer het signaal op of dicht bij de array-as aankomt), daalt de prestatie. We zien twee belangrijke verslechteringen: 1) de hoofdlob wordt breder en 2) er ontstaat ambiguiteit, waardoor je niet weet of het signaal van links of rechts komt. Deze ambiguiteit komt boven op de eerder besproken 180-gradenambiguiteit, waarbij je een extra lob op 180 - theta krijgt. Daardoor kunnen bepaalde AoA's tot drie lobben van ongeveer gelijke grootte leiden. Deze endfire-ambiguiteit is logisch: de faseverschuivingen tussen elementen zijn identiek of het signaal nu van links of rechts van de array-as komt. Net als bij de 180-gradenambiguiteit is de oplossing een 2D-array of twee 1D-arrays onder verschillende hoeken. In het algemeen werkt bundelvorming het beste wanneer de hoek dichter bij de kijkrichting ligt.
 
 Vanaf nu tonen we in poolplots alleen nog -90 tot +90 graden, omdat het patroon voor 1D-lineaire arrays (waar dit hoofdstuk over gaat) toch gespiegeld is rond de array-as.
 
 ********************
-Beam Pattern
+Bundelpatroon
 ********************
 
-De grafieken die we tot nu toe hebben getoond zijn DOA-resultaten; ze geven het ontvangen vermogen per hoek na het toepassen van de beamformer. Ze horen bij een specifiek scenario met zenders op bepaalde hoeken. We kunnen echter ook het bundelpatroon zelf bekijken, dus vóórdat we een signaal ontvangen. Dit heet soms het "quiescent antenna pattern" of "array response".
+De grafieken die we tot nu toe hebben getoond zijn DOA-resultaten; ze geven het ontvangen vermogen per hoek na het toepassen van de bundelvormer. Ze horen bij een specifiek scenario met zenders op bepaalde hoeken. We kunnen echter ook het bundelpatroon zelf bekijken, dus vóórdat we een signaal ontvangen. Dit heet soms het rustpatroon of de arrayrespons.
 
 Onthoud dat onze stuurvector, die we steeds terugzien,
 
@@ -414,7 +432,7 @@ Onthoud dat onze stuurvector, die we steeds terugzien,
 
  np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta))
 
-de ULA-geometrie vastlegt, en als extra parameter alleen de richting heeft waar je naartoe wilt sturen. We kunnen het quiescent antenna pattern (array response) berekenen en plotten voor een gekozen stuurhoek. Dat laat de natuurlijke respons van de array zien als we geen extra bundelvorming toepassen. Dit kan door de FFT van de complex geconjugeerde gewichten te nemen, dus zonder for-loop. Het lastige deel is zero-padding voor extra resolutie en het mappen van FFT-bins naar hoeken in radialen of graden, waarbij een arcsinus nodig is, zoals je in het voorbeeld hieronder ziet.
+de ULA-geometrie vastlegt, en als extra parameter alleen de richting heeft waar je naartoe wilt sturen. We kunnen het rustpatroon (arrayrespons) berekenen en plotten voor een gekozen stuurhoek. Dat laat de natuurlijke respons van de array zien als we geen extra bundelvorming toepassen. Dit kan door de FFT van de complex geconjugeerde gewichten te nemen, dus zonder for-loop. Het lastige deel is zero-padding voor extra resolutie en het mappen van FFT-bins naar hoeken in radialen of graden, waarbij een arcsinus nodig is, zoals je in het voorbeeld hieronder ziet.
 
 .. code-block:: python
 
@@ -450,9 +468,9 @@ de ULA-geometrie vastlegt, en als extra parameter alleen de richting heeft waar 
    :align: center 
    :target: ../_images/doa_quiescent.svg
 
-Dit patroon blijkt bijna exact overeen te komen met het patroon dat je krijgt bij DOA met de conventionele beamformer (delay-and-sum), wanneer er één toon op `theta_degrees` aanwezig is en weinig tot geen ruis. De plot kan er anders uitzien door hoe ver de y-as in dB naar beneden loopt, of door de FFT-grootte waarmee dit quiescent-patroon is gemaakt. Probeer :code:`theta_degrees` of het aantal elementen :code:`Nr` te variëren om te zien hoe de respons verandert.
+Dit patroon blijkt bijna exact overeen te komen met het patroon dat je krijgt bij DOA met de conventionele bundelvormer (delay-and-sum), wanneer er één toon op `theta_degrees` aanwezig is en weinig tot geen ruis. De plot kan er anders uitzien door hoe ver de y-as in dB naar beneden loopt, of door de FFT-grootte waarmee dit rustpatroon is gemaakt. Probeer :code:`theta_degrees` of het aantal elementen :code:`Nr` te variëren om te zien hoe de respons verandert.
 
-Voor het leuke, laat de volgende animatie het bundelpatroon van de conventionele beamformer zien, voor een 8-element-array die tussen -90 en +90 graden wordt gestuurd. Ook zie je de acht gewichten in het complexe vlak (reële en imaginaire as).
+Voor het leuke, laat de volgende animatie het bundelpatroon van de conventionele bundelvormer zien, voor een 8-element-array die tussen -90 en +90 graden wordt gestuurd. Ook zie je de acht gewichten in het complexe vlak (reële en imaginaire as).
 
 .. image:: ../_images/delay_and_sum.gif
    :scale: 90 %
@@ -528,7 +546,7 @@ Terwijl de hoofdlob breder wordt als :math:`d` kleiner wordt, blijft het maximum
    :align: center
    :alt: Animation of direction of arrival (DOA) showing what happens when distance d is much less than half-wavelength and there are two signals present
 
-Zodra we onder λ/4 komen, is er nauwelijks nog onderscheid te maken tussen de twee verschillende paden en presteert de array slecht. Zoals we later in dit hoofdstuk zullen zien, zijn er beamformingtechnieken met scherpere bundels dan conventionele beamforming. Toch blijft het een belangrijk uitgangspunt om :math:`d` zo dicht mogelijk bij λ/2 te houden.
+Zodra we onder λ/4 komen, is er nauwelijks nog onderscheid te maken tussen de twee verschillende paden en presteert de array slecht. Zoals we later in dit hoofdstuk zullen zien, zijn er bundelvormingstechnieken met scherpere bundels dan conventionele bundelvorming. Toch blijft het een belangrijk uitgangspunt om :math:`d` zo dicht mogelijk bij λ/2 te houden.
 
 ..
    UITGECOMMENTARIEERD OMDAT NIET DUIDELIJK IS WAT DEZE SECTIE TOEVOEGT VOOR DE LEZER, BEHALVE EEN ALTERNATIEVE VERGELIJKING EN TERM DIE VEEL COMPACTER GEPRESENTEERD KAN WORDEN
@@ -538,7 +556,7 @@ Zodra we onder λ/4 komen, is er nauwelijks nog onderscheid te maken tussen de t
 
    Nu we de basis hebben behandeld, maken we een korte zijstap naar notatie en algebraische details van wat we net deden, zodat we bundelsweeps door de ruimte compact en elegant wiskundig kunnen beschrijven. De volgende algebraische notatie leent zich goed voor vectorisatie, en is daardoor geschikt voor realtime verwerking.
 
-   Het proces van bundels door de ruimte sweepen om DOA te schatten heeft een technische naam: "Bartlett Beamforming" (soms ook Fourier beamforming genoemd, al kan die term ook naar een andere techniek verwijzen). Hieronder een korte samenvatting van wat we eerder hebben gedaan om DOA te berekenen, nu in Bartlett-termen:
+   Het proces van bundels door de ruimte sweepen om DOA te schatten heeft een technische naam: "Bartlett-beamforming" (soms ook Fourier-beamforming genoemd, al kan die term ook naar een andere techniek verwijzen). Hieronder een korte samenvatting van wat we eerder hebben gedaan om DOA te berekenen, nu in Bartlett-termen:
 
    #. We kozen een reeks richtingen om op te richten (bijv. -90 tot +90 graden met een bepaalde stap)
    #. We berekenden voor elke richting bundelvormingsgewichten om de bundel daarheen te sturen
@@ -563,7 +581,7 @@ Zodra we onder λ/4 komen, is er nauwelijks nog onderscheid te maken tussen de t
 Ruimtelijke Tapering
 **********************
 
-Spatial tapering is een techniek die je naast de conventionele beamformer gebruikt, waarbij je de amplitude van de gewichten aanpast om bepaalde eigenschappen te krijgen. Ook als je geen conventionele beamformer gebruikt, is het tapering-concept belangrijk om te begrijpen. Toen we de gewichten van de conventionele beamformer berekenden, waren dat complexe getallen met allemaal amplitude één (unity). Met spatial tapering vermenigvuldigen we de gewichten met scalars om die amplitude te schalen. Laten we beginnen met wat er gebeurt als we de gewichten met willekeurige waarden tussen 0 en 1 vermenigvuldigen:
+Ruimtelijke tapering is een techniek die je naast de conventionele bundelvormer gebruikt, waarbij je de amplitude van de gewichten aanpast om bepaalde eigenschappen te krijgen. Ook als je geen conventionele bundelvormer gebruikt, is het taperingconcept belangrijk om te begrijpen. Toen we de gewichten van de conventionele bundelvormer berekenden, waren dat complexe getallen met allemaal amplitude één (unity). Met ruimtelijke tapering vermenigvuldigen we de gewichten met scalaire factoren om die amplitude te schalen. Laten we beginnen met wat er gebeurt als we de gewichten met willekeurige waarden tussen 0 en 1 vermenigvuldigen:
 
 .. code-block:: python
 
@@ -605,7 +623,7 @@ Als je je afvraagt waarom er zoveel zijlobben zijn bij een rechthoekvenster (gee
 Gewichten Handmatig Aanpassen
 ******************************
 
-De conventionele beamformer geeft ons een vergelijking om gewichten te berekenen voor een specifieke richting. Maar laten we nu even doen alsof we geen methode hebben en handmatig met de gewichten (zowel amplitude als fase) spelen om te zien wat er gebeurt. Hieronder staat een kleine JavaScript-app die het bundelpatroon van een 8-element-array simuleert, met sliders voor gain en fase per element. Je kunt tapering toevoegen, of minder dan 8 elementen simuleren door de amplitude van één of meer elementen op nul te zetten.
+De conventionele bundelvormer geeft ons een vergelijking om gewichten te berekenen voor een specifieke richting. Maar laten we nu even doen alsof we geen methode hebben en handmatig met de gewichten (zowel amplitude als fase) spelen om te zien wat er gebeurt. Hieronder staat een kleine JavaScript-app die het bundelpatroon van een 8-element-array simuleert, met sliders voor gain en fase per element. Je kunt tapering toevoegen, of minder dan 8 elementen simuleren door de amplitude van één of meer elementen op nul te zetten.
 
 .. raw:: html
 
@@ -622,19 +640,19 @@ De conventionele beamformer geeft ons een vergelijking om gewichten te berekenen
 Adaptieve Bundelvorming
 ************************
 
-De conventionele beamformer die we eerder hebben besproken is een eenvoudige en effectieve manier om bundelvorming uit te voeren, maar hij heeft beperkingen. Hij werkt bijvoorbeeld minder goed wanneer meerdere signalen uit verschillende richtingen binnenkomen, of wanneer het ruisniveau hoog is. In zulke gevallen gebruiken we geavanceerdere technieken, vaak "adaptieve" beamforming genoemd. Het idee hierachter is dat we het ontvangen signaal gebruiken om de gewichten te berekenen, in plaats van een vaste set gewichten zoals bij conventionele beamforming. Daardoor kan de beamformer zich aanpassen aan de omgeving en beter presteren, omdat de gewichten nu op statistieken van de ontvangen data zijn gebaseerd.
+De conventionele bundelvormer die we eerder hebben besproken is een eenvoudige en effectieve manier om bundelvorming uit te voeren, maar hij heeft beperkingen. Hij werkt bijvoorbeeld minder goed wanneer meerdere signalen uit verschillende richtingen binnenkomen, of wanneer het ruisniveau hoog is. In zulke gevallen gebruiken we geavanceerdere technieken, vaak "adaptieve" bundelvorming genoemd. Het idee hierachter is dat we het ontvangen signaal gebruiken om de gewichten te berekenen, in plaats van een vaste set gewichten zoals bij conventionele bundelvorming. Daardoor kan de bundelvormer zich aanpassen aan de omgeving en beter presteren, omdat de gewichten nu op statistieken van de ontvangen data zijn gebaseerd.
 
-Adaptieve bundelvormingstechnieken kun je verder opdelen in reguliere en subspace-gebaseerde methoden. Subspace-methoden zoals MUSIC en ESPRIT zijn erg krachtig, maar vereisen dat je schat hoeveel signalen aanwezig zijn. Daarnaast hebben ze minimaal drie elementen nodig om te werken (al is minimaal vier aanbevolen).
+Adaptieve bundelvormingstechnieken kun je verder opdelen in reguliere en subruimte-gebaseerde methoden. Subruimtemethoden zoals MUSIC en ESPRIT zijn erg krachtig, maar vereisen dat je schat hoeveel signalen aanwezig zijn. Daarnaast hebben ze minimaal drie elementen nodig om te werken (al is minimaal vier aanbevolen).
 
 De eerste adaptieve bundelvormingstechniek die we bekijken is MVDR, vaak het de-facto-algoritme wanneer mensen over adaptieve bundelvorming praten.
 
-**********************
-MVDR/Capon-beamformer
-**********************
+***********************
+MVDR/Capon-bundelvormer
+***********************
 
-We bekijken nu een beamformer die iets complexer is dan de conventionele/delay-and-sum-techniek, maar meestal veel beter presteert: de Minimum Variance Distortionless Response (MVDR), ook wel Capon-beamformer genoemd. Onthoud dat de variantie van een signaal overeenkomt met het vermogen in dat signaal. Het idee achter MVDR is om de versterking van het signaal in de gewenste richting 1 (0 dB) te houden, terwijl de totale variantie/het totale vermogen van het gebundelde signaal wordt geminimaliseerd. Als het gewenste signaal vast staat, betekent het minimaliseren van het totale vermogen dat interferentie en ruis zo veel mogelijk worden onderdrukt. Daarom wordt MVDR vaak een "statistisch optimale" beamformer genoemd.
+We bekijken nu een bundelvormer die iets complexer is dan de conventionele/delay-and-sum-techniek, maar meestal veel beter presteert: de Minimum Variance Distortionless Response (MVDR), ook wel Capon-bundelvormer genoemd. Onthoud dat de variantie van een signaal overeenkomt met het vermogen in dat signaal. Het idee achter MVDR is om de versterking van het signaal in de gewenste richting 1 (0 dB) te houden, terwijl de totale variantie/het totale vermogen van het gebundelde signaal wordt geminimaliseerd. Als het gewenste signaal vast staat, betekent het minimaliseren van het totale vermogen dat interferentie en ruis zo veel mogelijk worden onderdrukt. Daarom wordt MVDR vaak een "statistisch optimale" bundelvormer genoemd.
 
-De MVDR/Capon-beamformer kan worden samengevat met de volgende vergelijking:
+De MVDR/Capon-bundelvormer kan worden samengevat met de volgende vergelijking:
 
 .. math::
 
@@ -648,14 +666,14 @@ De vector :math:`s` is de stuurvector voor de gewenste richting en is aan het be
    <summary>Voor wie interesse heeft in de MVDR-afleiding: klap dit open</summary>
 
 
-**Uitgang van de beamformer** - De uitgang van de beamformer met gewichtenvector :math:`\mathbf{w}` is:
+**Uitgang van de bundelvormer** - De uitgang van de bundelvormer met gewichtenvector :math:`\mathbf{w}` is:
 
 .. math::
 
  y(t) = \mathbf{w}^H \mathbf{x}(t)
 
 
-**Optimalisatieprobleem** - Het doel is om beamforminggewichten te bepalen die het uitgangsvermogen minimaliseren, onder de voorwaarde van een distortionless respons in de gewenste richting :math:`\theta_0`. Formeel schrijven we dat als:
+**Optimalisatieprobleem** - Het doel is om bundelvormingsgewichten te bepalen die het uitgangsvermogen minimaliseren, onder de voorwaarde van een distortionless respons in de gewenste richting :math:`\theta_0`. Formeel schrijven we dat als:
 
 .. math::
 
@@ -699,9 +717,9 @@ Om :math:`\lambda` op te lossen, passen we de randvoorwaarde :math:`\mathbf{w}^H
 
 Als we de richting van het gewenste signaal al kennen en die richting niet verandert, hoeven we de gewichten maar één keer te berekenen en kunnen we die gebruiken om het signaal te ontvangen. Toch is periodiek herberekenen vaak nuttig, zelfs bij constante richting, om veranderingen in interferentie/ruis op te vangen. Daarom noemen we dit soort niet-conventionele digitale beamformers "adaptief"; ze gebruiken informatie uit het ontvangen signaal om betere gewichten te berekenen. Ter herinnering: we *voeren* bundelvorming met MVDR uit door deze gewichten te berekenen en toe te passen met :code:`w.conj().T @ X`, net als bij de conventionele methode. Alleen de manier waarop de gewichten worden berekend verschilt.
 
-Om DOA met de MVDR-beamformer uit te voeren, herhalen we eenvoudig de MVDR-berekening terwijl we alle relevante hoeken scannen. Met andere woorden: we doen alsof het signaal uit hoek :math:`\theta` komt, ook als dat niet zo is. Per hoek berekenen we de MVDR-gewichten, passen die toe op het ontvangen signaal en berekenen vervolgens het signaalvermogen. De hoek met het hoogste vermogen is onze DOA-schatting. Nog beter is om vermogen als functie van hoek te plotten, zoals we eerder deden met de conventionele beamformer, zodat we niet vooraf hoeven aan te nemen hoeveel signalen aanwezig zijn.
+Om DOA met de MVDR-bundelvormer uit te voeren, herhalen we eenvoudig de MVDR-berekening terwijl we alle relevante hoeken scannen. Met andere woorden: we doen alsof het signaal uit hoek :math:`\theta` komt, ook als dat niet zo is. Per hoek berekenen we de MVDR-gewichten, passen die toe op het ontvangen signaal en berekenen vervolgens het signaalvermogen. De hoek met het hoogste vermogen is onze DOA-schatting. Nog beter is om vermogen als functie van hoek te plotten, zoals we eerder deden met de conventionele bundelvormer, zodat we niet vooraf hoeven aan te nemen hoeveel signalen aanwezig zijn.
 
-In Python kunnen we de MVDR/Capon-beamformer als volgt implementeren, hier als functie zodat hij later makkelijk te hergebruiken is:
+In Python kunnen we de MVDR/Capon-bundelvormer als volgt implementeren, hier als functie zodat hij later makkelijk te hergebruiken is:
 
 .. code-block:: python
 
@@ -714,7 +732,7 @@ In Python kunnen we de MVDR/Capon-beamformer als volgt implementeren, hier als f
       w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon-vergelijking; teller is 3x3 * 3x1, noemer is 1x3 * 3x3 * 3x1, resultaat is 3x1
       return w
 
-Als we deze MVDR-beamformer in DOA-context gebruiken, krijgen we het volgende Python-voorbeeld:
+Als we deze MVDR-bundelvormer in DOA-context gebruiken, krijgen we het volgende Python-voorbeeld:
 
 .. code-block:: python
 
@@ -752,19 +770,19 @@ Dit lijkt goed te werken, maar om echt met andere technieken te vergelijken make
  n = np.random.randn(Nr, N) + 1j*np.random.randn(Nr, N)
  X = X + 0.05*n # 8xN
 
-Je kunt deze code bovenaan je script plaatsen, omdat we hier een ander signaal genereren dan in het oorspronkelijke voorbeeld. Als we in dit scenario de MVDR-beamformer draaien, krijgen we:
+Je kunt deze code bovenaan je script plaatsen, omdat we hier een ander signaal genereren dan in het oorspronkelijke voorbeeld. Als we in dit scenario de MVDR-bundelvormer draaien, krijgen we:
 
 .. image:: ../_images/doa_capons2.svg
    :align: center 
    :target: ../_images/doa_capons2.svg
 
-Dit werkt vrij goed: we zien twee signalen die slechts 5 graden uit elkaar liggen, en ook het derde signaal (op -40 of 320 graden) dat met een tiende van het vermogen van de andere binnenkomt. Laten we nu in hetzelfde scenario de conventionele beamformer draaien:
+Dit werkt vrij goed: we zien twee signalen die slechts 5 graden uit elkaar liggen, en ook het derde signaal (op -40 of 320 graden) dat met een tiende van het vermogen van de andere binnenkomt. Laten we nu in hetzelfde scenario de conventionele bundelvormer draaien:
 
 .. image:: ../_images/doa_complex_scenario.svg
    :align: center 
    :target: ../_images/doa_complex_scenario.svg
 
-Hoewel het er visueel mooi uitziet, vindt deze methode duidelijk niet alle drie de signalen. Door deze twee resultaten te vergelijken zie je het voordeel van een complexere en "adaptieve" beamformer.
+Hoewel het er visueel mooi uitziet, vindt deze methode duidelijk niet alle drie de signalen. Door deze twee resultaten te vergelijken zie je het voordeel van een complexere en "adaptieve" bundelvormer.
 
 Als korte zijstap voor geïnteresseerden: er is een optimalisatie mogelijk bij DOA met MVDR. Onthoud dat we signaalvermogen berekenen via de variantie, oftewel het gemiddelde van de magnitude in het kwadraat (aangenomen dat het gemiddelde van het signaal ongeveer nul is, wat bij basisband-RF vrijwel altijd zo is). Het vermogen na toepassen van de gewichten kunnen we schrijven als:
 
@@ -846,18 +864,18 @@ Let op dat de diagonale elementen reëel zijn en ongeveer gelijk. Dat komt doord
 Als onderdeel van adaptieve bundelvorming zie je vaak dat we de inverse van de ruimtelijke correlatiematrix nemen. Die inverse vertelt hoe twee elementen zich tot elkaar verhouden nadat de invloed van de andere elementen is verwijderd. In statistiek heet dit de "precision matrix" en in radar de "whitening matrix".
 
 **********************
-LCMV-beamformer
+LCMV-bundelvormer
 **********************
 
-Hoewel MVDR krachtig is, wat als we meer dan één SOI hebben? Met een kleine aanpassing op MVDR kunnen we gelukkig een schema bouwen dat meerdere SOI's aankan: de Linearly Constrained Minimum Variance (LCMV)-beamformer. Dit is een generalisatie van MVDR waarbij we de gewenste respons voor meerdere richtingen specificeren, een beetje als een ruimtelijke variant van SciPy's :code:`firwin2()` voor wie dat kent. De optimale gewichtenvector voor de LCMV-beamformer is samen te vatten als:
+Hoewel MVDR krachtig is, wat als we meer dan één SOI hebben? Met een kleine aanpassing op MVDR kunnen we gelukkig een schema bouwen dat meerdere SOI's aankan: de Linearly Constrained Minimum Variance (LCMV)-bundelvormer. Dit is een generalisatie van MVDR waarbij we de gewenste respons voor meerdere richtingen specificeren, een beetje als een ruimtelijke variant van SciPy's :code:`firwin2()` voor wie dat kent. De optimale gewichtenvector voor de LCMV-bundelvormer is samen te vatten als:
 
 .. math::
 
    w_{lcmv} = R^{-1} C [C^H R^{-1} C]^{-1} f
 
-waar :math:`C` een matrix is met stuurvectoren van de bijbehorende SOI's en stoorzenders, en :math:`f` de gewenste responsvector is. Voor een bepaalde rij krijgt :math:`f` de waarde 0 als de bijbehorende stuurvector onderdrukt moet worden (null), en 1 als we er een bundel op willen richten. Hebben we bijvoorbeeld twee gewenste bronnen en twee interferentiebronnen, dan kunnen we :code:`f = [1,1,0,0]` kiezen. De LCMV-beamformer is een krachtig hulpmiddel om interferentie en ruis uit meerdere richtingen te onderdrukken en tegelijk gewenste signalen uit meerdere richtingen te versterken. De keerzijde is dat het totale aantal nullen en bundels dat je tegelijk kunt vormen beperkt is door de arraygrootte (het aantal elementen). Daarnaast moet je voor elke SOI en interferer een stuurvector opstellen, wat in de praktijk niet altijd eenvoudig beschikbaar is. Als je schattingen gebruikt, kan de prestatie van de LCMV-beamformer dalen. Daarom sturen we nullen liever met de ruimtelijke covariantiematrix :math:`R` (gebaseerd op statistiek van het ontvangen signaal), in plaats van nullen te "hardcoden" door de AoA van een interferer te schatten en daar een stuurvector voor te bouwen met een 0 in :math:`f`.
+waar :math:`C` een matrix is met stuurvectoren van de bijbehorende SOI's en stoorzenders, en :math:`f` de gewenste responsvector is. Voor een bepaalde rij krijgt :math:`f` de waarde 0 als de bijbehorende stuurvector onderdrukt moet worden (null), en 1 als we er een bundel op willen richten. Hebben we bijvoorbeeld twee gewenste bronnen en twee interferentiebronnen, dan kunnen we :code:`f = [1,1,0,0]` kiezen. De LCMV-bundelvormer is een krachtig hulpmiddel om interferentie en ruis uit meerdere richtingen te onderdrukken en tegelijk gewenste signalen uit meerdere richtingen te versterken. De keerzijde is dat het totale aantal nullen en bundels dat je tegelijk kunt vormen beperkt is door de arraygrootte (het aantal elementen). Daarnaast moet je voor elke SOI en interferer een stuurvector opstellen, wat in de praktijk niet altijd eenvoudig beschikbaar is. Als je schattingen gebruikt, kan de prestatie van de LCMV-bundelvormer dalen. Daarom sturen we nullen liever met de ruimtelijke covariantiematrix :math:`R` (gebaseerd op statistiek van het ontvangen signaal), in plaats van nullen te "hardcoden" door de AoA van een interferer te schatten en daar een stuurvector voor te bouwen met een 0 in :math:`f`.
 
-LCMV uitvoeren in Python lijkt sterk op MVDR, maar we moeten :code:`C` opgeven (mogelijk samengesteld uit meerdere stuurvectoren) en :code:`f` als 1D-array met 1'en en 0'en zoals hierboven beschreven. De volgende code laat zien hoe je de LCMV-beamformer implementeert voor twee SOI's (15 en 60 graden). Onthoud dat MVDR maar één SOI tegelijk ondersteunt. Daarom is hier :code:`f = [1; 1]` zonder nullen, omdat we geen "hardcoded" nullen opnemen. We simuleren een scenario met vier stoorzenders op -60, -30, 0 en 30 graden.
+LCMV uitvoeren in Python lijkt sterk op MVDR, maar we moeten :code:`C` opgeven (mogelijk samengesteld uit meerdere stuurvectoren) en :code:`f` als 1D-array met 1'en en 0'en zoals hierboven beschreven. De volgende code laat zien hoe je de LCMV-bundelvormer implementeert voor twee SOI's (15 en 60 graden). Onthoud dat MVDR maar één SOI tegelijk ondersteunt. Daarom is hier :code:`f = [1; 1]` zonder nullen, omdat we geen "hardcoded" nullen opnemen. We simuleren een scenario met vier stoorzenders op -60, -30, 0 en 30 graden.
 
 .. code-block:: python
 
@@ -956,7 +974,7 @@ Zoals je ziet hebben we bundels naar de twee gewenste richtingen en nullen op de
 
    </details>
 
-Er is een interessante toepassing van LCMV waar je misschien al aan dacht: stel dat je de hoofdbundel niet exact op 20 graden wilt richten, maar juist breder wilt maken dan conventionele beamforming normaal oplevert. Dat kan door de gewenste responsvector :code:`f` op 1 te zetten voor een hoekbereik (bijvoorbeeld meerdere waarden tussen 10 en 30 graden) en daarbuiten op 0. Daarmee kun je een bundelpatroon maken dat breder is dan de hoofdlob van de conventionele beamformer, wat handig is in praktijksituaties waar de exacte aankomstrichting niet bekend is. Je kunt dezelfde aanpak ook gebruiken om een null over een breder hoekbereik te maken. Houd er wel rekening mee dat dit meerdere vrijheidsgraden kost. Als voorbeeld simuleren we een 18-element-array, met een interessehoek van 15 tot 30 graden via 4 verschillende theta's, en een null van 45 tot 60 graden ook met 4 theta's. We simuleren hier geen echte stoorzenders.
+Er is een interessante toepassing van LCMV waar je misschien al aan dacht: stel dat je de hoofdbundel niet exact op 20 graden wilt richten, maar juist breder wilt maken dan conventionele bundelvorming normaal oplevert. Dat kan door de gewenste responsvector :code:`f` op 1 te zetten voor een hoekbereik (bijvoorbeeld meerdere waarden tussen 10 en 30 graden) en daarbuiten op 0. Daarmee kun je een bundelpatroon maken dat breder is dan de hoofdlob van de conventionele bundelvormer, wat handig is in praktijksituaties waar de exacte aankomstrichting niet bekend is. Je kunt dezelfde aanpak ook gebruiken om een null over een breder hoekbereik te maken. Houd er wel rekening mee dat dit meerdere vrijheidsgraden kost. Als voorbeeld simuleren we een 18-element-array, met een interessehoek van 15 tot 30 graden via 4 verschillende theta's, en een null van 45 tot 60 graden ook met 4 theta's. We simuleren hier geen echte stoorzenders.
 
 .. code-block:: python
 
@@ -993,15 +1011,15 @@ De bundel en null zijn nu uitgespreid over het gevraagde bereik. Probeer het aan
 Nullsturing
 *******************
 
-Nu we LCMV hebben gezien, is het de moeite waard om een eenvoudigere techniek te bekijken die zowel in analoge als digitale arrays kan worden gebruikt: null steering. Zie het als een uitbreiding op de conventionele beamformer: naast een bundel naar de gewenste richting kun je ook nullen op specifieke hoeken plaatsen. Deze techniek past gewichten niet aan op basis van het ontvangen signaal (we berekenen bijvoorbeeld geen :code:`R`) en wordt dus niet als adaptief beschouwd. In de simulatie hieronder hoeven we zelfs geen signaal te simuleren; we construeren alleen de gewichten met null steering en visualiseren vervolgens het bundelpatroon.
+Nu we LCMV hebben gezien, is het de moeite waard om een eenvoudigere techniek te bekijken die zowel in analoge als digitale arrays kan worden gebruikt: null steering. Zie het als een uitbreiding op de conventionele bundelvormer: naast een bundel naar de gewenste richting kun je ook nullen op specifieke hoeken plaatsen. Deze techniek past gewichten niet aan op basis van het ontvangen signaal (we berekenen bijvoorbeeld geen :code:`R`) en wordt dus niet als adaptief beschouwd. In de simulatie hieronder hoeven we zelfs geen signaal te simuleren; we construeren alleen de gewichten met null steering en visualiseren vervolgens het bundelpatroon.
 
-De gewichten voor null steering bereken je door te starten met de conventionele beamformer op de interessehoek, en daarna met de sidelobe-canceler-vergelijking de gewichten bij te werken zodat nullen worden toegevoegd, één voor één. De sidelobe-canceler-vergelijking is:
+De gewichten voor null steering bereken je door te starten met de conventionele bundelvormer op de interessehoek, en daarna met de sidelobe-canceler-vergelijking de gewichten bij te werken zodat nullen worden toegevoegd, één voor één. De sidelobe-canceler-vergelijking is:
 
 .. math::
 
  w_{\text{new}} = w_{\text{orig}} - \frac{w_{\text{null}}^H w_{\text{orig}}}{w_{\text{null}}^H w_{\text{null}}} w_{\text{null}}
 
-waar :math:`w_{\text{null}}` de stuurvector is in de richting van de null die we aan :math:`w_{\text{orig}}` willen toevoegen. De gewichten worden bijgewerkt door de geschaalde null-stuurvector van de huidige gewichten af te trekken. De schaalfactor volgt uit projectie van de huidige gewichten op de null-stuurvector, gedeeld door de projectie van die null-stuurvector op zichzelf. Dit herhaal je voor elke null-richting (:math:`w_{\text{orig}}` begint als conventionele beamforminggewichten en wordt na elke null bijgewerkt). Het volledige proces:
+waar :math:`w_{\text{null}}` de stuurvector is in de richting van de null die we aan :math:`w_{\text{orig}}` willen toevoegen. De gewichten worden bijgewerkt door de geschaalde null-stuurvector van de huidige gewichten af te trekken. De schaalfactor volgt uit projectie van de huidige gewichten op de null-stuurvector, gedeeld door de projectie van die null-stuurvector op zichzelf. Dit herhaal je voor elke null-richting (:math:`w_{\text{orig}}` begint als conventionele bundelvormingsgewichten en wordt na elke null bijgewerkt). Het volledige proces:
 
 .. math::
 
@@ -1074,7 +1092,7 @@ We krijgen het volgende bundelpatroon. Je ziet mogelijk nullen op posities die j
 MUSIC
 *******************
 
-We schakelen nu over naar een ander type beamformer. Alle eerdere methoden vielen in de "delay-and-sum"-categorie, maar nu duiken we in "sub-space"-methoden. Daarbij splitsen we in een signaal-subruimte en een ruis-subruimte, wat betekent dat we eerst moeten schatten hoeveel signalen de array ontvangt. MUltiple SIgnal Classification (MUSIC) is een populaire subspace-methode die eigenvectoren van de covariantiematrix gebruikt (een rekenintensieve operatie). We splitsen de eigenvectoren in twee groepen: signaal-subruimte en ruis-subruimte, en projecteren daarna stuurvectoren in de ruis-subruimte om nullen te sturen. Dat klinkt in het begin verwarrend, wat mede verklaart waarom MUSIC soms als zwarte magie voelt.
+We schakelen nu over naar een ander type bundelvormer. Alle eerdere methoden vielen in de "delay-and-sum"-categorie, maar nu duiken we in subruimtemethoden. Daarbij splitsen we in een signaal-subruimte en een ruis-subruimte, wat betekent dat we eerst moeten schatten hoeveel signalen de array ontvangt. MUltiple SIgnal Classification (MUSIC) is een populaire subruimtemethode die eigenvectoren van de covariantiematrix gebruikt (een rekenintensieve operatie). We splitsen de eigenvectoren in twee groepen: signaal-subruimte en ruis-subruimte, en projecteren daarna stuurvectoren in de ruis-subruimte om nullen te sturen. Dat klinkt in het begin verwarrend, wat mede verklaart waarom MUSIC soms als zwarte magie voelt.
 
 De kernvergelijking van MUSIC is:
 
@@ -1128,17 +1146,85 @@ Wat als we geen idee hebben hoeveel signalen aanwezig zijn? Daar is een truc voo
 
 De eigenwaarden die bij de ruis-subruimte horen zijn het kleinst en clusteren rond ongeveer dezelfde waarde. Je kunt deze lage waarden dus als "ruisvloer" zien, en elke eigenwaarde erboven komt overeen met een signaal. Hier zien we duidelijk dat er drie signalen worden ontvangen, en kunnen we het MUSIC-algoritme daarop afstemmen. Heb je weinig IQ-samples of lage SNR, dan is het aantal signalen minder duidelijk. Speel gerust met :code:`num_expected_signals` tussen 1 en 7; onderschatting zorgt voor gemiste signalen, overschatting schaadt de prestatie meestal maar beperkt.
 
-Nog een interessant experiment met MUSIC is kijken hoe dicht twee signalen qua hoek bij elkaar kunnen liggen terwijl je ze nog kunt onderscheiden; subspace-technieken zijn hier juist erg goed in. De animatie hieronder laat een voorbeeld zien, met één signaal op 18 graden en een tweede waarvan de aankomstrichting langzaam sweept.
+Nog een interessant experiment met MUSIC is kijken hoe dicht twee signalen qua hoek bij elkaar kunnen liggen terwijl je ze nog kunt onderscheiden; subruimtetechnieken zijn hier juist erg goed in. De animatie hieronder laat een voorbeeld zien, met één signaal op 18 graden en een tweede waarvan de aankomstrichting langzaam sweept.
 
 .. image:: ../_images/doa_music_animation.gif
    :scale: 100 %
    :align: center
 
+**********
+Root MUSIC
+**********
+
+Alle DOA-technieken die we tot nu toe hebben behandeld, inclusief conventionele bundelvorming, MVDR en MUSIC zelf, werken door over een raster met kandidaat-hoeken te sweepen en per hoek een metric te berekenen (vaak parallel). Root MUSIC elimineert die scan volledig. In plaats van pieken in een spectrum te zoeken, bepaalt het de signaalrichtingen analytisch door de wortels van een polynoom op te lossen. Daardoor kan Root MUSIC zowel sneller als nauwkeuriger zijn dan spectrale MUSIC, omdat de piekpositie niet langer beperkt is door de hoekresolutie van je scanraster. Een beperking is dat Root MUSIC alleen direct werkt voor een ULA. Voor 2D-arrays of niet-ULA 1D-arrays bestaan varianten/uitbreidingen, maar die zijn veel complexer. Net als bij MUSIC hebben we nog steeds :code:`num_expected_signals` nodig, wat je ook als beperking kunt zien.
+
+Root MUSIC benut het feit dat de stuurvector van een ULA een nette Vandermonde-structuur heeft: een vector (of matrix) waarin elke rij bestaat uit opeenvolgende machten van een basiswaarde, bijvoorbeeld :code:`[1, x, x^2, x^3, ..., x^(n-1)]`. Bij halve-golflengteafstand zijn de stuurvectorelementen gewoon opeenvolgende machten van één complex getal :math:`z = e^{j\pi\sin\theta}`, zoals we aan het begin van dit hoofdstuk hebben gezien.
+
+Voor Root MUSIC bouwen we een polynoom op uit de projectiematrix van de ruis-subruimte. We gebruiken dezelfde MUSIC-kostfunctie als in de vorige sectie, maar nu in de vorm:
+
+.. math::
+ P(z) = z^{N_r-1} \, s^H(z) \, V_n V_n^H \, s(z)
+
+waar :math:`V_n` de ruis-subruimtematrix is uit de eigenwaarde-ontbinding van de covariantiematrix :math:`R`, net als bij MUSIC. Als je dit product uitwerkt, krijg je een polynoom van graad :math:`2(N_r-1)`. Op punten waar :math:`P(z)` een wortel op de eenheidscirkel :math:`|z|=1` heeft, zou de MUSIC-kostfunctie oneindig worden; dat zijn dus signaalrichtingen. In de praktijk, met een eindig aantal samples, vallen wortels niet exact op de eenheidscirkel maar clusteren er dichtbij. Daarom kiezen we de :math:`D` wortels (waar :math:`D` het aantal verwachte signalen is) die het dichtst bij de eenheidscirkel liggen.
+
+De polynoomcoefficienten worden opgebouwd door de diagonalen van de projectiematrix van de ruis-subruimte :math:`D = V_n V_n^H` op te tellen:
+
+.. math::
+ p_k = \sum_{\substack{m,n=0 \\ n-m = k-(N_r-1)}}^{N_r-1} [D]_{m,n}, \quad k = 0, 1, \ldots, 2(N_r-1)
+
+oftewel de som over de :math:`(k-(N_r-1))`-de diagonaal van :math:`D`. Zodra we het polynoom :math:`P(z) = p_0 + p_1 z + \cdots + p_{2(N_r-1)} z^{2(N_r-1)}` hebben, bepalen we numeriek de wortels en zetten we de signaalwortels terug om naar hoeken:
+
+.. math::
+ \hat{\theta} = \arcsin\!\left(\frac{\angle z}{2\pi d}\right)
+
+De volledige Root MUSIC-code, met hetzelfde ontvangen signaal :code:`X` en dezelfde parameters als in het MUSIC-voorbeeld, is:
+
+.. code-block:: python
+
+ num_expected_signals = 3
+
+ # Zelfde eigenwaarde-ontbinding als bij MUSIC
+ R = np.cov(X)
+ w, v = np.linalg.eig(R)
+ eig_val_order = np.argsort(np.abs(w))
+ v = v[:, eig_val_order]
+ V = v[:, :Nr - num_expected_signals]  # eigenvectoren van ruis-subruimte
+
+ # Bouw het Root MUSIC-polynoom op uit diagonalen van de ruis-subruimteprojectie
+ D = V @ V.conj().T
+ p = np.zeros(2*Nr - 1, dtype=np.complex128)
+ for k in range(2*Nr - 1):
+    p[k] = np.sum(np.diag(D, k - (Nr - 1)))
+
+ # Vind wortels, houd die binnen de eenheidscirkel, kies de num_expected_signals
+ # wortels die het dichtst bij de eenheidscirkel liggen
+ roots = np.roots(p[::-1])  # np.roots verwacht hoogste-graadscoefficient eerst
+ roots = roots[np.abs(roots) <= 1.0] # verwijder de conjugaat-reciproke partners die dezelfde DOA opleveren
+ roots = roots[np.argsort(-np.abs(roots))]  # sorteer: dichtst bij eenheidscirkel eerst
+ doa_roots = roots[:num_expected_signals]
+
+ # Zet wortels om naar hoeken in graden
+ doas_deg = np.sort(np.arcsin(np.angle(doa_roots) / (2 * np.pi * d)) * 180 / np.pi)
+ print("Estimated DOAs (degrees):", doas_deg)
+
+Het meeste rekenwerk wordt hier gedaan door NumPy's :code:`np.roots()`-functie, die de companion-matrixmethode gebruikt om de polynoomwortels te vinden.
+
+Als je dit op hetzelfde drie-signalen-scenario uitvoert, krijg je vrij nauwkeurige hoekschattingen, zonder sweep, resolutiestap of piekzoekalgoritme:
+
+.. code-block:: console
+
+ Estimated DOAs (degrees): [-39.98674197  19.99724883  25.00387589]
+ True DOAs (degrees):      [-40.  20.  25.]
+
+Vergelijk dat met spectrale MUSIC, waarvoor een theta-sweep van duizend punten nodig was om dezelfde drie pieken te vinden. De nauwkeurigheid van Root MUSIC wordt in essentie begrensd door de covariantiematrixschatting, niet door een gekozen roosterstap. De rekenwinst valt vooral op bij grote :code:`Nr`, omdat een polynoom van graad :math:`2(N_r-1)` opbouwen en oplossen veel goedkoper is dan de MUSIC-vergelijking over duizenden stuurhoeken evalueren.
+
+Een belangrijk punt: Root MUSIC erft dezelfde eisen als MUSIC. Je moet nog steeds het aantal signalen kennen (of schatten), en je hebt genoeg elementen nodig zodat :math:`N_r > D`. De eigenwaarde-plottruc uit de MUSIC-sectie werkt hier net zo goed om eerst het aantal signalen te schatten.
+
 ***
 LMS
 ***
 
-De Least Mean Squares (LMS)-beamformer is een beamformer met lage complexiteit, geïntroduceerd door Bernard Widrow. Deze verschilt op twee punten van de beamformers die we eerder zagen: 1) je moet de SOI kennen, of ten minste een deel ervan (bijv. synchronisatiereeks, pilots, enz.), en 2) hij is iteratief, dus de gewichten worden in meerdere iteraties aangescherpt. LMS werkt door de gemiddelde kwadratische fout te minimaliseren tussen het gewenste signaal (SOI) en de uitgang van de beamformer (dus gewichten toegepast op ontvangen samples). In de klassieke implementatie is elk ontvangen sample de volgende iteratiestap: pas huidige gewichten toe op één sample, bereken fout, en gebruik die fout om gewichten bij te sturen. Daarna herhaal je dit. De LMS-beamformer is toepasbaar in zowel analoge als digitale bundelvorming. Het LMS-algoritme:
+De Least Mean Squares (LMS)-bundelvormer is een bundelvormer met lage complexiteit, geïntroduceerd door Bernard Widrow. Deze verschilt op twee punten van de bundelvormers die we eerder zagen: 1) je moet de SOI kennen, of ten minste een deel ervan (bijv. synchronisatiereeks, pilots, enz.), en 2) hij is iteratief, dus de gewichten worden in meerdere iteraties aangescherpt. LMS werkt door de gemiddelde kwadratische fout te minimaliseren tussen het gewenste signaal (SOI) en de uitgang van de bundelvormer (dus gewichten toegepast op ontvangen samples). In de klassieke implementatie is elk ontvangen sample de volgende iteratiestap: pas huidige gewichten toe op één sample, bereken fout, en gebruik die fout om gewichten bij te sturen. Daarna herhaal je dit. De LMS-bundelvormer is toepasbaar in zowel analoge als digitale bundelvorming. Het LMS-algoritme:
 
 .. math::
 
@@ -1211,7 +1297,7 @@ In het Python-voorbeeld hieronder simuleren we een 8-element-array met een SOI d
 Probeer :code:`theta_soi`, de hoeveelheid ruis (dus :code:`0.5*n`) en de stapgrootte :code:`mu` te variëren om te zien hoe het LMS-algoritme presteert.
 
 *******************
-Training Data
+Trainingsdata
 *******************
 
 Binnen array processing bestaat het concept "training", waarbij je covariantiematrix :code:`R` vastlegt voordat een mogelijke SOI aanwezig is. Dit wordt vooral in radar gebruikt, waar meestal geen SOI aanwezig is en het detectieproces bestaat uit het testen van hoeken om te zien of er ergens een SOI zit. Als we :code:`R` vóór aanwezigheid van de SOI berekenen, kunnen we met methoden zoals MVDR gewichten bepalen waarin alleen stoorzenders en ruisomgeving zijn opgenomen. Zo voorkom je dat MVDR een null op of vlak bij de SOI-richting zet. Daarna passen we de gewichten toe op het ontvangen signaal om te testen of de SOI nu op die hoek aanwezig is.
@@ -1321,13 +1407,13 @@ Als laatste plotten we het bundelpatroon van de zojuist berekende MVDR-gewichten
    :target: ../_images/DOA_without_training_pattern.svg
    :alt: DOA without training data DOA and MVDR beam pattern
 
-Het is gelukt om nullen op A en B te maken. Op de positie van C (groene stippellijn) hebben we geen null, maar ook niet echt een uitgesproken hoofdlob; eerder een verlaagde lob. Dat komt deels doordat er buiten de richtingen van A, B en C weinig tot geen energie binnenkomt, dus extra lobben (bijv. rond -70, 25 en 40 graden) maken in de praktijk weinig uit. Een andere reden dat de lob bij C niet sterker is, is dat de hoofdlob als het ware concurreert met nullen die MVDR zou plaatsen als we niet exact op die richting gericht waren. Een sterke hoofdlob op :code:`max_angle` zou mooier zijn, en daarvoor gebruiken we **training data**.
+Het is gelukt om nullen op A en B te maken. Op de positie van C (groene stippellijn) hebben we geen null, maar ook niet echt een uitgesproken hoofdlob; eerder een verlaagde lob. Dat komt deels doordat er buiten de richtingen van A, B en C weinig tot geen energie binnenkomt, dus extra lobben (bijv. rond -70, 25 en 40 graden) maken in de praktijk weinig uit. Een andere reden dat de lob bij C niet sterker is, is dat de hoofdlob als het ware concurreert met nullen die MVDR zou plaatsen als we niet exact op die richting gericht waren. Een sterke hoofdlob op :code:`max_angle` zou mooier zijn, en daarvoor gebruiken we **trainingsdata**.
 
 We laden nu de opname met alleen A en B om trainingsdata op te bouwen. In een radarsituatie is dit vergelijkbaar met :code:`R` berekenen voordat je een radar-puls uitzendt (idealiter kort daarvoor).
 
 .. code-block:: python
 
-   # Laad "training data" met alleen A en B, en bereken daarna Rinv
+   # Laad trainingsdata met alleen A en B, en bereken daarna Rinv
    filename = '3p3G_A_B.npy'
    X_A_B = np.load(filename)
    R_training = X_A_B @ X_A_B.conj().T # bereken covariantiematrix
@@ -1392,7 +1478,7 @@ Deze methode werkt door een covariantiematrix :code:`R` op te bouwen als som van
       noise_vec = np.random.randn(N) + 1j * np.random.randn(N) # complexe ruis
       X[:, k] = A.conj().T @ noise_vec
 
-In de onderstaande plots zijn de MVDR-gewichten berekend voor 20 graden en in zwart weergegeven, terwijl de conventionele beamformer op 20 graden als blauwe stippellijn staat. De drie ruisbronnen zijn rood aangegeven. In de eerste plot is de fractionele bandbreedte 0, wat betekent dat de MVDR-gewichten overeen moeten komen met eerdere narrowband-scenario's. Volgens de plot werkt dit prima, maar als de werkelijke ruis breedband is (en je SOI ook breedband is, waardoor je ruis niet simpel kunt wegfilteren), dan komt de simulatie niet overeen met de praktijk.
+In de onderstaande plots zijn de MVDR-gewichten berekend voor 20 graden en in zwart weergegeven, terwijl de conventionele bundelvormer op 20 graden als blauwe stippellijn staat. De drie ruisbronnen zijn rood aangegeven. In de eerste plot is de fractionele bandbreedte 0, wat betekent dat de MVDR-gewichten overeen moeten komen met eerdere smalbandscenario's. Volgens de plot werkt dit prima, maar als de werkelijke ruis breedband is (en je SOI ook breedband is, waardoor je ruis niet simpel kunt wegfilteren), dan komt de simulatie niet overeen met de praktijk.
 
 .. image:: ../_images/doa_covariance_method_1.svg
    :align: center 

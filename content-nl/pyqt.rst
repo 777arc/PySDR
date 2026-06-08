@@ -228,7 +228,7 @@ Qua gebruik van PyQtGraph importeren we het met :code:`import pyqtgraph as pg` e
 .. image:: ../_images/pyqtgraph_example.png
    :scale: 80 % 
    :align: center
-    :alt: PyQtGraph-voorbeeld
+   :alt: PyQtGraph-voorbeeld
 
 Je ziet dat een plot opzetten relatief eenvoudig is en dat het resultaat gewoon een extra widget in je GUI is. Naast 1D-plots heeft PyQtGraph ook een equivalent van Matplotlib's :code:`imshow()` voor 2D-weergave met colormap, wat we gebruiken voor onze realtime spectrogram/waterfall. Een groot voordeel is dat de plots gewone Qt-widgets zijn, zodat je met pure PyQt extra elementen kunt toevoegen (bijvoorbeeld een rechthoek op een bepaalde locatie). Dat komt doordat PyQtGraph gebruikmaakt van PyQt's :code:`QGraphicsScene`, een oppervlak voor veel 2D-objecten. Je kunt dus zonder probleem lijnen, rechthoeken, tekst, ellipsen, polygonen en bitmaps toevoegen met standaard PyQt.
 
@@ -366,9 +366,9 @@ In deze situatie heeft de functie maar een regel code en gebruiken we die functi
 
 Als je nog niet eerder lambdafuncties hebt gebruikt, kan dit vreemd overkomen. Je bent niet verplicht ze te gebruiken, maar ze besparen vaak enkele regels en maken code compacter. Werking: de tijdelijke argumentnaam staat na "lambda", en alles na de dubbele punt is de code die op dat argument werkt. Dit ondersteunt ook meerdere argumenten met komma's, of zelfs geen argumenten met :code:`lambda : <code>`. Als oefening kun je :code:`update_sample_rate_label` hierboven herschrijven met een lambdafunctie.
 
-***********************
+************************
 PlotWidget van PyQtGraph
-***********************
+************************
 
 PyQtGraph's :code:`PlotWidget` is een PyQt-widget voor 1D-plots, vergelijkbaar met Matplotlib's :code:`plt.plot(x,y)`. Wij gebruiken deze voor tijd- en frequentieplots (PSD), al werkt hij ook goed voor IQ-plots (die onze analyzer niet bevat). Voor wie dieper wil: PlotWidget is een subclass van PyQt's `QGraphicsView <https://doc.qt.io/qtforpython-5/PySide2/QtWidgets/QGraphicsView.html>`_, een widget om de inhoud van een `QGraphicsScene <https://doc.qt.io/qtforpython-5/PySide2/QtWidgets/QGraphicsScene.html#PySide2.QtWidgets.PySide2.QtWidgets.QGraphicsScene>`_ te tonen. Die scene is een oppervlak voor veel 2D-grafische items in Qt. Belangrijk voor gebruik: PlotWidget is in de kern gewoon een widget met een enkel `PlotItem <https://pyqtgraph.readthedocs.io/en/latest/api_reference/graphicsItems/plotitem.html#pyqtgraph.PlotItem>`_. Vanuit documentatieperspectief kun je daarom vaak direct naar de PlotItem-documentatie gaan: `<https://pyqtgraph.readthedocs.io/en/latest/api_reference/graphicsItems/plotitem.html>`_. Een PlotItem bevat een ViewBox voor de data plus AxisItems en labels voor assen en titel.
 
@@ -421,13 +421,13 @@ En zo ziet het er uiteindelijk uit:
 .. image:: ../_images/pyqt_time_plot.png
    :scale: 50 % 
    :align: center
-    :alt: PyQtGraph tijdplot
+   :alt: PyQtGraph tijdplot
 
 Voor de frequentiedomeinplot (PSD) gebruiken we een vergelijkbaar patroon.
 
-*********************
+***********************
 ImageItem van PyQtGraph
-*********************
+***********************
 
 Een spectrum analyzer is niet compleet zonder waterfall (realtime spectrogram), en daarvoor gebruiken we PyQtGraph's ImageItem, dat beelden met 1, 3 of 4 "kanalen" rendert. Een kanaal betekent dat je een 2D-array met floats of ints aanbiedt; vervolgens wordt via een lookup table (LUT) een colormap toegepast om het beeld te maken. Je kunt ook RGB (3 kanalen) of RGBA (4 kanalen) aanleveren. Wij berekenen ons spectrogram als 2D NumPy-array met floats en geven die direct aan ImageItem. We kiezen een colormap en gebruiken ook de ingebouwde LUT-weergave die de waardeverdeling van de data en de kleurtoewijzing laat zien.
 
@@ -469,7 +469,7 @@ De tweede regel is belangrijk: die koppelt de colorbar daadwerkelijk aan het Ima
 .. image:: ../_images/pyqt_spectrogram.png
    :scale: 50 % 
    :align: center
-    :alt: PyQtGraph-spectrogram en colorbar
+   :alt: PyQtGraph-spectrogram en colorbar
 
 ***********************
 Worker-thread
@@ -581,7 +581,7 @@ Gebruik deze code gerust als startpunt voor je eigen realtime SDR-app. Hieronder
 .. image:: ../_images/pyqt_animation.gif
    :scale: 100 %
    :align: center
-    :alt: Geanimeerde gif van de PyQt spectrum analyzer-app in actie
+   :alt: Geanimeerde gif van de PyQt spectrum analyzer-app in actie
 
 Bekende bugs (om te helpen oplossen kun je `dit bewerken <https://github.com/777arc/PySDR/edit/master/figure-generating-scripts/pyqt_example.py>`_):
 

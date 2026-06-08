@@ -108,9 +108,9 @@ Tot slot moeten we de phased array calibreren. Daarvoor houd je de HB100 op bore
 
 Dit maakt in dezelfde map nog twee picklebestanden aan: phase_cal_val.pkl en gain_cal_val.pkl. Elk bestand bevat een array met 8 waarden die de fase- en gain-correcties per kanaal aangeven. Deze waarden zijn uniek per Phaser, omdat productievariaties een rol spelen. Herhaalde runs van deze tool geven normaal gesproken licht verschillende waarden.
 
-************************
+*************************
 Voorgebouwde Voorbeeldapp
-************************
+*************************
 
 Nu we de Phaser hebben gecalibreerd en de HB100-frequentie kennen, kunnen we de voorbeeldapp van Analog Devices starten.
 

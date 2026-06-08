@@ -7,9 +7,9 @@ DOA en Bundelvorming
 In dit hoofdstuk behandelen we bundelvorming, direction-of-arrival (DOA, aankomstrichting) en phased arrays in het algemeen. We vergelijken verschillende arraytypen en geometrieen, en laten zien waarom elementafstand een cruciale rol speelt. Technieken zoals MVDR/Capon en MUSIC worden geintroduceerd en gedemonstreerd met Python-simulaties.
 **N.B. Dit hoofdstuk wordt momenteel vertaald en kan nog fouten bevatten.** 
 
-*********************
+***********************
 Bundelvorming Overzicht
-*********************
+***********************
 
 Een phased array, ook wel elektronisch gestuurde array genoemd, is een verzameling antennes die je aan zend- en ontvangstzijde kunt gebruiken in communicatie- en radarsystemen. Je ziet phased arrays op de grond, in de lucht en op satellieten. De antennes in de array noemen we meestal elementen, en soms wordt de volledige array ook een sensor genoemd. Deze elementen zijn vaak omnidirectionele antennes, gelijkmatig verdeeld in een lijn of over twee dimensies.
 
@@ -646,9 +646,9 @@ Adaptieve bundelvormingstechnieken kun je verder opdelen in reguliere en subruim
 
 De eerste adaptieve bundelvormingstechniek die we bekijken is MVDR, vaak het de-facto-algoritme wanneer mensen over adaptieve bundelvorming praten.
 
-**********************
+***********************
 MVDR/Capon-bundelvormer
-**********************
+***********************
 
 We bekijken nu een bundelvormer die iets complexer is dan de conventionele/delay-and-sum-techniek, maar meestal veel beter presteert: de Minimum Variance Distortionless Response (MVDR), ook wel Capon-bundelvormer genoemd. Onthoud dat de variantie van een signaal overeenkomt met het vermogen in dat signaal. Het idee achter MVDR is om de versterking van het signaal in de gewenste richting 1 (0 dB) te houden, terwijl de totale variantie/het totale vermogen van het gebundelde signaal wordt geminimaliseerd. Als het gewenste signaal vast staat, betekent het minimaliseren van het totale vermogen dat interferentie en ruis zo veel mogelijk worden onderdrukt. Daarom wordt MVDR vaak een "statistisch optimale" bundelvormer genoemd.
 

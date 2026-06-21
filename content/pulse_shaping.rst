@@ -260,6 +260,20 @@ Here is another example of a poor sample time, somewhere in between our ideal an
    
 Remember that our Q values are not shown on the time domain plot because they are roughly zero, allowing the IQ plots to spread horizontally only.
 
+If you want to play around with this concept further, below is an interactive `Potik <https://potik.org/>`_ demonstration that generates a BPSK signal with RRC pulse shaping, adds noise, and lets you adjust the sample timing (by tweaking Symbol Sampler's timing offset parameter) to see how the constellation changes.
+
+.. raw:: html
+
+   <!-- ════════ POTIK INTERACTIVE LAB EMBED ════════ -->
+   <iframe
+            src="https://embed.potik.org/sampler-timing?offset=4&theme=pysdr&view=lab"
+            title="BPSK RRC Pulse Shaping Symbol Timing Lab"
+            loading="lazy"
+            allow="fullscreen"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+            style="display:block; width:80%; aspect-ratio:16/9; min-height:460px; border:0; margin:18px auto 26px;"
+         ></iframe>
+   <!-- ════════ /POTIK EMBED ════════ -->
 
 *************
 OQPSK and MSK

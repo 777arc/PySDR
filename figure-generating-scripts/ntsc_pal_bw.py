@@ -25,7 +25,7 @@ if True:
     # x = x[::2] + 1j*x[1::2]
 
     # ntsc_example = '/mnt/c/Users/marclichtman/Downloads/signal_recordings/color.sigmf-data' # 40M sample rate, cf32
-    ntsc_example = '/mnt/c/Users/marclichtman/Downloads/ntsc_remy_10MHz_5925Hz_cf32.iq'
+    ntsc_example = '/mnt/c/Users/marcl/Downloads/ntsc_remy_10MHz_5925Hz_cf32.iq'
     sample_rate = 10e6
     x = np.fromfile(ntsc_example, dtype=np.complex64, count=samples_to_process)
 
@@ -164,7 +164,7 @@ if False:
     plt.show()
 
 # Correlate entire signal against the v-sync template, then sync to frame
-if True:
+if False:
     template = np.fromfile("/tmp/vertical_sync_template.iq", dtype=np.float64)
     correlation = np.abs(np.correlate(x_demod, template, mode='full'))**2
     # plt.plot(correlation)

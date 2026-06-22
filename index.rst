@@ -34,6 +34,7 @@
    content/cyclostationary
    content/pyqt
    content/detection
+   content/fpv_video
    content/about_author
 
 .. raw:: html

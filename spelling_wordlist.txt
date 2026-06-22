@@ -319,3 +319,11 @@ trilaterate
 Estévez
 trilateration
 bursty
+demod
+grayscale
+SNR
+luma
+quadcopter
+Spektrum
+DIY
+chroma

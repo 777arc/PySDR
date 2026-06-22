@@ -20,6 +20,14 @@
 - They use VSB and not SSB because they have a DC component and SSB would filter that out
 - remember that hacktv can also produce fm modulated pal, as well as the different variants of pal
 - http://martin.hinner.info/vga/pal.html
+
+Create example color recording using hacktv:
+sudo apt install hacktv
+download https://minibaud.com/pscroll.php?b=1&d=7&fn=6985
+hacktv -o file:/tmp/pal_color_hacktv.fc32 -t float -m i /mnt/c/Users/marclichtman/Downloads/Free_Test_Data_1.21MB_MKV.mkv -s 16000000 --filter
+or
+hacktv -o file:/tmp/pal_color_hacktv.fc32 -t float -m i -s 16000000 --filter test:colourbars
+(2nd one needs to be manually stopped)
 '''
 
 import numpy as np
@@ -43,7 +51,7 @@ if False:
     # ATSC recording from 2022 GNU Radio Conference CTF-
     # https://ctf-2022.gnuradio.org/files/5d51c1bb8774333af7e87ecf19f8b664/never_the_same_color.sigmf-meta
     # https://ctf-2022.gnuradio.org/files/bccb3de9c758a0760146aa86e610fa02/never_the_same_color.sigmf-data
-    ntsc_example = '/mnt/d/never_the_same_color.sigmf-data' # cf32, 8M sample rate
+    ntsc_example = '/mnt/c/Users/marclichtman/Downloads/never_the_same_color.sigmf-data' # cf32, 8M sample rate
     samples_to_process = 10000000
     x = np.fromfile(ntsc_example, dtype=np.complex64, count=samples_to_process)
     sample_rate = 8e6
@@ -55,19 +63,25 @@ if False:
     color_subcarrier_freq = 3.579545e6 # higher than luma carrier, not relative to center freq
     relative_audio_subcarrier_freq = 3.5e6
 else:
-    samples_to_process = 10000000
     format_type = 'pal'
-    #pal_example = '/mnt/d/SDRSharp_20170122_171736Z_179100000Hz_IQ.wav' # used in this SIGIDWIKI entry https://www.sigidwiki.com/wiki/PAL_Broadcast#google_vignette
-    #x = read(pal_example)
-    #sample_rate = x[0]
-    #print("Sample Rate:", sample_rate)
-    #fc = 179.1e6 # taken from filename
-    #sample_offset = 200 + 512*55 # in samples. specific to recording
-    #pal_example2 = '/mnt/d/pal_color_hacktv.fc32' # ./hacktv -o file:/mnt/d/pal_color_hacktv.fc32 -t float -m i /mnt/c/Users/marclichtman/Downloads/Free_Test_Data_1.21MB_MKV.mkv -s 16000000 --filter
-    pal_example2 = '/mnt/d/pal_color_hacktv_colourbars.fc32' # same as above but used test:colourbars instead of mkv file
+
+    '''
+    samples_to_process = 10000000
+    pal_example = '/mnt/c/Users/marclichtman/Downloads/SDRSharp_20170122_171736Z_179100000Hz_IQ.wav' # used in this SIGIDWIKI entry https://www.sigidwiki.com/wiki/PAL_Broadcast#google_vignette
+    x = read(pal_example)
+    sample_rate = x[0]
+    print("Sample Rate:", sample_rate)
+    fc = 179.1e6 # taken from filename
+    sample_offset = 200 + 512*55 # in samples. specific to recording
+    '''
+    
+    samples_to_process = 10000000
+    pal_example2 = '/tmp/pal_color_hacktv.fc32' # ./hacktv -o file:/mnt/d/pal_color_hacktv.fc32 -t float -m i /mnt/c/Users/marclichtman/Downloads/Free_Test_Data_1.21MB_MKV.mkv -s 16000000 --filter
+    #pal_example2 = '/mnt/d/pal_color_hacktv_colourbars.fc32' # same as above but used test:colourbars instead of mkv file
     sample_rate = 16e6
     x = np.fromfile(pal_example2, dtype=np.complex64, count=samples_to_process)
     sample_offset = 15 + 0*55 # in samples. specific to recording
+    
     color_subcarrier_freq = 4.43361875e6 # higher than luma carrier, not relative to center freq
     relative_audio_subcarrier_freq = 3.5e6 # relative to luma carrier, leave positive even if its negative
 
@@ -121,8 +135,10 @@ if False:
 # Find start of frame TODO: currently assumes recording starts during the transition period
 gap_between_lines = 1024 # samples
 threshold = 0.65 # can be same as other threshold
-burst_indxs = np.where(np.diff((np.abs(x) > threshold).astype(int)) == 1)[0] # indx of rising edges
-start_of_frame = burst_indxs[np.where(np.diff(burst_indxs) == gap_between_lines)[0][0] + 1]
+x_env = np.convolve(np.abs(x), np.ones(100)/100, 'same') # smooth out chroma oscillations to get envelope
+burst_indxs = np.where(np.diff((x_env > threshold).astype(int)) == 1)[0] # indx of rising edges
+diffs = np.diff(burst_indxs)
+start_of_frame = burst_indxs[np.where(np.abs(diffs - gap_between_lines) < 10)[0][0] + 1]
 print("Start of frame:", start_of_frame)
 x = x[start_of_frame:] # cut off end of prev frame
 if False:
@@ -162,7 +178,7 @@ if False:
 
 # Using a manually tuned threshold, find the start of each burst, using the combined luma+chroma (last time it needs to be used)
 threshold = 0.65
-burst_indxs = np.where(np.diff((np.abs(x) > threshold).astype(int)) == -1)[0] # need to use abs() of original signal that includes luma and chroma for detection of each pixel start
+burst_indxs = np.where(np.diff((x_env > threshold).astype(int)) == -1)[0] # need to use envelope for detection of each pixel start
 if False: # look at a single line and the threshold
     offset = 100000
     length = 2000
@@ -201,7 +217,9 @@ burst_indxs = resampled_burst_indxs
 # Extract just the chroma bursts, and store freq offsets of each burst
 delay_till_burst = 6 # samples between thresh and start of burst FIXME CONVERT TO SECONDS AND CALC BASED ON SAMPLE RATE
 burst_len = 22 # samples FIXME CONVERT TO SECONDS AND CALC BASED ON SAMPLE RATE
-x_chroma_burst = np.zeros_like(x)
+x_chroma_burst = np.zeros_like(x_chroma)
+# Filter out burst indices that would go out of bounds after resampling
+burst_indxs = [i for i in burst_indxs if i + delay_till_burst + burst_len <= len(x_chroma)]
 chroma_freq_offsets = [] # corresponds to burst_indxs
 for i in burst_indxs:
     burst_slice = x_chroma[i+delay_till_burst:i+delay_till_burst+burst_len]

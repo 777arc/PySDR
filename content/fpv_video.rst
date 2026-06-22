@@ -27,14 +27,14 @@ One nice perk of FM is that the receiver does not need to be perfectly centered 
 
 Let's look at an example signal, you can download the example IQ recording of an NTSC signal used in this chapter's code `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/ntsc_remy_10MHz_5925Hz_500ksamples_cf32.iq>`_, note that it is only a few frames worth of signal.
 
-If we look at the power spectral density of the raw RF signal, we see the FM modulated signal centered at 5.925 GHz, which is the center frequency of one of the standard FPV channels. The bandwidth of the signal is around 6 MHz.
+If we look at the power spectral density of the raw RF signal, we see the FM modulated signal centered at 0 Hz, which corresponds to 5.925 GHz because that is where the SDR was tuned. This is the center frequency of one of the standard FPV channels. The bandwidth of the signal is around 6 MHz.
 
 .. image:: ../_images/fpv_psd_raw_rf.svg
    :align: center
    :target: ../_images/fpv_psd_raw_rf.svg
    :alt: PSD of raw RF signal
 
-If we FM demod the signal, which can be done with one line of Python, :code:`np.angle(x[1:] * np.conj(x[:-1]))`, we are left with the following:
+If we FM demodulate the signal, which can be done with one line of Python, :code:`np.angle(x[1:] * np.conj(x[:-1]))`, we are left with the following power spectral density:
 
 .. image:: ../_images/fpv_psd_after_fm_demod.svg
    :align: center
@@ -48,19 +48,23 @@ In this example there is no audio.  We can clearly see the color portion.  If we
    :target: ../_images/fpv_psd_after_fm_demod_harmomics.svg
    :alt: PSD of signal after FM demod zooming into the low frequency harmonic
 
-We can look at the time domain to get a better understanding of the signal, the following shows one line's worth of the video signal (once again, after FM demodulation).  The horizontal sync pulse is what we see at the beginning and end, and the color burst is the small oscillation right after the horizontal sync pulse.  The rest of the signal is the video information, both black and white and color information.  The color burst is a reference signal that the receiver uses to decode the color information.
+We can look at the time domain to get a better understanding of the signal, the following shows one line's worth of the video signal (once again, after FM demodulation).  The horizontal sync pulse is what we see at the beginning and end, and the color burst is the small oscillation right after the horizontal sync pulse.  The color burst is a reference signal that the receiver uses to decode the color information.  The rest of the signal is the video information, both black and white and color information.  
 
 .. image:: ../_images/fpv_time_domain_one_line.svg
    :align: center
    :target: ../_images/fpv_time_domain_one_line.svg
    :alt: Time domain representation of the signal, just one line
 
-If we zoom out in time, we can look at a special synchronization sequence which happens once per frame, called the vertical sync pulse.  This is a special sequence of pulses (same every time) that tells the receiver that a new frame is starting.
+If we zoom out in time, we can look at a special synchronization sequence which happens once per frame, called the vertical sync pulse.  This is a special sequence of pulses (same every time) that tells the receiver that a new frame is starting, shown below (the first half of what is plotted).  Also included are 13 lines worth of signal, similar to what we saw above but zoomed out.
 
 .. image:: ../_images/fpv_time_domain.svg
    :align: center
    :target: ../_images/fpv_time_domain.svg
    :alt: Time domain representation of the signal including frame sync and a few dozen lines
+
+********************************
+Demodulating the Video
+********************************
 
 In order to demodulate the video and recover the image, we will perform the following steps:
 
@@ -71,7 +75,7 @@ In order to demodulate the video and recover the image, we will perform the foll
 
 Note that this process only recovers the black and white portion, the color information is encoded in a different way and is more complicated to recover.
 
-Below is an entire working example that can be used with the example recording provided at the beginning of the chapter.
+Below is an entire working example that can be used with the example recording provided  `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/ntsc_remy_10MHz_5925Hz_500ksamples_cf32.iq>`_.
 
 .. code-block:: python
 
@@ -138,11 +142,11 @@ If we run this code as-is, it starts at the beginning of the recording, which re
    :target: ../_images/fpv_image_no_sync.svg
    :alt: Demodded image without cropping to a single frame
 
-Limiting it to one frame's worth of samples is easy, we already calculated :code:`samples_per_frame`, but we need to synchronize to the start of the frame.  There are many ways to do it, one way is to correlate for the vertical synchronization sequence, either by reproducing it or using a high-SNR recording of it.  It can also be done by plotting enough of the time domain to catch the start of frame sequence.  Below shows what the image looks like if you are synchronized, in the code above this is done manually (i.e., manually figuring out that for this recording, 122250 corresponds to the sample offset where a new frame starts). 
+Limiting it to one frame's worth of samples is easy, we already calculated :code:`samples_per_frame`, but we need to synchronize to the start of the frame.  There are many ways to do it, one way is to correlate for the vertical synchronization sequence, either by reproducing it or using a high-SNR recording of it.  It can also be done by plotting the time domain and looking for the sequence.  Below shows what the image looks like if you are synchronized, in the code above this is done manually, knowing that sample index 122250 corresponds to where a new frame starts. 
 
 .. image:: ../_images/fpv_image_one_frame.svg
    :align: center
    :target: ../_images/fpv_image_one_frame.svg
    :alt: Demodded image cropping to a single frame
 
-If anyone wants to contribute a robust color demodulator, please reach out, but it must be shown to work on a variety of recordings of NTSC or PAL.
+If anyone wants to contribute a robust Python color demodulator, please reach out, but it must be shown to work on a variety of recordings (e.g. both synthetic and live without manually tuning anything).

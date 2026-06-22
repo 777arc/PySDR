@@ -68,7 +68,7 @@ We moeten de hoogste frequentiecomponent vinden, verdubbelen, en op die snelheid
    :scale: 70% 
    :align: center 
 
-Wanneer we te langzaam samplen krijgen we een effect genaamd aliasing (Nederlands: vouwvervorming) waar we later meer over zullen leren, maar dit willen we altijd zien te voorkomen. Wat onze SDR's en bijna alle ontvangers doen, is eerst alles boven Fs/2 wegfilteren voordat er gesampled wordt. Wanneer we dan een signaal proberen te ontvangen en samplen met een te lage snelheid, dan zal het filter dat deel erboven wegkappen. Onze SDR's doen een hoop om ervoor te zorgen dat onze samples vrij zijn van vouwvervorming en andere imperfecties.
+Wanneer we te langzaam samplen krijgen we een effect genaamd aliasing (Nederlands: vouwvervorming) waar we later meer over zullen leren, maar dit willen we altijd zien te voorkomen. Wat onze SDR's en bijna alle ontvangers doen, is eerst alles boven Fs/2 wegfilteren voordat er gesampled wordt. Wanneer we dan een signaal proberen te ontvangen en samplen met een te lage snelheid, dan zal het filter dat deel erboven wegkappen. Onze SDR's doen een hoop om ervoor te zorgen dat onze samples vrij zijn van vouwvervorming en andere imperfecties. Het anti-aliasing-filter heeft ook een overgangsgebied, de vuistregel is dan dat alleen de middelste 80% van de samplerate bruikbaar is.
 
 *************************
 Kwadratuursamplen
@@ -95,14 +95,49 @@ Dit kunnen we ook grafisch weergeven door I en Q gelijk te stellen aan 1:
 
 De cos() noemen we het "in fase" component, daarom de I, en de sin() is het 90 graden uit fase of "kwadratuur" component, vandaar de Q. Maar als je per ongeluk de Q aan de cos() en de I aan de sin() koppelt, dan maakt dat in de meeste situaties niets uit.
 
-IQ-sampling is gemakkelijker te begrijpen bekeken vanuit de zender, dus vanuit het zenden van een RF signaal door de lucht. 
-We willen een enkele sinus met bepaalde fase versturen, wat gedaan kan worden door een sin() en cos() zonder faseverschuiving bij elkaar op te tellen. Dit is mogelijk vanwege de volgende eigenschap: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`.
-Laten we zeggen dat we het signaal x(t) willen versturen:
+Het is makkelijker om IQ sampling te begrijpen als we vanuit de zender gaan kijken.
+Stel dat we op een zekere frequentie :math:`f` eem RF-signaal gaan uitzenden. Van deze sinus met frequentie :math:`f` willen we dan de amplitude :math:`A` en fase :math:`\phi` kunnen controleren:
 
 .. math::
-  x(t) = I \cos(2\pi ft)  + Q \sin(2\pi ft)
 
-Wat zou er gebeuren wanneer we een sinus en cosinus optellen? Of eigenlijk, wat zou er gebeuren wanneer we twee sinusoïden optellen die 90 graden uit fase lopen. In de onderstaande video zijn er sliders om I en Q mee aan te passen. Wat geplot wordt zijn de cosinus, sinus en de som van beide.
+ A \cos(2 \pi f t - \phi)
+
+Het minteken is hierbij een conventie en niet van belang om het concept te begrijpen. Op elk moment in de tijd zullen we een andere fase en amplitude willen uitzenden, dus beiden zijn een functie van de tijd, formeel geschreven als:
+
+.. math::
+
+ A(t) \cos(2 \pi f t - \phi(t))
+
+Nu blijkt dat het makkelijk is om de amplitude van een sinus te controleren met RF-schakelingen, maar de fase veel lastiger. Wat we dus kunnen doen is gebruik maken van de goniometrische identiteit: :math:`a \cos(x) + b \sin(x) = A \cos(x - \phi)` die ons vertelt dat een som van een cos() en sin() van dezelfde frequentie, elk met een fase van 0, gelijk is aan een enkele cos() met amplitude :math:`A` en fase :math:`\phi`. Door I en Q te gebruiken in plaats van :math:`a` en :math:`b`, en door onze :math:`2 \pi f t` weer toe te voegen, krijgen we: 
+
+.. math:: 
+   A \cos(2 \pi f t - \phi) 
+   
+   = I \cos(2 \pi f t) + Q \sin(2 \pi f t) 
+   
+waarbij 
+
+.. math:: 
+   A = \sqrt{I^2 + Q^2} 
+   
+   \phi = \tan^{-1}\left(\frac{Q}{I}\right) 
+
+Door deze aanpak kunnen we met behulp van I en Q elke amplitude of fase genreren dat we zouden willen. Dat zou er ongeveer zo uitzien:
+
+.. image:: ../_images/IQ_diagram.png 
+   :scale: 80% 
+   :align: center 
+   :alt: Diagram showing how I and Q are modulated onto a carrier 
+
+Stel dat we een IQ sample hebben dat wordt beschreven door het complexe getal :math:`I+JQ`. We kunnen dit IQ sample op de sinus **moduleren**, waarbij de amplitude en fase worden bepaald door het IQ sample:
+
+.. math::
+
+ x(t) = I \cos(2\pi ft) + Q \sin(2\pi ft)
+ 
+ \qquad \qquad \qquad \qquad = \left(\sqrt{I^2+Q^2}\right) \cos\left(2\pi ft - \tan^{-1}\left(\frac{Q}{I}\right)\right)
+
+Nu we de wiskunde hebben bekeken, laten we even gaan spelen door twee sinusoïden op te tellen die 90 graden uit fase lopen. In de onderstaande video zijn er sliders om I en Q mee aan te passen dus de fase en amplitude van de cosinus en sinus. Wat geplot wordt zijn de cosinus (rood), sinus (blauw) en de som van beide (groen).
 
 .. image:: ../_images/IQ3.gif
    :scale: 100% 
@@ -112,14 +147,7 @@ Wat zou er gebeuren wanneer we een sinus en cosinus optellen? Of eigenlijk, wat 
 
 (De code voor deze Python-app kun je hier vinden: `link <https://raw.githubusercontent.com/777arc/PySDR/master/figure-generating-scripts/sin_plus_cos.py>`_)
 
-Wat je hier uit moet onthouden is dat wanneer de cos() en sin() worden opgeteld, we een andere zuivere sinusoïde krijgen met een andere fase en amplitude. Daarnaast verschuift de fase wanneer we langzaam een van de twee delen groter of kleiner maken. De amplitude verandert ook mee. Dit is allemaal het gevolg van de goniometrische identiteit: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`, waar we dadelijk op terug komen.  Het "nut" van dit gedrag is dat we de fase en amplitude van de resulterende sinusoïde kunnen controleren door I en Q aan te passen (we hoeven niets de doen met de fase van cosinus of sinus). We kunnen bijvoorbeeld I en Q op zo'n manier aanpassen dat de amplitude constant blijft en de fase naar wens wordt ingesteld. Omdat we weten dat we een sinusoïde signaal moeten versturen om het door de lucht te laten vliegen als een elektromagnetische golf, is deze mogelijkheid voor een zender extreem handig. Het is daarnaast veel makkelijker om twee amplitudes aan te passen en een optelling uit te voeren, dan amplitude en fase moeten aanpassen. Het resultaat is dat onze zender er ongeveer zo uit zal zien:
-
-.. image:: ../_images/IQ_diagram.png
-   :scale: 80% 
-   :align: center 
-   :alt: Diagram showing how I and Q are modulated onto a carrier
-
-We hoeven alleen een cosinus te genereren en deze 90 graden op te schuiven om het Q gedeelte te krijgen.
+Wat je hier uit moet onthouden is dat wanneer de cos() en sin() worden opgeteld, we een andere zuivere sinusoïde krijgen met een andere fase en amplitude maar dezelfde frequentie. Daarnaast verschuift de fase wanneer we langzaam een van de twee delen groter of kleiner maken (en de amplitude verandert ook mee). Dit is allemaal het gevolg van de goniometrische identiteit: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`, waar we dadelijk op terug komen.  Het "nut" van dit gedrag is dat we de fase en amplitude van de resulterende sinusoïde kunnen controleren door I en Q aan te passen (we hoeven niets de doen met de fase van cosinus of sinus). We kunnen bijvoorbeeld I en Q op zo'n manier aanpassen dat de amplitude constant blijft en de fase naar wens wordt ingesteld. Omdat we weten dat we een sinusoïde signaal moeten versturen om het door de lucht te laten vliegen als een elektromagnetische golf, is deze mogelijkheid voor een zender extreem handig. Het is daarnaast veel makkelijker om twee amplitudes aan te passen en een optelling uit te voeren, dan amplitude en fase moeten aanpassen. Hiermee kunnen ook makkelijk het basisband signaal weergeven, onafhankelijk van de draaggolf.
 
 *************************
 Complexe Getallen
@@ -197,27 +225,18 @@ Nog een laatste belangrijke opmerking: Het figuur hierboven laat zien wat er **b
 Draaggolven en frequentieverschuiving
 *************************************
 
-Tot nu toe hebben we de frequentie nog niet behandelt, maar er was wel een :math:`f` in de vergelijkingen met de cos() en sin(). Deze frequentie is de middenfrequentie waarop we echt een signaal door de lucht sturen (de frequentie van de elektromagnetische golf). Dit noemen we de "draaggolf" omdat het ons signaal *draagt* op een bepaalde RF-frequentie. Wanneer we onze SDR afstellen op een bepaalde frequentie en samples ontvangen, dan wordt de informatie opgeslagen in I en Q; deze draaggolf verschijnt niet in I en Q.
-
-.. image:: images/carrier.svg
-   :scale: 140% 
-   :align: center
+Tot nu toe hebben we de frequentie nog niet behandelt, maar er was wel een :math:`f` in de vergelijkingen met de cos() en sin(). Deze frequentie is de middenfrequentie waarop we echt een signaal door de lucht sturen (de frequentie van de elektromagnetische golf). Dit noemen we de "draaggolf" omdat het ons signaal *draagt* op een bepaalde RF-frequentie. Wanneer we onze SDR afstellen op een bepaalde frequentie en samples ontvangen, dan wordt de informatie opgeslagen in I en Q.
    
 Ter referentie, radiosignalen zoals FM-radio, WiFi, Bluetooth, LTE, GPS, etc., gebruiken meestal een frequentie (dus een draaggolf) tussen de 100 MHz en 6 GHz.  
 Deze frequenties vliegen erg goed door de lucht, maar hebben niet een superlange antenne nodig of een hoop vermogen om te versturen of te ontvangen. Jouw magnetron maakt het eten warm met elektromagnetische golven op 2.5 GHz. Als de deur signalen zou lekken dan zou de magnetron jouw WiFi verstoren en misschien je huid verbranden. Een andere vorm van elektromagnetische golven is licht. Zichtbaar licht heeft een frequentie rond de 500 THz. Dit is zo hoog dat we geen antennes nodig hebben om licht te versturen. We gebruiken methoden zoals halfgeleider leds. Ze creëren licht wanneer een elektron tussen de atomaire banen van het halfgeleider materiaal springt, en de afstand die wordt gesprongen bepaalt de kleur. Technisch gezien worden frequenties tussen de 20 kHz en 300 GHz beschouwt als radiofrequenties (RF). Dit zijn de frequenties waarbij de energie van een oscillerende stroom door een geleider (antenne) uit kan stralen en door de ruimte bewegen. De meest nuttige frequenties voor moderne toepassingen liggen tussen de 100 MHz en 6 GHz. De frequenties daarboven wordt al decennia gebruikt door radar en satellietcommunicatie en worden nu ook toegepast in 5G "mmWave" (24 - 29 GHz) om de lagere frequenties een helpende hand te bieden en de snelheid te verhogen.
 
-Wanneer we onze IQ-waarden snel veranderen en via onze draaggolf versturen wordt dit het "moduleren" van de draaggolf genoemd (met data of wat we ook willen). Wanneer we de I en Q aanpassen veranderen we dus de fase en amplitude van de draaggolf. Een andere optie is om de frequentie van de draaggolf aan te passen, dus een beetje hoger of lager, dat is wat een FM-zender doet.
+Wanneer we onze IQ-waarden snel veranderen en via onze draaggolf versturen wordt dit het "moduleren" van de draaggolf genoemd (met data of wat we ook willen). Wanneer we de I en Q aanpassen veranderen we dus de fase en amplitude van de draaggolf. Een andere optie is om de frequentie van de draaggolf aan te passen, dus een beetje hoger of lager, dat is wat een FM-zender doet. Het is makkelijk om het onderscheid te verliezen tussen het signaal wat we willen versturen (met typisch een hoop frequentiecomponenenten), en de frequentie waarop het verstuurd wordt (de draaggolf). Hopelijk wordt dit duidelijk wanneer we basisband- en banddoorlaatsignalen behandelen.
 
-Als een simpel voorbeeld kunnen we het IQ sample 1+0j en vervolgens 0+1j versturen. Dan versturen we eersst :math:`\cos(2\pi ft)` en dan :math:`\sin(2\pi ft)`. Dit betekent dat onze draaggolf 90 graden van fase verandert wanneer we schakelen van het ene naar het andere sample.
-
-Het is makkelijk om het onderscheid te verliezen tussen het signaal wat we willen versturen (met typisch een hoop frequentiecomponenenten), en de frequentie waarop het verstuurd wordt (de draaggolf). Hopelijk wordt dit duidelijk wanneer we basisband- en banddoorlaatsignalen behandelen.
-
-Nu even terug naar samplen. Wat als we, zoals we het hoofdstuk zijn begonnen, in plaats van samples te ontvangen door het antennesignaal te vermenigvuldigen met een cos() en sin(), en I en Q te samplen, we het antennesignaal direct in een ADC zouden stoppen? Stel de draaggolf is 2.4 GHz, zoals bij WiFi of Bluetooth. Zoals we hebben geleerd, zou dat betekenen dat we op 4.8 GHz moeten samplen. Dat is extreem snel! En een ADC die zo snel kan samplen kost duizenden euro's. In plaats hiervan verschuiven we eerst het signaal naar "beneden", zodat het signaal dat we willen samplen gecentreerd is rond DC of 0 Hz. Deze verschuiving vindt plaats voor het samplen. We gaan van:
+Nu even terug naar samplen. Wat als we in plaats van samples te ontvangen door het antennesignaal te vermenigvuldigen met een cos() en sin(), en I en Q te samplen, we het antennesignaal direct in een ADC zouden stoppen? Stel de draaggolf is 2.4 GHz, zoals bij WiFi of Bluetooth. Zoals we hebben geleerd, zou dat betekenen dat we op 4.8 GHz moeten samplen. Dat is extreem snel! En een ADC die zo snel kan samplen kost duizenden euro's. In plaats hiervan verschuiven we eerst het signaal naar "beneden", zodat het signaal dat we willen samplen gecentreerd is rond DC of 0 Hz. Deze verschuiving vindt plaats voor het samplen. We gaan van:
 
 .. math::
-  I \cos(2\pi ft)
-  
-  Q \sin(2\pi ft)
+
+ I \underbrace{\cos(2\pi ft)}_{draaggolf} \ + \ \ Q \underbrace{\sin(2\pi ft)}_{draaggolf}
   
 Naar alleen I en Q.
 
@@ -258,6 +277,7 @@ Het figuur uit de "ontvangende kant" sectie, laat zien hoe het signaal wordt ver
 ***********************************
 Basisband- en Banddoorlaatsignalen
 ***********************************
+
 We noemen de band waar het signaal rond de 0 Hz zit de "basisband". Andersom, "bandoorlaat" refereert naar wanneer een signaal nergens in de buurt van de 0 Hz zit, maar omhoog is geschoven met draadloze transmissie als doel. Iets als een *basisbandtransmissie* bestaat niet, want je kunt niet iets imaginairs versturen. Een signaal kan in de basisband perfect gecentreerd zijn rond 0 Hz, net als de rechterkant van figuur :numref:`verschuiving`. Het signaal kan ook *in de buurt* van 0 Hz zitten, zoals de twee signalen hieronder. Die signalen worden nog steeds opgevat als basisband. Er is ook een banddoorlaatsignaal weergegeven, gecentreerd op een erg hoge frequentie :math:`f_c`.
 
 .. image:: ../_images/baseband_bandpass.png
@@ -265,9 +285,11 @@ We noemen de band waar het signaal rond de 0 Hz zit de "basisband". Andersom, "b
    :align: center
    :alt: Baseband vs bandpass
 
-Misschien ben je ook de term "intermediate frequency" (IF) of tussenfrequentie tegengekomen; zie IF voor nu als een tussenstap tussen de basisband en RF/bandoorlaatband.
+Misschien ben je ook de term "intermediate frequency" (IF) of tussenfrequentie tegengekomen als een tussenstap tussen de basisband en RF/bandoorlaatband.
 
-We maken, analyseren of slaan signalen op vanuit de basisband zodat we op een lagere sample-frequentie kunnen werken (zoals eerder uitgelegd). Hierbij is het belangrijk op te merken dat basisbandsignalen meestal complex zijn, terwijl bandoorlaatsignalen (dus te versturen RF signalen) reëel zijn. Als je erover nadenkt: signalen die door een antenne gaan moeten reëel zijn, je kunt geen complex/imaginair signaal uitzenden. Wanneer het negatieve en positieve deel van het frequentiespectrum niet precies hetzelfde zijn, dan weet je zeker dat het signaal complex is. Negatieve frequenties worden immers met complexe getallen weergegeven. In de werkelijkheid bestaan negatieve frequenties niet, alleen frequenties onder de draaggolf. 
+We maken, analyseren of slaan signalen op vanuit de basisband zodat we op een lagere sample-frequentie kunnen werken (zoals eerder uitgelegd). Hierbij is het belangrijk op te merken dat basisbandsignalen meestal **complex** zijn, terwijl bandoorlaatsignalen (dus te versturen RF signalen) **reëel** zijn. Als je erover nadenkt: signalen die door een antenne gaan moeten reëel zijn, je kunt geen complex/imaginair signaal uitzenden. Wanneer het negatieve en positieve deel van het frequentiespectrum niet precies hetzelfde zijn, dan weet je zeker dat het signaal complex is. Negatieve frequenties worden immers met complexe getallen weergegeven. In de werkelijkheid bestaan negatieve frequenties niet, alleen frequenties onder de draaggolf. 
+
+Als ons signaal geen imaganair component bevat, dan hebben we geen Q-waarden (of je kunt denken dat alle Q-waarden gelijk zijn aan nul). Dit betekent op zijn beurt dat we alleen cosinus signalen hebben zonder enige faseverschuiving. Een som van cosinus signalen zonder enige faseverschuiving zal symmetrisch zijn rond de y-as om jet frequentiedomein. Dit komt omdat een cosinus dezelfde positieve als negatieve componenten bevat.
 
 Eerder speelden we met het complexe punt 0.7 - 0.4j, dat was in feite een sample van een basisbandsignaal. In de meeste gevallen, als je complexe samples (IQ-samples) ziet, ben je in de basisband bezig. Vanwege de hoeveelheid data dat het in beslag zou nemen, worden signalen zelden opgeslagen op RF-frequenties, en om het feit dat we meestal alleen geïnteresseerd zijn in een smal deel van het RF spectrum.
 
@@ -291,7 +313,7 @@ Wanneer alleen een DC-piek te zien is, en de rest van de FFT lijkt op ruis, dan 
 
 De DC-offset is een gevolg van directe conversie ontvangers, de architectuur die gebruikt wordt door SDR's zoals de PlutoSDR, RTL-SDR, LimeSDR, en veel Ettus USRP's. In directe conversie ontvangers verschuift een oscillator, de LO, het signaal van zijn frequentie naar de basisband. Met als resultaat dat lekkage van de LO in het midden van de waargenomen band verschijnt. LO-lekkage is de extra energie die ontstaat bij het combineren van frequenties. Het is moeilijk deze extra ruis te verwijderen omdat het dicht bij het gewenste uitgangssignaal zit. Veel RF ic's hebben DC offset filters ingebouwd, maar meestal moet er een signaal aanwezig zijn om te kunnen werken. Om deze reden is de DC-piek sterk aanwezig op het moment dat er geen signalen zijn.
 
-Een snelle manier om met DC-offset om te gaan is om het signaal te oversamplen en de LO af te stellen naast de signaalfrequentie. Stel we willen 5 MHz van het spectrum rond 100 MHz bekijken. Wat we dan doen is samplen met bijvoorbeeld 20 MHz en afstellen op 95 MHz.
+Een snelle manier om met DC-offset om te gaan is om het signaal te oversamplen en de LO af te stellen naast de signaalfrequentie. Deze techniek wordt *offset tuning* genoemd. Stel we willen 5 MHz van het spectrum rond 100 MHz bekijken. Wat we dan doen is samplen met bijvoorbeeld 20 MHz en afstellen op 95 MHz.
 
 .. _afstellen:
 .. figure:: ../_images/offtuning.png

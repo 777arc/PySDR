@@ -263,7 +263,7 @@ If you want to use the TX/RX port instead of RX2 (the default), it's as simple a
 
 which essentially just controls an RF switch onboard the USRP, to route from the other SMA connector.
 
-To receive or transmit on two channels at once, instead of using :code:`st_args.channels = [0]` you provide a list, such as :code:`[0,1]`.  The receive samples buffer will have to be of size (2, N) in this case, instead of (1,N).  Just remember that with most USRPs, both channels share an LO, so you cant tune to different frequencies at once.
+To receive or transmit on two channels at once, instead of using :code:`st_args.channels = [0]` you provide a list, such as :code:`[0,1]`.  The receive samples buffer will have to be of size (2, N) in this case, instead of (1,N).  Just remember that with most USRPs, both channels share an LO, so you can't tune to different frequencies at once.
 
 **************************
 Syncing to 10 MHz and PPS

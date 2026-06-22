@@ -15,7 +15,7 @@ In this chapter we learn how to use the Python API for the `PlutoSDR <https://ww
 Overview of the PlutoSDR
 ************************
 
-The PlutoSDR (a.k.a. ADALM-PLUTO) is a low-cost SDR (just over $200) that is capable of transmitting and receiving signals from 70 MHz to 6 GHz.  It is a great SDR for those who have outgrown the $20 RTL-SDR.  The Pluto uses a USB 2.0 interface, which limits the sample rate to around 5 MHz if you want to receive 100% of samples over time.  That being said, it can sample up to 61 MHz and you can capture contiguous bursts up to around 10M samples long at a time, allowing the Pluto to capture an enormous amount of spectrum at once.  It is technically a 2x2 devices, but the second transmit and receive channels are only accessible through U.FL connectors inside the case, and they share the same oscillators so you can't receive on two different frequencies at once.  Below shows the block diagram of the Pluto, as well as the AD936x which is the RF integrated circuit (RFIC) inside the Pluto.
+The PlutoSDR (a.k.a. ADALM-PLUTO) is a low-cost SDR (just over $200) that is capable of transmitting and receiving signals from 70 MHz to 6 GHz.  It is a great SDR for those who have outgrown the $20 RTL-SDR.  The Pluto uses a USB 2.0 interface, which limits the sample rate to around 5 MHz if you want to receive 100% of samples over time.  That being said, it can sample up to 61 MHz and you can capture contiguous bursts up to around 10M samples long at a time, allowing the Pluto to capture an enormous amount of spectrum at once.  It is technically a 2x2 device, but the second transmit and receive channels are only accessible through U.FL connectors inside the case, and they share the same oscillators so you can't receive on two different frequencies at once.  Below shows the block diagram of the Pluto, as well as the AD936x which is the RF integrated circuit (RFIC) inside the Pluto.
 
 .. image:: ../_images/adi-adalm-pluto-diagram-large.jpg
    :scale: 60 % 
@@ -497,7 +497,7 @@ The AntSDR E200, which we will refer to as the AntSDR, is a low-cost 936X-based 
    :align: center
    :alt: The AntSDR E200 SDR with optional case enclosure
 
-The little DIP switch on the AntSDR switches between booting off of the SD card or off of the onboard Quad SPI (QSPI) flash memory.  At the time of this writing, the E200 comes with the Pluto firmware loaded in QPSI and the USRP/UHD firmware loaded onto the SD card, allowing the switch to be used to switch between modes without any further action.
+The little DIP switch on the AntSDR switches between booting off of the SD card or off of the onboard Quad SPI (QSPI) flash memory.  At the time of this writing, the E200 comes with the Pluto firmware loaded in QSPI and the USRP/UHD firmware loaded onto the SD card, allowing the switch to be used to switch between modes without any further action.
 
 The E200 block diagram is shown below.
 
@@ -690,7 +690,7 @@ If :code:`import uhd` says ModuleNotFoundError, you may have to add the followin
 AntSDR E310
 ************
 
-In addition to the E200, MicroPhase also makes a model call the AntSDR E310.  The AntSDR E310 is very similar to the E200, except it has the 2nd receive and 2nd transmit channel exposed as SMA connectors on the front, and it currently only supports the Pluto/IIO mode (no USRP mode). It uses the same FPGA as the E200.  One other difference is that is has an extra USB C port that acts as a USB OTG interface (e.g., to attach a USB drive).  The AntSDR E310 is only available on `AliExpress <https://www.aliexpress.us/item/3256802994929985.html?gatewayAdapt=glo2usa4itemAdapt>`_ (not Crowd Supply, like the E200).  At the time of this writing the E310 is roughly the same price as the E200, so if you don't plan on using "USRP-mode", and value having the extra channels exposed over SMA even if it means a slightly larger form factor, the E310 is a good choice.
+In addition to the E200, MicroPhase also makes a model called the AntSDR E310.  The AntSDR E310 is very similar to the E200, except it has the 2nd receive and 2nd transmit channel exposed as SMA connectors on the front, and it currently only supports the Pluto/IIO mode (no USRP mode). It uses the same FPGA as the E200.  One other difference is that is has an extra USB C port that acts as a USB OTG interface (e.g., to attach a USB drive).  The AntSDR E310 is only available on `AliExpress <https://www.aliexpress.us/item/3256802994929985.html?gatewayAdapt=glo2usa4itemAdapt>`_ (not Crowd Supply, like the E200).  At the time of this writing the E310 is roughly the same price as the E200, so if you don't plan on using "USRP-mode", and value having the extra channels exposed over SMA even if it means a slightly larger form factor, the E310 is a good choice.
 
 .. image:: ../_images/AntSDR_E310.png
    :scale: 80 % 

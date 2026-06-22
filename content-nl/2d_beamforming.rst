@@ -1,23 +1,23 @@
 .. _2d-beamforming-chapter:
 
-##############
-2D Beamforming
-##############
+#################
+2D-bundelvorming
+#################
 
-This chapter extends the 1D beamforming/DOA chapter to 2D arrays.  We will start with a simple rectangular array and develop the steering vector equation and MVDR beamformer, then we will work with some actual data from a 3x5 array.  Lastly, we will use the interactive tool to explore the effects of different array geometries and element spacing.
+Dit hoofdstuk breidt het 1D-hoofdstuk over bundelvorming/DOA uit naar 2D-arrays. We starten met een eenvoudige rechthoekige array en leiden de stuurvectorvergelijking en MVDR-bundelvormer af, daarna werken we met echte data van een 3x5-array. Tot slot gebruiken we de interactieve tool om de effecten van verschillende arraygeometrieen en elementafstand te verkennen.
 
-*************************************
-Rectangular Arrays and 2D Beamforming
-*************************************
+****************************************
+Rechthoekige Arrays en 2D-bundelvorming
+****************************************
 
-Rectangular arrays (a.k.a. planar arrays) involve a 2D array of elements.  With an extra dimension we get some added complexity, but the same basic principles apply, and the hardest part will be visualizing the results (e.g. no more simple polar plots, now we'll need 3D surface plots).  Even though our array is now 2D, that does not mean we have to start adding a dimension to every data structure we've been dealing with.  For example, we will keep our weights as a 1D array of complex numbers.  However, we will need to represent the positions of our elements in 2D.  We will keep using :code:`theta` to refer to the azimuth angle, but now we will introduce a new angle, :code:`phi`, which is the elevation angle.  There are many spherical coordinate conventions, but we will be using the following:
+Rechthoekige arrays (ook wel planaire arrays) bestaan uit een 2D-array van elementen. Met een extra dimensie komt wat extra complexiteit, maar dezelfde basisprincipes blijven gelden, en het lastigste deel is het visualiseren van de resultaten (geen eenvoudige polaire grafieken meer, maar 3D-oppervlakteplots). Ook al is onze array nu 2D, dat betekent niet dat we aan elke datastructuur een extra dimensie moeten toevoegen. Zo houden we de gewichten gewoon als een 1D-array van complexe getallen. Wel moeten we de posities van onze elementen in 2D representeren. We blijven :code:`theta` gebruiken voor de azimuthoek, maar introduceren nu ook :code:`phi`, de elevatiehoek. Er bestaan meerdere conventies voor bolcoordinaten, maar wij gebruiken de volgende:
 
 .. image:: ../_images/Spherical_Coordinates.svg
    :align: center 
    :target: ../_images/Spherical_Coordinates.svg
-   :alt: Spherical coordinate system showing theta and phi
+	:alt: Bolcoordinatenstelsel met theta en phi
 
-Which corresponds to:
+Dat komt overeen met:
 
 .. math::
 
@@ -27,13 +27,13 @@ Which corresponds to:
 
  z = \sin(\phi)
 
-We will also switch to using a generalized steering vector equation, which is not specific to any array geometry:
+We stappen ook over op een gegeneraliseerde stuurvectorvergelijking, die niet aan een specifieke arraygeometrie is gebonden:
 
 .. math::
 
    s = e^{2j \pi \boldsymbol{p} u / \lambda}
 
-where :math:`\boldsymbol{p}` is the set of element x/y/z positions in meters (size :code:`Nr` x 3) and :math:`u` is the direction we want to point at as a unit vector in x/y/z (size 3x1).  In Python this looks like:
+waarbij :math:`\boldsymbol{p}` de verzameling x/y/z-posities van de elementen in meter is (grootte :code:`Nr` x 3) en :math:`u` de richting is waar we naartoe willen wijzen als een eenheidsvector in x/y/z (grootte 3x1). In Python ziet dat er zo uit:
 
 .. code-block:: python
 
@@ -41,7 +41,7 @@ where :math:`\boldsymbol{p}` is the set of element x/y/z positions in meters (si
      #                           Nrx3  3x1   
      return np.exp(2j * np.pi * pos @ dir / wavelength) # outputs Nr x 1 (column vector)
 
-Let's try using this generalized steering vector equation with a simple ULA with 4 elements, to make the connection back to what we have previously learned. We will now represent :code:`d` in meters instead of relative to wavelength.  We will place the elements along the y-axis:
+Laten we deze gegeneraliseerde stuurvectorvergelijking toepassen op een eenvoudige ULA met 4 elementen, zodat de koppeling met eerdere stof duidelijk blijft. We drukken :code:`d` nu uit in meters in plaats van relatief ten opzichte van de golflengte. We plaatsen de elementen langs de y-as:
 
 .. code-block:: python
 
@@ -57,16 +57,16 @@ Let's try using this generalized steering vector equation with a simple ULA with
      pos[i,1] = d * i # y position
      pos[i,2] = 0     # z position
 
-The following graphic shows a top-down view of the ULA, with an example theta of 20 degrees.
+De onderstaande afbeelding toont een bovenaanzicht van de ULA, met als voorbeeld een theta van 20 graden.
 
 .. image:: ../_images/2d_beamforming_ula.svg
    :align: center 
    :target: ../_images/2d_beamforming_ula.svg
-   :alt: ULA with theta of 20 degrees
+	:alt: ULA met theta van 20 graden
 
-The only thing left is to connect our old :code:`theta` with this new unit vector approach.  We can calculate :code:`dir` based on :code:`theta` pretty easily, we know that the x and z component of our unit vector will be 0 because we are still in 1D space, and based on our spherical coordinate convention the y component will be :code:`np.cos(theta)`, meaning the full code is :code:`dir = np.asmatrix([0, np.cos(theta_i), 0]).T`. At this point you should be able to connect our generalized steering vector equation with the ULA steering vector equation we have been using.  Give this new code a try, pick a :code:`theta` between 0 and 360 degrees (remember to convert to radians!), and the steering vector should be a 4x1 array.
+Het enige dat nog rest is het koppelen van onze oude :code:`theta` aan deze nieuwe aanpak met eenheidsvectoren. We kunnen :code:`dir` eenvoudig uit :code:`theta` berekenen: de x- en z-component van de eenheidsvector zijn 0 omdat we nog in 1D werken, en volgens onze bolcoordinatenconventie is de y-component :code:`np.cos(theta)`, dus de volledige code is :code:`dir = np.asmatrix([0, np.cos(theta_i), 0]).T`. Op dit punt kun je de gegeneraliseerde stuurvectorvergelijking koppelen aan de ULA-stuurvectorvergelijking die we al gebruikten. Probeer deze nieuwe code uit, kies een :code:`theta` tussen 0 en 360 graden (vergeet niet om naar radialen om te rekenen!), en de stuurvector moet een 4x1-array zijn.
 
-Now let's move on to the 2D case.  We will place our array in the X-Z plane, with boresight pointing horizontally towards the positive y-axis (:math:`\theta = 0`, :math:`\phi = 0`).  We will use the same element spacing as before, but now we will have 16 elements total:
+Laten we nu naar het 2D-geval gaan. We plaatsen onze array in het X-Z-vlak, met kijkrichting horizontaal gericht naar de positieve y-as (:math:`\theta = 0`, :math:`\phi = 0`). We gebruiken dezelfde elementafstand als eerder, maar nu hebben we in totaal 16 elementen:
 
 .. code-block:: python
 
@@ -80,14 +80,14 @@ Now let's move on to the 2D case.  We will place our array in the X-Z plane, wit
      pos[i,1] = 0            # y position
      pos[i,2] = d * (i // 4) # z position
 
-The top-down view of our rectangular 4x4 array:
+Bovenaanzicht van onze rechthoekige 4x4-array:
 
 .. image:: ../_images/2d_beamforming_element_pos.svg
    :align: center 
    :target: ../_images/2d_beamforming_element_pos.svg
-   :alt: Rectangular array element positions
+	:alt: Elementposities van rechthoekige array
 
-In order to point towards a certain theta and phi, we will need to convert those angles into a unit vector.  We can use the same generalized steering vector equation as before, but now we will need to calculate the unit vector based on both theta and phi, using the equations at the beginning of this chapter:
+Om naar een bepaalde theta en phi te wijzen, moeten we die hoeken omzetten naar een eenheidsvector. We gebruiken dezelfde gegeneraliseerde stuurvectorvergelijking als eerder, maar nu berekenen we de eenheidsvector op basis van zowel theta als phi, met de vergelijkingen uit het begin van dit hoofdstuk:
 
 .. code-block:: python
 
@@ -107,7 +107,7 @@ In order to point towards a certain theta and phi, we will need to convert those
  #  [0.4330127]
  #  [0.5      ]]
 
-Now let's use our generalized steering vector function to calculate the steering vector:
+Laten we nu onze gegeneraliseerde stuurvectorfunctie gebruiken om de stuurvector te berekenen:
 
 .. code-block:: python
 
@@ -116,9 +116,9 @@ Now let's use our generalized steering vector function to calculate the steering
  # Use the conventional beamformer, which is simply the weights equal to the steering vector, plot the beam pattern
  w = s # 16x1 vector of weights
 
-At this point it's worth pointing out that we didn't actually change the dimensions of anything, going from 1D to 2D, we just have a non-zero x/y/z components, the steering vector equation is still the same and the weights are still a 1D array.  It might be tempting to assemble your weights as a 2D array so that visually it matches the array geometry, but it's not necessary and best to keep it 1D.  For every element, there is a corresponding weight, and the list of weights is in the same order as the list of element positions.
+Het is belangrijk om op te merken dat we bij de stap van 1D naar 2D de dimensies van de datastructuren niet echt hebben aangepast: we hebben nu alleen niet-nul x/y/z-componenten. De stuurvectorvergelijking blijft hetzelfde en de gewichten blijven een 1D-array. Het kan verleidelijk zijn om gewichten als 2D-array op te slaan zodat dit visueel bij de arraygeometrie past, maar dat is niet nodig en 1D is doorgaans beter. Voor elk element bestaat er een corresponderend gewicht, en de volgorde van de gewichten is dezelfde als die van de elementposities.
 
-Visualizing the beam pattern associated with these weights is a little more complicated because we need a 3D plot or a 2D heatmap.  We will scan :code:`theta` and :code:`phi` to get a 2D array of power levels, and then plot that using :code:`imshow()`.  The code below does just that, and the result is shown in the figure below, along with a dot at the angle we entered earlier:
+Het bundelpatroon dat bij deze gewichten hoort visualiseren is wat complexer, omdat we een 3D-plot of een 2D-heatmap nodig hebben. We scannen :code:`theta` en :code:`phi` om een 2D-array met vermogensniveaus te krijgen, en plotten die vervolgens met :code:`imshow()`. De code hieronder doet precies dat, en het resultaat staat in de figuur eronder, inclusief een punt op de eerder gekozen hoek:
 
 .. code-block:: python
 
@@ -140,9 +140,9 @@ Visualizing the beam pattern associated with these weights is a little more comp
 .. image:: ../_images/2d_beamforming_2dplot.svg
    :align: center 
    :target: ../_images/2d_beamforming_2dplot.svg
-   :alt: 3D plot of the beam pattern
+	:alt: 3D-plot van het bundelpatroon
 
-Let's simulate some actual samples now; we'll add two tone jammers arriving from different directions:
+Laten we nu echte samples simuleren; we voegen twee toon-stoorzenders toe die uit verschillende richtingen aankomen:
 
 .. code-block:: python
 
@@ -163,7 +163,7 @@ Let's simulate some actual samples now; we'll add two tone jammers arriving from
  noise = np.random.normal(0, 1, (Nr, N)) + 1j * np.random.normal(0, 1, (Nr, N)) # complex Gaussian noise
  r = jammer1_s @ jammer1_tone + jammer2_s @ jammer2_tone + noise # produces 16 x 10000 matrix of samples
 
-Just for fun let's calculate the MVDR beamformer weights towards the theta and phi we were using earlier (a unit vector in that direction is still saved as :code:`dir`):
+Voor de volledigheid berekenen we nu de MVDR-bundelvormergewichten richting de theta en phi die we eerder gebruikten (een eenheidsvector in die richting staat nog steeds in :code:`dir`):
 
 .. code-block:: python
 
@@ -172,7 +172,7 @@ Just for fun let's calculate the MVDR beamformer weights towards the theta and p
  Rinv = np.linalg.pinv(R)
  w = (Rinv @ s)/(s.conj().T @ Rinv @ s) # MVDR/Capon equation
 
-Instead of looking at the beam pattern in the crummy 3D plot, we'll use an alternative method of checking if these weights make sense; we will evaluate the response of the weights towards different directions and calculate the power in dB.  Let's start with the direction we were pointing:
+In plaats van naar een matige 3D-plot van het bundelpatroon te kijken, gebruiken we een alternatieve methode om te controleren of deze gewichten logisch zijn: we evalueren de respons van de gewichten voor verschillende richtingen en berekenen het vermogen in dB. We beginnen met de richting waarnaar we wijzen:
 
 .. code-block:: python
 
@@ -181,7 +181,7 @@ Instead of looking at the beam pattern in the crummy 3D plot, we'll use an alter
  resp = w.conj().T @ a # scalar
  print("Power in direction we are pointing:", 10*np.log10(np.abs(resp)[0,0]), 'dB')
 
-This outputs 0 dB, which is what we expect because MVDR's goal is to achieve unit gain in the desired direction.  Now let's check the power in the directions of the two jammers, as well as a random direction and a direction that is one degree off of our desired direction (the same code is used, just update :code:`dir`).  The results are shown in the table below:
+Dit geeft 0 dB, wat we verwachten omdat het doel van MVDR is om eenheidsvermogen in de gewenste richting te realiseren. Laten we nu ook het vermogen controleren in de richtingen van de twee jammers, plus een willekeurige richting en een richting die een graad afwijkt van de gewenste richting (dezelfde code, alleen :code:`dir` wijzigen). De resultaten staan in de tabel hieronder:
 
 .. list-table::
    :widths: 70 30
@@ -197,32 +197,25 @@ This outputs 0 dB, which is what we expect because MVDR's goal is to achieve uni
      - -18.551 dB
    * - 1 degree off from :code:`dir` in both :math:`\theta` and :math:`\phi`
      - -0.00683 dB
-   * - A random direction
+   * - Een willekeurige richting
      - -10.591 dB
 
-Your results may vary due to the random noise being used to calculate the received samples, which get used to calculate :code:`R`.  But the main take-away is that the jammers will be in a null and very low power, the 1 degree off from :code:`dir` will be slightly below 0 dB, but still in the main lobe, and then a random direction is going to be lower than 0 dB but higher than the jammers, and very different every run of the simulation.  Note that with MVDR you get a gain of 0 dB for the main lobe, but if you were to use the conventional beamformer, you would get :math:`10 \log_{10}(Nr)`, so about 12 dB for our 16-element array, showing one of the trade-offs of using MVDR.
+Je resultaten kunnen verschillen door de willekeurige ruis die wordt gebruikt om de ontvangen samples te berekenen, waarmee vervolgens :code:`R` wordt bepaald. De hoofdboodschap is echter dat de jammers in een null terechtkomen met zeer laag vermogen, de richting die 1 graad afwijkt van :code:`dir` net onder 0 dB zit maar nog in de hoofdlob, en dat een willekeurige richting meestal lager is dan 0 dB maar hoger dan de jammers, en sterk kan variëren per simulatie-run. Let op dat MVDR een versterking van 0 dB in de hoofdlob geeft; bij de conventionele bundelvormer krijg je :math:`10 \log_{10}(Nr)`, dus ongeveer 12 dB voor onze 16-element-array. Dat laat een van de afwegingen van MVDR zien.
 
-The code for this section can be found `here <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/doa_2d.py>`_.
+De code voor dit onderdeel staat `hier <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/doa_2d.py>`_.
 
 **********************************************
-Processing Signals from an Actual 2D Array
+Signalen Verwerken van een Echte 2D-array
 **********************************************
 
-In this section we work with some actual data recorded by `Jon Kraft <https://www.youtube.com/@jonkraft>`_ using a 3x5 digital array made out of a `QUAD-MxFE <https://www.analog.com/en/resources/evaluation-hardware-and-software/evaluation-boards-kits/quad-mxfe.html#eb-overview>`_ platform from Analog Devices which supports up to 16 transmit and receive channels (we only used 15 and only in receive mode).  Below are some pictures showing the setup, with transmitters labeled.
+In dit onderdeel werken we met echte data die is opgenomen met een 3x5-array gebouwd op een `QUAD-MxFE <https://www.analog.com/en/resources/evaluation-hardware-and-software/evaluation-boards-kits/quad-mxfe.html#eb-overview>`_-platform van Analog Devices, dat tot 16 zend- en ontvangstkanalen ondersteunt (wij gebruikten er 15, alleen in ontvangstmodus). Er zijn twee opnames beschikbaar: de eerste bevat een enkele zender op kijkrichting van de array, die we voor calibratie gebruiken. De tweede opname bevat twee zenders uit verschillende richtingen, die we voor bundelvorming en DOA-testen gebruiken.
 
-.. image:: ../_images/2d_array_ladder_pic.png
-   :align: center 
-   :target: ../_images/2d_array_ladder_pic.png
-   :alt: Images showing the 3x5 array used to record the data, which was made using a QUAD-MxFE platform from Analog Devices
+- `IQ-opname van alleen C <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/C_only_capture1.npy>`_ (gebruikt voor calibratie, omdat C op kijkrichting staat)
+- `IQ-opname van B en D <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/DandB_capture1.npy>`_ (gebruikt voor bundelvorming/DOA-testen)
 
-Two downloadable recordings are provided below, the first one contains one emitter located at boresight to the array, which we will use for calibration.  The second recording contains two emitters at different directions, which we will use for beamforming and DOA testing.
+De QUAD-MxFE was afgestemd op 2,8 GHz en alle zenders gebruikten een eenvoudige toon binnen de observatiebandbreedte. Interessant aan deze DSP is dat de sample rate hier niet doorslaggevend is: geen van de arrayverwerkingstechnieken die we gebruiken hangt ervan af, zolang het signaal maar ergens in de basisband zit. De DSP hangt wel af van de centerfrequentie, omdat de faseverschuiving tussen elementen afhangt van frequentie en aankomstrichting. Dat is het omgekeerde van veel andere signaalverwerking, waar sample rate cruciaal is en centerfrequentie meestal niet.
 
-- `IQ recording of just C <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/C_only_capture1.npy>`_ (used for calibration, as C is at boresight)
-- `IQ recording of B and D <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/DandB_capture1.npy>`_ (used for beamforming/DOA testing)
-
-The QUAD-MxFE was tuned to 2.8 GHz and all transmitters were using a simple tone within the observation bandwidth.  What's interesting about this DSP is that it doesn't actually matter what the sample rate is, none of the array processing techniques we use depend on the sample rate, they just make the assumption that the signal is somewhere in the baseband signal.  The DSP does depend on the center frequency, because the phase shift between elements depends on the frequency and angle of arrival.  This is opposite of most other signal processing where the sample rate is important, but the center frequency is not.
-
-We can load these recordings into Python using the following code:
+We kunnen deze opnames in Python laden met de volgende code:
 
 .. code-block:: python
 
@@ -230,9 +223,9 @@ We can load these recordings into Python using the following code:
     import matplotlib.pyplot as plt
 
     r = np.load("DandB_capture1.npy")[0:15] # 16th element is not connected but was still recorded
-    r_cal = np.load("C_only_capture1.npy")[0:15] # only the calibration signal (at boresight) on
+    r_cal = np.load("C_only_capture1.npy")[0:15] # only the calibration signal (at kijkrichting) on
 
-The spacing between antennas was 0.051 meters.  We can represent the element positions as a list of x,y,z coordinates in meters.  We will place the array in the X-Z plane, as the array was mounted vertically (with boresight pointing horizontally).
+De afstand tussen de antennes was 0,051 meter. We representeren de elementposities als een lijst met x,y,z-coordinaten in meter. We plaatsen de array in het X-Z-vlak, omdat de array verticaal gemonteerd was (met kijkrichting horizontaal gericht).
 
 .. code-block:: python
 
@@ -263,16 +256,16 @@ The spacing between antennas was 0.051 meters.  We can represent the element pos
 	plt.grid()
 	plt.show()
 
-The plot labels each element with its index, which corresponds to the order of the elements in the :code:`r` and :code:`r_cal` IQ samples that were recorded.
+De plot labelt elk element met zijn index, overeenkomend met de volgorde van de elementen in de opgenomen :code:`r`- en :code:`r_cal`-IQ-samples.
 
 .. image:: ../_images/2d_array_element_positions.svg
    :align: center 
    :target: ../_images/2d_array_element_positions.svg
-   :alt: 2D array element positions
+	:alt: Elementposities van 2D-array
 
-Calibration is performed using only the :code:`r_cal` samples, which were recorded with just the transmitter at boresight on. The goal is to find the phase and magnitude offsets for each element.  With perfect calibration, and assuming the transmitter was exactly at boresight, all of the individual receive elements should be receiving the same signal, all in phase with each other and at the same magnitude.  But because of imperfections in the array/cables/antennas, each element will have a different phase and magnitude offset.  The calibration process is to find these offsets, which we will later apply to the :code:`r` samples before attempting to do any array processing on them.
+Calibratie gebeurt met alleen de :code:`r_cal`-samples, die zijn opgenomen terwijl enkel de zender op kijkrichting actief was. Het doel is om voor elk element de fase- en amplitude-offset te vinden. Bij perfecte calibratie, en als de zender exact op kijkrichting staat, zouden alle afzonderlijke ontvangstkanalen hetzelfde signaal moeten ontvangen: onderling in fase en met gelijke amplitude. Door onvolkomenheden in array/kabels/antennes heeft elk element echter een andere fase- en amplitude-offset. In het calibratieproces bepalen we deze offsets, die we later op de :code:`r`-samples toepassen voordat we arrayverwerking uitvoeren.
 
-There are many ways to perform calibration, but we will use a method that involves taking the eigenvalue decomposition of the covariance matrix.  The covariance matrix is a square matrix of size :code:`Nr x Nr`, where :code:`Nr` is the number of receive elements.  The eigenvector corresponding to the largest eigenvalue is the one that represents the received signal, hopefully, and we will use it to find the phase offsets for each element by simply taking the phase of each element of the eigenvector and normalizing it to the first element which we will treat as the reference element.  The magnitude calibration does not actually use the eigenvector, but instead uses the mean magnitude of the received signal for each element.
+Er zijn veel manieren om te calibreren, maar wij gebruiken een methode op basis van eigenwaardedecompositie van de covariantiematrix. De covariantiematrix is een vierkante matrix met grootte :code:`Nr x Nr`, waarbij :code:`Nr` het aantal ontvangstkanalen is. De eigenvector die hoort bij de grootste eigenwaarde representeert idealiter het ontvangen signaal; die gebruiken we om fase-offsets te bepalen door van elk element in de eigenvector de fase te nemen en te normaliseren op het eerste element, dat als referentie dient. De amplitudecalibratie gebruikt de eigenvector niet, maar de gemiddelde amplitude van het ontvangen signaal per element.
 
 .. code-block:: python
 
@@ -300,14 +293,14 @@ There are many ways to perform calibration, but we will use a method that involv
 	cal_table = mags * np.exp(1j * phases)
 	print("cal_table", cal_table)
 
-Below shows the plot of the eigenvalue distribution, we want to make sure that there's just one large value, and the rest are small, representing one signal being received.  Any interferers or multipath will degrade the calibration process. 
+Hieronder staat de plot van de eigenwaardeverdeling. We willen zien dat er slechts een grote waarde is en de rest klein, wat overeenkomt met een enkel ontvangen signaal. Eventuele interferers of multipad verslechteren het calibratieproces.
 
 .. image:: ../_images/2d_array_eigenvalues.svg
    :align: center 
    :target: ../_images/2d_array_eigenvalues.svg
-   :alt: 2D array eigenvalue distribution
+	:alt: Eigenwaardeverdeling van 2D-array
 
-The calibration table is a list of complex numbers, one for each element, representing the phase and magnitude offsets (it is easier to represent it in rectangular form instead of polar).  The first element is the reference element, and will always be 1.0 + 0.j. The rest of the elements are the offsets for each element corresponding to the same order we used for :code:`pos`.
+De calibratietabel is een lijst met complexe getallen, een per element, die de fase- en amplitude-offsets representeren (rechthoekige notatie is hier praktischer dan polaire notatie). Het eerste element is het referentie-element en is altijd 1.0 + 0.j. De overige elementen zijn de offsets per element in dezelfde volgorde als in :code:`pos`.
 
 .. code-block:: python
 
@@ -318,7 +311,7 @@ The calibration table is a list of complex numbers, one for each element, repres
 	-0.70614339+0.78682873j -0.75612972+5.67234809j  1.00032754-0.60824109j]
 
 
-We can apply these offsets to any set of samples recorded from the array simply by multiplying each element of the samples by the corresponding element of the calibration table:
+We kunnen deze offsets op elke sample-set van de array toepassen door elk samplekanaal te vermenigvuldigen met het corresponderende element uit de calibratietabel:
 
 .. code-block:: python
 
@@ -326,9 +319,9 @@ We can apply these offsets to any set of samples recorded from the array simply 
 	for i in range(Nr):
 		r[i, :] *= cal_table[i]
 
-As a side note, this is why we calculated the offsets using :code:`mags[0] / mags` and :code:`phases[0] - phases`, if we had reversed that order then we would need to do a division in order to apply the offsets, but we prefer to do the multiplication instead.
+Terzijde: daarom berekenden we de offsets met :code:`mags[0] / mags` en :code:`phases[0] - phases`. Met de omgekeerde volgorde zouden we bij toepassing moeten delen in plaats van vermenigvuldigen, en vermenigvuldigen is hier handiger.
 
-Next we will perform DOA estimation using the MUSIC algorithm.  We will use the :code:`steering_vector()` and :code:`get_unit_vector()` functions we defined earlier to calculate the steering vector for each element of the array, and then use the MUSIC algorithm to estimate the DOA of the two emitters in the :code:`r` samples.  The MUSIC algorithm was discussed in the previous chapter.
+Vervolgens voeren we DOA-schatting uit met het MUSIC-algoritme. We gebruiken de functies :code:`steering_vector()` en :code:`get_unit_vector()` die we eerder definieerden om voor elk array-element de stuurvector te berekenen, en gebruiken daarna MUSIC om de DOA van de twee zenders in de :code:`r`-samples te schatten. Het MUSIC-algoritme is in het vorige hoofdstuk behandeld.
 
 .. code-block:: python
 
@@ -354,19 +347,14 @@ Next we will perform DOA estimation using the MUSIC algorithm.  We will use the 
 			music_metric = np.abs(music_metric).squeeze()
 			music_metric = np.clip(music_metric, 0, 2) # Useful for ABCD one
 			results[i, j] = music_metric
-	
-	results = 10*np.log10(results) # convert to dB
-	
-	# Keep the top 95%
-	floor = np.percentile(results, 5)
-	print("floor:", floor)
-	results = np.maximum(results, floor)
 
-Our results are in 2D, because the array is 2D, so we must either use a 3D plot or a 2D heatmap plot.  Let's try both. First, we will do a 3D plot that has elevation on one axis and azimuth on the other:
+Onze resultaten zijn 2D, omdat de array 2D is, dus we moeten een 3D-plot of een 2D-heatmap gebruiken. We doen beide. Eerst een 3D-plot met elevatie op de ene as en azimuth op de andere:
 
 .. code-block:: python
 
 	# 3D az-el DOA results
+	results = 10*np.log10(results) # convert to dB
+	results[results < -20] = -20 # crop the z axis to some level of dB
 	fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
 	surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
 							np.rad2deg(phi_scan[None,:]),
@@ -383,9 +371,9 @@ Our results are in 2D, because the array is 2D, so we must either use a 3D plot 
    :align: center 
    :scale: 30%
    :target: ../_images/2d_array_3d_doa_plot.png
-   :alt: 3D DOA plot
+	:alt: 3D-DOA-plot
 
-Depending on the situation it might be annoying to read off numbers from a 3D plot, so we can also do a 2D heatmap with :code:`imshow()`:
+Afhankelijk van de situatie kan het lastig zijn om waarden uit een 3D-plot af te lezen, dus we kunnen ook een 2D-heatmap met :code:`imshow()` maken:
 
 .. code-block:: python
 
@@ -404,21 +392,21 @@ Depending on the situation it might be annoying to read off numbers from a 3D pl
 .. image:: ../_images/2d_array_2d_doa_plot.svg
    :align: center 
    :target: ../_images/2d_array_2d_doa_plot.svg
-   :alt: 2D DOA plot
+	:alt: 2D-DOA-plot
 
-Using this 2D plot we can easily read off the estimated azimuth and elevation of the two emitters (and see that there was just two).  Based on the test setup that was used to produce this recording, these results match reality, the *exact* azimuth and elevation of the emitters was never actually measured because that would require very specialized equipment. 
+Met deze 2D-plot kunnen we de geschatte azimuth en elevatie van de twee zenders eenvoudig aflezen (en zien dat het er inderdaad twee zijn). Op basis van de testopstelling die voor deze opname is gebruikt, komen deze resultaten overeen met de werkelijkheid. De *exacte* azimuth en elevatie zijn nooit gemeten, omdat daarvoor zeer specialistische apparatuur nodig is.
 
-As an exercise, try using the conventional beamformer, as well as MVDR, and compare the results to MUSIC.
+Als oefening kun je zowel de conventionele bundelvormer als MVDR proberen en de resultaten vergelijken met MUSIC.
 
-This code in its entirety can be found `here <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/2d_array_recording.py>`_.
+De volledige code van dit onderdeel staat `hier <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/2d_array_recording.py>`_.
 
-***********************
-Interactive Design Tool
-***********************
+************************
+Interactieve Ontwerptool
+************************
 
-The following interactive tool was created by `Jason Durbin <https://www.linkedin.com/in/jasondurbin/>`_, a free-lancing phased array engineer, who graciously allowed it to be embedded within PySDR; feel free to visit the `full project <https://jasondurbin.github.io/PhasedArrayVisualizer>`_ or his `consulting business <https://neonphysics.com/>`_.  This tool allows you to change a phased array's geometry, element spacing, steering position, add sidelobe tapering, and other features.
+De onderstaande interactieve tool is gemaakt door `Jason Durbin <https://www.linkedin.com/in/jasondurbin/>`_, een freelance phased-array-engineer, die toestemming gaf om de tool in PySDR op te nemen. Bekijk gerust het `volledige project <https://jasondurbin.github.io/PhasedArrayVisualizer>`_ of zijn `adviesbureau <https://neonphysics.com/>`_. Met deze tool kun je de geometrie van een phased array aanpassen, elementafstanden wijzigen, de stuurpositie veranderen, sidelobe-tapering toevoegen en meer.
 
-Some details on this tool: Antenna elements are assumed to be isotropic. However, the directivity calculation assumes half-hemisphere radiation (e.g. no back lobes). Therefore, the computed directivity will be 3 dBi higher than using pure isotropic (i.e., the individual element gain is +3.0 dBi). The mesh can be made finer by increasing theta/phi, u/v, or azimuth/elevation points. Clicking (or long pressing) elements in the phase/attenuation plots allows you to manually set phase/attenuation ("be sure to select "enable override"). Additionally, the attenuation pop-up allows you to disable elements. Hovering (or touching) the 2D far field plot or geometry plots will show the value of the plot under the cursor.
+Enkele details over deze tool: antenne-elementen worden als isotroop aangenomen. De directiviteitsberekening gaat echter uit van straling over een halve hemisfeer (dus zonder achterlobben). Daardoor is de berekende directiviteit 3 dBi hoger dan bij volledig isotroop (de individuele elementgain is dus +3,0 dBi). De mesh kan fijner worden gemaakt door theta/phi-, u/v- of azimuth/elevatiepunten te verhogen. Door in de fase-/attenuatieplots op elementen te klikken (of lang te drukken) kun je fase/attenuatie handmatig instellen (let op: kies dan "enable override"). In de attenuatie-popup kun je elementen ook uitschakelen. Door met de muis over de 2D far-field- of geometrieplots te bewegen (of aan te raken) zie je de plotwaarde onder de cursor.
 
 .. raw:: html
 

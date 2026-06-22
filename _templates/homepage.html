@@ -30,31 +30,18 @@
 </h4>
 
 <h4>
-  To get a quick taste of RF signal processing, try playing with the simulation below which shows the frequency and time domain of a signal
-  consisting of a tone and white Gaussian noise.
+  To get a quick taste of RF signal processing, try playing with the <a href="https://potik.org" target="_blank" rel="noopener noreferrer">Potik</a> simulation below which shows the frequency (top) and time domain (bottom) of a signal consisting of a tone plus white Gaussian noise.  On the right side panel you can change the tone's frequency and the amount of noise.
 </h4>
 
-<div>
-  <input type="range" min="-0.4" max="0.4" step="0.0001" value="0.01" class="slider" id="freq" />
-  <span id="freq_value"></span>
-  <label>[Hz] - Tone Frequency</label>
-</div>
-<div>
-  <input type="range" min="-20" max="10" step="0.1" value="0" class="slider" id="noise_ampl_dB" />
-  <span id="noise_value"></span>
-  <label>[dB] - Noise Amplitude</label>
-</div>
-<div>
-  <canvas width="2048" height="800" id="freq_plot" style="width: 512px; height: 200px; border: 0px; image-rendering: auto"></canvas>
-</div>
-<br />
-<br />
-<div>
-  <canvas width="2048" height="800" id="time_plot" style="width: 512px; height: 200px; border: 0px; image-rendering: auto"></canvas>
-</div>
-
-<script>
-  homepage_app();
-</script>
+<!-- ════════ POTIK INTERACTIVE LAB EMBED ════════ -->
+<iframe
+          src="https://embed.potik.org/cw-plus-noise?theme=pysdr&viewmode=minimal"
+          title="Tone + Gaussian noise — interactive lab (Potik · local)"
+          loading="lazy"
+          allow="fullscreen"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+          style="display:block; width:80%; aspect-ratio:16/9; min-height:460px; border:0; margin:18px auto 26px;"
+        ></iframe>
+<!-- ════════ /POTIK EMBED ════════ -->
 
 <br />

@@ -455,8 +455,6 @@ The first step is doing a single correlation of the received signal against the 
     corr_out = correlate(rx_signal, ref_preamble, mode='same')
     corr_power = np.abs(corr_out)**2
 
-TODO: look at just the raw output of this step
-
 Now we will implement the CFAR detector, apply it to the correlator output, and visualize the results:
 
 .. code-block:: python
@@ -567,8 +565,6 @@ The "Frequency Shift Trick": To test different frequency offsets, you don't need
 For continuous streams, chunking methods such as Overlap-Save or Overlap-Add are used to process data in chunks without losing the correlation peaks at the edges of the FFT windows. 
 
 Frequency-offset resilience is a trade-off between processing gain and computational complexity. Non-coherent segmented correlation is the most robust choice for high-uncertainty environments, but it requires a higher link margin. Coherent segmented and brute-force FFT searches provide better sensitivity, but they require significantly more hardware resources. Understanding the Dirichlet-driven loss is critical when choosing the bin density for any frequency-searching receiver.
-
-TODO: Explain this plot and add some portion of the Python to the section
 
 .. image:: ../_images/detection_freq_offset.svg
    :align: center 

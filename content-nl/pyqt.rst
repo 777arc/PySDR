@@ -1,42 +1,42 @@
 .. _pyqt-chapter:
 
 ##########################
-Real-Time GUIs with PyQt
+Realtime GUI's met PyQt
 ##########################
 
-In this chapter we learn how to create real-time graphical user interfaces (GUIs) within Python by leveraging PyQt, the Python bindings for Qt.  As part of this chapter we build a spectrum analyzer with time, frequency, and spectrogram/waterfall graphics, as well as input widgets for adjusting the various SDR parameters.  The example supports the PlutoSDR, USRP, or simulation-only mode.
+In dit hoofdstuk leren we hoe je realtime grafische gebruikersinterfaces (GUI's) in Python maakt met PyQt, de Python-bindings voor Qt. Als onderdeel van dit hoofdstuk bouwen we een spectrum analyzer met tijd-, frequentie- en spectrogram/waterfall-weergave, plus invoerwidgets om verschillende SDR-parameters aan te passen. Het voorbeeld ondersteunt PlutoSDR, USRP en een simulatiemodus.
 
 ****************
-Introduction
+Introductie
 ****************
 
-Qt (pronounced "cute") is a framework for creating GUI applications that can run on Linux, Windows, macOS, and even Android.  It is a very powerful framework that is used in many commercial applications, and is written in C++ for maximum performance.  PyQt is the Python bindings for Qt, providing a way to create GUI applications in Python, while harnessing the performance of an efficient C++ based framework.  In this chapter we will learn how to use PyQt to create a real-time spectrum analyzer that can be used with an SDR (or with a simulated signal).  The spectrum analyzer will have time, frequency, and spectrogram/waterfall graphics, as well as input widgets for adjusting the various SDR parameters.  We use `PyQtGraph <https://www.pyqtgraph.org/>`_, which is a separate library built on top of PyQt, to perform plotting.  On the input side, we use sliders, combo-box, and push-buttons.  The example supports the PlutoSDR, USRP, or simulation-only mode.  Even though the example code uses PyQt6, every single line is identical to PyQt5 (besides the :code:`import`), very little changed between the two versions from an API perspective.  Naturally, this chapter is extremely Python code heavy, as we explain through examples.  By the end of this chapter you will have gained familiarity with the building blocks used to create your own custom interactive SDR application!
+Qt (uitgesproken als het engelse woord "Cute") is een framework om GUI-applicaties te maken die op Linux, Windows, macOS en zelfs Android kunnen draaien. Het is een krachtig framework dat in veel commerciële applicaties wordt gebruikt en in C++ is geschreven voor hoge prestaties. PyQt is de Python-verbinding met Qt en biedt daarmee een manier om GUI-applicaties in Python te bouwen, terwijl je profiteert van de prestaties van het onderliggende C++-framework. In dit hoofdstuk gebruiken we PyQt om een realtime spectrum analyzer te bouwen die met een SDR (of met een gesimuleerd signaal) werkt. De analyzer krijgt tijd-, frequentie- en spectrogram/waterfall-weergaven, plus invoerwidgets om SDR-parameters bij te sturen. Voor het plotten gebruiken we `PyQtGraph <https://www.pyqtgraph.org/>`_, een aparte library bovenop PyQt. Voor invoer gebruiken we sliders, combo-boxes en push-buttons. Het voorbeeld ondersteunt PlutoSDR, USRP en simulatiemodus. Hoewel de voorbeeldcode PyQt6 gebruikt, is vrijwel elke regel identiek aan PyQt5 (op de :code:`import` na); qua API is er weinig veranderd tussen die versies. Dit hoofdstuk bevat daarom veel Python-code met uitleg via voorbeelden. Aan het einde heb je de belangrijkste bouwstenen in handen om je eigen interactieve SDR-app te maken.
 
 ****************
-Qt Overview
+Qt-overzicht
 ****************
 
-Qt is a very large framework, and we will only be scratching the surface of what it can do.  However, there are a few key concepts that are important to understand when working with Qt/PyQt:
+Qt is een groot framework en we behandelen slechts een klein deel van de mogelijkheden. Er zijn wel enkele kernconcepten die belangrijk zijn bij werken met Qt/PyQt:
 
-- **Widgets**: Widgets are the building blocks of a Qt application, and are used to create the GUI.  There are many different types of widgets, including buttons, sliders, labels, and plots.  Widgets can be arranged in layouts, which determine how they are positioned on the screen.
+- **Widgets**: Widgets zijn de bouwstenen van een Qt-applicatie en vormen de GUI. Er zijn veel soorten widgets, zoals knoppen, sliders, labels en plots. Widgets worden in layouts geplaatst, die bepalen hoe ze op het scherm staan.
 
-- **Layouts**: Layouts are used to arrange widgets in a window.  There are several types of layouts, including horizontal, vertical, grid, and form layouts.  Layouts are used to create complex GUIs that are responsive to changes in window size.
+- **Layouts**: Layouts worden gebruikt om widgets in een venster te ordenen. Er zijn meerdere types, waaronder horizontale, verticale, grid- en form-layouts. Layouts maken complexe GUI's mogelijk die goed reageren op veranderingen in venstergrootte.
 
-- **Signals and Slots**: Signals and slots are a way to communicate between different parts of a Qt application.  A signal is emitted by an object when a particular event occurs, and is connected to a slot, which is a callback function that is called when the signal is emitted.  Signals and slots are used to create an event-driven structure in a Qt application, and keep the GUI responsive.
+- **Signals en Slots**: Signals en slots zijn een manier om tussen onderdelen van een Qt-applicatie te communiceren. Een signal wordt uitgezonden wanneer een gebeurtenis plaatsvindt en is gekoppeld aan een slot (een callbackfunctie) die dan wordt uitgevoerd. Dit maakt een event-driven structuur mogelijk en houdt de GUI responsief.
 
-- **Style Sheets**: Style sheets are used to customize the appearance of widgets in a Qt application.  Style sheets are written in a CSS-like language, and can be used to change the color, font, and size of widgets.
+- **Style Sheets**: Style sheets worden gebruikt om het uiterlijk van widgets aan te passen. Ze zijn geschreven in een CSS-achtige taal en kunnen kleur, lettertype en grootte wijzigen.
 
-- **Graphics**: Qt has a powerful graphics framework that can be used to create custom graphics in a Qt application.  The graphics framework includes classes for drawing lines, rectangles, ellipses, and text, as well as classes for handling mouse and keyboard events.
+- **Graphics**: Qt heeft een krachtig graphics-framework om custom grafische elementen te maken. Het bevat classes voor lijnen, rechthoeken, ellipsen en tekst, plus klassen voor muis- en toetsenbordevents.
 
-- **Multithreading**: Qt has built-in support for multithreading, and provides classes for creating worker threads that run in the background.  Multithreading is used to run long-running operations in a Qt application without blocking the main GUI thread.
+- **Multithreading**: Qt ondersteunt multithreading ingebouwd en biedt classes om worker-threads op de achtergrond te draaien. Daarmee kun je langdurige taken uitvoeren zonder de hoofd-GUI-thread te blokkeren.
 
-- **OpenGL**: Qt has built-in support for OpenGL, and provides classes for creating 3D graphics in a Qt application.  OpenGL is used to create applications that require high-performance 3D graphics.  In this chapter we will only be focusing on 2D applications.
+- **OpenGL**: Qt heeft ingebouwde OpenGL-ondersteuning en classes voor 3D-graphics. Dat is nuttig voor toepassingen die hoge 3D-prestaties vragen. In dit hoofdstuk richten we ons alleen op 2D-toepassingen.
 
-*************************
-Basic Application Layout
-*************************
+*******************************
+Basislayout van een Applicatie
+*******************************
 
-Before we dive into the different Qt widgets, let's look at the layout of a typical Qt application.  A Qt application is composed of a main window, which contains a central widget, which in turn contains the main content of the application.  Using PyQt we can create a minimal Qt application, containing just a single QPushButton as follows:
+Voordat we de verschillende Qt-widgets behandelen, kijken we naar de layout van een typische Qt-applicatie. Een Qt-app bestaat uit een hoofdvenster met daarin een centrale widget, die op zijn beurt de hoofdinhoud bevat. Met PyQt kunnen we een minimale app maken met slechts een enkele QPushButton:
 
 .. code-block:: python
 
@@ -60,15 +60,15 @@ Before we dive into the different Qt widgets, let's look at the layout of a typi
     window.show() # Windows are hidden by default
     app.exec() # Start the event loop
 
-Try running the code yourself, you will likely need to :code:`pip install PyQt6`.  Note how the very last line is blocking, anything you add after that line wont run until you close the window.  The QPushButton we create has its :code:`clicked` signal connected to a callback function that prints "beep" to the console.
+Probeer de code zelf uit; waarschijnlijk moet je :code:`pip install PyQt6` uitvoeren. Merk op dat de allerlaatste regel blokkerend is: alles wat je daaronder zet, draait pas nadat je het venster sluit. De gemaakte QPushButton heeft zijn :code:`clicked`-signal gekoppeld aan een callback die "beep" naar de console print.
 
 *******************************
-Application with Worker Thread
+Applicatie met Worker-thread
 *******************************
 
-There is one problem with the minimal example above- it doesn't leave us any spot to put SDR/DSP oriented code.  The :code:`MainWindow`'s :code:`__init__` is where the GUI is configured and callbacks are defined, but you absolutely do not want to add any other code (such as SDR or DSP code) to it.  The reason is that the GUI is single-threaded, and if you block the GUI thread with long-running code, the GUI will freeze/stutter, and we want the smoothest GUI possible.  To get around this, we can use a worker thread to run the SDR/DSP code in the background.
+Er is een probleem met het minimale voorbeeld: er is geen goede plek voor SDR/DSP-code. De :code:`__init__` van :code:`MainWindow` is bedoeld voor GUI-configuratie en callbacks, maar daar wil je geen andere logica (zoals SDR of DSP) in stoppen. De reden: de GUI is single-threaded. Als je de GUI-thread blokkeert met langdurige code, bevriest of stottert de interface. Daarom gebruiken we een worker-thread om SDR/DSP op de achtergrond uit te voeren.
 
-The example below extends the minimal example above to include a worker thread that runs code (in the :code:`run` function) nonstop.  We don't use a :code:`while True:` though, because of the way PyQt works under the hood, we want our :code:`run` function to finish and start over periodically.  In order to do this, the worker thread's :code:`end_of_run` signal (which we discuss more in the next section) is connected to a callback function that triggers the worker thread's :code:`run` function again.  We also must initialize the worker thread in the :code:`MainWindow` code, which involves creating a new :code:`QThread` and assigning our custom worker to it.  This code might seem complicated, but it is a very common pattern in PyQt applications and the main take-away is that the GUI-oriented code goes in :code:`MainWindow`, and the SDR/DSP-oriented code goes in the worker thread's :code:`run` function.
+Het onderstaande voorbeeld breidt het minimale voorbeeld uit met een worker-thread die code in de :code:`run`-functie continu laat draaien. We gebruiken bewust geen :code:`while True:`, omdat we door de interne werking van PyQt willen dat :code:`run` periodiek afrondt en opnieuw start. Daarom koppelen we het :code:`end_of_run`-signal van de worker-thread (volgende sectie) aan een callback die :code:`run` opnieuw triggert. We initialiseren de worker-thread in :code:`MainWindow`, door een :code:`QThread` te maken en onze custom worker eraan toe te wijzen. Dit lijkt misschien complex, maar het is een veelgebruikt patroon in PyQt-apps. Belangrijkste punt: GUI-code hoort in :code:`MainWindow`, SDR/DSP-code in de worker-thread (:code:`run`).
 
 .. code-block:: python
 
@@ -116,19 +116,19 @@ The example below extends the minimal example above to include a worker thread t
     window.show() # Windows are hidden by default
     app.exec() # Start the event loop
 
-Try running the above code, you should see a "Starting run()" in the console every 1 second, and the push-button should still work (without any delay).  Within the worker thread, all we are doing now is a print and a sleep, but soon we will be adding the SDR handling and DSP code to it.
+Probeer de code hierboven uit. Je zou elke seconde "Starting run()" in de console moeten zien en de knop moet zonder merkbare vertraging blijven werken. In de worker-thread doen we nu alleen print en sleep, maar zo voegen we straks eenvoudig SDR- en DSP-code toe.
 
 *************************
-Signals and Slots
+Signals en Slots
 *************************
 
-In the above example, we used the :code:`end_of_run` signal to communicate between the worker thread and the GUI thread.  This is a common pattern in PyQt applications, and is known as the "signals and slots" mechanism.  A signal is emitted by an object (in this case, the worker thread) and is connected to a slot (in this case, the callback function :code:`end_of_run_callback` in the GUI thread).  The signal can be connected to multiple slots, and the slot can be connected to multiple signals.  The signal can also carry arguments, which are passed to the slot when the signal is emitted.  Note that we can also reverse things; the GUI thread is able to send a signal to the worker thread's slot.  The signal/slot mechanism is a powerful way to communicate between different parts of a PyQt application, creating an event-driven structure, and is used extensively in the example code that follows.  Just remember that a slot is simply a callback function, and a signal is a way to signal that callback function.  
+In het vorige voorbeeld gebruikten we :code:`end_of_run` om tussen worker-thread en GUI-thread te communiceren. Dit is een veelvoorkomend patroon in PyQt, het "signals en slots"-mechanisme. Een signal wordt uitgezonden door een object (hier: de worker-thread) en gekoppeld aan een slot (hier: callback :code:`end_of_run_callback` in de GUI-thread). Een signal kan aan meerdere slots gekoppeld worden, en een slot aan meerdere signals. Een signal kan ook argumenten meedragen die aan het slot worden doorgegeven. Dit werkt ook andersom: de GUI-thread kan een signal naar een slot in de worker-thread sturen. Het signal/slot-mechanisme is een krachtige manier om onderdelen van een PyQt-app event-driven te laten samenwerken en komt veel terug in de code hieronder. Denk simpel: een slot is een callbackfunctie; een signal triggert die callback.
 
 *************************
 PyQtGraph
 *************************
 
-PyQtGraph is a library built on top of PyQt and NumPy that provides fast and efficient plotting capabilities, as PyQt is too general purpose to come with plotting functionality.  It is designed to be used in real-time applications, and is optimized for speed.  It is similar in a lot of ways to Matplotlib, but meant for real-time applications instead of single plots.  Using the simple example below you can compare the performance of PyQtGraph to Matplotlib, simply change the :code:`if True:` to :code:`False:`.  On an Intel Core i9-10900K @ 3.70 GHz the PyQtGraph code updated at over 1000 FPS while the Matplotlib code updated at 40 FPS.  That being said, if you find yourself benefiting from using Matplotlib (e.g., to save development time, or because you want a specific feature that PyQtGraph doesn't support), you can incorporate Matplotlib plots into a PyQt application, using the code below as a starting point.
+PyQtGraph is een library bovenop PyQt en NumPy die snelle, efficiente plotting biedt, omdat PyQt zelf te algemeen is om uitgebreide plotfunctionaliteit standaard te bevatten. De library is ontworpen voor realtime toepassingen en geoptimaliseerd voor snelheid. In veel opzichten lijkt het op Matplotlib, maar PyQtGraph is meer gericht op continue updates dan op losse statische plots. Met het eenvoudige voorbeeld hieronder kun je de prestaties van PyQtGraph vergelijken met Matplotlib door :code:`if True:` te wijzigen naar :code:`False:`. Op een Intel Core i9-10900K @ 3.70 GHz haalde PyQtGraph meer dan 1000 FPS, terwijl Matplotlib rond 40 FPS zat. Als Matplotlib jou toch voordeel geeft (bijvoorbeeld ontwikkeltijd of een specifieke feature), kun je Matplotlib-plots ook in een PyQt-app integreren, met de onderstaande code als startpunt.
 
 .. raw:: html
 
@@ -214,7 +214,7 @@ PyQtGraph is a library built on top of PyQt and NumPy that provides fast and eff
 
     </details>
 
-As far as using PyQtGraph, we import it with :code:`import pyqtgraph as pg` and then we can create a Qt widget that represents a 1D plot as follows (this code goes in the :code:`MainWindow`'s :code:`__init__`):
+Qua gebruik van PyQtGraph importeren we het met :code:`import pyqtgraph as pg` en maken daarna een Qt-widget voor een 1D-plot, zoals hieronder (deze code hoort in :code:`MainWindow.__init__`):
 
 .. code-block:: python
 
@@ -228,17 +228,17 @@ As far as using PyQtGraph, we import it with :code:`import pyqtgraph as pg` and 
 .. image:: ../_images/pyqtgraph_example.png
    :scale: 80 % 
    :align: center
-   :alt: PyQtGraph example
+   :alt: PyQtGraph-voorbeeld
 
-You can see how it's relatively straightforward to set up a plot, and the result is simply another widget to add to your GUI.  In addition to 1D plots, PyQtGraph also has an equivalent to Matplotlib's :code:`imshow()` which plots 2D using a colormap, which we will use for our real-time spectrogram/waterfall.  One nice part about PyQtGraph is that the plots it creates are simply Qt widgets and we add other Qt elements (e.g. a rectangle of a certain size at a certain coordinate) using pure PyQt.  This is because PyQtGraph makes use of PyQt's :code:`QGraphicsScene` class, which provides a surface for managing a large number of 2D graphical items, and nothing is stopping us from adding lines, rectangles, text, ellipses, polygons, and bitmaps, using straight PyQt.
+Je ziet dat een plot opzetten relatief eenvoudig is en dat het resultaat gewoon een extra widget in je GUI is. Naast 1D-plots heeft PyQtGraph ook een equivalent van Matplotlib's :code:`imshow()` voor 2D-weergave met colormap, wat we gebruiken voor onze realtime spectrogram/waterfall. Een groot voordeel is dat de plots gewone Qt-widgets zijn, zodat je met pure PyQt extra elementen kunt toevoegen (bijvoorbeeld een rechthoek op een bepaalde locatie). Dat komt doordat PyQtGraph gebruikmaakt van PyQt's :code:`QGraphicsScene`, een oppervlak voor veel 2D-objecten. Je kunt dus zonder probleem lijnen, rechthoeken, tekst, ellipsen, polygonen en bitmaps toevoegen met standaard PyQt.
 
 *******
 Layouts
 *******
 
-In the above examples, we used :code:`self.setCentralWidget()` to set the main widget of the window.  This is a simple way to set the main widget, but it doesn't allow for more complex layouts.  For more complex layouts, we can use layouts, which are a way to arrange widgets in a window.  There are several types of layouts, including :code:`QHBoxLayout`, :code:`QVBoxLayout`, :code:`QGridLayout`, and :code:`QFormLayout`.  The :code:`QHBoxLayout` and :code:`QVBoxLayout` arrange widgets horizontally and vertically, respectively.  The :code:`QGridLayout` arranges widgets in a grid, and the :code:`QFormLayout` arranges widgets in a two-column layout, with labels in the first column and input widgets in the second column.
+In de voorbeelden hierboven gebruikten we :code:`self.setCentralWidget()` om de hoofdwidget van het venster te zetten. Dat is eenvoudig, maar beperkt voor complexere layouts. Daarvoor gebruik je layouts om widgets te rangschikken. Er zijn meerdere types, waaronder :code:`QHBoxLayout`, :code:`QVBoxLayout`, :code:`QGridLayout` en :code:`QFormLayout`. :code:`QHBoxLayout` en :code:`QVBoxLayout` plaatsen widgets respectievelijk horizontaal en verticaal. :code:`QGridLayout` plaatst widgets in een raster, en :code:`QFormLayout` in twee kolommen met labels links en invoerwidgets rechts.
 
-To create a new layout and add widgets to it, try adding the following inside your :code:`MainWindow`'s :code:`__init__`:
+Om een nieuwe layout te maken en widgets toe te voegen, probeer het volgende in :code:`MainWindow.__init__`:
 
 .. code-block:: python
 
@@ -248,9 +248,9 @@ To create a new layout and add widgets to it, try adding the following inside yo
     layout.addWidget(QPushButton("Right-Most"), 2)
     self.setLayout(layout)
 
-In this example we are stacking the widgets horizontally, but by swapping :code:`QHBoxLayout` for :code:`QVBoxLayout` we can stack them vertically instead.  The :code:`addWidget` function is used to add widgets to the layout, and the optional second argument is a stretch factor that determines how much space the widget should take up relative to the other widgets in the layout.  
+In dit voorbeeld stapelen we widgets horizontaal. Door :code:`QHBoxLayout` te vervangen door :code:`QVBoxLayout` stapel je ze verticaal. De functie :code:`addWidget` voegt widgets toe aan de layout, en het optionele tweede argument is een stretchfactor die bepaalt hoeveel ruimte de widget relatief inneemt.
 
-:code:`QGridLayout` has extra parameters because you must specify the row and column of the widget, and you can optionally specify how many rows and columns the widget should span (default is 1 and 1).  Here is an example of a :code:`QGridLayout`:
+:code:`QGridLayout` heeft extra parameters omdat je rij en kolom expliciet opgeeft. Je kunt optioneel ook aangeven over hoeveel rijen en kolommen een widget moet lopen (standaard 1 en 1). Voorbeeld:
 
 .. code-block:: python
 
@@ -267,9 +267,9 @@ In this example we are stacking the widgets horizontally, but by swapping :code:
 .. image:: ../_images/qt_layouts.svg
    :align: center 
    :target: ../_images/qt_layouts.svg
-   :alt: Qt Layouts showing examples of QHBoxLayout, QVBoxLayout, and QGridLayout
+    :alt: Qt-layouts met voorbeelden van QHBoxLayout, QVBoxLayout en QGridLayout
 
-For our spectrum analyzer we will use the :code:`QGridLayout` for the overall layout, but we will also be adding :code:`QHBoxLayout` to stack widgets horizontally within a space in the grid.  You can nest layouts simply by create a new layout and adding it to the top-level (or parent) layout, e.g.:
+Voor onze spectrum analyzer gebruiken we :code:`QGridLayout` als hoofdlayout, maar voegen we ook :code:`QHBoxLayout` toe om widgets horizontaal te stapelen binnen een cel van het grid. Layouts kun je eenvoudig nesten door een nieuwe layout te maken en die aan de bovenliggende layout toe te voegen, bijvoorbeeld:
 
 .. code-block:: python
 
@@ -282,15 +282,15 @@ For our spectrum analyzer we will use the :code:`QGridLayout` for the overall la
 :code:`QPushButton`
 *******************
 
-The first actual widget we will cover is the :code:`QPushButton`, which is a simple button that can be clicked.  We have already seen how to create a :code:`QPushButton` and connect its :code:`clicked` signal to a callback function.  The :code:`QPushButton` has a few other signals, including :code:`pressed`, :code:`released`, and :code:`toggled`.  The :code:`toggled` signal is emitted when the button is checked or unchecked, and is useful for creating toggle buttons.  The :code:`QPushButton` also has a few properties, including :code:`text`, :code:`icon`, and :code:`checkable`.  The :code:`QPushButton` also has a method called :code:`click()` which simulates a click on the button.  For our SDR spectrum analyzer application we will be using buttons to trigger an auto-range for plots, using the current data to calculate the y limits.  Because we have already used the :code:`QPushButton`, we won't go into more detail here, but you can find more information in the `QPushButton documentation <https://doc.qt.io/qtforpython/PySide6/QtWidgets/QPushButton.html>`_.
+De eerste widget die we behandelen is :code:`QPushButton`, een eenvoudige klikbare knop. We zagen al hoe je een :code:`QPushButton` maakt en het :code:`clicked`-signal aan een callback koppelt. :code:`QPushButton` heeft ook andere signals, zoals :code:`pressed`, :code:`released` en :code:`toggled`. Het :code:`toggled`-signal komt vrij wanneer een knop wordt in- of uitgeschakeld en is handig voor toggle-knoppen. Verder zijn er properties zoals :code:`text`, :code:`icon` en :code:`checkable`. Er is ook een :code:`click()`-methode om een klik te simuleren. In onze SDR spectrum analyzer gebruiken we knoppen om auto-range voor plots te triggeren op basis van actuele data. Omdat we :code:`QPushButton` al gebruikt hebben, gaan we hier niet dieper in op details; zie de `QPushButton-documentatie <https://doc.qt.io/qtforpython/PySide6/QtWidgets/QPushButton.html>`_.
 
 ***************
 :code:`QSlider`
 ***************
 
-The :code:`QSlider` is a widget that allows the user to select a value from a range of values.  The :code:`QSlider` has a few properties, including :code:`minimum`, :code:`maximum`, :code:`value`, and :code:`orientation`.  The :code:`QSlider` also has a few signals, including :code:`valueChanged`, :code:`sliderPressed`, and :code:`sliderReleased`.  The :code:`QSlider` also has a method called :code:`setValue()` which sets the value of the slider, we will be using this a lot.  The documentation page for `QSlider is here <https://doc.qt.io/qtforpython/PySide6/QtWidgets/QSlider.html>`_.
+De :code:`QSlider` is een widget waarmee de gebruiker een waarde uit een bereik kiest. Belangrijke properties zijn :code:`minimum`, :code:`maximum`, :code:`value` en :code:`orientation`. Belangrijke signals zijn :code:`valueChanged`, :code:`sliderPressed` en :code:`sliderReleased`. Met :code:`setValue()` zet je de sliderwaarde, wat we vaak gebruiken. De documentatie staat `hier voor QSlider <https://doc.qt.io/qtforpython/PySide6/QtWidgets/QSlider.html>`_.
 
-For our spectrum analyzer application we will be using :code:`QSlider`'s to adjust the center frequency and gain of the SDR.  Here is the snippet from the final application code that creates the gain slider:
+In onze spectrum analyzer gebruiken we :code:`QSlider`-widgets om centerfrequentie en gain van de SDR aan te passen. Hieronder staat de snippet uit de uiteindelijke app voor de gain-slider:
 
 .. code-block:: python
 
@@ -309,17 +309,17 @@ For our spectrum analyzer application we will be using :code:`QSlider`'s to adju
     layout.addWidget(gain_slider, 5, 0)
     layout.addWidget(gain_label, 5, 1)
 
-One very important thing to know about :code:`QSlider` is it uses integers, so by setting the range from 0 to 73 we are allowing the slider to choose integer values between those numbers (inclusive of start and end).  The :code:`setTickInterval(2)` is purely a visual thing.  It is for this reason that we will use kHz as the units for the frequency slider, so that we can have granularity down to the 1 kHz.
+Een belangrijk punt bij :code:`QSlider`: deze werkt met gehele getallen. Met bereik 0 tot 73 kan de slider dus alleen integers tussen die waarden kiezen (inclusief begin en eind). :code:`setTickInterval(2)` is alleen visueel. Daarom gebruiken we kHz als eenheid voor de frequentieslider, zodat we tot 1 kHz resolutie hebben.
 
-Halfway into the code above you'll notice we create a :code:`QLabel`, which is just a text label for display purposes, but in order for it to display the current value of the slider we must create a slot (i.e., callback function) that updates the label.  We connect this callback function to the :code:`sliderMoved` signal, which is automatically emitted whenever the slider is moved.  We also call the callback function once to initialize the label with the current value of the slider (50 in our case).  We also have to connect the :code:`sliderMoved` signal to a slot that lives within the worker thread, which will update the gain of the SDR (remember, we don't like to manage the SDR or do DSP in the main GUI thread). The callback function that defines this slot will be discussed later.
+Halverwege de code zie je dat we een :code:`QLabel` maken, een tekstlabel voor weergave. Om daar de actuele sliderwaarde in te tonen, maken we een slot (callbackfunctie) die het label bijwerkt. Die callback koppelen we aan :code:`sliderMoved`, dat automatisch wordt uitgezonden bij het bewegen van de slider. We roepen de callback ook eenmalig aan om het label met de beginwaarde te initialiseren (50 in ons geval). Daarnaast koppelen we :code:`sliderMoved` aan een slot in de worker-thread die de SDR-gain aanpast (SDR-beheer en DSP willen we niet in de hoofd-GUI-thread doen). Die slot-callback bespreken we later.
 
 *****************
 :code:`QComboBox`
 *****************
 
-The :code:`QComboBox` is a dropdown-style widget that allows the user to select an item from a list of items.  The :code:`QComboBox` has a few properties, including :code:`currentText`, :code:`currentIndex`, and :code:`count`.  The :code:`QComboBox` also has a few signals, including :code:`currentTextChanged`, :code:`currentIndexChanged`, and :code:`activated`.  The :code:`QComboBox` also has a method called :code:`addItem()` which adds an item to the list, and :code:`insertItem()` which inserts an item at a specific index, although we will not be using them in our spectrum analyzer example.  The documentation page for `QComboBox is here <https://doc.qt.io/qtforpython/PySide6/QtWidgets/QComboBox.html>`_.
+De :code:`QComboBox` is een dropdown-widget waarmee de gebruiker een item uit een lijst kiest. Belangrijke properties zijn :code:`currentText`, :code:`currentIndex` en :code:`count`. Belangrijke signals zijn :code:`currentTextChanged`, :code:`currentIndexChanged` en :code:`activated`. Daarnaast heeft :code:`QComboBox` methodes zoals :code:`addItem()` om items toe te voegen en :code:`insertItem()` om op een specifieke index in te voegen; die laatste gebruiken we in dit voorbeeld niet. De documentatie staat `hier voor QComboBox <https://doc.qt.io/qtforpython/PySide6/QtWidgets/QComboBox.html>`_.
 
-For our spectrum analyzer application we will be using :code:`QComboBox` to select the sample rate from a list we pre-define.  At the beginning of our code we define the possible sample rates using :code:`sample_rates = [56, 40, 20, 10, 5, 2, 1, 0.5]`.  Within the :code:`MainWindow`'s :code:`__init__` we create the :code:`QComboBox` as follows:
+In onze spectrum analyzer gebruiken we :code:`QComboBox` om de sample rate uit een vooraf gedefinieerde lijst te kiezen. Aan het begin van de code zetten we bijvoorbeeld :code:`sample_rates = [56, 40, 20, 10, 5, 2, 1, 0.5]`. Binnen :code:`MainWindow.__init__` maken we de :code:`QComboBox` als volgt:
 
 .. code-block:: python
 
@@ -336,13 +336,13 @@ For our spectrum analyzer application we will be using :code:`QComboBox` to sele
     layout.addWidget(sample_rate_combobox, 6, 0)
     layout.addWidget(sample_rate_label, 6, 1)
 
-The only real difference between this and the slider is the :code:`addItems()` where you give it the list of strings to use as options, and :code:`setCurrentIndex()` which sets the starting value.
+Het belangrijkste verschil met de slider is :code:`addItems()` (je geeft een lijst strings als opties mee) en :code:`setCurrentIndex()` (je zet de startwaarde via index).
 
 ****************
-Lambda Functions
+Lambdafuncties
 ****************
 
-Recall in the above code where we did:
+Herinner je de code van hierboven waar we dit deden:
 
 .. code-block:: python
 
@@ -350,7 +350,7 @@ Recall in the above code where we did:
         sample_rate_label.setText("Sample Rate: " + str(sample_rates[val]) + " MHz")
     sample_rate_combobox.currentIndexChanged.connect(update_sample_rate_label)
 
-We are creating a function that has only a single line of code inside of it, then passing that function (functions are objects too!) to :code:`connect()`.  To simplify things, let's rewrite this code pattern using basic Python:
+We maken hier een functie met slechts een regel code en geven die functie (functies zijn ook objecten) door aan :code:`connect()`. Om dit patroon te vereenvoudigen, schrijven we het eerst om in basis-Python:
 
 .. code-block:: python
 
@@ -358,21 +358,21 @@ We are creating a function that has only a single line of code inside of it, the
         print(x)
     y.call_that_takes_in_function_obj(my_function)
 
-In this situation, we have a function that only has one line of code inside of it, and we only reference that function once; when we are setting the :code:`connect` callback.  In these situations we can use a lambda function, which is a way to define a function in a single line.  Here is the above code rewritten using a lambda function:
+In deze situatie heeft de functie maar een regel code en gebruiken we die functie maar eenmaal, bij het zetten van de :code:`connect`-callback. In zulke gevallen kun je een lambdafunctie gebruiken, een manier om een functie in een regel te definieren. De code hierboven herschreven met lambda:
 
 .. code-block:: python
 
     y.call_that_takes_in_function_obj(lambda x: print(x))
 
-If you have never used a lambda function before, this might seem foreign, and you certainly don't need to use them, but it gets rid of two lines of code and makes the code more concise.  The way it works is, the temporary argument name comes from after "lambda", and then everything after the colon is the code that will operate on that variable.  It supports multiple arguments as well, using commas, or even no arguments by using :code:`lambda : <code>`.  As an exercise, try rewriting the :code:`update_sample_rate_label` function above using a lambda function.
+Als je nog niet eerder lambdafuncties hebt gebruikt, kan dit vreemd overkomen. Je bent niet verplicht ze te gebruiken, maar ze besparen vaak enkele regels en maken code compacter. Werking: de tijdelijke argumentnaam staat na "lambda", en alles na de dubbele punt is de code die op dat argument werkt. Dit ondersteunt ook meerdere argumenten met komma's, of zelfs geen argumenten met :code:`lambda : <code>`. Als oefening kun je :code:`update_sample_rate_label` hierboven herschrijven met een lambdafunctie.
 
-***********************
-PyQtGraph's PlotWidget
-***********************
+************************
+PlotWidget van PyQtGraph
+************************
 
-PyQtGraph's :code:`PlotWidget` is a PyQt widget used to produce 1D plots, similar to Matplotlib's :code:`plt.plot(x,y)`.  We will be using it for the time and frequency (PSD) domain plots, although it is also good for IQ plots (which our spectrum analyzer does not contain).  For those curious, PlotWidget is a subclass of PyQt's `QGraphicsView <https://doc.qt.io/qtforpython-5/PySide2/QtWidgets/QGraphicsView.html>`_ which is a widget for displaying the contents of a `QGraphicsScene <https://doc.qt.io/qtforpython-5/PySide2/QtWidgets/QGraphicsScene.html#PySide2.QtWidgets.PySide2.QtWidgets.QGraphicsScene>`_, which is a surface for managing a large number of 2D graphical items in Qt.  But the important thing to know about PlotWidget is that it is simply a widget containing a single `PlotItem <https://pyqtgraph.readthedocs.io/en/latest/api_reference/graphicsItems/plotitem.html#pyqtgraph.PlotItem>`_, so from a documentation perspective you're better off just referring to the PlotItem docs: `<https://pyqtgraph.readthedocs.io/en/latest/api_reference/graphicsItems/plotitem.html>`_.  A PlotItem contains a ViewBox for displaying the data we want to plot, as well as AxisItems and labels for displaying the axes and title, as you may expect.
+PyQtGraph's :code:`PlotWidget` is een PyQt-widget voor 1D-plots, vergelijkbaar met Matplotlib's :code:`plt.plot(x,y)`. Wij gebruiken deze voor tijd- en frequentieplots (PSD), al werkt hij ook goed voor IQ-plots (die onze analyzer niet bevat). Voor wie dieper wil: PlotWidget is een subclass van PyQt's `QGraphicsView <https://doc.qt.io/qtforpython-5/PySide2/QtWidgets/QGraphicsView.html>`_, een widget om de inhoud van een `QGraphicsScene <https://doc.qt.io/qtforpython-5/PySide2/QtWidgets/QGraphicsScene.html#PySide2.QtWidgets.PySide2.QtWidgets.QGraphicsScene>`_ te tonen. Die scene is een oppervlak voor veel 2D-grafische items in Qt. Belangrijk voor gebruik: PlotWidget is in de kern gewoon een widget met een enkel `PlotItem <https://pyqtgraph.readthedocs.io/en/latest/api_reference/graphicsItems/plotitem.html#pyqtgraph.PlotItem>`_. Vanuit documentatieperspectief kun je daarom vaak direct naar de PlotItem-documentatie gaan: `<https://pyqtgraph.readthedocs.io/en/latest/api_reference/graphicsItems/plotitem.html>`_. Een PlotItem bevat een ViewBox voor de data plus AxisItems en labels voor assen en titel.
 
-The simplest example of using a PlotWidget is as follows (which must be added inside of the :code:`MainWindow`'s :code:`__init__`):
+Het eenvoudigste voorbeeld van PlotWidget-gebruik is als volgt (plaats dit in :code:`MainWindow.__init__`):
 
 .. code-block:: python
 
@@ -380,7 +380,7 @@ The simplest example of using a PlotWidget is as follows (which must be added in
  plotWidget = pg.plot(title="My Title")
  plotWidget.plot(x, y)
 
-where x and y are typically numpy arrays just like with Matplotlib's :code:`plt.plot()`.  However, this represents a static plot where the data never changes.  For our spectrum analyzer we want to update the data inside of our worker thread, so when we initialize our plot we don't even need to pass it any data yet, we just have to set it up.  Here is how we initialize the Time Domain plot in our spectrum analyzer app:
+waar x en y doorgaans NumPy-arrays zijn, net als bij Matplotlib's :code:`plt.plot()`. Dit is echter een statische plot waarin de data niet verandert. Voor onze spectrum analyzer willen we data in de worker-thread updaten, dus bij initialisatie van de plot hoeven we nog geen data mee te geven; alleen opzetten is genoeg. Zo initialiseren we de tijd-domeinplot:
 
 .. code-block:: python
 
@@ -392,7 +392,7 @@ where x and y are typically numpy arrays just like with Matplotlib's :code:`plt.
     time_plot_curve_q = time_plot.plot([]) 
     layout.addWidget(time_plot, 1, 0)
 
-You can see we are creating two different plots/curves, one for I and one for Q.  The rest of the code should be self-explanatory.  To be able to update the plot, we need to create a slot (i.e., callback function) within the :code:`MainWindow`'s :code:`__init__`:
+Je ziet dat we twee curves maken: een voor I en een voor Q. De rest spreekt grotendeels voor zich. Om de plot te kunnen updaten, maken we een slot (callbackfunctie) in :code:`MainWindow.__init__`:
 
 .. code-block:: python
 
@@ -400,9 +400,9 @@ You can see we are creating two different plots/curves, one for I and one for Q.
         time_plot_curve_i.setData(samples.real)
         time_plot_curve_q.setData(samples.imag)
 
-We will connect this slot to the worker thread's signal that is emitted when new samples are available, as shown later.  
+Dit slot koppelen we aan het signal van de worker-thread dat wordt uitgezonden wanneer nieuwe samples beschikbaar zijn, zoals later te zien is.
 
-The final thing we will do in the :code:`MainWindow`'s :code:`__init__` is to add a couple buttons to the right of the plot that will trigger an auto-range of the plot.  One will use the current min/max, and another will set the range to -1.1 to 1.1 (which is the ADC limits of many SDRs, plus a 10% margin).  We will create an inner layout, specifically QVBoxLayout, to vertically stack these two buttons.  Here is the code to add the buttons:
+Het laatste dat we in :code:`MainWindow.__init__` doen is rechts naast de plot een paar knoppen toevoegen die auto-range triggeren. De ene gebruikt de huidige min/max, de andere zet het bereik op -1.1 tot 1.1 (de ADC-limieten van veel SDR's plus 10% marge). We maken hiervoor een geneste layout, specifiek QVBoxLayout, om de twee knoppen verticaal te stapelen. De code:
 
 .. code-block:: python
 
@@ -416,22 +416,22 @@ The final thing we will do in the :code:`MainWindow`'s :code:`__init__` is to ad
     auto_range_button2.clicked.connect(lambda : time_plot.setYRange(-1.1, 1.1))
     time_plot_auto_range_layout.addWidget(auto_range_button2)
 
-And what it ultimately looks like:
+En zo ziet het er uiteindelijk uit:
 
 .. image:: ../_images/pyqt_time_plot.png
    :scale: 50 % 
    :align: center
-   :alt: PyQtGraph Time Plot
+   :alt: PyQtGraph tijdplot
 
-We will use a similar pattern for the frequency domain (PSD) plot.
+Voor de frequentiedomeinplot (PSD) gebruiken we een vergelijkbaar patroon.
 
-*********************
-PyQtGraph's ImageItem
-*********************
+***********************
+ImageItem van PyQtGraph
+***********************
 
-A spectrum analyzer is not complete without a waterfall (a.k.a. real-time spectrogram), and for that we will use PyQtGraph's ImageItem, which renders images with 1, 3 or 4 "channels".  One channel just means you give it a 2D array of floats or ints, which then uses a lookup table (LUT) to apply a colormap and ultimately create the image.  Alternatively, you can give it RGB (3 channels) or RGBA (4 channels).  We will calculate our spectrogram as a 2D numpy array of floats, and pass it to the ImageItem directly.  We will pick a colormap, and even make use of the built-in functionality for showing a graphical LUT that can display our data's value distribution and how the colormap is applied.
+Een spectrum analyzer is niet compleet zonder waterfall (realtime spectrogram), en daarvoor gebruiken we PyQtGraph's ImageItem, dat beelden met 1, 3 of 4 "kanalen" rendert. Een kanaal betekent dat je een 2D-array met floats of ints aanbiedt; vervolgens wordt via een lookup table (LUT) een colormap toegepast om het beeld te maken. Je kunt ook RGB (3 kanalen) of RGBA (4 kanalen) aanleveren. Wij berekenen ons spectrogram als 2D NumPy-array met floats en geven die direct aan ImageItem. We kiezen een colormap en gebruiken ook de ingebouwde LUT-weergave die de waardeverdeling van de data en de kleurtoewijzing laat zien.
 
-The actual initialization of the waterfall plot is fairly straightforward, we use a PlotWidget as the container (so that we can still have our x and y axis displayed) and then add an ImageItem to it:
+De initialisatie van de waterfall-plot is vrij eenvoudig: we gebruiken een PlotWidget als container (zodat x- en y-as zichtbaar blijven) en voegen daar een ImageItem aan toe:
 
 .. code-block:: python
 
@@ -442,7 +442,7 @@ The actual initialization of the waterfall plot is fairly straightforward, we us
     waterfall.setMouseEnabled(x=False, y=False)
     waterfall_layout.addWidget(waterfall)
 
-The slot/callback associated with updating the waterfall data, which goes in :code:`MainWindow`'s :code:`__init__`, is as follows:
+Het slot/de callback voor het updaten van de waterfall-data, eveneens in :code:`MainWindow.__init__`, is:
 
 .. code-block:: python
 
@@ -453,7 +453,7 @@ The slot/callback associated with updating the waterfall data, which goes in :co
         self.spectrogram_min = mean - 2*sigma # save to window state
         self.spectrogram_max = mean + 2*sigma
 
-Where spectrogram will be a 2D numpy array of floats.  In addition to setting the image data, we will calculate a min and max for the colormap, based on the mean and standard deviation of the data, which we will use later.  The last part of the GUI code for the spectrogram is creating the colorbar, which also sets the colormap used:
+Hierbij is spectrogram een 2D NumPy-array met floats. Naast het zetten van de beelddata berekenen we een min en max voor de colormap op basis van gemiddelde en variantie van de data, die we later gebruiken. Het laatste GUI-deel voor het spectrogram is de colorbar, die ook de gebruikte colormap bepaalt:
 
 .. code-block:: python
 
@@ -464,29 +464,29 @@ Where spectrogram will be a 2D numpy array of floats.  In addition to setting th
     imageitem.setLevels((-30, 20)) # needs to come after colorbar is created for some reason
     waterfall_layout.addWidget(colorbar)
 
-The second line is important, it is what ultimately connects this colorbar to the ImageItem.  This code is also where we choose the colormap, and set the starting levels (-30 dB to +20 dB in our case).  Within the worker thread code you will see how the spectrogram 2D array is calculated/stored.  Below is a screenshot of this part of the GUI, showing the incredible built-in functionality of the colorbar and LUT display, note that the sideways bell-shaped curve is the distribution of spectrogram values, which is very useful to see.
+De tweede regel is belangrijk: die koppelt de colorbar daadwerkelijk aan het ImageItem. Hier kiezen we ook de colormap en de startniveaus (-30 dB tot +20 dB in ons geval). In de worker-thread-code zie je hoe de 2D spectrogramarray wordt berekend/opgeslagen. Hieronder staat een screenshot van dit GUI-deel; let op de sterke ingebouwde functionaliteit van colorbar en LUT-weergave. De zijwaartse klokvormige curve is de verdeling van spectrogramwaarden, wat erg nuttig is.
 
 .. image:: ../_images/pyqt_spectrogram.png
    :scale: 50 % 
    :align: center
-   :alt: PyQtGraph Spectrogram and colorbar
+   :alt: PyQtGraph-spectrogram en colorbar
 
 ***********************
-Worker Thread
+Worker-thread
 ***********************
 
-Recall towards the beginning of this chapter we learned how to create a separate thread, using a class we called SDRWorker with a run() function.  This is where we will put all of our SDR and DSP code, with the exception of initialization of the SDR which we will do globally for now.  The worker thread will also be responsible for updating the three plots, by emitting signals when new samples are available, to trigger the callback functions we have already created in :code:`MainWindow`, which ultimately updates the plots.  The SDRWorker class can be split up into four sections:
+Aan het begin van dit hoofdstuk zagen we hoe je een aparte thread maakt met een class genaamd SDRWorker en een run()-functie. Daar zetten we alle SDR- en DSP-code in, behalve de SDR-initialisatie die we voorlopig globaal doen. De worker-thread werkt ook de drie plots bij door signals uit te zenden zodra nieuwe samples beschikbaar zijn. Die triggeren callbacks in :code:`MainWindow` die de plots daadwerkelijk verversen. De SDRWorker-class is op te delen in drie onderdelen:
 
-#. :code:`init()` - used to initialize any state, such as the spectrogram 2D array
-#. PyQt Signals - we must define our custom signals that will be emitted
-#. PyQt Slots - the callback functions that are triggered by GUI events like a slider moving
-#. :code:`run()` - the main loop that runs nonstop
+#. :code:`init()` - initialiseert status, bijvoorbeeld de 2D spectrogramarray
+#. PyQt Signals - hier definieren we custom signals die we uitzenden
+#. PyQt Slots - callbacks die reageren op GUI-events, zoals een bewegende slider
+#. :code:`run()` - de hoofdloop die continu draait
 
 ***********************
-PyQt Signals
+PyQt-signals
 ***********************
 
-In the GUI code we didn't have to define any Signals, because they were built into the widgets we were using, like :code:`QSlider`s :code:`valueChanged`.  Our SDRWorker class is custom, and any Signals we want to emit must be defined before we start calling run().  Here is the code for the SDRWorker class, which defines four signals we will be using, and their corresponding data types:
+In de GUI-code hoefden we geen eigen signals te definieren, omdat die al in widgets ingebouwd zijn, zoals :code:`QSlider.valueChanged`. Onze SDRWorker-class is custom, dus de signals die we willen uitzenden moeten we zelf definieren voordat :code:`run()` wordt gebruikt. Hieronder de vier gebruikte signals met hun datatypen:
 
 .. code-block:: python
 
@@ -496,25 +496,25 @@ In the GUI code we didn't have to define any Signals, because they were built in
     waterfall_plot_update = pyqtSignal(np.ndarray)
     end_of_run = pyqtSignal() # happens many times a second
 
-The first three signals send a single object; a numpy array.  The last signal does not send any object with it.  You can also send multiple objects at a time, simply use commas between data types, but we don't need to do that for our application here.  Anywhere within run() we can emit a signal to the GUI thread, using just one line of code, for example:
+De eerste drie signals sturen een enkel object mee (een NumPy-array). Het laatste signal stuurt geen object mee. Je kunt ook meerdere objecten tegelijk sturen door datatypen met komma's te scheiden, maar dat is hier niet nodig. Binnen :code:`run()` kun je op elke plek een signal naar de GUI-thread uitsturen met een regel code, bijvoorbeeld:
 
 .. code-block:: python
 
     self.time_plot_update.emit(samples)
 
-There is one last step to make all of the signals/slots connections- in the GUI code (comes at the very end of :code:`MainWindow`'s :code:`__init__`) we must connect the worker thread's signals to the GUI's slots, for example:
+Er is nog een laatste stap voor alle signal/slot-koppelingen: in de GUI-code (helemaal aan het eind van :code:`MainWindow.__init__`) moeten we de signals van de worker-thread verbinden met slots in de GUI, bijvoorbeeld:
 
 .. code-block:: python
 
     worker.time_plot_update.connect(time_plot_callback) # connect the signal to the callback
 
-Remember that :code:`worker` is the instance of the SDRWorker class that we created in the GUI code.  So what we are doing above is connecting the worker thread's signal called :code:`time_plot_update` to the GUI's slot called :code:`time_plot_callback` that we defined earlier.  Now is a good time to go back and review the code snippets we have shown so far, and see how they all fit together, to ensure you understand how the GUI and worker thread are communicating, as it is a crucial part of PyQt programming.
+Onthoud dat :code:`worker` de instantie is van SDRWorker die we in de GUI-code hebben gemaakt. We koppelen hierboven dus het worker-signal :code:`time_plot_update` aan het GUI-slot :code:`time_plot_callback` dat eerder is gedefinieerd. Dit is een goed moment om de snippets terug te bekijken en te zien hoe alles samenwerkt, zodat duidelijk is hoe GUI-thread en worker-thread communiceren; dat is cruciaal in PyQt-programmering.
 
-***********************
-Worker Thread Slots
-***********************
+*************************
+Slots in de Worker-thread
+*************************
 
-The worker thread's slots are the callback functions that are triggered by GUI events, like the gain slider moving.  They are pretty straightforward, for example, this slot updates the SDR's gain value to the new value chosen by the slider:
+De slots van de worker-thread zijn callbacks die door GUI-events worden getriggerd, zoals het bewegen van de gain-slider. Ze zijn vrij rechttoe rechtaan; dit slot zet bijvoorbeeld de SDR-gain op de nieuwe sliderwaarde:
 
 .. code-block:: python
 
@@ -522,11 +522,11 @@ The worker thread's slots are the callback functions that are triggered by GUI e
         print("Updated gain to:", val, 'dB')
         sdr.set_rx_gain(val)
 
-***********************
-Worker Thread Run()
-***********************
+**************************
+Run() van de Worker-thread
+**************************
 
-The :code:`run()` function is where all the fun DSP part happens!  In our application, we will start each run function by receiving a set of samples from the SDR (or simulating some samples if you don't have an SDR).  
+In de :code:`run()`-functie gebeurt het eigenlijke DSP-werk. In onze applicatie start elke run met het ophalen van samples uit de SDR (of met simulatie als je geen SDR hebt).
 
 .. code-block:: python
 
@@ -547,9 +547,9 @@ The :code:`run()` function is where all the fun DSP part happens!  In our applic
         
         ...
 
-As you can see, for the simulated example, we generate a tone with some white noise, and then truncate the samples from -1 to +1.
+Zoals je ziet genereren we in de simulatie een toon met wat witte ruis en begrenzen we samples daarna op -1 tot +1.
 
-Now for the DSP!  We know we will need to take the FFT for the frequency domain plot and spectrogram.  It turns out that we can simply use the PSD for that set of samples as one row of the spectrogram, so all we have to do is shift our spectrogram/waterfall up by a row, and add the new row to the bottom (or top, doesn't matter).  For each of the plot updates, we emit the signal which contains the updated data to plot.  We also signal the end of the :code:`run()` function so that the GUI thread immediately starts another call to :code:`run()` again.  Overall, it's actually not much code:
+Nu het DSP-deel: we hebben een FFT nodig voor zowel frequentieplot als spectrogram. De PSD van deze sample-set kan direct dienen als een rij in het spectrogram. We schuiven dus de waterfall een rij op en vullen de nieuwe rij onderaan (of bovenaan) in. Voor elke plotupdate sturen we een signal met de bijgewerkte data. Daarna signaleren we het einde van :code:`run()`, zodat de GUI-thread meteen een nieuwe :code:`run()` start. Al met al is het weinig code:
 
 .. code-block:: python
 
@@ -568,26 +568,26 @@ Now for the DSP!  We know we will need to take the FFT for the frequency domain 
         self.end_of_run.emit() # emit the signal to keep the loop going
         # end of run()
 
-Note how we don't send the entire batch of samples to the time plot, because it would be too many points to show, instead we only send the first 500 samples (configurable at the top of the script, not shown here).  For the PSD plot, we use a running average of the PSD, by storing the previous PSD and adding 1% of the new PSD to it.  This is a simple way to smooth out the PSD plot.  Note that it doesn't matter the order you call :code:`emit()` for the signals, they could have all just as easily gone at the end of :code:`run()`.
+Let op dat we niet de hele samplebatch naar de tijdplot sturen; dat zijn te veel punten. In plaats daarvan sturen we alleen de eerste 500 samples (instelbaar bovenin het script, hier niet getoond). Voor de PSD-plot gebruiken we een running average door de vorige PSD op te slaan en daar 1% van de nieuwe PSD aan toe te voegen. Dat is een eenvoudige manier om de PSD-plot te egaliseren. De volgorde van :code:`emit()`-aanroepen maakt daarbij niet uit; ze hadden ook allemaal aan het einde van :code:`run()` kunnen staan.
 
-***********************
-Final Example Full Code
-***********************
+****************************
+Volledige Eindvoorbeeldcode
+****************************
 
-Up until this point we have been looking at snippets of the spectrum analyzer app, but now we will finally take a look at the full code and try running it.  It currently supports the PlutoSDR, USRP, or simulation-mode.  If you don't have a Pluto or USRP, simply leave the code as-is, and it should use simulation mode, otherwise change :code:`sdr_type`.  In simulation mode, if you increase the gain all the way, you will notice the signal gets truncated in the time domain, which causes spurs to occur in the frequency domain.
+Tot nu toe bekeken we losse snippets van de spectrum analyzer-app, maar nu kijken we naar de volledige code en proberen we die te draaien. De code ondersteunt momenteel PlutoSDR, USRP en simulatiemodus. Heb je geen Pluto of USRP, laat de code dan zoals die is; dan gebruikt hij simulatiemodus. Anders wijzig je :code:`sdr_type`. In simulatiemodus zie je bij maximale gain dat het signaal in het tijddomein wordt afgeknipt, wat spurs in het frequentiedomein veroorzaakt.
 
-Feel free to use this code as a starting point for your own real-time SDR app!  Below is also an animation of the app in action, using a Pluto to look at the 750 MHz cellular band, and then at 2.4 GHz WiFi.  A higher quality version is available on YouTube `here <https://youtu.be/hvofiY3Q_yo>`_.
+Gebruik deze code gerust als startpunt voor je eigen realtime SDR-app. Hieronder staat ook een animatie van de app in actie: met een Pluto eerst op de 750 MHz cellulaire band en daarna op 2,4 GHz WiFi. Een hogere kwaliteit versie staat op YouTube `hier <https://youtu.be/hvofiY3Q_yo>`_.
 
 .. image:: ../_images/pyqt_animation.gif
    :scale: 100 %
    :align: center
-   :alt: Animated gif showing the PyQt spectrum analyzer app in action
+   :alt: Geanimeerde gif van de PyQt spectrum analyzer-app in actie
 
-Known bugs (to help fix them `edit this <https://github.com/777arc/PySDR/edit/master/figure-generating-scripts/pyqt_example.py>`_):
+Bekende bugs (om te helpen oplossen kun je `dit bewerken <https://github.com/777arc/PySDR/edit/master/figure-generating-scripts/pyqt_example.py>`_):
 
-#. Waterfall x-axis doesn't update when changing center frequency (PSD plot does though)
+#. De x-as van de waterfall wordt niet bijgewerkt bij wijzigen van centerfrequentie (de PSD-plot wel)
 
-Full code:
+Volledige code:
 
 .. code-block:: python
 

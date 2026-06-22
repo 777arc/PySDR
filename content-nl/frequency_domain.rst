@@ -142,17 +142,17 @@ Het is als volgt gedefinieerd:
 .. math::
    X(f) = \int x(t) e^{-j2\pi ft} dt
 
-Voor een tijdsignaal x(t) kunnen we de frequentiedomein-versie, X(f), vinden met deze formule. 
-We willen de tijddomein-versie van een functie met x(t) of y(t) aangeven, en de corresponderende frequentiedomein-versie met X(f) en Y(F). 
-Hierbij staat de "t" voor tijd en "f" voor frequentie. 
-De "j" is simpelweg de imaginaire eenheid. 
-Misschien herken je dit als "i" van de wiskundelessen. 
+Voor een tijdsignaal :math:`x(t)` kunnen we de frequentiedomein-versie, :math:`X(f)`, vinden met deze formule. 
+We willen de tijddomein-versie van een functie met :math:`x(t)` of :math:`y(t)` aangeven, en de corresponderende frequentiedomein-versie met :math:`X(f)` en :math:`Y(f)`. 
+Hierbij staat de :math:`t` voor tijd en :math:`f` voor frequentie. 
+De :math:`j` is simpelweg de imaginaire eenheid. 
+Misschien herken je dit als :math:`i` van de wiskundelessen. 
 We gebruiken "j" in de elektrotechniek en computerkunde omdat "i" vaak gebruikt wordt voor stroom en bij programmeren voor een iterator. 
 
-Teruggaan naar het tijddomein vanuit het frequentiedomein is bijna hetzelfde, afgezien van een vermenigvuldigingsfactor en het minteken:
+Teruggaan naar het tijddomein vanuit het frequentiedomein is bijna hetzelfde, afgezien van het minteken:
 
 .. math::
-   x(t) = \frac{1}{2 \pi} \int X(f) e^{j2\pi ft} df
+   x(t) = \int X(f) e^{j2\pi ft} df
 
 Veel boeken gebruiken :math:`w` in plaats van :math:`2\pi f`.  :math:`w` is de hoekfrequentie in radialen per seconde terwijl  :math:`f` in Hz is. Het enige wat je moet weten is
 
@@ -349,6 +349,30 @@ Dus het signaal dat op ongeveer 97.5 MHz zat, is wanneer we het digitaal bekijke
 Reëel gezien is dit gewoon een frequentie die lager is dan de middenfrequentie. 
 Dit wordt logischer wanneer we meer over samplen leren en ervaring opdoen met onze SDR's.
 
+Wiskundig kunnen we negatieve frequenties ook zien door naar de complexe exponentiële functie te kijken: :math:`e^{2j \pi f t}`. Negatieve frequenties kun je dan zien als een complex sinusoide die in de tegenovergestelde richting draait.
+
+.. math::
+   e^{2j \pi f t} = \cos(2 \pi f t) + j \sin(2 \pi f t) \quad \mathrm{\textcolor{blue}{blue}}
+
+.. math::
+   e^{2j \pi (-f) t} = \cos(2 \pi f t) - j \sin(2 \pi f t) \quad \mathrm{\textcolor{red}{red}}
+
+.. image:: ../_images/negative_freq_animation.gif
+   :align: center
+   :scale: 75 %
+   :target: ../_images/negative_freq_animation.gif
+   :alt: Animation of a positive and negative frequency sinusoid on the complex plane
+
+De reden om complexe exxponenten te gebruiken is omdat een enkele :math:`cos()` of :math:`sin()` zowel positieve als negatieve frequenties bevat, zoals te zien is door de Euler's formule op een sinus met frequentie :math:`f` over tijd :math:`t` toe te passen:
+
+.. math::
+   \cos(2 \pi f t) = \underbrace{\frac{1}{2} e^{2j \pi f t}}_\text{positief} + \underbrace{\frac{1}{2} e^{-2j \pi f t}}_\text{negatief}
+
+.. math::
+   \sin(2 \pi f t) = \underbrace{\frac{1}{2j} e^{2j \pi f t}}_\text{positief} - \underbrace{\frac{1}{2j} e^{-2j \pi f t}}_\text{negatief}
+
+We gebruiken over het algemeen dus complexe exponenten in de RF-signaalbewerking, in plaats van sinussen en cosinnusen.
+
 **********************************
 Volgorde in de tijd maakt niet uit
 **********************************
@@ -402,7 +426,7 @@ Als we de inhoud van :code:`S` bekijken, dan zien we dat het een array van compl
 
     S =  array([-0.01865008 +0.00000000e+00j, -0.01171553 -2.79073782e-01j,0.02526446 -8.82681208e-01j,  3.50536075 -4.71354150e+01j, -0.15045671 +1.31884375e+00j, -0.10769903 +7.10452463e-01j, -0.09435855 +5.01303240e-01j, -0.08808671 +3.92187956e-01j, -0.08454414 +3.23828386e-01j, -0.08231753 +2.76337148e-01j, -0.08081535 +2.41078885e-01j, -0.07974909 +2.13663710e-01j,...
 
-Hint: Wat je ook aan het doen bent, als je ooit complexe getallen tegenkomt, bereken dan de modulus en fase en bekijk of dat er logischer uitziet. Laten we dat doen en de modulus en fase weergeven. In de meeste talen geeft de abs()-functie de modulus van een complex getal. De functie om de fase te bepalen varieert, maar in Python kan dit met :code:`np.angle()`.
+Hint: Wat je ook aan het doen bent, als je ooit complexe getallen tegenkomt, bereken dan de modulus en fase en bekijk of dat er logischer uitziet. Laten we dat doen en de modulus en fase weergeven. In de meeste talen geeft de abs()-functie de modulus van een complex getal. De functie om de fase te bepalen varieert tussen programmeertalen, maar in Python kan dit met de NumPy functie :code:`np.angle()`. Dit geeft de fase terug in radialen.
 
 .. code-block:: python
 

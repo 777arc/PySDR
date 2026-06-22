@@ -163,7 +163,6 @@ Python Oefeningen
 **********************************
 Laten we eens met Python wat pulsen gaan vormgeven. We zullen hiervoor BPSK-symbolen gebruiken omdat dit reële symbolen zijn en we dus alleen het I-deel hoeven te weergeven, wat iets makkelijker is om te volgen.
 
-.. todo - dit is nog een vage onderbouwing
 We gaan 8 samples per symbool toepassen. In plaats van een blokgolf die varieert tussen 1 en -1 zullen we een rij aan pulsen gebruiken. Wanneer je een impuls in een filter stopt zul je de impulsresponsie eruit krijgen. Dus, als je een rij aan pulsen wilt hebben dan zul je het moeten opvullen met nullen zodat je niet een blokgolf krijgt.
 
 .. code-block:: python
@@ -211,7 +210,7 @@ Met de manier waarop de filtervergelijking werkt willen we het tijdstip 0 in het
     # het RC filter bouwen
     num_taps = 101
     beta = 0.35
-    Ts = sps # sample rate is 1 Hz, periodetijd is 1, *symbool*periodetijd is 8
+   Ts = sps # samplerate is 1 Hz, sampleperiode is 1, *symbool*periode is 8
     t = np.arange(num_taps) - (num_taps-1)//2 # neemt laatste nummer niet mee
     h = 1/Ts*np.sinc(t/Ts) * np.cos(np.pi*beta*t/Ts) / (1 - (2*beta*t/Ts)**2)
     plt.figure(1)
@@ -280,3 +279,120 @@ En hier is nog een voorbeeld, ergens tussen bovenstaande voorbeelden in. Nu hebb
 .. image:: ../_images/symbol_sync4.png
    :scale: 40 % 
    :align: center 
+
+De Q waarden worden niet getoond op de tijdsdomein plot omdat ze ongeveer nul zijn, waardoor de IQ-plots alleen horizontaal kunnen spreiden.
+
+
+*************
+OQPSK en MSK
+*************
+
+Gewone QPSK kan flinke amplitudeschommelingen hebben, omdat de I- en Q-component soms tegelijk veranderen. Dat kan een probleem zijn voor vermogensversterkers die juist goed werken met een zo constant mogelijke envelop. Hieronder zie je een voorbeeld van QPSK met raised-cosine pulsvorming: boven staan baseband I en Q in het tijddomein apart weergegeven, onder staat de magnitude. Let op de grote schommelingen in magnitude door de bijna-nuldoorgangen wanneer I en Q tegelijk omschakelen. Let ook op de verticale stippellijnen, die de symboolgrenzen aangeven; op die punten zijn zowel I als Q exact 1 of -1. Je ziet ook dat de magnitude op sommige momenten heel dicht bij nul komt.
+
+.. image:: ../_images/qpsk_magnitude.svg
+   :align: center 
+   :target: ../_images/qpsk_magnitude.svg
+   :alt: Voorbeeld van QPSK-magnitude met grote schommelingen door bijna-nuldoorgangen
+
+**Offset QPSK (OQPSK)** is een kleine variatie op standaard QPSK die dit probleem vermindert. Dat werkt door de Q-component een halve symboolperiode te vertragen, zodat I en Q nooit tegelijk veranderen. Het resultaat is dat het signaal op elk moment alleen fase-overgangen van 90 graden maakt (in plaats van mogelijke sprongen van 180 graden), waardoor de envelop veel stabieler blijft. Hieronder zie je OQPSK; we hebben verticale stippellijnen toegevoegd met een halve symboolperiode offset om te laten zien waar de Q-component verandert (dus in het midden van het symbool).
+
+.. image:: ../_images/oqpsk_magnitude.svg
+   :align: center 
+   :target: ../_images/oqpsk_magnitude.svg
+   :alt: Voorbeeld van OQPSK-magnitude met veel kleinere schommelingen door de offset tussen I en Q
+
+De Python-code om OQPSK met raised-cosine pulsvorming te genereren is als volgt:
+
+.. code-block:: python
+
+   # Parameters
+   num_symbols = 200
+   sps = 32         # samples per symbool
+   beta = 0.35      # roll-offfactor
+   span = 6         # filterlengte in symbolen (per kant)
+
+   # Genereer QPSK-symbolen
+   bits = np.random.randint(0, 4, num_symbols)
+   symbols = np.exp(1j * (np.pi/4 + bits * np.pi/2)).astype(complex)  # punten op 45, 135, 225 en 315 graden
+
+   # RC-filter
+   t = np.arange(-span * sps, span * sps + 1) / sps  # in symboolperioden
+   h = np.sinc(t) * np.cos(np.pi * beta * t) / (1 - (2 * beta * t)**2 + 1e-20)
+
+   # Vertraag Q-impulsen met een halve symboolperiode voor filtering, zodat het
+   # pulsvormingsfilter de opbouw natuurlijk afhandelt (geen opvulartefacten na filtering)
+   half = sps // 2
+   I_up = np.zeros(num_symbols * sps)
+   Q_up = np.zeros(num_symbols * sps)
+   I_up[::sps] = np.real(symbols)
+   Q_up[half::sps] = np.imag(symbols)
+   I_filt = np.convolve(I_up, h, mode='same')
+   Q_filt = np.convolve(Q_up, h, mode='same')
+   signal = I_filt + 1j * Q_filt
+
+We kunnen nog een stap verder gaan: als we raised-cosine pulsvorming vervangen door een ander type pulsvorming, namelijk half-sine, krijgen we een perfect constante envelop. Het half-sine pulsvormingsfilter is gedefinieerd als :math:`h(t) = \sin\left(\frac{\pi t}{T}\right)`, en deze vorm laat elk symbool vloeiend in- en uitlopen zodat de fase continu en lineair van het ene naar het volgende symbool verandert. Het resultaat heet **Minimum Shift Keying (MSK)** en is een speciaal geval van OQPSK. Als we in de vorige code het raised-cosine filter vervangen door de volgende half-sine filtercode, krijgen we MSK:
+
+.. code-block:: python
+
+ # ...
+
+ # Half-sine pulsvorm (plaats dit op de plek van de RC-filterregels)
+ t = np.arange(sps)
+ h = np.sin(np.pi * t / sps)
+
+ # ...
+
+.. image:: ../_images/msk_magnitude.svg
+   :align: center 
+   :target: ../_images/msk_magnitude.svg
+   :alt: Example of MSK magnitude showing a constant envelope
+
+De geprinte envelop hierboven zal in essentie constant zijn; dat is precies het kenmerk van MSK.
+
+Let op dat bij OQPSK en MSK de termen "symboolperiode" en "samples per symbool" verwarrend kunnen zijn, omdat een symbool zowel kan verwijzen naar een volledig I+Q-tijdsblok als naar alleen de tijd tussen veranderingen in I of Q (dus half zo lang). In de code hierboven gebruiken we de eerste definitie: een symbool is het volledige I+Q-tijdsblok. Dat is echter niet altijd zo, en je kunt daarom factoren 2 tegenkomen in vergelijkingen zoals die van half-sine.
+
+Een korte blik op de vorm in het frequentiedomein (power spectral density) van deze signalen: voor QPSK of OQPSK met raised-cosine pulsvorming is het spectrum hetzelfde. Het is compact en rolt af volgens de roll-off factor, precies waarom raised-cosine pulsvorming zo populair is.
+
+.. image:: ../_images/qpsk_psd.svg
+   :align: center 
+   :target: ../_images/qpsk_psd.svg
+   :alt: Voorbeeld van QPSK- of OQPSK-PSD wanneer een RC-filter voor pulsvorming wordt gebruikt
+
+Bij MSK zorgt de raised-sine vorm ervoor dat de hoofdlob veel breder is, en het signaal duidelijk hogere sidelobes heeft. Bij signalen met lage SNR zie je die sidelobes vaak niet eens, omdat ze onder de ruisvloer liggen (meer dan 20 dB lager). De afruil is dat we wel een perfect constante envelop krijgen.
+
+.. image:: ../_images/msk_psd.svg
+   :align: center 
+   :target: ../_images/msk_psd.svg
+   :alt: Voorbeeld van MSK-PSD waarbij een raised-sine filter voor pulsvorming wordt gebruikt
+
+MSK wordt vaak gebruikt in toepassingen zoals satellietcommunicatie en deep-space communicatie, waar een constante envelop efficiëntere vermogensversterking mogelijk maakt en spectrumbesparing minder belangrijk is dan maximaal vermogensrendement. Zowel OQPSK als MSK vragen wel om een iets complexere ontvanger dan gewone QPSK, vanwege de offset tussen I en Q.
+
+MSK kun je ook vanuit een heel andere invalshoek afleiden: als een speciaal geval van **Continuous-Phase FSK (CPFSK)**. In CPFSK wordt elk symbool met een van twee frequenties verzonden, en belangrijk is dat de fase nooit wordt gereset; die loopt vloeiend door vanaf het vorige symbool. Die continuiteit houdt de envelop constant en het spectrum compact. MSK is CPFSK met modulatie-index :math:`h = 0.5`, wat betekent dat de twee tonen precies :math:`\Delta f = \frac{1}{2T}` Hz uit elkaar liggen, waarbij :math:`T` de symboolperiode is. Het basebandsignaal is:
+
+.. math::
+
+  s(t) = e^{j 2\pi \frac{h}{2T} \int_{-\infty}^{t} d(\tau)\, d\tau}
+
+waar :math:`d(\tau) \in \{-1, +1\}` de NRZ-datastroom is. In de praktijk stapelt de integraal simpelweg fase op: elk bit roteert de fase met :math:`\pm \frac{\pi}{2}` over een symboolperiode. De Python-code om MSK via de CPFSK-aanpak te genereren is als volgt. Let op dat :code:`sps` overal door 2 is gedeeld, omdat de symboolperiode half zo lang is in de CPFSK-aanpak: elk symbool komt dan overeen met een verandering in I of Q, niet in beide tegelijk.
+
+.. code-block:: python
+
+   bits = np.random.randint(0, 2, num_symbols)
+   symbols = 2 * bits - 1 # map {0,1} naar {-1, +1}
+
+   # Bouw de instantane frequentieafwijking op
+   mod_index = 0.5
+   t = np.arange(num_symbols * sps / 2) / (sps / 2)
+   freq_dev = np.zeros(num_symbols * sps // 2)
+   for k, a in enumerate(symbols):
+      freq_dev[k * sps // 2 : (k + 1) * sps // 2] = a * mod_index / 2.0
+
+   phase = 2.0 * np.pi * np.cumsum(freq_dev) / (sps / 2) # fase cumulatief opbouwen
+   signal = np.exp(1j * phase)
+
+En zoals je ziet, ziet het er exact hetzelfde uit als onze eerdere MSK, maar nu gegenereerd via een volledig andere aanpak.
+
+.. image:: ../_images/cpfsk_magnitude.svg
+   :align: center 
+   :target: ../_images/cpfsk_magnitude.svg
+   :alt: Voorbeeld van CPFSK-magnitude die laat zien dat het overeenkomt met MSK

@@ -10,4 +10,5 @@ sphinxcontrib-serializinghtml==1.1.5
 sphinxcontrib-mermaid==2.0.0
 docutils==0.17.1
 patreon==0.5.0
+setuptools<72 # until patreon fixes their stuff, this is needed
 imageio==2.11.0

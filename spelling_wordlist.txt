@@ -327,3 +327,7 @@ quadcopter
 Spektrum
 DIY
 chroma
+Vandermonde
+eigendecomposition
+ULA
+geolocation

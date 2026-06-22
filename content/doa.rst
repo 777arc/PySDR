@@ -32,7 +32,7 @@ The following taxonomy attempts to categorize the many areas of beamforming whil
 Direction-of-Arrival Overview
 ******************************
 
-Direction-of-Arrival (DOA) within DSP/SDR refers to the process of using an array of antennas to detect and estimate the directions of arrival of one or more signals received by that array (versus beamforming, which is focused on the process of receiving a signal while rejecting as much noise and interference).  Although DOA certainly falls under the beamforming topic umbrella, the two terms can get confusing.  Some techniques such as Conventional and MVDR beamforming can apply to both DOA and beamforming, because the same technique used for beamforming is used to perform DOA by sweeping the angle of interest and performing the beamforming operation at each angle, then looking for peaks in the result (each peak is a signal, but we don't know whether it is the signal of interest, an interferer, or even a multipath bounce from the signal of interest). You can think of these DOA techniques as a wrapper around a specific beamformer.  Other beamformers are unable to be simply wrapped into a DOA routine, such as due to extra inputs that won't be available within the context of DOA.  There are also DOA techniques such as MUSIC and ESPIRT which are strictly for the purpose of DOA and are not beamformers.  Because most beamforming techniques assume you know the angle of arrival of the signal of interest, if the target is moving, or the array is moving, you will have to continuously perform DOA as an intermediate step, even if your primary goal is to receive and demodulate the signal of interest.
+Direction-of-Arrival (DOA) within DSP/SDR refers to the process of using an array of antennas to detect and estimate the directions of arrival of one or more signals received by that array (versus beamforming, which is focused on the process of receiving a signal while rejecting as much noise and interference).  Although DOA certainly falls under the beamforming topic umbrella, the two terms can get confusing.  Some techniques such as Conventional and MVDR beamforming can apply to both DOA and beamforming, because the same technique used for beamforming is used to perform DOA by sweeping the angle of interest and performing the beamforming operation at each angle, then looking for peaks in the result (each peak is a signal, but we don't know whether it is the signal of interest, an interferer, or even a multipath bounce from the signal of interest). You can think of these DOA techniques as a wrapper around a specific beamformer.  Other beamformers are unable to be simply wrapped into a DOA routine, such as due to extra inputs that won't be available within the context of DOA.  There are also DOA techniques such as MUSIC and ESPRIT which are strictly for the purpose of DOA and are not beamformers.  Because most beamforming techniques assume you know the angle of arrival of the signal of interest, if the target is moving, or the array is moving, you will have to continuously perform DOA as an intermediate step, even if your primary goal is to receive and demodulate the signal of interest.
 
 Phased arrays and beamforming/DOA find use in all sorts of applications, although you will most often see them used in multiple forms of radar, newer WiFi standards, mmWave communication within 5G, satellite communications, and jamming. Generally, any applications that require a high-gain antenna, or require a rapidly moving high-gain antenna, are good candidates for phased arrays.
 
@@ -42,9 +42,9 @@ Types of Arrays
 
 Phased arrays can be broken down into three types:
 
-1. **Analog**, a.k.a. passive electronically scanned array (PESA) or traditional phased arrays, where analog phase shifters are used to steer the beam.  On the receive side, all elements are summed after phase shifting (and optionally, adjustable gain) and turned into a signal channel which is downconverted and received.  On the transmit side the inverse takes place; a single digital signal is outputted from the digital side, and on the analog side phase shifters and gain stages are used to produce the output going to each antenna.  These digital phase shifters will have a limited number of bits of resolution, and control latency.
-2. **Digital**, a.k.a. active electronically scanned array (AESA), where every single element has its own RF front end, and the beamforming is done entirely in the digital domain.  This is the most expensive approach, as RF components are expensive, but it provides much more flexibility and speed than PESAs.  Digital arrays are popular with SDRs, although the number of receive or transmit channels of the SDR limits the number of elements in your array.
-3. **Hybrid**, where the array consists of many subarrays that individually resemble analog arrays, where each subarray has its own RF front-end just like with digital arrays.  This is the most common approach for modern phased arrays, as it provides the best of both worlds.
+1. **Analog**, a.k.a. passive electronically scanned array (PESA) or traditional phased arrays, where analog phase shifters are used to steer the beam.  On the receive side, all elements are summed after phase shifting (and optionally, adjustable gain) and turned into a single channel which is downconverted and received.  On the transmit side the inverse takes place; a single digital signal is outputted from the digital side, and on the analog side phase shifters and gain stages are used to produce the output going to each antenna.  These digital phase shifters will have a limited number of bits of resolution, and control latency.  A huge advantage of analog beamforming is that strong interferers can be nulled out in the analog domain before the ADC, which can prevent saturating the receiver.
+2. **Digital**, a.k.a. active electronically scanned array (AESA), where every single element has its own RF front end, and the beamforming is done entirely in the digital domain.  This is the most expensive approach, as RF components are expensive, but it provides much more flexibility and speed than PESAs, and allows for using the adaptive beamforming techniques we will discuss later in this chapter.  Digital arrays are popular with SDRs, although the number of receive or transmit channels of the SDR limits the number of elements in your array.
+3. **Hybrid**, where the array consists of many subarrays that individually resemble analog arrays, where each subarray has its own RF front-end just like with digital arrays.  This is the most common approach for modern phased arrays, as it provides the best of both worlds.  A hybrid array allows for adaptive techniques, and can also null out strong interferers in the analog domain before the ADC, which is especially important for radar applications where the target is often much weaker than the interferers, or communications in hostile wireless environments.
 
 Note that the terms PESA and AESA are mainly just used in the context of radar, and there is some ambiguity when it comes to exactly what constitutes a PESA or AESA.  Therefore, using the terms analog/digital/hybrid array is clearer and can be applied to any type of application.
 
@@ -163,7 +163,7 @@ If you recall SOH CAH TOA, in this case we are interested in the "adjacent" side
 
 We must solve for adjacent, as that is what will tell us how far the signal must travel between hitting the first and second element, so it becomes adjacent :math:`= d \cos(90 - \theta)`.  Now there is a trig identity that lets us convert this to adjacent :math:`= d \sin(\theta)`.  This is just a distance though, we need to convert this to a time, using the speed of light: time elapsed :math:`= d \sin(\theta) / c` seconds.  This equation applies between any adjacent elements of our array, although we can multiply the whole thing by an integer to calculate between non-adjacent elements since they are uniformly spaced (we'll do this later).  
 
-Now to connect this trig and speed of light math to the signal processing world.  Let's denote our transmit signal at baseband :math:`x(t)` and it's being transmitting at some carrier, :math:`f_c` , so the transmit signal is :math:`x(t) e^{2j \pi f_c t}`.  We'll use :math:`d_m` to refer to antenna spacing in meters.  Lets say this signal hits the first element at time :math:`t = 0`, which means it hits the next element after :math:`d_m \sin(\theta) / c` seconds, like we calculated above.  This means the 2nd element receives:
+Now to connect this trig and speed of light math to the signal processing world.  Let's denote our transmit signal at baseband :math:`x(t)` and it is being transmitted at some carrier, :math:`f_c` , so the transmit signal is :math:`x(t) e^{2j \pi f_c t}`.  We'll use :math:`d_m` to refer to antenna spacing in meters.  Lets say this signal hits the first element at time :math:`t = 0`, which means it hits the next element after :math:`d_m \sin(\theta) / c` seconds, like we calculated above.  This means the 2nd element receives:
 
 .. math::
  x(t - \Delta t) e^{2j \pi f_c (t - \Delta t)}
@@ -173,7 +173,7 @@ Now to connect this trig and speed of light math to the signal processing world.
 
 recall that when you have a time shift, it is subtracted from the time argument.
 
-When the receiver or SDR does the downconversion process to receive the signal, its essentially multiplying it by the carrier but in the reverse direction, so after doing downconversion the receiver sees:
+When the receiver or SDR does the downconversion process to receive the signal, it's essentially multiplying it by the carrier but in the reverse direction, so after doing downconversion the receiver sees:
 
 .. math::
  x(t - \Delta t) e^{2j \pi f_c (t - \Delta t)} e^{-2j \pi f_c t}
@@ -181,7 +181,7 @@ When the receiver or SDR does the downconversion process to receive the signal, 
 .. math::
  = x(t - \Delta t) e^{-2j \pi f_c \Delta t}
 
-Now we can do a little trick to simplify this even further; consider how when we sample a signal it can be modeled by substituting :math:`t` for :math:`nT` where :math:`T` is sample period and :math:`n` is just 0, 1, 2, 3...  Substituting this in we get :math:`x(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. Well, :math:`nT` is so much greater than :math:`\Delta t` that we can get rid of the first :math:`\Delta t` term and we are left with :math:`x(nT) e^{-2j \pi f_c \Delta t}`.  If the sample rate ever gets fast enough to approach the speed of light over a tiny distance, we can revisit this, but remember that our sample rate only needs to be a bit larger than the signal of interest's bandwidth.
+Now we can do a little trick to simplify this even further; consider how when we sample a signal it can be modeled by substituting :math:`t` for :math:`nT` where :math:`T` is sample period and :math:`n` is just 0, 1, 2, 3...  Substituting this in we get :math:`x(nT - \Delta t) e^{-2j \pi f_c \Delta t}`. For a narrowband signal, the signal envelope changes slowly enough over the propagation delay :math:`\Delta t` that we can approximate :math:`x(nT - \Delta t) \approx x(nT)`, leaving us with :math:`x(nT) e^{-2j \pi f_c \Delta t}`.  If the sample rate ever gets fast enough to approach the speed of light over a tiny distance, we can revisit this, but remember that our sample rate only needs to be a bit larger than the signal of interest's bandwidth.
 
 Let's keep going with this math but we'll start representing things in discrete terms so that it will better resemble our Python code.  The last equation can be represented as the following, let's plug back in :math:`\Delta t`:
 
@@ -279,7 +279,7 @@ Now let's simulate an array consisting of three omnidirectional antennas in a li
  s = np.exp(2j * np.pi * d * np.arange(Nr) * np.sin(theta)) # Steering Vector
  print(s) # note that it's 3 elements long, it's complex, and the first element is 1+0j
 
-To apply the steering vector we have to do a matrix multiplication of :code:`s` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into row vectors using :code:`ourarray.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
+To apply the steering vector we have to do a matrix multiplication of :code:`s` and :code:`tx`, so first let's convert both to 2D, using the approach we discussed earlier when we reviewed doing matrix math in Python.  We'll start off by making both into column vectors using :code:`ourarray.reshape(-1,1)`.  We then perform the matrix multiply, indicated by the :code:`@` symbol.  We also have to convert :code:`tx` from a row vector to a column vector using a transpose operation (picture it rotating 90 degrees) so that the matrix multiply inner dimensions match.
 
 .. code-block:: python
 
@@ -680,7 +680,7 @@ where:
 
  \frac{\partial L}{\partial \mathbf{w}^*} = 2\mathbf{R}\mathbf{w} - \lambda \mathbf{s} = 0
 
- \mathbf{w} = \lambda \mathbf{s} \mathbf{{R^{-1}}}
+ \mathbf{w} = \lambda \mathbf{R}^{-1} \mathbf{s}
 
 
 To solve for :math:`\lambda`, apply the constraint :math:`\mathbf{w}^H \mathbf{s} = 1`:
@@ -795,7 +795,7 @@ Meaning we don't have to apply the weights at all, this final equation above for
 .. code-block:: python
 
     def power_mvdr(theta, X):
-        s = np.exp(2j * np.pi * d * np.arange(r.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
+        s = np.exp(2j * np.pi * d * np.arange(X.shape[0]) * np.sin(theta)) # steering vector in the desired direction theta_i
         s = s.reshape(-1,1) # make into a column vector (size 3x1)
         R = (X @ X.conj().T)/X.shape[1] # Calc covariance matrix. gives a Nr x Nr covariance matrix of the samples
         Rinv = np.linalg.pinv(R) # 3x3. pseudo-inverse tends to work better than a true inverse
@@ -1072,9 +1072,9 @@ We get the following beam pattern.  You may notice nulls in positions that you d
    :target: ../_images/null_steering.svg
    :alt: Example of null steering beamforming
 
-*******************
+*****
 MUSIC
-*******************
+*****
 
 We will now change gears and talk about a different kind of beamformer. All of the previous ones have fallen in the "delay-and-sum" category, but now we will dive into "sub-space" methods.  These involve dividing the signal subspace and noise subspace, which means we must estimate how many signals are being received by the array, to get a good result.  MUltiple SIgnal Classification (MUSIC) is a very popular sub-space method that involves calculating the eigenvectors of the covariance matrix (which is a computationally intensive operation by the way).  We split the eigenvectors into two groups: signal sub-space and noise-subspace, then project steering vectors into the noise sub-space and steer for nulls.  That might seem confusing at first, which is part of why MUSIC seems like black magic!
 
@@ -1083,7 +1083,7 @@ The core MUSIC equation is the following:
 .. math::
  \hat{\theta} = \mathrm{argmax}\left(\frac{1}{s^H V_n V^H_n s}\right)
 
-where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2D matrix).  It is found by first calculating the eigenvectors of :math:`R`, which is done simply by :code:`w, v = np.linalg.eig(R)` in Python, and then splitting up the vectors (:code:`w`) based on how many signals we think the array is receiving.  There is a trick for estimating the number of signals that we'll talk about later, but it must be between 1 and :code:`Nr - 1`.  I.e., if you are designing an array, when you are choosing the number of elements you must have one more than the number of anticipated signals.  One thing to note about the equation above is :math:`V_n` does not depend on the steering vector :math:`s`, so we can precalculate it before we start looping through theta.  The full MUSIC code is as follows:
+where :math:`V_n` is that list of noise sub-space eigenvectors we mentioned (a 2D matrix).  It is found by first calculating the eigenvectors of :math:`R`, which is done simply by :code:`w, v = np.linalg.eig(R)` in Python, and then splitting up the eigenvectors (:code:`v`) based on how many signals we think the array is receiving.  There is a trick for estimating the number of signals that we'll talk about later, but it must be between 1 and :code:`Nr - 1`.  I.e., if you are designing an array, when you are choosing the number of elements you must have one more than the number of anticipated signals.  One thing to note about the equation above is :math:`V_n` does not depend on the steering vector :math:`s`, so we can precalculate it before we start looping through theta.  The full MUSIC code is as follows:
 
 .. code-block:: python
 
@@ -1135,6 +1135,73 @@ Another experiment worth trying with MUSIC is to see how close two signals can a
 .. image:: ../_images/doa_music_animation.gif
    :scale: 100 %
    :align: center
+
+**********
+Root MUSIC
+**********
+
+Every DOA technique we have covered so far, including conventional beamforming, MVDR, and MUSIC itself, works by sweeping through a grid of candidate angles and computing a metric at each one (often in parallel).  Root MUSIC eliminates that scan entirely!  Instead of searching for peaks in a spectrum, it finds the signal directions analytically by solving for the roots of a polynomial.  This gives Root MUSIC potential to be both faster and more precise than spectral MUSIC, since the peak location is no longer limited by the angular resolution of your scan grid.  One limitation of Root MUSIC is that it only works for a ULA; for 2D arrays or non-ULA 1D arrays there are variations/extensions of Root MUSIC that can be used, but they are far more complex.  We also still need :code:`num_expected_signals` just like in MUSIC, which can be seen as a limitation.
+
+Root MUSIC takes advantage of the fact that a ULA's steering vector has a clean Vandermonde structure, which is any vector (or matrix) where each row is built by taking successive powers of some base value, e.g. :code:`[1, x, x², x³, ..., x^(n-1)]`.  With half-wavelength element spacing the steering vector elements are just consecutive powers of a single complex number :math:`z = e^{j\pi\sin\theta}`, as we saw at the beginning of this chapter.
+
+To perform Root MUSIC, we form a polynomial from the noise-subspace projection matrix.  We use the same MUSIC cost function as in the previous section, but now it takes the form:
+
+.. math::
+ P(z) = z^{N_r-1} \, s^H(z) \, V_n V_n^H \, s(z)
+
+where :math:`V_n` is the noise-subspace matrix from the eigendecomposition of the covariance matrix :math:`R`, exactly as in MUSIC.  Expanding the product yields a polynomial of degree :math:`2(N_r-1)`.  Wherever :math:`P(z)` has a root on the unit circle :math:`|z|=1`, the MUSIC cost would be infinite, meaning that point is a signal direction.  In practice, with finite samples, the roots don't land exactly on the unit circle but cluster near it, so we look for the :math:`D` roots (where :math:`D` is the number of expected signals) that are closest to the unit circle.
+
+The polynomial coefficients are built by summing the diagonals of the noise-subspace projection matrix :math:`D = V_n V_n^H`:
+
+.. math::
+ p_k = \sum_{\substack{m,n=0 \\ n-m = k-(N_r-1)}}^{N_r-1} [D]_{m,n}, \quad k = 0, 1, \ldots, 2(N_r-1)
+
+which is simply the sum along the :math:`(k-(N_r-1))`-th diagonal of :math:`D`.  Once we have the polynomial :math:`P(z) = p_0 + p_1 z + \cdots + p_{2(N_r-1)} z^{2(N_r-1)}`, we extract its roots numerically and convert the signal roots back to angles:
+
+.. math::
+ \hat{\theta} = \arcsin\!\left(\frac{\angle z}{2\pi d}\right)
+
+The full Root MUSIC code, using the same received signal :code:`X` and parameters from the MUSIC example, is:
+
+.. code-block:: python
+
+ num_expected_signals = 3
+
+ # Same eigendecomposition as MUSIC
+ R = np.cov(X)
+ w, v = np.linalg.eig(R)
+ eig_val_order = np.argsort(np.abs(w))
+ v = v[:, eig_val_order]
+ V = v[:, :Nr - num_expected_signals]  # noise subspace eigenvectors
+
+ # Build the Root MUSIC polynomial from diagonals of noise-subspace projection
+ D = V @ V.conj().T
+ p = np.zeros(2*Nr - 1, dtype=np.complex128)
+ for k in range(2*Nr - 1):
+     p[k] = np.sum(np.diag(D, k - (Nr - 1)))
+
+ # Find roots, keep those inside the unit circle, pick the num_expected_signals roots closest to the unit circle
+ roots = np.roots(p[::-1])  # np.roots expects highest-degree coefficient first
+ roots = roots[np.abs(roots) <= 1.0] # remove the conjugate-reciprocal partners which correspond to the same DOA estimate anyway
+ roots = roots[np.argsort(-np.abs(roots))]  # sort closest-to-unit-circle first
+ doa_roots = roots[:num_expected_signals]
+
+ # Convert roots to angles in degrees
+ doas_deg = np.sort(np.arcsin(np.angle(doa_roots) / (2 * np.pi * d)) * 180 / np.pi)
+ print("Estimated DOAs (degrees):", doas_deg)
+
+The heavy lifting is done by NumPy's :code:`np.roots()` function, which uses the companion matrix method to find the roots of the polynomial.
+
+Running this on the same three-signal scenario produces pretty accurate estimated angles, with no sweep, resolution, or peak-finding required:
+
+.. code-block:: console
+
+ Estimated DOAs (degrees): [-39.98674197  19.99724883  25.00387589]
+ True DOAs (degrees):      [-40.  20.  25.]
+
+Compare that to spectral MUSIC, which required a thousand-point theta sweep to find those same three peaks.  The accuracy you get from Root MUSIC is essentially limited only by the covariance matrix estimate, not by any grid spacing you chose.  The computational savings are especially noticeable when :code:`Nr` is large, since building and solving a degree-:math:`2(N_r-1)` polynomial is far cheaper than iterating the MUSIC equation over thousands of steering angles.
+
+One thing to keep in mind: Root MUSIC inherits the same requirements as MUSIC.  You still need to know (or estimate) the number of signals, and you still need enough elements that :math:`N_r > D`.  The eigenvalue plot trick described in the MUSIC section works just as well here for estimating the signal count before running Root MUSIC.
 
 ***
 LMS

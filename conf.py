@@ -201,7 +201,8 @@ html_js_files = [
     'js/beamforming_slider_app.js',
     'js/FFT.js',
     'js/cyclostationary_app.js',
-    'js/homepage_app.js'
+    'js/homepage_app.js',
+    'js/tdoa.js'
     # we also include the index.js file from the PhasedArrayVisualizer directory in setup() above
 ]
 

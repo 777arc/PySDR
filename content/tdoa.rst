@@ -6,6 +6,15 @@ TDOA
 
 Time Difference of Arrival (TDOA) is a technique that localizes an emitter from differences in signal arrival time across synchronized sensors, without needing the transmitter's clock. This chapter covers the full TDOA pipeline, geometry, GCC-PHAT time-delay estimation, closed-form and maximum-likelihood localization, accuracy bounds (CRLB and GDOP), and challenges like synchronization and multipath.  TDOA can be used in RF, acoustic, and sonar geolocation.
 
+Try the interactive demo below to get a quick feel for how TDOA works.
+
+.. raw:: html
+
+    <div id="tdoaApp"></div>
+    <script>
+    tdoa_app("tdoaApp")
+    </script>
+
 ************
 Introduction
 ************

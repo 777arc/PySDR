@@ -16,6 +16,8 @@ Marc uses AI to help create the JavaScript mini-apps and solve issues like when 
 
 ## How to build locally
 
+If the prompt does not ask to build it, then don't build it.
+
 - Activate the project virtual environment which should be in the root of this repo under .venv
 
 - Build the site using:

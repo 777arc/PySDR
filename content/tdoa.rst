@@ -18,7 +18,7 @@ TDOA-based localization appears in cellular emergency-caller location, acoustics
 TDOA in a Nutshell
 ******************
 
-Consider the propagation time from a source to sensor :math:`i`, namely :math:`t_i = t_0 + r_i / c`, where :math:`t_0` is the (unknown) instant of transmission, :math:`r_i` is the source-to-sensor distance, and :math:`c` is the propagation speed. If we subtract the arrival times at two sensors,
+The key insight is that when the same wavefront hits two sensors, the difference in arrival times depends only on geometry — not on when the source transmitted. To see why, consider the propagation time from a source to sensor :math:`i`: :math:`t_i = t_0 + r_i / c`, where :math:`t_0` is the (unknown) instant of transmission, :math:`r_i` is the source-to-sensor distance, and :math:`c` is the propagation speed. If we subtract the arrival times at two sensors,
 
 .. math::
 
@@ -122,7 +122,7 @@ The Signal and Measurement Model
 Received-Signal Model
 ============================
 
-Let :math:`s(t)` be the (unknown) source waveform. Sensor :math:`i` receives an attenuated, delayed, noise-corrupted copy:
+Each sensor receives a time-delayed, scaled, noisy copy of whatever the source is transmitting. Specifically, let :math:`s(t)` be the source waveform. Sensor :math:`i` receives:
 
 .. math::
 
@@ -144,13 +144,13 @@ The right-hand side makes explicit that the TDOA is a nonlinear function of the 
 Noise Assumptions
 ========================
 
-The standard working assumptions are that each :math:`n_i(t)` is zero-mean, wide-sense stationary, Gaussian, and statistically independent of the source signal and of the noise at other sensors. The per-sensor signal-to-noise ratio is
+We assume each :math:`n_i(t)` is zero-mean, wide-sense stationary, Gaussian, and independent of the source signal and of the noise at other sensors. The per-sensor signal-to-noise ratio is
 
 .. math::
 
    \mathrm{SNR}_i = \frac{a_i^2 \sigma_s^2}{\sigma_{n_i}^2},
 
-with :math:`\sigma_s^2` and :math:`\sigma_{n_i}^2` the signal and noise powers. These assumptions are idealizations — real noise is often colored and partially correlated across sensors — but they yield tractable estimators and tight bounds that perform well in practice, and the framework extends to a general noise covariance when needed.
+with :math:`\sigma_s^2` and :math:`\sigma_{n_i}^2` the signal and noise powers. These are idealizations — real noise is often colored and partially correlated across sensors — but they lead to estimators and bounds that perform well in practice, and the framework extends to a general noise covariance when needed.
 
 The Nonlinear Measurement Equations
 ==========================================
@@ -224,7 +224,13 @@ With sampling rate :math:`f_s`, the correlation is computed on a lag grid spaced
 Practical Considerations
 ================================
 
-Several effects govern real performance. The **integration window** :math:`T` trades estimator variance (longer is better, since variance falls roughly as :math:`1/T`) against the assumption of stationarity and, for moving sources, against blurring of the delay over the window. **Coherence bandwidth** limits which frequencies actually carry usable phase. **Signal bandwidth** is decisive: as the Cramér-Rao analysis below shows, delay variance falls as the *square* of the RMS bandwidth, so wideband signals localize far better than narrowband ones. Finally, the entire computation is dominated by FFTs and is therefore :math:`O(M\log M)` per sensor pair for records of :math:`M` samples, which is what makes large microphone arrays and dense sensor networks tractable.
+Several effects govern real performance:
+
+* The **integration window** :math:`T` trades estimator variance (longer is better, since variance falls roughly as :math:`1/T`) against the stationarity assumption and, for moving sources, against blurring of the delay over the window.
+* **Coherence bandwidth** limits which frequencies actually carry usable phase.
+* **Signal bandwidth** is decisive: as the Cramér-Rao analysis below shows, delay variance falls as the *square* of the RMS bandwidth, so wideband signals localize far better than narrowband ones.
+
+Finally, the entire computation is dominated by FFTs and is :math:`O(M\log M)` per sensor pair for records of :math:`M` samples, which is what makes large microphone arrays and dense sensor networks tractable.
 
 Worked Example: GCC-PHAT in Practice
 ============================================
@@ -246,7 +252,7 @@ The measurement equations above are nonlinear and, taken directly, require itera
 The Linearization Strategy
 ==================================
 
-Write the squared range from the source :math:`\mathbf{u}=(x,y)` to sensor :math:`i` at :math:`\mathbf{s}_i=(x_i,y_i)` as
+The trick is to square the range equations and subtract pairs, which cancels the nonlinear :math:`x^2+y^2` term and introduces :math:`r_1`, the range to the reference sensor, as a single auxiliary unknown. Starting with the squared range from the source :math:`\mathbf{u}=(x,y)` to sensor :math:`i` at :math:`\mathbf{s}_i=(x_i,y_i)`:
 
 .. math::
 
@@ -371,7 +377,7 @@ iterated to convergence. Each step solves a small linear system. The method conv
 Maximum-Likelihood Estimation
 =====================================
 
-Under the zero-mean Gaussian noise model the negative log-likelihood of the measurements is, up to constants, exactly the weighted squared residual above with :math:`\mathbf{C}` the true noise covariance. Hence **the maximum-likelihood estimator coincides with weighted nonlinear least squares**, and the Gauss-Newton iteration is the practical route to it. This identification is important: it means the iterative estimator is not merely a heuristic but the statistically optimal estimator for the assumed model, and it is the estimator whose covariance the Cramér-Rao bound below predicts.
+Under Gaussian noise, the negative log-likelihood is, up to constants, exactly the weighted squared residual above. So **the maximum-likelihood estimator coincides with weighted nonlinear least squares** — the Gauss-Newton iteration is not a heuristic, it is the statistically optimal estimator under the assumed model. This is also the estimator whose covariance the Cramér-Rao bound below predicts.
 
 Robust, Recursive, and Bayesian Extensions
 ==================================================
@@ -400,7 +406,7 @@ This single expression contains both stages: :math:`\mathbf{C}` is the measureme
 The Time-Delay Estimation Bound
 =======================================
 
-The first stage has its own Cramér-Rao bound. For a single delay estimated from a signal of RMS bandwidth :math:`\beta` observed over time :math:`T`, the variance obeys (Stein; Quazi)
+We can bound how well any estimator can measure a single delay. For a signal of RMS bandwidth :math:`\beta` observed over time :math:`T`, the variance of any unbiased delay estimate obeys
 
 .. math::
 
@@ -411,7 +417,7 @@ where :math:`\beta` is the *RMS (Gabor) bandwidth* of the signal and :math:`\gam
 The Localization Cramér-Rao Lower Bound
 ==============================================
 
-Combining the stages, the Fisher information matrix for the source position is
+Combining measurement quality and geometry, the Fisher information matrix for the source position is
 
 .. math::
 
@@ -452,7 +458,7 @@ The figure below shows GDOP heat maps over a plane for (left) three sensors at t
 Sensor-Placement Optimization
 =====================================
 
-Because geometry is often a *design* variable, we can place sensors to minimize error. Formally one minimizes a scalar functional of :math:`\mathbf{F}^{-1}` over sensor positions — minimizing the trace (A-optimality, equivalent to minimizing GDOP), the determinant (D-optimality, minimizing the confidence-ellipse volume), or the largest eigenvalue (E-optimality, minimizing worst-case error). The qualitative results are intuitive and worth remembering: spread the sensors widely (long baselines improve angular resolution), surround the region of interest so sources fall inside the convex hull, avoid collinear or coplanar layouts that create ambiguous or ill-conditioned directions, and add sensors where redundancy both lowers variance and guards against outliers. For a moving target or a large coverage area, placement is optimized over the whole region (e.g. minimizing average or worst-case GDOP), often by numerical search.
+Because geometry is often a *design* variable, we can place sensors to minimize error. Common objectives minimize a scalar derived from :math:`\mathbf{F}^{-1}` — its trace (equivalent to GDOP), its determinant (the confidence-ellipse volume), or its largest eigenvalue (worst-case error). The qualitative results are intuitive: spread the sensors widely so long baselines sharpen angular resolution, surround the region of interest so sources fall inside the convex hull, avoid collinear or coplanar layouts that create ill-conditioned directions, and add sensors where redundancy both lowers variance and guards against outliers. For a moving target or large coverage area, placement is optimized over the whole region — minimizing average or worst-case GDOP — usually by numerical search.
 
 *****************************************
 Practical Challenges in Real Systems

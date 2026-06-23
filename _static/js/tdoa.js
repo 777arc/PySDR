@@ -6,7 +6,15 @@ function tdoa_app(containerId) {
   const worldSpan = 1000; // world width represented across the canvas [m]
   const nodeRadius = 9; // hit/draw radius for draggable handles [px]
   const edgeMargin = 12; // keep handles at least this far inside the canvas [px]
-  const pairColors = ["#e6550d", "#3182bd", "#31a354"]; // one per sensor pair
+  const maxSensors = 10; // upper bound on how many sensors the user can add
+  const palette = ["#e6550d", "#3182bd", "#31a354"]; // first few sensor-pair colors
+
+  // Color for the k-th sensor pair: use the fixed palette first, then spread the
+  // remaining hues around the color wheel so every pair stays distinguishable.
+  function pairColor(k) {
+    if (k < palette.length) return palette[k];
+    return `hsl(${(k * 47) % 360}, 65%, 45%)`;
+  }
 
   // ----- DOM setup -----------------------------------------------------------
   const container = document.getElementById(containerId || "tdoaApp") || document.body;
@@ -18,13 +26,19 @@ function tdoa_app(containerId) {
   row.style.gap = "10px";
   container.appendChild(row);
 
+  // wrapper lets us overlay controls (the Add-sensor button) on top of the canvas
+  const canvasWrap = document.createElement("div");
+  canvasWrap.style.position = "relative";
+  canvasWrap.style.lineHeight = "0"; // avoid extra space under the canvas
+  row.appendChild(canvasWrap);
+
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
   canvas.style.border = "1px solid #888";
   canvas.style.touchAction = "none"; // let us handle touch-drag ourselves
   canvas.style.cursor = "grab";
-  row.appendChild(canvas);
+  canvasWrap.appendChild(canvas);
 
   // vertical noise slider: standard deviation of the Gaussian noise [m]
   const sliderBox = document.createElement("div");
@@ -66,11 +80,61 @@ function tdoa_app(containerId) {
     render();
   });
 
+  // buttons to add/remove a sensor, overlaid on the top-left corner of the canvas
+  const addBtn = document.createElement("button");
+  addBtn.style.position = "absolute";
+  addBtn.style.top = "8px";
+  addBtn.style.left = "8px";
+  addBtn.style.fontFamily = "sans-serif";
+  addBtn.style.fontSize = "13px";
+  addBtn.style.lineHeight = "normal";
+  addBtn.style.padding = "4px 10px";
+  addBtn.style.cursor = "pointer";
+  canvasWrap.appendChild(addBtn);
+
+  const removeBtn = document.createElement("button");
+  removeBtn.style.position = "absolute";
+  removeBtn.style.top = "40px";
+  removeBtn.style.left = "8px";
+  removeBtn.style.fontFamily = "sans-serif";
+  removeBtn.style.fontSize = "13px";
+  removeBtn.style.lineHeight = "normal";
+  removeBtn.style.padding = "4px 10px";
+  removeBtn.style.cursor = "pointer";
+  canvasWrap.appendChild(removeBtn);
+
+  // collapsible details panel: a thick bar you click to reveal the text readout,
+  // collapsed by default to keep the figure compact
+  const details = document.createElement("details");
+  details.style.marginTop = "8px";
+  details.style.width = W + "px";
+  details.style.border = "1px solid #ccc";
+  details.style.borderRadius = "4px";
+  details.style.overflow = "hidden";
+  container.appendChild(details);
+
+  const summary = document.createElement("summary");
+  summary.textContent = "Show Debug Info";
+  summary.style.cursor = "pointer";
+  summary.style.userSelect = "none";
+  summary.style.fontFamily = "sans-serif";
+  summary.style.fontSize = "13px";
+  summary.style.fontWeight = "bold";
+  summary.style.padding = "10px 12px";
+  summary.style.background = "#f0f0f0";
+  summary.style.color = "#333";
+  details.appendChild(summary);
+
+  // swap the label between collapsed/expanded states
+  details.addEventListener("toggle", () => {
+    summary.textContent = details.open ? "Hide Debug Info" : "Show Debug Info";
+  });
+
   const readout = document.createElement("div");
   readout.style.fontFamily = "monospace";
   readout.style.fontSize = "13px";
-  readout.style.marginTop = "6px";
-  container.appendChild(readout);
+  readout.style.padding = "8px 12px";
+  details.appendChild(readout);
 
   const ctx = canvas.getContext("2d");
 
@@ -106,15 +170,19 @@ function tdoa_app(containerId) {
     return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
   }
 
+  // Every unique sensor pair (i < j); order matches the original [0,1],[0,2],[1,2].
+  function sensorPairs() {
+    const pairs = [];
+    for (let i = 0; i < sensors.length; i++) {
+      for (let j = i + 1; j < sensors.length; j++) pairs.push([i, j]);
+    }
+    return pairs;
+  }
+
   // Returns the per-sensor TOA and, for each pair, the TDOA and range diff.
   function simulate() {
     const toa = sensors.map((s) => dist(emitter, s) / c); // seconds
-    const pairs = [
-      [0, 1],
-      [0, 2],
-      [1, 2]
-    ];
-    const measurements = pairs.map(([i, j]) => {
+    const measurements = sensorPairs().map(([i, j]) => {
       // ideal TDOA, then add Gaussian noise (slider sets its std dev in meters,
       // so we convert that range error into the equivalent time error)
       const tdoa = toa[i] - toa[j] + (noiseStd * randn()) / c; // seconds
@@ -234,7 +302,7 @@ function tdoa_app(containerId) {
 
     drawGrid();
     measurements.forEach((m, k) => {
-      drawHyperbola(sensors[m.i], sensors[m.j], m.dr, pairColors[k]);
+      drawHyperbola(sensors[m.i], sensors[m.j], m.dr, pairColor(k));
     });
     sensors.forEach(drawSensor);
     drawEmitter();
@@ -245,7 +313,7 @@ function tdoa_app(containerId) {
       html += `TOA(${sensors[i].label}) = ${(t * 1e9).toFixed(1)} ns &nbsp; (range ${dist(emitter, sensors[i]).toFixed(0)} m)<br>`;
     });
     measurements.forEach((m, k) => {
-      html += `<span style="color:${pairColors[k]}">TDOA(${sensors[m.i].label},${sensors[m.j].label}) = ${(m.tdoa * 1e9).toFixed(1)} ns &nbsp; Δr = ${m.dr.toFixed(0)} m</span><br>`;
+      html += `<span style="color:${pairColor(k)}">TDOA(${sensors[m.i].label},${sensors[m.j].label}) = ${(m.tdoa * 1e9).toFixed(1)} ns &nbsp; Δr = ${m.dr.toFixed(0)} m</span><br>`;
     });
     readout.innerHTML = html;
   }
@@ -304,6 +372,50 @@ function tdoa_app(containerId) {
   canvas.addEventListener("touchstart", onDown, { passive: false });
   canvas.addEventListener("touchmove", onMove, { passive: false });
   canvas.addEventListener("touchend", onUp);
+
+  // ----- adding / removing sensors -------------------------------------------
+  const minSensors = 2; // at least 2 sensors to form one TDOA pair
+
+  function updateSensorButtons() {
+    const atMax = sensors.length >= maxSensors;
+    addBtn.disabled = atMax;
+    addBtn.textContent = atMax
+      ? `Max sensors reached (${maxSensors})`
+      : `Add sensor`;
+
+    const atMin = sensors.length <= minSensors;
+    removeBtn.disabled = atMin;
+    removeBtn.textContent = atMin
+      ? `Min sensors reached (${minSensors})`
+      : "Remove sensor";
+  }
+
+  function addSensor() {
+    if (sensors.length >= maxSensors) return;
+    const idx = sensors.length;
+    // place the new sensor on a ring, stepping by the golden angle so successive
+    // sensors spread out rather than landing on top of each other
+    const ang = idx * 2.399963229728653;
+    const r = 320;
+    sensors.push({
+      x: r * Math.cos(ang),
+      y: r * Math.sin(ang),
+      label: "Sensor " + idx
+    });
+    updateSensorButtons();
+    render();
+  }
+
+  function removeSensor() {
+    if (sensors.length <= minSensors) return;
+    sensors.pop(); // drop the most recently added sensor
+    updateSensorButtons();
+    render();
+  }
+
+  addBtn.addEventListener("click", addSensor);
+  removeBtn.addEventListener("click", removeSensor);
+  updateSensorButtons();
 
   // ----- go ------------------------------------------------------------------
   render();

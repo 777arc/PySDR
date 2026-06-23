@@ -26,7 +26,7 @@ Consider the propagation time from a source to sensor :math:`i`, namely :math:`t
 
 the unknown :math:`t_0` vanishes, which is good because we will likely never know :math:`t_0`. The TDOA depends only on the *difference* of ranges, which depends only on source and sensor geometry. This single fact is why TDOA dominates for non-cooperative emitters: we never need to know when the source transmitted, only that the same wavefront reached our synchronized receivers at measurable relative delays.
 
-The price we pay is that the receivers must share a precise common time reference — a requirement that, as Section 7.8 shows, is itself a demanding engineering problem because a timing error of one nanosecond corresponds to about 0.3 m of range error.
+The price we pay is that the receivers must share a precise common time reference — a requirement that, as discussed later, is itself a demanding engineering problem because a timing error of one nanosecond corresponds to about 0.3 m of range error.
 
 *************************
 Geometric Foundations
@@ -80,7 +80,7 @@ With :math:`N` sensors we can form pairs and intersect their hyperbolae; the sou
 * In **2D** the source has 2 unknowns :math:`(x,y)`. Each independent TDOA gives one equation, so we need at least 2 independent TDOAs, which requires **3 sensors**.
 * In **3D** the source has 3 unknowns :math:`(x,y,z)`, requiring 3 independent TDOAs and therefore **4 sensors**.
 
-In the noiseless, exactly-determined case the hyperbolae meet at a single point (with an occasional geometric ambiguity resolved by branch signs or an extra sensor). With more sensors than the minimum the system is *overdetermined*: noisy hyperbolae no longer share an exact common point, and we must solve a least-squares or maximum-likelihood problem (Sections 7.5-7.6).
+In the noiseless, exactly-determined case the hyperbolae meet at a single point (with an occasional geometric ambiguity resolved by branch signs or an extra sensor). With more sensors than the minimum the system is *overdetermined*: noisy hyperbolae no longer share an exact common point, and we must solve a least-squares or maximum-likelihood problem, as described below.
 
 Reference Sensor and Independent Pairs
 =============================================
@@ -113,7 +113,7 @@ Taking sensor 1 as reference, the range-difference measurements are
    \Delta r_{21}=r_2-r_1\approx 17.08\ \text{m},\qquad
    \Delta r_{31}=r_3-r_1\approx 30.62\ \text{m}.
 
-Each defines a hyperbola with foci :math:`\{\mathbf{s}_2,\mathbf{s}_1\}` and :math:`\{\mathbf{s}_3,\mathbf{s}_1\}` respectively; their intersection is the source. Solving the two hyperbola equations by hand is awkward, which is precisely the motivation for the algebraic linearization of Section 7.5 — where we will recover :math:`(40,30)` from exactly these numbers in closed form.
+Each defines a hyperbola with foci :math:`\{\mathbf{s}_2,\mathbf{s}_1\}` and :math:`\{\mathbf{s}_3,\mathbf{s}_1\}` respectively; their intersection is the source. Solving the two hyperbola equations by hand is awkward, which is precisely the motivation for the algebraic linearization developed below — where we will recover :math:`(40,30)` from exactly these numbers in closed form.
 
 *************************************
 The Signal and Measurement Model
@@ -128,7 +128,7 @@ Let :math:`s(t)` be the (unknown) source waveform. Sensor :math:`i` receives an 
 
    x_i(t) = a_i \, s(t - t_i) + n_i(t), \qquad i = 1,\dots,N,
 
-where :math:`a_i` is a real (or complex, for passband signals) gain capturing propagation loss and antenna response, :math:`t_i = t_0 + r_i/c` is the absolute arrival time, and :math:`n_i(t)` is additive noise. This model assumes a single dominant line-of-sight path; multipath and non-line-of-sight effects are deferred to Section 7.8.
+where :math:`a_i` is a real (or complex, for passband signals) gain capturing propagation loss and antenna response, :math:`t_i = t_0 + r_i/c` is the absolute arrival time, and :math:`n_i(t)` is additive noise. This model assumes a single dominant line-of-sight path; multipath and non-line-of-sight effects are deferred to a later section.
 
 Defining the TDOA
 ========================
@@ -139,7 +139,7 @@ The pairwise TDOA is the difference of arrival times,
 
    \tau_{ij} = t_i - t_j = \frac{r_i - r_j}{c} = \frac{|\mathbf{u}-\mathbf{s}_i| - |\mathbf{u}-\mathbf{s}_j|}{c}.
 
-The right-hand side makes explicit that the TDOA is a nonlinear function of the source coordinates :math:`\mathbf{u}`. The *measurement* problem (Section 7.4) is to estimate :math:`\tau_{ij}` from the waveforms :math:`x_i, x_j`; the *localization* problem (Sections 7.5-7.6) is to invert the nonlinear map from :math:`\mathbf{u}` to the collection of TDOAs.
+The right-hand side makes explicit that the TDOA is a nonlinear function of the source coordinates :math:`\mathbf{u}`. The *measurement* problem is to estimate :math:`\tau_{ij}` from the waveforms :math:`x_i, x_j`; the *localization* problem is to invert the nonlinear map from :math:`\mathbf{u}` to the collection of TDOAs.
 
 Noise Assumptions
 ========================
@@ -162,7 +162,7 @@ Collecting the :math:`N-1` reference-based range differences into a vector :math
    \mathbf{m} = \mathbf{h}(\mathbf{u}), \qquad
    h_i(\mathbf{u}) = |\mathbf{u}-\mathbf{s}_i| - |\mathbf{u}-\mathbf{s}_1|,
 
-and the noisy measurement is :math:`\tilde{\mathbf{m}} = \mathbf{h}(\mathbf{u}) + \boldsymbol{\varepsilon}`, where :math:`\boldsymbol{\varepsilon}` is the range-difference error induced by the time-delay estimation errors of Section 7.4. The function :math:`\mathbf{h}` is nonlinear because of the Euclidean norms, and this nonlinearity is the source of every algorithmic complication that follows. Two broad strategies address it: algebraically *linearize* by introducing an auxiliary variable (Section 7.5), or *iteratively* linearize about a current estimate (Section 7.6).
+and the noisy measurement is :math:`\tilde{\mathbf{m}} = \mathbf{h}(\mathbf{u}) + \boldsymbol{\varepsilon}`, where :math:`\boldsymbol{\varepsilon}` is the range-difference error induced by the time-delay estimation errors of Section 7.4. The function :math:`\mathbf{h}` is nonlinear because of the Euclidean norms, and this nonlinearity is the source of every algorithmic complication that follows. Two broad strategies address it: algebraically *linearize* by introducing an auxiliary variable (described in the next section), or *iteratively* linearize about a current estimate (described further below).
 
 *************************************************
 Time-Delay Estimation (the Measurement Front End)
@@ -224,7 +224,7 @@ With sampling rate :math:`f_s`, the correlation is computed on a lag grid spaced
 Practical Considerations
 ================================
 
-Several effects govern real performance. The **integration window** :math:`T` trades estimator variance (longer is better, since variance falls roughly as :math:`1/T`) against the assumption of stationarity and, for moving sources, against blurring of the delay over the window. **Coherence bandwidth** limits which frequencies actually carry usable phase. **Signal bandwidth** is decisive: as the Cramér-Rao analysis of Section 7.7 shows, delay variance falls as the *square* of the RMS bandwidth, so wideband signals localize far better than narrowband ones. Finally, the entire computation is dominated by FFTs and is therefore :math:`O(M\log M)` per sensor pair for records of :math:`M` samples, which is what makes large microphone arrays and dense sensor networks tractable.
+Several effects govern real performance. The **integration window** :math:`T` trades estimator variance (longer is better, since variance falls roughly as :math:`1/T`) against the assumption of stationarity and, for moving sources, against blurring of the delay over the window. **Coherence bandwidth** limits which frequencies actually carry usable phase. **Signal bandwidth** is decisive: as the Cramér-Rao analysis below shows, delay variance falls as the *square* of the RMS bandwidth, so wideband signals localize far better than narrowband ones. Finally, the entire computation is dominated by FFTs and is therefore :math:`O(M\log M)` per sensor pair for records of :math:`M` samples, which is what makes large microphone arrays and dense sensor networks tractable.
 
 Worked Example: GCC-PHAT in Practice
 ============================================
@@ -241,7 +241,7 @@ so a refined estimate of, say, lag :math:`25.02` corresponds to :math:`\hat\tau_
 Closed-Form Localization Algorithms
 *************************************
 
-The measurement equations of Section 7.3 are nonlinear and, taken directly, require iterative solution with a good starting point. *Closed-form* (non-iterative) estimators sidestep this by an algebraic trick: introduce an auxiliary variable that absorbs the nonlinearity and renders the system linear. They are fast, need no initial guess, and cannot get stuck in local minima — making them invaluable both on their own and as initializers for the iterative methods of Section 7.6.
+The measurement equations above are nonlinear and, taken directly, require iterative solution with a good starting point. *Closed-form* (non-iterative) estimators sidestep this by an algebraic trick: introduce an auxiliary variable that absorbs the nonlinearity and renders the system linear. They are fast, need no initial guess, and cannot get stuck in local minima — making them invaluable both on their own and as initializers for the iterative methods described below.
 
 The Linearization Strategy
 ==================================
@@ -292,12 +292,12 @@ with the weight :math:`\mathbf{W}` chosen as the inverse covariance of the equat
 
 **Second step.** The first step ignored the known relationship :math:`r_1^2 = (x-x_1)^2+(y-y_1)^2` that couples the auxiliary variable to the position. The second step restores it: form a new small least-squares problem in the squared quantities :math:`[(x-x_1)^2,(y-y_1)^2,r_1^2]`, using the first-step covariance to weight it, and solve for a corrected position. This second WLS removes much of the bias of the naive linear solution and is what brings Chan's estimator close to optimal.
 
-The method returns a position directly, with computational cost dominated by inverting small :math:`3\times3` matrices — negligible compared with the FFTs of the front end. Its limitations appear at high noise or unfavorable geometry, where the squared-range manipulation amplifies errors and the second step can pick the wrong root; there, the iterative refinement of Section 7.6 seeded by Chan's output is the standard remedy.
+The method returns a position directly, with computational cost dominated by inverting small :math:`3\times3` matrices — negligible compared with the FFTs of the front end. Its limitations appear at high noise or unfavorable geometry, where the squared-range manipulation amplifies errors and the second step can pick the wrong root; there, the iterative refinement described below, seeded by Chan's output, is the standard remedy.
 
 Example, Continued: Solving the Three-Sensor Fix in Closed Form
 ================================================================
 
-Return to the geometry of Section 7.2.5: :math:`\mathbf{s}_1=(0,0)`, :math:`\mathbf{s}_2=(100,0)`, :math:`\mathbf{s}_3=(0,100)`, with measured range differences :math:`r_{21}=17.08` m and :math:`r_{31}=30.62` m. Here :math:`K_1=0`, :math:`K_2=K_3=10{,}000`. The boxed linear equations become, for :math:`i=2` and :math:`i=3`,
+Return to the three-sensor geometry from the example above: :math:`\mathbf{s}_1=(0,0)`, :math:`\mathbf{s}_2=(100,0)`, :math:`\mathbf{s}_3=(0,100)`, with measured range differences :math:`r_{21}=17.08` m and :math:`r_{31}=30.62` m. Here :math:`K_1=0`, :math:`K_2=K_3=10{,}000`. The boxed linear equations become, for :math:`i=2` and :math:`i=3`,
 
 .. math::
 
@@ -331,7 +331,7 @@ The positive root is :math:`r_1 = 50.0` m (the negative root is non-physical and
 
    x = 48.54 - 0.1708(50) = 40.0, \qquad y = 45.31 - 0.3062(50) = 30.0 .
 
-We recover the true source :math:`\mathbf{u}=(40,30)` exactly, as we must in the noiseless case. This is the same fix that the intersecting hyperbolae of Section 7.2 represented geometrically — now obtained by pure algebra, with no iteration and no initial guess. With noisy measurements the two equations would not be perfectly consistent, the quadratic root would be perturbed, and the weighting and second step of Chan's method would govern how gracefully the estimate degrades.
+We recover the true source :math:`\mathbf{u}=(40,30)` exactly, as we must in the noiseless case. This is the same fix that the intersecting hyperbolae illustrated above represented geometrically — now obtained by pure algebra, with no iteration and no initial guess. With noisy measurements the two equations would not be perfectly consistent, the quadratic root would be perturbed, and the weighting and second step of Chan's method would govern how gracefully the estimate degrades.
 
 *****************************************
 Iterative and Statistical Estimation
@@ -371,7 +371,7 @@ iterated to convergence. Each step solves a small linear system. The method conv
 Maximum-Likelihood Estimation
 =====================================
 
-Under the zero-mean Gaussian noise model the negative log-likelihood of the measurements is, up to constants, exactly the weighted squared residual above with :math:`\mathbf{C}` the true noise covariance. Hence **the maximum-likelihood estimator coincides with weighted nonlinear least squares**, and the Gauss-Newton iteration is the practical route to it. This identification is important: it means the iterative estimator is not merely a heuristic but the statistically optimal estimator for the assumed model, and it is the estimator whose covariance the Cramér-Rao bound of Section 7.7 predicts.
+Under the zero-mean Gaussian noise model the negative log-likelihood of the measurements is, up to constants, exactly the weighted squared residual above with :math:`\mathbf{C}` the true noise covariance. Hence **the maximum-likelihood estimator coincides with weighted nonlinear least squares**, and the Gauss-Newton iteration is the practical route to it. This identification is important: it means the iterative estimator is not merely a heuristic but the statistically optimal estimator for the assumed model, and it is the estimator whose covariance the Cramér-Rao bound below predicts.
 
 Robust, Recursive, and Bayesian Extensions
 ==================================================
@@ -423,7 +423,7 @@ and the Cramér-Rao Lower Bound states that *any* unbiased estimator has covaria
 
    \mathrm{Cov}(\hat{\mathbf{u}}) \succeq \mathbf{F}^{-1} = (\mathbf{J}^\top \mathbf{C}^{-1}\mathbf{J})^{-1}.
 
-The bound is the benchmark against which estimators are judged: a method that attains it is *efficient*. The maximum-likelihood estimator of Section 7.6 attains it asymptotically (large :math:`T`, high SNR), and Chan's closed-form method attains it at small noise — which is exactly why both are used. The CRLB also cleanly separates the two influences on accuracy: :math:`\mathbf{C}` (signal-and-noise quality, improvable by more bandwidth, power, or integration) and :math:`\mathbf{J}` (geometry, improvable by sensor placement), studied next.
+The bound is the benchmark against which estimators are judged: a method that attains it is *efficient*. The maximum-likelihood estimator above attains it asymptotically (large :math:`T`, high SNR), and Chan's closed-form method attains it at small noise — which is exactly why both are used. The CRLB also cleanly separates the two influences on accuracy: :math:`\mathbf{C}` (signal-and-noise quality, improvable by more bandwidth, power, or integration) and :math:`\mathbf{J}` (geometry, improvable by sensor placement), studied next.
 
 Geometric Dilution of Precision
 =======================================
@@ -440,7 +440,7 @@ GDOP is a pure number :math:`\ge 1`: it is the factor by which the underlying ra
 * When the sensors surround the source so that the bearing vectors point in well-spread directions, the hyperbolae cross at large angles, :math:`\mathbf{J}^\top\mathbf{J}` is well-conditioned, and GDOP is small (good).
 * When the source lies far outside the sensor cluster, or the sensors are nearly collinear, the bearing vectors become nearly parallel, the hyperbolae intersect at shallow angles, :math:`\mathbf{J}^\top\mathbf{J}` becomes nearly singular, and GDOP explodes (bad).
 
-This is the geometric counterpart of the warning in Section 7.2 that hyperbolae degenerate near the baseline extremes. A practical TDOA system can be limited far more by where its sensors sit than by how well it measures time.
+This is the geometric counterpart of the observation above that hyperbolae degenerate near the baseline extremes. A practical TDOA system can be limited far more by where its sensors sit than by how well it measures time.
 
 The figure below shows GDOP heat maps over a plane for (left) three sensors at the vertices of an equilateral triangle and (right) three nearly collinear sensors, showing a broad low-GDOP region inside the triangle versus a narrow usable corridor for the collinear array, with GDOP rising sharply outside the convex hull in both cases.
 
@@ -458,7 +458,7 @@ Because geometry is often a *design* variable, we can place sensors to minimize 
 Practical Challenges in Real Systems
 *****************************************
 
-The clean model of the preceding sections omits the effects that, in deployment, usually dominate the error budget. Three deserve detailed treatment.
+The clean model developed above omits the effects that, in deployment, usually dominate the error budget. Three deserve detailed treatment.
 
 Receiver Synchronization
 ================================
@@ -474,7 +474,7 @@ So a 1 ns synchronization error already costs :math:`\sim`\0.3 m, and 100 ns cos
 Multipath and Non-Line-of-Sight Propagation
 ===================================================
 
-The signal model assumed a single direct path. Real environments add reflections (multipath) and can block the direct path entirely (non-line-of-sight, NLOS). Multipath superimposes delayed copies of the signal, which distort or split the correlation peak and bias the delay estimate; this is exactly the failure GCC-PHAT was designed to resist, since whitening sharpens the direct-path peak relative to the smeared reflections. NLOS is more insidious: when the direct path is obstructed, the *earliest* arriving energy travels an excess distance, so the measured TDOA is biased *long* in a way no amount of averaging removes, because the error is systematic rather than random. Mitigation strategies include identifying NLOS links statistically (NLOS measurements often show larger variance or violate geometric consistency among redundant sensors), down-weighting or discarding them, and exploiting redundancy so that a few corrupted links among many can be detected and rejected by the robust estimators of Section 7.6.4. In dense indoor multipath, model-based delay estimation and machine-learning approaches (Section 7.9.5) increasingly outperform classical correlation.
+The signal model assumed a single direct path. Real environments add reflections (multipath) and can block the direct path entirely (non-line-of-sight, NLOS). Multipath superimposes delayed copies of the signal, which distort or split the correlation peak and bias the delay estimate; this is exactly the failure GCC-PHAT was designed to resist, since whitening sharpens the direct-path peak relative to the smeared reflections. NLOS is more insidious: when the direct path is obstructed, the *earliest* arriving energy travels an excess distance, so the measured TDOA is biased *long* in a way no amount of averaging removes, because the error is systematic rather than random. Mitigation strategies include identifying NLOS links statistically (NLOS measurements often show larger variance or violate geometric consistency among redundant sensors), down-weighting or discarding them, and exploiting redundancy so that a few corrupted links among many can be detected and rejected by the robust estimators described earlier. In dense indoor multipath, model-based delay estimation and machine-learning approaches (Section 7.9.5) increasingly outperform classical correlation.
 
 Sensor-Position Uncertainty and Calibration
 ===================================================
@@ -484,7 +484,7 @@ The geometry assumed exact knowledge of the sensor coordinates :math:`\mathbf{s}
 Bandwidth and SNR Limits
 ================================
 
-Section 7.7.2 already quantified the dependence: delay variance scales as :math:`1/(\beta^2 T\,\gamma)`. The practical reading is that the most effective levers on accuracy are usually *more bandwidth* (quadratic payoff) and *more integration time* or *power* (linear payoff). A system designer who cannot move the sensors and cannot improve the clocks can still often improve the fix by capturing a wider slice of the emitter's spectrum.
+The bound derived above already quantified the dependence: delay variance scales as :math:`1/(\beta^2 T\,\gamma)`. The practical reading is that the most effective levers on accuracy are usually *more bandwidth* (quadratic payoff) and *more integration time* or *power* (linear payoff). A system designer who cannot move the sensors and cannot improve the clocks can still often improve the fix by capturing a wider slice of the emitter's spectrum.
 
 *******************
 Advanced Topics
@@ -499,4 +499,4 @@ When the source, the sensors, or both are *moving*, the relative motion imparts 
 
    A(\tau,\nu) = \int_0^T x_i(t)\, x_j^{*}(t-\tau)\, e^{-j2\pi \nu t}\, dt,
 
-whose two-dimensional peak gives :math:`(\hat\tau_{ij},\hat\nu_{ij})` simultaneously. The CAF generalizes the cross-correlation of Section 7.4 by adding a frequency-search dimension, at correspondingly higher computational cost. Joint TDOA/FDOA processing is the backbone of satellite and airborne geolocation of radio emitters, where a single pair of moving platforms can localize a stationary emitter from the combined delay and Doppler constraints.
+whose two-dimensional peak gives :math:`(\hat\tau_{ij},\hat\nu_{ij})` simultaneously. The CAF generalizes the cross-correlation technique above by adding a frequency-search dimension, at correspondingly higher computational cost. Joint TDOA/FDOA processing is the backbone of satellite and airborne geolocation of radio emitters, where a single pair of moving platforms can localize a stationary emitter from the combined delay and Doppler constraints.

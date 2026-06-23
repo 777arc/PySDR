@@ -12,7 +12,7 @@ Introduction
 
 A recurring problem across acoustics, radio engineering, and defense systems is this: a source emits a signal, several spatially separated sensors receive it, and we wish to recover the source's position from those received signals alone. The source may be cooperative (a cell phone trying to be found) or non-cooperative (a radar emitter that would rather not be), stationary or moving, and the medium may be air, water, or free space. Despite this diversity, the geometry and estimation theory that solve the problem are remarkably uniform, and *Time Difference of Arrival* (TDOA) sits at the center of them.
 
-TDOA-based localization appears in cellular emergency-caller location, acoustic with microphone arrays (e.g., gunshot-detection systems mounted on city streetlights), passive sonar, passive (non-emitting) radar, electronic warfare and signals intelligence, and even wildlife tracking. In each case the engineering details differ, but the mathematical skeleton is the same one developed in this chapter.
+TDOA-based localization appears in cellular emergency-caller location, acoustics with microphone arrays (e.g., gunshot-detection systems mounted on city streetlights), passive sonar, passive (non-emitting) radar, electronic warfare and signals intelligence, and even wildlife tracking. In each case the engineering details differ, but the mathematical skeleton is the same one developed in this chapter.
 
 ******************
 TDOA in a Nutshell
@@ -162,7 +162,7 @@ Collecting the :math:`N-1` reference-based range differences into a vector :math
    \mathbf{m} = \mathbf{h}(\mathbf{u}), \qquad
    h_i(\mathbf{u}) = |\mathbf{u}-\mathbf{s}_i| - |\mathbf{u}-\mathbf{s}_1|,
 
-and the noisy measurement is :math:`\tilde{\mathbf{m}} = \mathbf{h}(\mathbf{u}) + \boldsymbol{\varepsilon}`, where :math:`\boldsymbol{\varepsilon}` is the range-difference error induced by the time-delay estimation errors of Section 7.4. The function :math:`\mathbf{h}` is nonlinear because of the Euclidean norms, and this nonlinearity is the source of every algorithmic complication that follows. Two broad strategies address it: algebraically *linearize* by introducing an auxiliary variable (described in the next section), or *iteratively* linearize about a current estimate (described further below).
+and the noisy measurement is :math:`\tilde{\mathbf{m}} = \mathbf{h}(\mathbf{u}) + \boldsymbol{\varepsilon}`, where :math:`\boldsymbol{\varepsilon}` is the range-difference error induced by time-delay estimation errors. The function :math:`\mathbf{h}` is nonlinear because of the Euclidean norms, and this nonlinearity is the source of every algorithmic complication that follows. Two broad strategies address it: algebraically *linearize* by introducing an auxiliary variable (described in the next section), or *iteratively* linearize about a current estimate (described further below).
 
 *************************************************
 Time-Delay Estimation (the Measurement Front End)
@@ -400,7 +400,7 @@ This single expression contains both stages: :math:`\mathbf{C}` is the measureme
 The Time-Delay Estimation Bound
 =======================================
 
-The first stage has its own Cramér-Rao bound. For a single delay estimated from a signal of bandwidth observed over time :math:`T`, the variance obeys (Stein; Quazi)
+The first stage has its own Cramér-Rao bound. For a single delay estimated from a signal of RMS bandwidth :math:`\beta` observed over time :math:`T`, the variance obeys (Stein; Quazi)
 
 .. math::
 

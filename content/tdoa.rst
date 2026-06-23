@@ -10,7 +10,7 @@ Try the interactive demo below to get a quick feel for how TDOA works.
 
 .. raw:: html
 
-    <div id="tdoaApp"></div>
+    <div id="tdoaApp" style="margin: 0 auto;"></div>
     <script>
     tdoa_app("tdoaApp")
     </script>

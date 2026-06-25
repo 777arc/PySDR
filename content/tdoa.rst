@@ -445,6 +445,14 @@ Fang's Method
 
 Fang's algorithm provides an exact algebraic solution for the *minimum* configuration (3 sensors in 2D, 4 in 3D), giving a determined system rather than an overdetermined one. It is elegant and computationally trivial but does not use redundant sensors, so it cannot average down measurement noise and is sensitive to geometry. It is best viewed as the exact-determined special case that the least-squares methods generalize.
 
+To see how it works, look again at the boxed linear equation above. With three sensors there are exactly two such equations (:math:`i=2,3`) but three unknowns :math:`(x,y,r_1)`. That looks underdetermined, but :math:`r_1` is not free: it is glued to the position by :math:`r_1^2=(x-x_1)^2+(y-y_1)^2`. Fang's trick is to *defer* that constraint, treat :math:`r_1` as a known constant, and solve the two linear equations for :math:`x` and :math:`y`. Because :math:`r_1` enters linearly, inverting the :math:`2\times2` matrix (well-conditioned as long as the sensors are not collinear) gives both coordinates as straight-line functions of the still-unknown range,
+
+.. math::
+
+   x = g_x + h_x\,r_1, \qquad y = g_y + h_y\,r_1 ,
+
+with constants :math:`g_x,h_x,g_y,h_y` from the matrix inverse. Now cash in the deferred constraint: substituting these into :math:`r_1^2=(x-x_1)^2+(y-y_1)^2` collapses everything to a single scalar quadratic :math:`a\,r_1^2 + b\,r_1 + c = 0`. Solve it, keep the physical root (a range must be positive; the other root typically lands on the wrong hyperbola branch), and back-substitute to read off :math:`(x,y)`. That is the whole method: one :math:`2\times2` solve and one quadratic, no iteration and no initial guess. The worked example in the next subsection is precisely this procedure carried out with numbers.
+
 Chan's Method (Two-Step Weighted Least Squares)
 ======================================================
 
@@ -465,41 +473,45 @@ The method returns a position directly, with computational cost dominated by inv
 Example, Continued: Solving the Three-Sensor Fix in Closed Form
 ================================================================
 
-Return to the three-sensor geometry from the example above: :math:`\mathbf{s}_1=(0,0)`, :math:`\mathbf{s}_2=(100,0)`, :math:`\mathbf{s}_3=(0,100)`, with measured range differences :math:`r_{21}=17.08` m and :math:`r_{31}=30.62` m. Here :math:`K_1=0`, :math:`K_2=K_3=10{,}000`. The boxed linear equations become, for :math:`i=2` and :math:`i=3`,
+Let's pick up right where the Python simulation left off. At that point we had the ``range_diff`` array holding one measured range difference per sensor pair, and earlier we let our brain do the final step by eyeballing where the hyperbolas crossed. Now we'll replace that eyeballing with the closed-form algebra developed above, recovering the emitter position directly from ``range_diff`` and ``rx_positions``. Because we have exactly three sensors in 2D, this is Fang's minimum-configuration case: two boxed linear equations and one quadratic, no iteration and no initial guess.
 
-.. math::
+We take ``Rx0`` as the reference sensor. The pairs were built as ``(0,1)``, ``(0,2)``, ``(1,2)``, and recall that ``range_diff[k]`` for pair ``(a,b)`` is :math:`r_b - r_a`, so the two pairs that include the reference, ``(0,1)`` and ``(0,2)``, hand us exactly the reference-based range differences :math:`r_{i0}=r_i-r_0` that the boxed equation needs.
 
-   200\,x + 34.16\,r_1 = 10{,}000 - (17.08)^2 = 9708.3,
+.. code-block:: python
 
-.. math::
+   # Solve for the emitter position in closed form (Fang's method, 3 sensors in 2D)
+   ref = 0 # use Rx0 as the reference sensor
+   s = rx_positions.astype(float)
+   K = np.sum(s**2, axis=1) # K_i = x_i^2 + y_i^2 for each sensor
 
-   200\,y + 61.24\,r_1 = 10{,}000 - (30.62)^2 = 9062.5 .
+   # Reference-based range differences r_i0 = r_i - r_ref for the two non-reference sensors
+   others = [i for i in range(num_rx) if i != ref]
+   r_i0 = np.array([range_diff[pairs.index((ref, i))] for i in others]) # pair (ref,i) holds r_i - r_ref
 
-Solving each for the position coordinate in terms of :math:`r_1`:
+   # Build the 2x2 linear system that gives (x, y) as a function of the unknown range r_ref
+   M = 2 * (s[others] - s[ref])     # rows: [2(x_i - x_ref), 2(y_i - y_ref)]
+   d = K[others] - K[ref] - r_i0**2 # right-hand side constants
+   Minv = np.linalg.inv(M)          # well-conditioned as long as the sensors aren't collinear
+   g = Minv @ d                     # part of (x, y) that doesn't depend on r_ref
+   h = -2 * (Minv @ r_i0)           # how (x, y) slide with r_ref:  [x, y] = g + h * r_ref
 
-.. math::
+   # Cash in the deferred constraint r_ref^2 = (x - x_ref)^2 + (y - y_ref)^2 -> scalar quadratic in r_ref
+   p = g - s[ref] # constant part of (x - x_ref, y - y_ref)
+   a_q = h[0]**2 + h[1]**2 - 1
+   b_q = 2 * (p[0]*h[0] + p[1]*h[1])
+   c_q = p[0]**2 + p[1]**2
+   roots = np.roots([a_q, b_q, c_q])
 
-   x = 48.54 - 0.1708\,r_1, \qquad y = 45.31 - 0.3062\,r_1 .
+   # Keep the physical root (a range must be positive and real), then back-substitute
+   r_ref = roots[(roots.real > 0) & (np.abs(roots.imag) < 1e-6)].real.max()
+   emitter_est = g + h * r_ref
 
-Now impose the constraint :math:`r_1^2 = x^2 + y^2` (since :math:`\mathbf{s}_1` is at the origin). Substituting,
+   print("Estimated emitter position:", emitter_est) # ~[153, 355]
+   print("True emitter position:     ", tx_position)
 
-.. math::
+The structure mirrors the math exactly: ``M`` and ``d`` are the two boxed linear equations, ``g`` and ``h`` express :math:`x` and :math:`y` as straight-line functions of the still-unknown reference range :math:`r_1` (called ``r_ref`` here), and substituting those into :math:`r_1^2=(x-x_1)^2+(y-y_1)^2` collapses everything to the scalar quadratic that ``np.roots`` solves. We discard the non-physical (negative or complex) root, keep the positive real one, and back-substitute to read off the position. With our high-SNR, wideband simulation the estimate lands right on top of the true emitter at :math:`(153, 355)`, with no human in the loop reading off a hyperbola intersection.
 
-   r_1^2 = (48.54 - 0.1708\,r_1)^2 + (45.31 - 0.3062\,r_1)^2,
-
-which expands to the scalar quadratic
-
-.. math::
-
-   0.8771\,r_1^2 + 44.33\,r_1 - 4409.1 = 0 .
-
-The positive root is :math:`r_1 = 50.0` m (the negative root is non-physical and is discarded). Back-substituting,
-
-.. math::
-
-   x = 48.54 - 0.1708(50) = 40.0, \qquad y = 45.31 - 0.3062(50) = 30.0 .
-
-We recover the true emitter position :math:`\mathbf{u}=(40,30)` exactly, as we must in the noiseless case. This is the same fix that the intersecting hyperbolas illustrated above represented geometrically — now obtained by pure algebra, with no iteration and no initial guess. With noisy measurements the two equations would not be perfectly consistent, the quadratic root would be perturbed, and the weighting and second step of Chan's method would govern how gracefully the estimate degrades.
+With noisier measurements the two linear equations would no longer be perfectly consistent, the quadratic root would be perturbed, and — because three sensors give us no redundancy to average over — the error would pass straight through. That is exactly where the redundant pairs and the weighting and second step of Chan's method earn their keep, governing how gracefully the estimate degrades.
 
 *****************************************
 Iterative and Statistical Estimation

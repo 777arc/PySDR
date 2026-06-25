@@ -361,3 +361,6 @@ subsample
 subsampling
 linearization
 hyperboloid
+underdetermined
+unitless
+linearizing

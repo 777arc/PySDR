@@ -4,9 +4,9 @@
 TDOA
 ####
 
-Time Difference of Arrival (TDOA) is a technique that can find the position of a transmitter (a.k.a. emitter) using multiple synchronized receivers (a.k.a. sensors), by comparing differences in signal arrival time. This chapter covers the full TDOA pipeline, geometry, GCC-PHAT time-delay estimation, closed-form and maximum-likelihood localization, accuracy bounds (CRLB and GDOP), and challenges like synchronization and multipath.  TDOA is commonly used in both RF and acoustic/sonar applications.
+Time Difference of Arrival (TDOA) is a technique that can find the position of a transmitter (a.k.a. emitter) using multiple synchronized receivers (a.k.a. sensors), by comparing differences in signal arrival time. This chapter covers the full TDOA pipeline: geometry, GCC-PHAT time-delay estimation, closed-form and maximum-likelihood localization, accuracy bounds (CRLB and GDOP), and challenges like synchronization and multipath.  TDOA is commonly used in both RF and acoustic/sonar applications.
 
-Before diving in, try playing with the interactive demo below to get a quick feel for how TDOA works, it involves intersection of hyperbolas.
+Before diving in, try playing with the interactive demo below to get a quick feel for how TDOA works, which involves the intersection of hyperbolas.
 
 .. raw:: html
 
@@ -27,7 +27,7 @@ The key behind TDOA is that when the same wavefront hits two sensors, the differ
 
    \tau_{ij} = t_i - t_j = \frac{r_i - r_j}{c},
 
-the unknown :math:`t_0` vanishes, which is good because we will likely never know :math:`t_0`. The TDOA depends only on the *difference* of ranges, which depends only on emitter and sensor geometry. This single fact is why TDOA dominates for non-cooperative emitters; we never need to know when the emitter transmitted, only that the same wavefront reached our synchronized receivers at measurable relative delays.  You still need to isolate the signal so that you're only observing one emitter, so signal detection and classification may be nessesary, plus filtering.
+the unknown :math:`t_0` vanishes, which is good because we will likely never know :math:`t_0`. The TDOA depends only on the *difference* of ranges, which depends only on emitter and sensor geometry. This single fact is why TDOA dominates for non-cooperative emitters; we never need to know when the emitter transmitted, only that the same wavefront reached our synchronized receivers at measurable relative delays.  You still need to isolate the signal so that you're only observing one emitter, so signal detection and classification may be necessary, plus filtering.
 
 Each pair of sensors yields one TDOA, and each TDOA traces out one hyperbola, so the number of hyperbolas we can draw is just the number of sensor pairs. With :math:`N` sensors that is
 
@@ -78,7 +78,7 @@ which reads "distance to one sensor minus distance to the other equals our measu
 * **The sign tells you which side you're on.** A hyperbola actually has two mirror-image branches, one curving toward each sensor. Whether your range difference came out positive or negative picks the branch nearer the closer sensor, so you don't get confused between the two halves.
 * **The shape depends on the measurement.** When the range difference is close to the full baseline, the hyperbola hugs the line between the sensors. When the range difference is near zero (the emitter is roughly equidistant), the curve straightens out into the line that perpendicularly bisects the baseline. Near both of these extremes the geometry becomes "ill-conditioned," meaning small measurement errors push the estimated position around a lot, so positioning there is less reliable.
 
-A single TDOA thus constrains the emitter's position to a curve, not a point. To fix a position we intersect several such curves.  Below we plot two sensors, and several hyperbola branches drawn for :math:`\Delta r < 0`, :math:`\Delta r = 0` (the perpendicular bisector), and :math:`\Delta r > 0`.  On each hyperbola, the TDOA between the two sensors is constant.  If you calculated the TDOA with just two sensors, you would know it is somewhere on that line but you would need a third sensor to find where on that line it is (performing geolocation).
+A single TDOA thus constrains the emitter's position to a curve, not a point. To fix a position we intersect several such curves.  Below we plot two sensors, and several hyperbola branches drawn for :math:`\Delta r < 0`, :math:`\Delta r = 0` (the perpendicular bisector), and :math:`\Delta r > 0`.  On each hyperbola, the TDOA between the two sensors is constant.  If you calculated the TDOA with just two sensors, you would know it is somewhere on that line, but you would need a third sensor to find where on that line it is (performing geolocation).
 
 .. image:: ../_images/tdoa_hyperbola.svg
    :align: center 
@@ -100,7 +100,7 @@ Reference Sensor and Independent Pairs
 
 From :math:`N` sensors one can form :math:`\binom{N}{2}` pairwise TDOAs, but they are not all independent. Choosing one sensor as a **reference** (say sensor 1) and forming :math:`\tau_{i1}` for :math:`i = 2,\dots,N` yields :math:`N-1` TDOAs from which every other pairwise difference can be reconstructed, since :math:`\tau_{ij} = \tau_{i1} - \tau_{j1}`. These :math:`N-1` are the *independent* measurements that carry all the geometric information.
 
-The redundant pairs are not worthless, however. Because each measured TDOA carries independent *noise*, using all :math:`\binom{N}{2}` pairs (with a correctly modeled, correlated noise covariance — the reference sensor's noise is common to every :math:`\tau_{i1}`) can improve the estimate.
+The redundant pairs are not worthless, however. Because each measured TDOA carries independent *noise*, using all :math:`\binom{N}{2}` pairs (with a correctly modeled, correlated noise covariance, where the reference sensor's noise is common to every :math:`\tau_{i1}`) can improve the estimate.
 
 Example: A Three-Sensor 2D Fix
 ==============================
@@ -157,7 +157,7 @@ The right-hand side makes explicit that the TDOA is a nonlinear function of the 
 Noise Assumptions
 ========================
 
-We assume each :math:`n_i(t)` is zero-mean, wide-sense stationary, Gaussian, and independent of the trasnmitted signal and of the noise at other sensors. The per-sensor signal-to-noise ratio is
+We assume each :math:`n_i(t)` is zero-mean, wide-sense stationary, Gaussian, and independent of the transmitted signal and of the noise at other sensors. The per-sensor signal-to-noise ratio is
 
 .. math::
 
@@ -196,14 +196,14 @@ is maximized when the shift :math:`\tau` aligns the two copies, i.e. at :math:`\
 
 .. math::
 
-   \hat{\tau}_{ij} = \arg\max_{\tau} \, \hat{R}_{x_i x_j}(\tau),
+   \hat{\tau}_{ij} = \arg\max_{\tau} \, \hat{R}_{x_i x_j}(\tau).
 
 In practice the correlation is usually computed efficiently in the frequency domain via the FFT (just like how large convolutions typically use an FFT), using the cross-power spectral density :math:`G_{x_i x_j}(f) = \mathcal{F}\{R_{x_i x_j}(\tau)\}` and an inverse transform.
 
 Python Simulation
 ==================
 
-Enough math, let's see how this all looks with a simple Python example.  First we'll set up the simulation with some high level parameters such as emitter and sensor position, and the simulated sample rate which is essentially how much spectrum the receiver's will "see".
+Enough math, let's see how this all looks with a simple Python example.  First we'll set up the simulation with some high level parameters such as emitter and sensor position, and the simulated sample rate, which is essentially how much spectrum the receivers will "see".
 
 .. code-block:: python
 
@@ -241,7 +241,7 @@ Next we will simulate the receivers receiving the signal at a delay based on the
    # Simulate what each receiver records
    true_distances = np.linalg.norm(rx_positions - tx_position, axis=1)
    true_delays = true_distances / c
-   unknown_tx_time = 1.234e-5   # seconds. arbitray, unknown to receivers and we wont use it in any TDOA calcs
+   unknown_tx_time = 1.234e-5   # seconds. arbitrary, unknown to receivers and we won't use it in any TDOA calcs
 
    # Calc the actual TDOAs to act as ground truth
    for k, (a, b) in enumerate(pairs):
@@ -376,7 +376,7 @@ From a compute perspective, the TDOA computation is dominated by FFTs and is :ma
 GCC-PHAT Python Example
 ============================================
 
-The nice thing about PHAT is that we can fold it into the simulation we already built with almost no new code. Recall that the sub-sample estimator above already worked in the frequency domain: it formed the cross-spectrum :math:`X_a^*(f)\,X_b(f)`, zero-padded it to interpolate, and inverse-FFT'd to recover the lag-domain correlation. PHAT is just one extra line: before transforming back to the lag domain, we divide the cross-spectrum by its own magnitude, so that every frequency bin contributes with unit weight and only the phase, which is where the delay lives, survives.
+The nice thing about PHAT is that we can fold it into the simulation we already built with almost no new code. Recall that the sub-sample estimator above already worked in the frequency domain: it formed the cross-spectrum :math:`X_a^*(f)\,X_b(f)`, zero-padded it to interpolate, and inverse-FFT to recover the lag-domain correlation. PHAT is just one extra line: before transforming back to the lag domain, we divide the cross-spectrum by its own magnitude, so that every frequency bin contributes with unit weight and only the phase, which is where the delay lives, survives.
 
 .. code-block:: python
 
@@ -438,7 +438,7 @@ This equation is **linear** in the unknowns :math:`(x, y, r_1)`, where the range
 Spherical Interpolation and Spherical Intersection
 =========================================================
 
-The earliest closed-form estimators, Spherical Interpolation (SI) and Spherical Intersection (SX) of Schau and Robinson, exploit exactly this structure. They first solve the linear system for :math:`(x,y)` as a function of :math:`r_1`, then impose the constraint that ties them together — namely :math:`r_1^2 = (x-x_1)^2+(y-y_1)^2` — to pin down :math:`r_1`. SI obtains :math:`r_1` by a least-squares projection; SX substitutes the linear solution into the quadratic constraint and solves the resulting scalar quadratic. They are simple and fast but treat the auxiliary variable somewhat crudely, leaving accuracy on the table at higher noise.
+The earliest closed-form estimators, Spherical Interpolation (SI) and Spherical Intersection (SX) of Schau and Robinson, exploit exactly this structure. They first solve the linear system for :math:`(x,y)` as a function of :math:`r_1`, then impose the constraint that ties them together, namely :math:`r_1^2 = (x-x_1)^2+(y-y_1)^2`, to pin down :math:`r_1`. SI obtains :math:`r_1` by a least-squares projection; SX substitutes the linear solution into the quadratic constraint and solves the resulting scalar quadratic. They are simple and fast but treat the auxiliary variable somewhat crudely, leaving accuracy on the table at higher noise.
 
 Fang's Method
 ====================
@@ -464,11 +464,11 @@ The estimator that became the practical standard is Chan and Ho's two-step weigh
 
    \hat{\boldsymbol{\theta}} = (\mathbf{A}^\top \mathbf{W}\mathbf{A})^{-1}\mathbf{A}^\top \mathbf{W}\,\mathbf{b},
 
-with the weight :math:`\mathbf{W}` chosen as the inverse covariance of the equation errors. Because that covariance itself depends on the unknown ranges, in practice one first solves with :math:`\mathbf{W}=\mathbf{I}` (or the raw TDOA noise covariance), then recomputes :math:`\mathbf{W}` from the resulting range estimates and re-solves — a one- or two-pass refinement.
+with the weight :math:`\mathbf{W}` chosen as the inverse covariance of the equation errors. Because that covariance itself depends on the unknown ranges, in practice one first solves with :math:`\mathbf{W}=\mathbf{I}` (or the raw TDOA noise covariance), then recomputes :math:`\mathbf{W}` from the resulting range estimates and re-solves, a one- or two-pass refinement.
 
 **Second step.** The first step ignored the known relationship :math:`r_1^2 = (x-x_1)^2+(y-y_1)^2` that couples the auxiliary variable to the position. The second step restores it: form a new small least-squares problem in the squared quantities :math:`[(x-x_1)^2,(y-y_1)^2,r_1^2]`, using the first-step covariance to weight it, and solve for a corrected position. This second WLS removes much of the bias of the naive linear solution and is what brings Chan's estimator close to optimal.
 
-The method returns a position directly, with computational cost dominated by inverting small :math:`3\times3` matrices — negligible compared with the FFTs of the front end. Its limitations appear at high noise or unfavorable geometry, where the squared-range manipulation amplifies errors and the second step can pick the wrong root; there, the iterative refinement described below, seeded by Chan's output, is the standard remedy.
+The method returns a position directly, with computational cost dominated by inverting small :math:`3\times3` matrices, negligible compared with the FFTs of the front end. Its limitations appear at high noise or unfavorable geometry, where the squared-range manipulation amplifies errors and the second step can pick the wrong root; there, the iterative refinement described below, seeded by Chan's output, is the standard remedy.
 
 Example, Continued: Solving the Three-Sensor Fix in Closed Form
 ================================================================
@@ -511,7 +511,7 @@ We take ``Rx0`` as the reference sensor. The pairs were built as ``(0,1)``, ``(0
 
 The structure mirrors the math exactly: ``M`` and ``d`` are the two boxed linear equations, ``g`` and ``h`` express :math:`x` and :math:`y` as straight-line functions of the still-unknown reference range :math:`r_1` (called ``r_ref`` here), and substituting those into :math:`r_1^2=(x-x_1)^2+(y-y_1)^2` collapses everything to the scalar quadratic that ``np.roots`` solves. We discard the non-physical (negative or complex) root, keep the positive real one, and back-substitute to read off the position. With our high-SNR, wideband simulation the estimate lands right on top of the true emitter at :math:`(153, 355)`, with no human in the loop reading off a hyperbola intersection.
 
-With noisier measurements the two linear equations would no longer be perfectly consistent, the quadratic root would be perturbed, and — because three sensors give us no redundancy to average over — the error would pass straight through. That is exactly where the redundant pairs and the weighting and second step of Chan's method earn their keep, governing how gracefully the estimate degrades.
+With noisier measurements the two linear equations would no longer be perfectly consistent, the quadratic root would be perturbed, and, because three sensors give us no redundancy to average over, the error would pass straight through. That is exactly where the redundant pairs and the weighting and second step of Chan's method earn their keep, governing how gracefully the estimate degrades.
 
 *****************************************
 Iterative and Statistical Estimation
@@ -551,7 +551,7 @@ iterated to convergence. Each step solves a small linear system. The method conv
 Maximum-Likelihood Estimation
 =====================================
 
-Under Gaussian noise, the negative log-likelihood is, up to constants, exactly the weighted squared residual above. So **the maximum-likelihood estimator coincides with weighted nonlinear least squares** — the Gauss-Newton iteration is not a heuristic, it is the statistically optimal estimator under the assumed model. This is also the estimator whose covariance the Cramér-Rao bound below predicts.
+Under Gaussian noise, the negative log-likelihood is, up to constants, exactly the weighted squared residual above. So **the maximum-likelihood estimator coincides with weighted nonlinear least squares**, the Gauss-Newton iteration is not a heuristic, it is the statistically optimal estimator under the assumed model. This is also the estimator whose covariance the Cramér-Rao bound below predicts.
 
 Let's put that to work by continuing the Python example one more time. We already have a position from the closed-form solver, ``emitter_est``, and the theory tells us two things: the maximum-likelihood estimate is just the Gauss-Newton iteration above, and the closed-form fix is the ideal seed for it because it drops us right inside the basin of the true minimum. So we'll start at ``emitter_est`` and take a few Gauss-Newton steps, each one re-linearizing the range-difference model at the current guess and solving a tiny least-squares problem for the correction. Unlike Fang's solver, which used only the two pairs touching the reference sensor, this one uses *all three* pairs in ``range_diff``, so the extra pair acts as redundancy that the iteration averages over.
 
@@ -583,15 +583,21 @@ A couple of details worth pointing out. Because we assumed the range-difference 
 Robust, Recursive, and Bayesian Extensions
 ==================================================
 
-Real measurements contain outliers — a multipath-corrupted TDOA can be wildly wrong while the rest are fine. Plain least squares, which squares residuals, is badly distorted by such outliers. *Robust* estimators replace the squared loss with one that grows more slowly (e.g. Huber's), or explicitly detect and discard inconsistent TDOAs via residual tests or RANSAC-style consensus.
+Real measurements contain outliers, a multipath-corrupted TDOA can be wildly wrong while the rest are fine. Plain least squares, which squares residuals, is badly distorted by such outliers. *Robust* estimators replace the squared loss with one that grows more slowly (e.g. Huber's), or explicitly detect and discard inconsistent TDOAs via residual tests or RANSAC-style consensus.
 
 When the emitter *moves*, we want to fuse measurements over time rather than localize each instant independently. State-space filtering does this by modeling the emitter's position (and velocity) as an evolving state. The **Kalman filter** is optimal for linear-Gaussian dynamics, but the TDOA measurement is nonlinear, so practitioners use the **Extended Kalman Filter** (which linearizes the measurement with the same Jacobian as above), the **Unscented Kalman Filter** (which propagates a deterministic set of sigma points through the nonlinearity, avoiding explicit Jacobians and handling stronger nonlinearity better), or, for multimodal or heavily non-Gaussian problems, the **particle filter** (which represents the posterior by a weighted sample cloud). These trackers also naturally enforce motion continuity, which suppresses the per-snapshot ambiguities of static localization.
+
+****************************
+Brute-Force Heatmap Approach
+****************************
+
+
 
 ***********************************************
 Performance Analysis and Fundamental Bounds
 ***********************************************
 
-Having estimators in hand, we ask: how accurate *can* a TDOA system be, and what governs that accuracy? Two ideas answer this — the Cramér-Rao bound, which sets a noise floor from the signals, and geometric dilution of precision, which describes how sensor-emitter geometry amplifies that floor.
+Having estimators in hand, we ask: how accurate *can* a TDOA system be, and what governs that accuracy? Two ideas answer this: the Cramér-Rao bound, which sets a noise floor from the signals, and geometric dilution of precision, which describes how sensor-emitter geometry amplifies that floor.
 
 Error Propagation
 ========================
@@ -613,7 +619,7 @@ We can bound how well any estimator can measure a single delay. For a signal of 
 
    \mathrm{var}(\hat\tau_{ij}) \gtrsim \frac{1}{8\pi^2 \beta^2 T \gamma},
 
-where :math:`\beta` is the *RMS (Gabor) bandwidth* of the signal and :math:`\gamma` is an effective SNR factor combining the two sensors' SNRs. Three design lessons fall straight out: variance improves with **integration time** :math:`T`, with **effective SNR** :math:`\gamma`, and — most strikingly — with the **square of bandwidth** :math:`\beta^2`. Doubling the bandwidth quarters the delay variance. This is why wideband and spread-spectrum waveforms are so prized for ranging, and why narrowband emitters are intrinsically hard to localize by TDOA alone.
+where :math:`\beta` is the *RMS (Gabor) bandwidth* of the signal and :math:`\gamma` is an effective SNR factor combining the two sensors' SNRs. Three design lessons fall straight out: variance improves with **integration time** :math:`T`, with **effective SNR** :math:`\gamma`, and, most strikingly, with the **square of bandwidth** :math:`\beta^2`. Doubling the bandwidth quarters the delay variance. This is why wideband and spread-spectrum waveforms are so prized for ranging, and why narrowband emitters are intrinsically hard to localize by TDOA alone.
 
 The Localization Cramér-Rao Lower Bound
 ==============================================
@@ -630,7 +636,7 @@ and the Cramér-Rao Lower Bound states that *any* unbiased estimator has covaria
 
    \mathrm{Cov}(\hat{\mathbf{u}}) \succeq \mathbf{F}^{-1} = (\mathbf{J}^\top \mathbf{C}^{-1}\mathbf{J})^{-1}.
 
-The bound is the benchmark against which estimators are judged: a method that attains it is *efficient*. The maximum-likelihood estimator above attains it asymptotically (large :math:`T`, high SNR), and Chan's closed-form method attains it at small noise — which is exactly why both are used. The CRLB also cleanly separates the two influences on accuracy: :math:`\mathbf{C}` (signal-and-noise quality, improvable by more bandwidth, power, or integration) and :math:`\mathbf{J}` (geometry, improvable by sensor placement), studied next.  The plot below shows a few example bandwidths and the lower bound over SNR, to give you a feel for how much error you should expect, or at least the floor.  The y-axis is the 1-σ value (one standard deviation).
+The bound is the benchmark against which estimators are judged: a method that attains it is *efficient*. The maximum-likelihood estimator above attains it asymptotically (large :math:`T`, high SNR), and Chan's closed-form method attains it at small noise, which is exactly why both are used. The CRLB also cleanly separates the two influences on accuracy: :math:`\mathbf{C}` (signal-and-noise quality, improvable by more bandwidth, power, or integration) and :math:`\mathbf{J}` (geometry, improvable by sensor placement), studied next.  The plot below shows a few example bandwidths and the lower bound over SNR, to give you a feel for how much error you should expect, or at least the floor.  The y-axis is the 1-σ value (one standard deviation).
 
 .. image:: ../_images/tdoa_cramer_rao.svg
    :align: center 
@@ -641,7 +647,7 @@ The bound is the benchmark against which estimators are judged: a method that at
 Geometric Dilution of Precision
 =======================================
 
-Suppose your sensors can measure range differences to about 1 m of accuracy — a respectable number for a well-synchronized radio system. You might expect to then pin down the emitter to roughly 1 m as well. But where is the emitter? Picture it sitting comfortably inside a triangle of three sensors: the hyperbolas from each sensor pair slice across one another at steep, nearly right angles, and where they cross is pinned down tightly, so your 1 m of ranging error turns into maybe 1.5 m of position error. Now slide that same emitter far off to one side, well outside the cluster. The hyperbolas now graze each other at a shallow angle, like two gently curving lines that nearly overlap, and the crossing point smears out along the direction they share. The very same 1 m of ranging error can now balloon into tens of meters of position error. Nothing about your hardware changed — only the geometry did.
+Suppose your sensors can measure range differences to about 1 m of accuracy, a respectable number for a well-synchronized radio system. You might expect to then pin down the emitter to roughly 1 m as well. But where is the emitter? Picture it sitting comfortably inside a triangle of three sensors: the hyperbolas from each sensor pair slice across one another at steep, nearly right angles, and where they cross is pinned down tightly, so your 1 m of ranging error turns into maybe 1.5 m of position error. Now slide that same emitter far off to one side, well outside the cluster. The hyperbolas now graze each other at a shallow angle, like two gently curving lines that nearly overlap, and the crossing point smears out along the direction they share. The very same 1 m of ranging error can now balloon into tens of meters of position error. Nothing about your hardware changed, only the geometry did.
 
 That blow-up factor has a name: **Geometric Dilution of Precision** (GDOP). It captures how much the sensor-emitter layout magnifies measurement error into position error. If the range-difference errors are independent and each has the same standard deviation :math:`\sigma`, so the covariance is :math:`\mathbf{C}=\sigma^2\mathbf{I}` (a diagonal matrix with :math:`\sigma^2` on the diagonal), then
 
@@ -654,7 +660,7 @@ Your position error is just your ranging error multiplied by GDOP, so GDOP is a 
 
 Where does the magnification come from? It is baked into the Jacobian :math:`\mathbf{J}`, whose rows are differences of unit bearing vectors :math:`\hat{\mathbf{e}}_i - \hat{\mathbf{e}}_1` (the direction to one sensor minus the direction to another). When those directions point all over the place, :math:`\mathbf{J}^\top\mathbf{J}` is *well-conditioned* (far from singular, so its inverse stays small) and GDOP is small. When they nearly line up, :math:`\mathbf{J}^\top\mathbf{J}` becomes nearly singular and GDOP blows up. So an emitter surrounded by the sensors, with bearing vectors well-spread and hyperbolas crossing at large angles, gets a small GDOP (good), while an emitter far outside the cluster, or sensors nearly collinear (almost in a straight line), leaves the bearing vectors nearly parallel and the hyperbolas grazing at shallow angles, giving a huge GDOP (bad).
 
-This is the same effect we saw when hyperbolas degenerate near the ends of the baseline. The takeaway: a TDOA system can be limited far more by *where its sensors sit* than by *how well it measures time* — all the nanosecond synchronization and wide bandwidth in the world won't save a fix in a high-GDOP region of the map.
+This is the same effect we saw when hyperbolas degenerate near the ends of the baseline. The takeaway: a TDOA system can be limited far more by *where its sensors sit* than by *how well it measures time*, all the nanosecond synchronization and wide bandwidth in the world won't save a fix in a high-GDOP region of the map.
 
 The figure below shows GDOP heat maps over a plane for (left) three sensors at the vertices of an equilateral triangle and (right) three nearly collinear sensors, showing a broad low-GDOP region inside the triangle versus a narrow usable corridor for the collinear array, with GDOP rising sharply outside the convex hull in both cases.
 
@@ -666,7 +672,7 @@ The figure below shows GDOP heat maps over a plane for (left) three sensors at t
 Sensor-Placement Optimization
 =====================================
 
-Because geometry is often a *design* variable, we can place sensors to minimize error. Common objectives minimize a scalar derived from :math:`\mathbf{F}^{-1}` — its trace (equivalent to GDOP), its determinant (the confidence-ellipse volume), or its largest eigenvalue (worst-case error). The qualitative results are intuitive: spread the sensors widely so long baselines sharpen angular resolution, surround the region of interest so emitters fall inside the convex hull, avoid collinear or coplanar layouts that create ill-conditioned directions, and add sensors where redundancy both lowers variance and guards against outliers. For a moving target or large coverage area, placement is optimized over the whole region — minimizing average or worst-case GDOP — usually by numerical search.
+Because geometry is often a *design* variable, we can place sensors to minimize error. Common objectives minimize a scalar derived from :math:`\mathbf{F}^{-1}`, such as its trace (equivalent to GDOP), its determinant (the confidence-ellipse volume), or its largest eigenvalue (worst-case error). The qualitative results are intuitive: spread the sensors widely so long baselines sharpen angular resolution, surround the region of interest so emitters fall inside the convex hull, avoid collinear or coplanar layouts that create ill-conditioned directions, and add sensors where redundancy both lowers variance and guards against outliers. For a moving target or large coverage area, placement is optimized over the whole region, minimizing average or worst-case GDOP, usually by numerical search.
 
 *****************************************
 Practical Challenges in Real Systems
@@ -677,7 +683,7 @@ The model used in this chapter so far omits a few effects that usually dominate 
 Receiver Synchronization
 ================================
 
-TDOA's defining advantage — that it needs no synchronized transmitter — comes paired with its defining burden: the *receivers* must share a common time reference, and any error in that reference enters the measurement directly. If sensor :math:`i`'s clock is offset from truth by :math:`\delta t_i`, the measured TDOA is corrupted by :math:`\delta t_i - \delta t_j`, an error multiplied by :math:`c` in range. The scale is unforgiving for radio systems:
+TDOA's defining advantage, that it needs no synchronized transmitter, comes paired with its defining burden: the *receivers* must share a common time reference, and any error in that reference enters the measurement directly. If sensor :math:`i`'s clock is offset from truth by :math:`\delta t_i`, the measured TDOA is corrupted by :math:`\delta t_i - \delta t_j`, an error multiplied by :math:`c` in range. The scale is unforgiving for radio systems:
 
 .. math::
 
@@ -695,7 +701,7 @@ Everything so far has assumed a single line-of-sight path between the emitter an
 Sensor-Position Uncertainty and Calibration
 ===================================================
 
-The geometry assumed exact knowledge of the sensor coordinates :math:`\mathbf{s}_i`. Errors in those coordinates propagate into the position estimate just as measurement errors do, and for distant emitters can be amplified by the same poor geometry that inflates GDOP. Careful survey of fixed installations, GPS positioning of mobile sensors, and *self-calibration* — jointly estimating sensor positions and emitter locations from emitters of opportunity at known or constrained locations — are the standard responses. A full error budget must include sensor-position uncertainty alongside timing and TDE error; in well-synchronized systems it is often the next-largest term.
+The geometry assumed exact knowledge of the sensor coordinates :math:`\mathbf{s}_i`. Errors in those coordinates propagate into the position estimate just as measurement errors do, and for distant emitters can be amplified by the same poor geometry that inflates GDOP. Careful survey of fixed installations, GPS positioning of mobile sensors, and *self-calibration*, jointly estimating sensor positions and emitter locations from emitters of opportunity at known or constrained locations, are the standard responses. A full error budget must include sensor-position uncertainty alongside timing and TDE error; in well-synchronized systems it is often the next-largest term.
 
 *******************
 Advanced Topics
@@ -704,7 +710,7 @@ Advanced Topics
 Joint TDOA/FDOA Estimation
 ==================================
 
-When the emitter, the sensors, or both are *moving*, the relative motion imparts a Doppler shift that differs between sensors — a **Frequency Difference of Arrival** (FDOA). FDOA carries information about the emitter's *velocity* and, crucially, adds an independent geometric constraint that improves position observability, especially for the difficult far-field and few-sensor cases where TDOA alone is poorly conditioned. TDOA and FDOA are estimated jointly by maximizing the **Complex Ambiguity Function** (CAF) over both delay and frequency offset:
+When the emitter, the sensors, or both are *moving*, the relative motion imparts a Doppler shift that differs between sensors, a **Frequency Difference of Arrival** (FDOA). FDOA carries information about the emitter's *velocity* and, crucially, adds an independent geometric constraint that improves position observability, especially for the difficult far-field and few-sensor cases where TDOA alone is poorly conditioned. TDOA and FDOA are estimated jointly by maximizing the **Complex Ambiguity Function** (CAF) over both delay and frequency offset:
 
 .. math::
 

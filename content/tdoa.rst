@@ -553,6 +553,33 @@ Maximum-Likelihood Estimation
 
 Under Gaussian noise, the negative log-likelihood is, up to constants, exactly the weighted squared residual above. So **the maximum-likelihood estimator coincides with weighted nonlinear least squares** — the Gauss-Newton iteration is not a heuristic, it is the statistically optimal estimator under the assumed model. This is also the estimator whose covariance the Cramér-Rao bound below predicts.
 
+Let's put that to work by continuing the Python example one more time. We already have a position from the closed-form solver, ``emitter_est``, and the theory tells us two things: the maximum-likelihood estimate is just the Gauss-Newton iteration above, and the closed-form fix is the ideal seed for it because it drops us right inside the basin of the true minimum. So we'll start at ``emitter_est`` and take a few Gauss-Newton steps, each one re-linearizing the range-difference model at the current guess and solving a tiny least-squares problem for the correction. Unlike Fang's solver, which used only the two pairs touching the reference sensor, this one uses *all three* pairs in ``range_diff``, so the extra pair acts as redundancy that the iteration averages over.
+
+.. code-block:: python
+
+   # Refine the closed-form fix with Gauss-Newton (= maximum likelihood under Gaussian noise)
+   u = emitter_est.copy() # seed the iteration with the closed-form estimate
+   for _ in range(10):
+      h = np.zeros(len(pairs))      # predicted range differences at the current guess
+      J = np.zeros((len(pairs), 2)) # Jacobian, one row per pair
+      for k, (a, b) in enumerate(pairs):
+         e_a = (u - s[a]) / np.linalg.norm(u - s[a]) # unit vector from Rx_a toward the guess
+         e_b = (u - s[b]) / np.linalg.norm(u - s[b]) # unit vector from Rx_b toward the guess
+         h[k] = np.linalg.norm(u - s[b]) - np.linalg.norm(u - s[a]) # predicted r_b - r_a
+         J[k] = e_b - e_a # row of the Jacobian is a difference of unit bearing vectors
+
+      residual = range_diff - h # measured minus predicted range differences
+      delta, *_ = np.linalg.lstsq(J, residual, rcond=None) # Gauss-Newton step (J^T J)^-1 J^T residual
+      u = u + delta
+      if np.linalg.norm(delta) < 1e-9: # stop once the update stops moving the estimate
+         break
+
+   emitter_ml = u
+   print("ML (Gauss-Newton) estimate:", emitter_ml) # ~[153, 355]
+   print("True emitter position:     ", tx_position)
+
+A couple of details worth pointing out. Because we assumed the range-difference errors are independent with equal variance, the weight :math:`\mathbf{C}^{-1}=\sigma^{-2}\mathbf{I}` is a scalar that cancels out of the update, which is why a plain ``np.linalg.lstsq`` (no weight matrix) computes the step exactly; if the pairs had unequal quality we would fold their inverse variances in here. The Jacobian rows are literally the ``e_b - e_a`` differences of unit bearing vectors from the math above, so you can watch the geometry enter the estimator directly. Starting from the already-good closed-form seed, the iteration converges in just a handful of steps and lands on the true emitter at :math:`(153, 355)`. In our high-SNR simulation it barely moves off the closed-form answer, but with noisier measurements this is where the extra pair and the iterative refinement pay off, and it is this same :math:`\mathbf{J}^\top\mathbf{C}^{-1}\mathbf{J}` that reappears in the Cramér-Rao bound below as the estimator's covariance.
+
 Robust, Recursive, and Bayesian Extensions
 ==================================================
 

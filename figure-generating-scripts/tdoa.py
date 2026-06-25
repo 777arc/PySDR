@@ -205,7 +205,9 @@ print("Grid estimate:", emitter_grid) # ~[153, 355]
 fig3, ax1 = plt.subplots(1, 1, figsize=(7, 6))
 # Invert the cost into a likelihood-style surface so higher (brighter) = more likely emitter location
 likelihood = -np.log10(cost + 1e-9)
-im = ax1.imshow(likelihood, origin='lower', cmap='viridis',
+# Cap the colormap a bit below the peak so the bright region around the emitter spreads out and is easier to see
+vmax = likelihood.min() + 0.5 * (likelihood.max() - likelihood.min()) # 0.5 was adjusted manually to look good
+im = ax1.imshow(likelihood, origin='lower', cmap='viridis', vmax=vmax,
                 extent=[grid_x[0], grid_x[-1], grid_y[0], grid_y[-1]])
 fig3.colorbar(im, ax=ax1, label='likelihood (higher = more likely)')
 # Overlay the hyperbolas, receivers, true Tx, and the grid-search estimate
@@ -218,10 +220,9 @@ ax1.scatter(rx_positions[:, 0], rx_positions[:, 1], c='tab:cyan', marker='^', s=
 for i in range(num_rx):
     ax1.annotate(f'Rx{i}', rx_positions[i], textcoords='offset points', xytext=(8, 8), color='w', fontweight='bold', zorder=6)
 ax1.scatter(*tx_position, c='red', marker='*', s=300, edgecolors='k', label='True Tx', zorder=5)
-ax1.scatter(*emitter_grid, c='white', marker='x', s=120, linewidths=2, label='Grid estimate', zorder=6)
+#ax1.scatter(*emitter_grid, c='white', marker='x', s=120, linewidths=2, label='Grid estimate', zorder=6)
 ax1.set_xlim(grid_x[0], grid_x[-1]); ax1.set_ylim(grid_y[0], grid_y[-1])
 ax1.set_xlabel('x [m]'); ax1.set_ylabel('y [m]')
-ax1.set_title('Brute-force TDOA cost heatmap')
 ax1.legend(handles=ax1.get_legend_handles_labels()[0] + hyperbola_handles, loc='upper right')
 ax1.set_aspect('equal')
 fig3.tight_layout()

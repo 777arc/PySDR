@@ -5,7 +5,7 @@
    viewBox="0 0 810.43059 351.69705"
    version="1.1"
    id="svg1163"
-   sodipodi:docname="doa_gdop.svg"
+   sodipodi:docname="tdoa_gdop.svg"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -26,15 +26,15 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="pt"
      showgrid="false"
-     inkscape:zoom="3.8327016"
-     inkscape:cx="529.78296"
-     inkscape:cy="176.11598"
+     inkscape:zoom="1.9163508"
+     inkscape:cx="453.72695"
+     inkscape:cy="168.54952"
      inkscape:window-width="3840"
      inkscape:window-height="2054"
      inkscape:window-x="-11"
      inkscape:window-y="-11"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg1163" />
+     inkscape:current-layer="matplotlib.axis_6" />
   <metadata
      id="metadata534">
     <rdf:RDF>
@@ -1518,23 +1518,7 @@
                  x="0"
                  y="-0.171875"
                  style="font-size:12px;font-family:'DejaVu Sans'"
-                 id="tspan1094">4</tspan><tspan
-                 x="9.9726562"
-                 y="-0.171875"
-                 style="font-size:12px;font-family:'DejaVu Sans'"
-                 id="tspan1096">×</tspan><tspan
-                 x="22.365234"
-                 y="-0.171875"
-                 style="font-size:12px;font-family:'DejaVu Sans'"
-                 id="tspan1098">1</tspan><tspan
-                 x="30"
-                 y="-0.171875"
-                 style="font-size:12px;font-family:'DejaVu Sans'"
-                 id="tspan1100">0</tspan><tspan
-                 x="37.749611"
-                 y="-4.765625"
-                 style="font-size:8.4px;font-family:'DejaVu Sans'"
-                 id="tspan1102">0</tspan></text>
+                 id="tspan1094">4</tspan></text>
           </g>
         </g>
       </g>
@@ -1563,23 +1547,31 @@
                  x="0"
                  y="-0.171875"
                  style="font-size:12px;font-family:'DejaVu Sans'"
-                 id="tspan1115">6</tspan><tspan
-                 x="9.9726562"
-                 y="-0.171875"
+                 id="tspan1115">6</tspan></text>
+          </g>
+        </g>
+      </g>
+      <g
+         id="ytick_25-7"
+         style="stroke-linecap:butt;stroke-linejoin:round"
+         transform="translate(1.0302048,-25.215776)">
+        <g
+           id="text_64-5"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <!-- $\mathdefault{6\times10^{0}}$ -->
+          <g
+             transform="translate(743.38272,103.43168)"
+             id="g1127-9"
+             style="stroke-linecap:butt;stroke-linejoin:round">
+            <text
+               id="text1125-5"
+               style="stroke-linecap:butt;stroke-linejoin:round"
+               x="-1.5654753"
+               y="-0.29352662"><tspan
+                 x="-1.5654753"
+                 y="-0.46540162"
                  style="font-size:12px;font-family:'DejaVu Sans'"
-                 id="tspan1117">×</tspan><tspan
-                 x="22.365234"
-                 y="-0.171875"
-                 style="font-size:12px;font-family:'DejaVu Sans'"
-                 id="tspan1119">1</tspan><tspan
-                 x="30"
-                 y="-0.171875"
-                 style="font-size:12px;font-family:'DejaVu Sans'"
-                 id="tspan1121">0</tspan><tspan
-                 x="37.749611"
-                 y="-4.765625"
-                 style="font-size:8.4px;font-family:'DejaVu Sans'"
-                 id="tspan1123">0</tspan></text>
+                 id="tspan1115-2">7</tspan></text>
           </g>
         </g>
       </g>

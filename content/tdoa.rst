@@ -641,19 +641,20 @@ The bound is the benchmark against which estimators are judged: a method that at
 Geometric Dilution of Precision
 =======================================
 
-Even with perfect measurements, geometry can ruin a fix. **Geometric Dilution of Precision** (GDOP) quantifies how the sensor-emitter configuration amplifies measurement error into position error. If the range-difference errors are independent with common standard deviation :math:`\sigma`, so :math:`\mathbf{C}=\sigma^2\mathbf{I}`, then
+Suppose your sensors can measure range differences to about 1 m of accuracy — a respectable number for a well-synchronized radio system. You might expect to then pin down the emitter to roughly 1 m as well. But where is the emitter? Picture it sitting comfortably inside a triangle of three sensors: the hyperbolas from each sensor pair slice across one another at steep, nearly right angles, and where they cross is pinned down tightly, so your 1 m of ranging error turns into maybe 1.5 m of position error. Now slide that same emitter far off to one side, well outside the cluster. The hyperbolas now graze each other at a shallow angle, like two gently curving lines that nearly overlap, and the crossing point smears out along the direction they share. The very same 1 m of ranging error can now balloon into tens of meters of position error. Nothing about your hardware changed — only the geometry did.
+
+That blow-up factor has a name: **Geometric Dilution of Precision** (GDOP). It captures how much the sensor-emitter layout magnifies measurement error into position error. If the range-difference errors are independent and each has the same standard deviation :math:`\sigma`, so the covariance is :math:`\mathbf{C}=\sigma^2\mathbf{I}` (a diagonal matrix with :math:`\sigma^2` on the diagonal), then
 
 .. math::
 
    \mathrm{GDOP} = \sqrt{\mathrm{tr}\bigl[(\mathbf{J}^\top\mathbf{J})^{-1}\bigr]}, \qquad
    \sigma_{\text{position}} = \mathrm{GDOP}\cdot \sigma .
 
-GDOP is a pure number :math:`\ge 1`: it is the factor by which the underlying ranging error is magnified at a given emitter location. The geometric intuition follows from the Jacobian rows being differences of unit bearing vectors :math:`\hat{\mathbf{e}}_i - \hat{\mathbf{e}}_1`:
+Your position error is just your ranging error multiplied by GDOP, so GDOP is a unitless number, always :math:`\ge 1`, telling you the factor by which ranging error gets magnified at a given emitter location.
 
-* When the sensors surround the emitter so that the bearing vectors point in well-spread directions, the hyperbolas cross at large angles, :math:`\mathbf{J}^\top\mathbf{J}` is well-conditioned, and GDOP is small (good).
-* When the emitter lies far outside the sensor cluster, or the sensors are nearly collinear, the bearing vectors become nearly parallel, the hyperbolas intersect at shallow angles, :math:`\mathbf{J}^\top\mathbf{J}` becomes nearly singular, and GDOP explodes (bad).
+Where does the magnification come from? It is baked into the Jacobian :math:`\mathbf{J}`, whose rows are differences of unit bearing vectors :math:`\hat{\mathbf{e}}_i - \hat{\mathbf{e}}_1` (the direction to one sensor minus the direction to another). When those directions point all over the place, :math:`\mathbf{J}^\top\mathbf{J}` is *well-conditioned* (far from singular, so its inverse stays small) and GDOP is small. When they nearly line up, :math:`\mathbf{J}^\top\mathbf{J}` becomes nearly singular and GDOP blows up. So an emitter surrounded by the sensors, with bearing vectors well-spread and hyperbolas crossing at large angles, gets a small GDOP (good), while an emitter far outside the cluster, or sensors nearly collinear (almost in a straight line), leaves the bearing vectors nearly parallel and the hyperbolas grazing at shallow angles, giving a huge GDOP (bad).
 
-This is the geometric counterpart of the observation above that hyperbolas degenerate near the baseline extremes. A practical TDOA system can be limited far more by where its sensors sit than by how well it measures time.
+This is the same effect we saw when hyperbolas degenerate near the ends of the baseline. The takeaway: a TDOA system can be limited far more by *where its sensors sit* than by *how well it measures time* — all the nanosecond synchronization and wide bandwidth in the world won't save a fix in a high-GDOP region of the map.
 
 The figure below shows GDOP heat maps over a plane for (left) three sensors at the vertices of an equilateral triangle and (right) three nearly collinear sensors, showing a broad low-GDOP region inside the triangle versus a narrow usable corridor for the collinear array, with GDOP rising sharply outside the convex hull in both cases.
 

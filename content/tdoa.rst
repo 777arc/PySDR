@@ -126,7 +126,7 @@ Taking sensor 1 as reference, the range-difference measurements are
    \Delta r_{21}=r_2-r_1\approx 17.08\ \text{m},\qquad
    \Delta r_{31}=r_3-r_1\approx 30.62\ \text{m}.
 
-Each defines a hyperbola with foci :math:`\{\mathbf{s}_2,\mathbf{s}_1\}` and :math:`\{\mathbf{s}_3,\mathbf{s}_1\}` respectively; their intersection is the emitter's position. Solving the two hyperbola equations by hand is awkward, which is precisely the motivation for the algebraic linearization developed below — where we will recover :math:`(40,30)` from exactly these numbers in closed form.
+Each defines a hyperbola with foci :math:`\{\mathbf{s}_2,\mathbf{s}_1\}` and :math:`\{\mathbf{s}_3,\mathbf{s}_1\}` respectively; their intersection is the emitter's position. Solving the two hyperbola equations by hand is awkward, which is precisely the motivation for the algebraic linearization developed below, where we will recover :math:`(40,30)` from exactly these numbers in closed form.
 
 *************************************
 The Signal and Measurement Model
@@ -163,7 +163,7 @@ We assume each :math:`n_i(t)` is zero-mean, wide-sense stationary, Gaussian, and
 
    \mathrm{SNR}_i = \frac{a_i^2 \sigma_s^2}{\sigma_{n_i}^2},
 
-with :math:`\sigma_s^2` and :math:`\sigma_{n_i}^2` the signal and noise powers. These are idealizations — real noise is often colored and partially correlated across sensors — but they lead to estimators and bounds that perform well in practice, and the framework extends to a general noise covariance when needed.
+with :math:`\sigma_s^2` and :math:`\sigma_{n_i}^2` the signal and noise powers. These are idealizations; real noise is often colored and partially correlated across sensors, but they lead to estimators and bounds that perform well in practice, and the framework extends to a general noise covariance when needed.
 
 The Nonlinear Measurement Equations
 ==========================================
@@ -198,7 +198,7 @@ is maximized when the shift :math:`\tau` aligns the two copies, i.e. at :math:`\
 
    \hat{\tau}_{ij} = \arg\max_{\tau} \, \hat{R}_{x_i x_j}(\tau),
 
-with the sample cross-correlation computed from a finite record of length :math:`T`. Under the independent-noise assumption the noise contributes no systematic peak, so the correlation peak rides on the signal alignment. In practice the correlation is computed efficiently in the frequency domain via the FFT, using the cross-power spectral density :math:`G_{x_i x_j}(f) = \mathcal{F}\{R_{x_i x_j}(\tau)\}` and an inverse transform.
+In practice the correlation is usually computed efficiently in the frequency domain via the FFT (just like how large convolutions typically use an FFT), using the cross-power spectral density :math:`G_{x_i x_j}(f) = \mathcal{F}\{R_{x_i x_j}(\tau)\}` and an inverse transform.
 
 Python Simulation
 ==================
@@ -289,9 +289,7 @@ Everything so far was purely for simulation, the rest represents what you would 
       peak_lag = np.argmax(np.abs(xcorr)) - (buffer_len - 1) # 'full' puts zero lag at index buffer_len-1
       range_diff[k] = (peak_lag / sample_rate) * c # meters
 
-Not much to it!
-
-This gives us the following results:
+Not much to it!  This gives us the following results:
 
 .. image:: ../_images/tdoa_python_integer.svg
    :align: center 
@@ -349,53 +347,69 @@ Plain cross-correlation is fragile: if the transmitted signal is narrow in bandw
 
    R^{\mathrm{GCC}}_{x_i x_j}(\tau) = \int_{-\infty}^{\infty} \Psi(f)\, G_{x_i x_j}(f)\, e^{j 2\pi f \tau}\, df .
 
-The weighting reshapes the spectrum to sharpen and stabilize the peak. Different choices of :math:`\Psi(f)` correspond to different classical estimators, and selecting it well is the heart of robust TDE.
-
-Weighting Functions
-==========================
-
-Common weightings include:
+The weighting reshapes the spectrum to sharpen and stabilize the peak. Different choices of :math:`\Psi(f)` correspond to different classical estimators, and selecting it well is the heart of robust TDE.  Common weightings include:
 
 * **Cross-correlation** (:math:`\Psi = 1`): the maximum-likelihood choice only in the high-SNR, broadband-flat limit; otherwise suboptimal.
 * **Roth** (:math:`\Psi = 1/G_{x_i x_i}(f)`): suppresses frequencies where one sensor is noisy.
 * **SCOT** (Smoothed Coherence Transform, :math:`\Psi = 1/\sqrt{G_{x_i x_i}G_{x_j x_j}}`): symmetric whitening of both channels.
 * **PHAT** (Phase Transform, :math:`\Psi = 1/|G_{x_i x_j}(f)|`): the most widely used choice in acoustics.
 
-The **GCC-PHAT** estimator deserves emphasis. By dividing out the magnitude of the cross-spectrum it retains *only the phase*:
+Diving deeper into the **GCC-PHAT** estimator- by dividing out the magnitude of the cross-spectrum it retains *only the phase*:
 
 .. math::
 
    R^{\mathrm{PHAT}}_{x_i x_j}(\tau) = \int \frac{G_{x_i x_j}(f)}{\bigl|G_{x_i x_j}(f)\bigr|} e^{j2\pi f \tau} df .
 
-Because the delay between two copies of a signal is encoded entirely in the *linear phase* term :math:`e^{-j2\pi f \tau_{ij}}`, while the magnitude carries the (often unhelpful) spectral shape and reverberant coloring, whitening to unit magnitude weights every frequency equally and produces a sharp, near-impulsive peak at the true delay. This makes PHAT strikingly robust to reverberation. Its weakness is that it also whitens noise-dominated frequencies, so at low SNR the equal weighting amplifies noise; SNR-aware variants reintroduce a coherence-based weighting to compensate.
+Because the delay between two copies of a signal is encoded entirely in the *linear phase* term :math:`e^{-j2\pi f \tau_{ij}}`, while the magnitude carries the (often unhelpful) spectral shape and reverberant coloring, whitening to unit magnitude weights every frequency equally and produces a sharp, near-impulsive peak at the true delay. This makes PHAT strikingly robust to multipath. Its weakness is that it also whitens noise-dominated frequencies, so at low SNR the equal weighting amplifies noise; SNR-aware variants reintroduce a coherence-based weighting to compensate.  In real systems, because most signals are not always on, you typically have to determine the time-frequency bounding box of the target signal before performing TDOA, so unless there is a lot of interference you can estimate the SNR pretty easily.
 
 Practical Considerations
 ================================
 
-Several effects govern real performance:
+Several effects govern the accuracy of the TDOA results:
 
-* The **integration window** :math:`T` trades estimator variance (longer is better, since variance falls roughly as :math:`1/T`) against the stationarity assumption and, for moving emitters, against blurring of the delay over the window.
+* The **integration window** :math:`T` trades estimator variance (longer is better, since variance falls roughly as :math:`1/T`) against the stationarity assumption and, for moving emitters, against blurring of the delay over the window.  Many times this value is determined by the signal itself, e.g. you might perform TDOA on a per-packet basis.
 * **Coherence bandwidth** limits which frequencies actually carry usable phase.
-* **Signal bandwidth** is decisive: as the Cramér-Rao analysis below shows, delay variance falls as the *square* of the RMS bandwidth, so wideband signals localize far better than narrowband ones.
+* **Signal bandwidth** is decisive: as the Cramér-Rao analysis below shows, delay variance falls as the *square* of the bandwidth, so wideband signals localize far better than narrowband ones, unlike DOA where we didn't care about bandwidth (in fact, many of the DOA concepts used a narrowband assumption). 
 
-Finally, the entire computation is dominated by FFTs and is :math:`O(M\log M)` per sensor pair for records of :math:`M` samples, which is what makes large microphone arrays and dense sensor networks tractable.
+From a compute perspective, the TDOA computation is dominated by FFTs and is :math:`O(M\log M)` per sensor pair for records of :math:`M` samples, which is what makes large sensor networks tractable.
 
-Worked Example: GCC-PHAT in Practice
+GCC-PHAT Python Example
 ============================================
 
-Suppose two microphones sample at :math:`f_s = 48` kHz a transient whose true inter-microphone delay is :math:`\tau_{12} = 0.521` ms. In samples this is :math:`0.521\times10^{-3}\times 48000 \approx 25.0` samples. The processing chain is: (1) take an :math:`M`-point FFT of each record; (2) form the cross-spectrum :math:`X_1(f)\,X_2^*(f)`; (3) divide by its magnitude to apply PHAT; (4) inverse-FFT to obtain the lag-domain function; (5) locate the peak near lag 25 and refine by parabolic interpolation. If the discrete peak sits at lag 25 with neighbors at 24 and 26 having correlation values :math:`y_{-},y_0,y_{+}`, the sub-sample offset is
+The nice thing about PHAT is that we can fold it into the simulation we already built with almost no new code. Recall that the sub-sample estimator above already worked in the frequency domain: it formed the cross-spectrum :math:`X_a^*(f)\,X_b(f)`, zero-padded it to interpolate, and inverse-FFT'd to recover the lag-domain correlation. PHAT is just one extra line: before transforming back to the lag domain, we divide the cross-spectrum by its own magnitude, so that every frequency bin contributes with unit weight and only the phase, which is where the delay lives, survives.
 
-.. math::
+.. code-block:: python
 
-   \delta = \frac{1}{2}\,\frac{y_{-}-y_{+}}{y_{-}-2y_0+y_{+}},
+   U = 16 # correlation upsampling factor
+   half = (buffer_len + 1) // 2 # number of DC + positive-frequency bins
+   range_diff = np.zeros(len(pairs)) # meters
+   for k, (a, b) in enumerate(pairs):
+      # Cross-spectrum, same as the sub-sample example
+      X = np.conj(np.fft.fft(rx_signals[a])) * np.fft.fft(rx_signals[b])
 
-so a refined estimate of, say, lag :math:`25.02` corresponds to :math:`\hat\tau_{12} = 25.02/48000 \approx 0.5213` ms, and a range difference :math:`c\,\hat\tau_{12}\approx 0.179` m in air. The same code path, with :math:`c = 3\times10^8` m/s, serves a radio system — only the timing precision demanded of the hardware changes.
+      # PHAT weighting: divide out the magnitude so only the phase remains
+      X = X / (np.abs(X) + 1e-12) # small epsilon avoids divide-by-zero
+
+      # Zero-pad in the high-frequency middle to interpolate, then IFFT
+      X_padded = np.zeros(U * buffer_len, dtype=complex)
+      X_padded[:half] = X[:half]
+      X_padded[U * buffer_len - (buffer_len - half):] = X[half:]
+      xcorr = np.abs(np.fft.ifft(X_padded)) * U
+
+      # Peak index -> signed lag; indices past the midpoint are negative lags
+      peak_idx = np.argmax(xcorr)
+      if peak_idx > U * buffer_len // 2:
+         peak_idx -= U * buffer_len
+      peak_lag = peak_idx / U # sub-sample lag, +ve => Rx_b farther
+      range_diff[k] = (peak_lag / sample_rate) * c # meters
+
+The only change from the sub-sample code is the single ``X = X / (np.abs(X) + 1e-12)`` line; the small epsilon in the denominator keeps frequency bins that hold almost no energy from blowing up when we divide. With our wideband, high-SNR simulated signal the result barely differs from plain cross-correlation, because PHAT and cross-correlation coincide in exactly that broadband, high-SNR limit. The payoff shows up in harder conditions: when the spectrum is colored or multipath smears the peak, whitening to unit magnitude collapses the correlation back to a sharp, near-impulsive spike at the true delay, which is why PHAT is the default in acoustics.
 
 *************************************
 Closed-Form Localization Algorithms
 *************************************
 
-The measurement equations above are nonlinear and, taken directly, require iterative solution with a good starting point. *Closed-form* (non-iterative) estimators sidestep this by an algebraic trick: introduce an auxiliary variable that absorbs the nonlinearity and renders the system linear. They are fast, need no initial guess, and cannot get stuck in local minima — making them invaluable both on their own and as initializers for the iterative methods described below.
+The measurement equations above are nonlinear and, taken directly, require iterative solution with a good starting point. *Closed-form* (non-iterative) estimators sidestep this by an algebraic trick: introduce an auxiliary variable that absorbs the nonlinearity and renders the system linear. They are fast, need no initial guess, and cannot get stuck in local minima, making them invaluable both on their own and as initializers for the iterative methods described below.
 
 The Linearization Strategy
 ==================================

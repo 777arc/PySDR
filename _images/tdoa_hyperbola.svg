@@ -5,7 +5,7 @@
    viewBox="0 0 418.31515 361.95105"
    version="1.1"
    id="svg300"
-   sodipodi:docname="doa_hyperbola.svg"
+   sodipodi:docname="tdoa_hyperbola.svg"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -26,9 +26,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="pt"
      showgrid="false"
-     inkscape:zoom="3.4509409"
-     inkscape:cx="260.94333"
-     inkscape:cy="221.67867"
+     inkscape:zoom="19.52147"
+     inkscape:cx="261.17398"
+     inkscape:cy="222.473"
      inkscape:window-width="3840"
      inkscape:window-height="2054"
      inkscape:window-x="-11"
@@ -64,15 +64,6 @@
        d="M 99.924,357.12 H 480.108 V 31.248 H 99.924 Z"
        style="fill:#ffffff"
        id="path11" />
-  </g>
-  <g
-     id="line2d_1"
-     transform="translate(-62.192834,-26.90081)">
-    <path
-       d="M 235.704,194.184 H 344.328"
-       clip-path="url(#pefa35b6b33)"
-       style="fill:none;stroke:#888888;stroke-dasharray:1, 1.65;stroke-dashoffset:0"
-       id="path14" />
   </g>
   <g
      id="matplotlib.axis_1"
@@ -664,9 +655,10 @@
   </g>
   <g
      id="text_19"
-     transform="translate(-61.323506,-25.596818)">
+     transform="translate(-81.263091,-22.408021)"
+     style="fill:#00af00;fill-opacity:1;stroke:none;stroke-opacity:1">
     <text
-       style="font-size:9px;font-family:'DejaVu Sans';text-anchor:middle;fill:#666666"
+       style="font-size:9px;font-family:'DejaVu Sans';text-anchor:middle;fill:#00af00;fill-opacity:1;stroke:none;stroke-opacity:1"
        x="290.01599"
        y="188.18401"
        id="text238">baseline</text>
@@ -763,4 +755,14 @@
          id="rect295" />
     </clipPath>
   </defs>
+  <g
+     id="line2d_1"
+     transform="matrix(0.93173781,0,0,0.93173781,-42.222817,-13.645383)"
+     style="stroke-width:1.07327;stroke:#00af00;stroke-opacity:1">
+    <path
+       d="M 235.704,194.184 H 344.328"
+       clip-path="url(#pefa35b6b33)"
+       style="fill:none;stroke:#00af00;stroke-width:1.07327;stroke-dasharray:1.07327, 1.77089;stroke-dashoffset:0;stroke-opacity:1"
+       id="path14" />
+  </g>
 </svg>

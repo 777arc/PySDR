@@ -593,7 +593,7 @@ Brute-Force Heatmap Approach
 
 Every method so far has been algebraic or iterative: we manipulated equations or descended a gradient. But there is a refreshingly simple alternative that needs neither. Lay a grid over the search area, and at every candidate position ask a single question: *if the emitter were here, what range differences would the sensors see, and how far off are those from what we actually measured?* Squaring and summing those mismatches gives a cost at each grid point, and the emitter is wherever that cost is smallest. The result is a heatmap of the same cost surface the Gauss-Newton iteration was quietly walking down, except now we can see all of it at once.
 
-We can do this with the variables we already have, ``range_diff``, ``rx_positions``, and ``pairs``:
+Back to the Python example, we can do this with the variables we already have, ``range_diff``, ``rx_positions``, and ``pairs``:
 
 .. code-block:: python
 
@@ -624,6 +624,8 @@ Plotting ``likelihood`` as an image reveals the geometry directly: the bright ri
    :alt: Adding heatmap to the tdoa plot shown earlier
 
 One nice part about the heatmap approach is if there is a lot of error, or sensors with low SNR without realizing it, there may be multiple hot spots on the heatmap, which your brain can notice.  The heatmap can even be overlaid on top of a satellite view of the area!
+
+This brute-force approach is not very computationally efficient, and it's not really an option at all for 3D TDOA.  One alternative to calculating every grid point but still brute-forcing it is to draw all of the hyperbolas in 2D but with "width" applied to each one, e.g. by applying a lobe shaped function along the hyperbola so it tapers off.
 
 ***********************************************
 Performance Analysis and Fundamental Bounds
@@ -668,7 +670,7 @@ and the Cramér-Rao Lower Bound states that *any* unbiased estimator has covaria
 
    \mathrm{Cov}(\hat{\mathbf{u}}) \succeq \mathbf{F}^{-1} = (\mathbf{J}^\top \mathbf{C}^{-1}\mathbf{J})^{-1}.
 
-The bound is the benchmark against which estimators are judged: a method that attains it is *efficient*. The maximum-likelihood estimator above attains it asymptotically (large :math:`T`, high SNR), and Chan's closed-form method attains it at small noise, which is exactly why both are used. The CRLB also cleanly separates the two influences on accuracy: :math:`\mathbf{C}` (signal-and-noise quality, improvable by more bandwidth, power, or integration) and :math:`\mathbf{J}` (geometry, improvable by sensor placement), studied next.  The plot below shows a few example bandwidths and the lower bound over SNR, to give you a feel for how much error you should expect, or at least the floor.  The y-axis is the 1-σ value (one standard deviation).
+The bound is the benchmark against which estimators are judged: a method that attains it is *efficient*. The maximum-likelihood estimator above attains it asymptotically (large :math:`T`, high SNR), and Chan's closed-form method attains it at small noise, which is exactly why both are used. The CRLB also cleanly separates the two influences on accuracy: :math:`\mathbf{C}` (signal-and-noise quality, improvable by more bandwidth, power, or integration) and :math:`\mathbf{J}` (geometry, improvable by sensor placement), studied next.  The plot below shows a few example bandwidths and the lower bound over SNR, to give you a feel for how much error you should expect, or at least the floor.  The y-axis is the 1-:math:`\mathrm{\sigma}` value (one standard deviation).
 
 .. image:: ../_images/tdoa_cramer_rao.svg
    :align: center 

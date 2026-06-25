@@ -204,6 +204,146 @@ is maximized when the shift :math:`\tau` aligns the two copies, i.e. at :math:`\
 
 with the sample cross-correlation computed from a finite record of length :math:`T`. Under the independent-noise assumption the noise contributes no systematic peak, so the correlation peak rides on the signal alignment. In practice the correlation is computed efficiently in the frequency domain via the FFT, using the cross-power spectral density :math:`G_{x_i x_j}(f) = \mathcal{F}\{R_{x_i x_j}(\tau)\}` and an inverse transform.
 
+Python Simulation
+==================
+
+Enough math, let's see how this all looks with a simple Python example.  First we'll set up the simulation with some high level parameters such as emitter and sensor position, and the simulated sample rate which is essentially how much spectrum the receiver's will "see".
+
+.. code-block:: python
+
+   import numpy as np
+   import matplotlib.pyplot as plt
+   from matplotlib.lines import Line2D
+   from itertools import combinations
+   from scipy.signal import firwin, lfilter
+   
+   sample_rate = 50e6
+   c = 3e8  # speed of light [m/s]
+   snr_db = 10  # SNR of the received signal at each receiver [dB]
+   tx_len_samples = 1000 # samples to transmit
+   rx_positions = np.array([
+      [65,  229],   # Rx0
+      [676, 123],  # Rx1
+      [153, 543],  # Rx2
+   ])
+   num_rx = rx_positions.shape[0]
+   tx_position = np.array([153, 355])
+   pairs = list(combinations(range(num_rx), 2)) # For 3 receivers it's (Rx0,Rx1), (Rx0,Rx2), (Rx1,Rx2) -> 3 pairs
+
+TDOA is not very dependent on the specific signal the transmitter emits, although the bandwidth of the signal does matter, so to keep this simple we'll have it transmit random noise that is band-limited to a specified bandwidth.  If we were to use something like QPSK of the same bandwidth instead, nothing would really change.
+
+.. code-block:: python
+
+   bandwidth = 20e6
+   taps = firwin(numtaps=129, cutoff=bandwidth / 2, fs=sample_rate)
+   tx_signal = lfilter(taps, 1.0, np.random.randn(tx_len_samples) + 1j * np.random.randn(tx_len_samples))
+
+Next we will simulate the receivers receiving the signal at a delay based on their position.  We will use a fractional delay filter like we learned about in the :ref:`sync-chapter` Chapter.  The rest of the code should look relatively straightforward.  We make sure to apply unique AWGN per receiver.
+
+.. code-block:: python
+
+   # Simulate what each receiver records
+   true_distances = np.linalg.norm(rx_positions - tx_position, axis=1)
+   true_delays = true_distances / c
+   unknown_tx_time = 1.234e-5   # seconds. arbitray, unknown to receivers and we wont use it in any TDOA calcs
+
+   # Calc the actual TDOAs to act as ground truth
+   for k, (a, b) in enumerate(pairs):
+      true_rd = true_distances[b] - true_distances[a]
+
+   # Figure out how many samples we have to simulate
+   total_delay_samples = (unknown_tx_time + true_delays.max()) * sample_rate
+   buffer_len = tx_len_samples + int(np.ceil(total_delay_samples)) + 10
+
+   # Taken from Synchronization chapter
+   def frac_delay_filter(delay): # delay is in samples, but it can (and will be) not an integer
+      N = 21 # number of taps, keep this odd
+      n = np.arange(-(N-1)//2, N//2+1) # -10,-9,...,0,...,9,10
+      h = np.sinc(n - delay) # calc filter taps
+      h *= np.hamming(N) # window the filter to make sure it decays to 0 on both sides
+      h /= np.sum(h) # normalize to get unity gain, we don't want to change the amplitude/power
+      return h
+
+   # Simulate the delayed signal being received by each sensor
+   rx_signals = np.zeros((num_rx, buffer_len), dtype=complex)
+   for i in range(num_rx):
+      tau = unknown_tx_time + true_delays[i] # absolute delay at this Rx, in seconds
+      tau_samples = tau * sample_rate
+      tau_integer_samps = int(np.round(tau_samples))
+      tau_frac_samps = tau_samples - tau_integer_samps
+      rx = np.zeros(buffer_len, dtype=complex)
+      rx[tau_integer_samps:tau_integer_samps+tx_len_samples] = tx_signal
+      frac_delay_i = frac_delay_filter(tau_frac_samps)
+      rx = np.convolve(rx, frac_delay_i, "same")
+
+      # Each receiver adds its own thermal noise, scaled to hit the SNR set at the top
+      signal_power = np.mean(np.abs(tx_signal)**2)
+      noise_power = signal_power / 10**(snr_db / 10)
+      noise = np.sqrt(noise_power / 2) * (np.random.randn(buffer_len) + 1j * np.random.randn(buffer_len))
+      rx_signals[i] = rx + noise
+
+Everything so far was purely for simulation, the rest represents what you would actually do to calculate the TDOA, typically at a central location or one of the sensors, but it needs access to the samples received at all three sensors.  It's not a lot of code, we simply loop through each pair of sensors, calculate the cross-correlation between their received samples, and pull out the peak.  Later we will see how to do the subsample version of this for more granularity.
+
+.. code-block:: python
+
+   # Estimate the TDOAs using a normal cross-correlation
+   range_diff = np.zeros(len(pairs)) # meters
+   for k, (a, b) in enumerate(pairs):
+      xcorr = np.correlate(rx_signals[b], rx_signals[a], mode='full') 
+      peak_lag = np.argmax(np.abs(xcorr)) - (buffer_len - 1) # 'full' puts zero lag at index buffer_len-1
+      range_diff[k] = (peak_lag / sample_rate) * c # meters
+
+Not much to it!
+
+This gives us the following results:
+
+.. image:: ../_images/tdoa_python_integer.svg
+   :align: center 
+   :target: ../_images/tdoa_python_integer.svg
+   :alt: Python simulation output when doing integer correlation
+
+Note that this code doesn't fully "solve" the problem, even though it might seem like it does at first glance because the lines intersect exactly at the position of the emitter, but it's really your brain doing the final "solving" of the position, by looking at the intersection of the hyperbolas.  Also, if there was more noise, the hyperbolas would not all intersect at one point.  We will dive into automated solutions later in this chapter.
+
+The full Python code (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/tdoa.py>`_.
+
+Resolution and Sub-Sample Estimation
+==========================================
+
+With sampling rate :math:`f_s`, the correlation is computed on a lag grid spaced :math:`1/f_s` apart, so the naive peak resolution is one sample, i.e. :math:`c/f_s` in range. This is usually far too coarse, especially if the sensors (and emitter) are close together, e.g., less than 100 meters. There are two options for sub-sample refinement, one way is to interpolate the signals as part of the cross-correlation, and another is to fit a model to the samples around the discrete peak.  For the latter, parabolic interpolation through the peak and its two neighbors is the simplest, while sinc-based interpolation is more accurate because the true correlation of a band-limited signal is a sinc-like function. Good interpolation routinely yields delay estimates one to two orders of magnitude finer than the sample period.  Below we show an example of doing the interpolated cross-correlation.
+
+.. code-block:: python
+
+   U = 16 # correlation upsampling factor
+   half = (buffer_len + 1) // 2 # number of DC + positive-frequency bins
+   range_diff = np.zeros(len(pairs)) # meters
+   for k, (a, b) in enumerate(pairs):
+      # Cross-correlation in the frequency domain
+      X = np.conj(np.fft.fft(rx_signals[a])) * np.fft.fft(rx_signals[b])
+
+      # Insert zeros in the high-frequency MIDDLE: DC + positive freqs at the front, negative freqs at the back, so it stays a valid FFT layout.
+      X_padded = np.zeros(U * buffer_len, dtype=complex) 
+      X_padded[:half] = X[:half]
+      X_padded[U * buffer_len - (buffer_len - half):] = X[half:]
+
+      # Now IFFT to finish the crosscorrelation
+      xcorr = np.abs(np.fft.ifft(X_padded)) * U
+
+      # Peak index -> signed lag; indices past the midpoint are negative lags
+      peak_idx = np.argmax(xcorr)
+      if peak_idx > U * buffer_len // 2:
+         peak_idx -= U * buffer_len
+      peak_lag = peak_idx / U # sub-sample lag, +ve => Rx_b farther
+      range_diff[k] = (peak_lag / sample_rate) * c # meters
+
+When doing the same Python simulation as before, but with subsampling, we get the following results.  You would have to zoom in on the left-hand plot to see the accuracy difference.
+
+.. image:: ../_images/tdoa_python_subsample.svg
+   :align: center 
+   :target: ../_images/tdoa_python_subsample.svg
+   :alt: Python simulation output when doing subsample correlation
+
+Looking at the right-hand plot, we can see how the original integer-only method was off by a decent margin.
+
 The Generalized Cross-Correlation Framework
 ==================================================
 
@@ -232,11 +372,6 @@ The **GCC-PHAT** estimator deserves emphasis. By dividing out the magnitude of t
    R^{\mathrm{PHAT}}_{x_i x_j}(\tau) = \int \frac{G_{x_i x_j}(f)}{\bigl|G_{x_i x_j}(f)\bigr|} e^{j2\pi f \tau} df .
 
 Because the delay between two copies of a signal is encoded entirely in the *linear phase* term :math:`e^{-j2\pi f \tau_{ij}}`, while the magnitude carries the (often unhelpful) spectral shape and reverberant coloring, whitening to unit magnitude weights every frequency equally and produces a sharp, near-impulsive peak at the true delay. This makes PHAT strikingly robust to reverberation. Its weakness is that it also whitens noise-dominated frequencies, so at low SNR the equal weighting amplifies noise; SNR-aware variants reintroduce a coherence-based weighting to compensate.
-
-Resolution and Sub-Sample Estimation
-==========================================
-
-With sampling rate :math:`f_s`, the correlation is computed on a lag grid spaced :math:`1/f_s` apart, so the naive peak resolution is one sample, i.e. :math:`c/f_s` in range. This is usually far too coarse. Sub-sample refinement fits a model to the samples around the discrete peak — parabolic interpolation through the peak and its two neighbors is the simplest, while sinc-based interpolation is more accurate because the true correlation of a band-limited signal is a sinc-like function. Good interpolation routinely yields delay estimates one to two orders of magnitude finer than the sample period.
 
 Practical Considerations
 ================================
@@ -499,7 +634,7 @@ Off-the-shelf SDRs that can be easily synchronized include any of the Ettus Rese
 Multipath and Non-Line-of-Sight Propagation
 ===================================================
 
-Everything so far has assumed a single line-of-sight path between the emitter and receivers. Real environments add reflections (multipath) and can block the direct path entirely. Multipath superimposes delayed copies of the signal, which distort or split the correlation peak and bias the delay estimate; this is exactly the failure GCC-PHAT was designed to resist, since whitening sharpens the direct-path peak relative to the smeared reflections. When the direct path is entirely obstructed, the *earliest* arriving energy travels an excess distance, so the measured TDOA is biased *long* in a way no amount of averaging removes, because the error is systematic rather than random. Mitigation strategies include identifying these non-line-of-sight links statistically (non-line-of-sight measurements often show larger variance or violate geometric consistency among redundant sensors), down-weighting or discarding them (requires having way more sensors than three), and exploiting redundancy so that a few corrupted links among many can be detected and rejected by the robust estimators described earlier. In dense indoor multipath, which is an extremely difficult envrionment for TDOA, model-based delay estimation and machine-learning approaches increasingly outperform classical correlation.
+Everything so far has assumed a single line-of-sight path between the emitter and receivers. Real environments add reflections (multipath) and can block the direct path entirely. Multipath superimposes delayed copies of the signal, which distort or split the correlation peak and bias the delay estimate; this is exactly the failure GCC-PHAT was designed to resist, since whitening sharpens the direct-path peak relative to the smeared reflections. When the direct path is entirely obstructed, the *earliest* arriving energy travels an excess distance, so the measured TDOA is biased *long* in a way no amount of averaging removes, because the error is systematic rather than random. Mitigation strategies include identifying these non-line-of-sight links statistically (non-line-of-sight measurements often show larger variance or violate geometric consistency among redundant sensors), down-weighting or discarding them (requires having way more sensors than three), and exploiting redundancy so that a few corrupted links among many can be detected and rejected by the robust estimators described earlier. In dense indoor multipath, which is an extremely difficult environment for TDOA, model-based delay estimation and machine-learning approaches increasingly outperform classical correlation.
 
 Sensor-Position Uncertainty and Calibration
 ===================================================

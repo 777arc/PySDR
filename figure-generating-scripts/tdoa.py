@@ -4,8 +4,6 @@ from matplotlib.lines import Line2D
 from itertools import combinations
 from scipy.signal import firwin, lfilter
 
-np.random.seed(0)
-
 sample_rate = 50e6
 c = 3e8  # speed of light [m/s]
 snr_db = 10  # SNR of the received signal at each receiver [dB]
@@ -80,7 +78,6 @@ rx_dist = []
 for i in range(num_rx):
     rx_dist.append(np.sqrt((GX - rx_positions[i, 0])**2 + (GY - rx_positions[i, 1])**2))
 fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
-fig1.suptitle('Method 1: integer-only TDOA (time-domain cross-correlation)')
 # Left: the hyperbolas, which all cross at the transmitter.
 hyperbola_handles = []
 pair_colors = ['tab:blue', 'tab:orange', 'tab:green']
@@ -109,6 +106,7 @@ ax2.set_xlabel('lag [samples]'); ax2.set_ylabel('|cross-correlation|')
 ax2.set_title(f'Cross-correlation of Rx{b} vs Rx{a}')
 ax2.legend()
 ax2.grid()
+fig1.savefig('../_images/tdoa_python_integer.svg', bbox_inches='tight')
 fig1.tight_layout()
 
 # Subsample TDOA calc using a freq domain cross-correlation that was padded as a way to interpolate
@@ -116,6 +114,7 @@ U = 16 # correlation upsampling factor
 half = (buffer_len + 1) // 2 # number of DC + positive-frequency bins
 range_diff = np.zeros(len(pairs)) # meters
 for k, (a, b) in enumerate(pairs):
+    # Cross-correlation in the frequency domain
     X = np.conj(np.fft.fft(rx_signals[a])) * np.fft.fft(rx_signals[b])
 
     # Insert zeros in the high-frequency MIDDLE: DC + positive freqs at the front, negative freqs at the back, so it stays a valid FFT layout.
@@ -123,12 +122,14 @@ for k, (a, b) in enumerate(pairs):
     X_padded[:half] = X[:half]
     X_padded[U * buffer_len - (buffer_len - half):] = X[half:]
 
+    # Now IFFT to finish the crosscorrelation
     xcorr = np.abs(np.fft.ifft(X_padded)) * U
-    # Peak index -> signed lag; indices past the midpoint are negative lags.
+
+    # Peak index -> signed lag; indices past the midpoint are negative lags
     peak_idx = np.argmax(xcorr)
     if peak_idx > U * buffer_len // 2:
         peak_idx -= U * buffer_len
-    peak_lag = peak_idx / U            # sub-sample lag, +ve => Rx_b farther
+    peak_lag = peak_idx / U # sub-sample lag, +ve => Rx_b farther
     range_diff[k] = (peak_lag / sample_rate) * c # meters
 
 print("METHOD 2 (sub-sample, zero-padded FFT)")
@@ -139,7 +140,6 @@ for k, (a, b) in enumerate(pairs):
 
 # 8. FIGURE 2: the sub-sample result, same layout as Figure 1.
 fig2, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
-fig2.suptitle('Method 2: sub-sample TDOA (zero-padded FFT cross-correlation)')
 
 # Left: the hyperbolas from the refined range differences.
 hyperbola_handles = []
@@ -180,7 +180,7 @@ subsample_peak = lags_fine[np.argmax(cc_fine)]
 order_c = np.argsort(lags_coarse)
 order_f = np.argsort(lags_fine)
 ax2.plot(lags_coarse[order_c], cc_coarse[order_c], 'o', markersize=6, label='coarse (1 sample/lag)')
-ax2.plot(lags_fine[order_f], cc_fine[order_f], '-', label=f'{U}x zero-padded')
+ax2.plot(lags_fine[order_f], cc_fine[order_f], '.-', label=f'{U}x interpolation')
 ax2.axvline(subsample_peak, color='red', linestyle='--',
             label=f'sub-sample peak = {subsample_peak:.3f}')
 ax2.set_xlim(peak - 6, peak + 6)
@@ -189,5 +189,6 @@ ax2.set_title(f'Cross-correlation of Rx{b} vs Rx{a}')
 ax2.legend()
 ax2.grid()
 fig2.tight_layout()
+fig2.savefig('../_images/tdoa_python_subsample.svg', bbox_inches='tight')
 
 plt.show()

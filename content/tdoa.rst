@@ -630,7 +630,13 @@ and the Cramér-Rao Lower Bound states that *any* unbiased estimator has covaria
 
    \mathrm{Cov}(\hat{\mathbf{u}}) \succeq \mathbf{F}^{-1} = (\mathbf{J}^\top \mathbf{C}^{-1}\mathbf{J})^{-1}.
 
-The bound is the benchmark against which estimators are judged: a method that attains it is *efficient*. The maximum-likelihood estimator above attains it asymptotically (large :math:`T`, high SNR), and Chan's closed-form method attains it at small noise — which is exactly why both are used. The CRLB also cleanly separates the two influences on accuracy: :math:`\mathbf{C}` (signal-and-noise quality, improvable by more bandwidth, power, or integration) and :math:`\mathbf{J}` (geometry, improvable by sensor placement), studied next.
+The bound is the benchmark against which estimators are judged: a method that attains it is *efficient*. The maximum-likelihood estimator above attains it asymptotically (large :math:`T`, high SNR), and Chan's closed-form method attains it at small noise — which is exactly why both are used. The CRLB also cleanly separates the two influences on accuracy: :math:`\mathbf{C}` (signal-and-noise quality, improvable by more bandwidth, power, or integration) and :math:`\mathbf{J}` (geometry, improvable by sensor placement), studied next.  The plot below shows a few example bandwidths and the lower bound over SNR, to give you a feel for how much error you should expect, or at least the floor.  The y-axis is the 1-σ value (one standard deviation).
+
+.. image:: ../_images/tdoa_cramer_rao.svg
+   :align: center 
+   :target: ../_images/tdoa_cramer_rao.svg
+   :alt: Plot of cramer rao lower bound
+
 
 Geometric Dilution of Precision
 =======================================

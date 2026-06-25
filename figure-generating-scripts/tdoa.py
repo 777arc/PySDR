@@ -11,12 +11,12 @@ c = 3e8  # speed of light [m/s]
 snr_db = 10  # SNR of the received signal at each receiver [dB]
 tx_len_samples = 1000 # samples to transmit
 rx_positions = np.array([
-    [0.0,   0.0],    # Rx0
-    [600.0, 100.0],  # Rx1
-    [150.0, 500.0],  # Rx2
+    [65,  229],   # Rx0
+    [676, 123],  # Rx1
+    [153, 543],  # Rx2
 ])
 num_rx = rx_positions.shape[0]
-tx_position = np.array([150.0, 350.0])
+tx_position = np.array([153, 355])
 pairs = list(combinations(range(num_rx), 2)) # For 3 receivers it's (Rx0,Rx1), (Rx0,Rx2), (Rx1,Rx2) -> 3 pairs
 
 # For the tx signal itself it's arbitrary, although bandwidth matters, we'll transmit band-limited noise
@@ -71,18 +71,16 @@ for k, (a, b) in enumerate(pairs):
     peak_lag = np.argmax(np.abs(xcorr)) - (buffer_len - 1) # 'full' puts zero lag at index buffer_len-1
     range_diff[k] = (peak_lag / sample_rate) * c # meters
 
-# Precompute the distance from each receiver to every grid point, this will get used later
+# FIGURE 1: the integer-only result.
+# Precompute the distance from each receiver to every grid point, this will get used in the contour plot
 grid_x = np.linspace(-200, 800, 400)
 grid_y = np.linspace(-200, 800, 400)
 GX, GY = np.meshgrid(grid_x, grid_y)
 rx_dist = []
 for i in range(num_rx):
     rx_dist.append(np.sqrt((GX - rx_positions[i, 0])**2 + (GY - rx_positions[i, 1])**2))
-
-# 6. FIGURE 1: the integer-only result.
 fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 fig1.suptitle('Method 1: integer-only TDOA (time-domain cross-correlation)')
-
 # Left: the hyperbolas, which all cross at the transmitter.
 hyperbola_handles = []
 pair_colors = ['tab:blue', 'tab:orange', 'tab:green']
@@ -99,7 +97,6 @@ ax1.set_xlabel('x [m]'); ax1.set_ylabel('y [m]')
 ax1.set_title('TDOA hyperbolas')
 ax1.legend(handles=ax1.get_legend_handles_labels()[0] + hyperbola_handles, loc='upper right')
 ax1.set_aspect('equal')
-
 # Cross-correlation of one pair, integer only
 a, b = pairs[1] # the (Rx0, Rx2) pair
 xcorr = np.abs(np.correlate(rx_signals[b], rx_signals[a], mode='full'))
@@ -114,31 +111,23 @@ ax2.legend()
 ax2.grid()
 fig1.tight_layout()
 
-# =============================================================================
-# METHOD 2: sub-sample TDOA via a zero-padded frequency-domain correlation
-# =============================================================================
-# 7. Same idea, but in the frequency domain.  The cross-correlation is the IFFT
-# of the cross-power spectrum conj(A)*B, which for large signals is far cheaper
-# than the direct correlation above.  And we get sub-sample resolution almost for
-# free: ZERO-PAD the spectrum before the inverse FFT.  Padding a spectrum is
-# exact sinc interpolation in the time domain, so the IFFT lands on a grid U
-# times finer, and we just take its argmax.
-U = 16                                 # correlation upsampling factor
-L = buffer_len
-half = (L + 1) // 2                    # number of DC + positive-frequency bins
+# Subsample TDOA calc using a freq domain cross-correlation that was padded as a way to interpolate
+U = 16 # correlation upsampling factor
+half = (buffer_len + 1) // 2 # number of DC + positive-frequency bins
 range_diff = np.zeros(len(pairs)) # meters
 for k, (a, b) in enumerate(pairs):
     X = np.conj(np.fft.fft(rx_signals[a])) * np.fft.fft(rx_signals[b])
-    # Insert zeros in the high-frequency MIDDLE: DC + positive freqs at the
-    # front, negative freqs at the back, so it stays a valid FFT layout.
-    X_padded = np.zeros(U * L, dtype=complex)
+
+    # Insert zeros in the high-frequency MIDDLE: DC + positive freqs at the front, negative freqs at the back, so it stays a valid FFT layout.
+    X_padded = np.zeros(U * buffer_len, dtype=complex) 
     X_padded[:half] = X[:half]
-    X_padded[U * L - (L - half):] = X[half:]
-    cc = np.abs(np.fft.ifft(X_padded)) * U
+    X_padded[U * buffer_len - (buffer_len - half):] = X[half:]
+
+    xcorr = np.abs(np.fft.ifft(X_padded)) * U
     # Peak index -> signed lag; indices past the midpoint are negative lags.
-    peak_idx = np.argmax(cc)
-    if peak_idx > U * L // 2:
-        peak_idx -= U * L
+    peak_idx = np.argmax(xcorr)
+    if peak_idx > U * buffer_len // 2:
+        peak_idx -= U * buffer_len
     peak_lag = peak_idx / U            # sub-sample lag, +ve => Rx_b farther
     range_diff[k] = (peak_lag / sample_rate) * c # meters
 
@@ -177,13 +166,13 @@ ax1.set_aspect('equal')
 a, b = pairs[1]                        # the (Rx0, Rx2) pair
 X = np.conj(np.fft.fft(rx_signals[a])) * np.fft.fft(rx_signals[b])
 cc_coarse = np.abs(np.fft.ifft(X))
-X_padded = np.zeros(U * L, dtype=complex)
+X_padded = np.zeros(U * buffer_len, dtype=complex)
 X_padded[:half] = X[:half]
-X_padded[U * L - (L - half):] = X[half:]
+X_padded[U * buffer_len - (buffer_len - half):] = X[half:]
 cc_fine = np.abs(np.fft.ifft(X_padded)) * U
-lags_coarse = np.where(np.arange(L) <= L // 2, np.arange(L), np.arange(L) - L)
-lags_fine = np.arange(U * L) / U
-lags_fine = np.where(lags_fine <= L / 2, lags_fine, lags_fine - L)
+lags_coarse = np.where(np.arange(buffer_len) <= buffer_len // 2, np.arange(buffer_len), np.arange(buffer_len) - buffer_len)
+lags_fine = np.arange(U * buffer_len) / U
+lags_fine = np.where(lags_fine <= buffer_len / 2, lags_fine, lags_fine - buffer_len)
 peak = lags_coarse[np.argmax(cc_coarse)]
 subsample_peak = lags_fine[np.argmax(cc_fine)]
 # The lag axes wrap from + back to - partway through, so sort before plotting,

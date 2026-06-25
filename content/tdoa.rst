@@ -369,7 +369,7 @@ Several effects govern the accuracy of the TDOA results:
 
 * The **integration window** :math:`T` trades estimator variance (longer is better, since variance falls roughly as :math:`1/T`) against the stationarity assumption and, for moving emitters, against blurring of the delay over the window.  Many times this value is determined by the signal itself, e.g. you might perform TDOA on a per-packet basis.
 * **Coherence bandwidth** limits which frequencies actually carry usable phase.
-* **Signal bandwidth** is decisive: as the Cramér-Rao analysis below shows, delay variance falls as the *square* of the bandwidth, so wideband signals localize far better than narrowband ones, unlike DOA where we didn't care about bandwidth (in fact, many of the DOA concepts used a narrowband assumption). 
+* **Signal bandwidth** is decisive: as the Cramér-Rao analysis below shows, delay variance falls as the *square* of the bandwidth, so wideband signals localize far better than narrowband ones, unlike DOA where we didn't care about bandwidth (in fact, many of the DOA concepts used a narrowband assumption). That being said, you don't need to capture the entire signal (from a frequency domain perspective) to perform TDOA, if you are limited by your SDR's maximum sample rate, and you can only receive a portion of the signal bandwidth, you can still do TDOA!
 
 From a compute perspective, the TDOA computation is dominated by FFTs and is :math:`O(M\log M)` per sensor pair for records of :math:`M` samples, which is what makes large sensor networks tractable.
 
@@ -672,7 +672,7 @@ Because geometry is often a *design* variable, we can place sensors to minimize 
 Practical Challenges in Real Systems
 *****************************************
 
-The clean model developed above omits the effects that, in deployment, usually dominate the error budget. Three deserve detailed treatment.
+The model used in this chapter so far omits a few effects that usually dominate the error budget in actual TDOA deployments. Three deserve detailed treatment:
 
 Receiver Synchronization
 ================================
@@ -696,11 +696,6 @@ Sensor-Position Uncertainty and Calibration
 ===================================================
 
 The geometry assumed exact knowledge of the sensor coordinates :math:`\mathbf{s}_i`. Errors in those coordinates propagate into the position estimate just as measurement errors do, and for distant emitters can be amplified by the same poor geometry that inflates GDOP. Careful survey of fixed installations, GPS positioning of mobile sensors, and *self-calibration* — jointly estimating sensor positions and emitter locations from emitters of opportunity at known or constrained locations — are the standard responses. A full error budget must include sensor-position uncertainty alongside timing and TDE error; in well-synchronized systems it is often the next-largest term.
-
-Bandwidth and SNR Limits
-================================
-
-The bound derived above already quantified the dependence: delay variance scales as :math:`1/(\beta^2 T\,\gamma)`. The practical reading is that the most effective levers on accuracy are usually *more bandwidth* (quadratic payoff) and *more integration time* or *power* (linear payoff). A system designer who cannot move the sensors and cannot improve the clocks can still often improve the fix by capturing a wider slice of the emitter's spectrum.  That being said, you don't need to capture the entire signal (from a frequency domain perspective) to perform TDOA, if you are limited by your SDR's maximum sample rate, and you can only receive a portion of the signal bandwidth, you can still do TDOA!
 
 *******************
 Advanced Topics

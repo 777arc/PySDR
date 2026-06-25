@@ -21,7 +21,7 @@ Introduction
 
 A common problem across RF and acoustics/sonar is the desire to find the position of an emitter, also known as the process of geolocation. The emitter may be cooperative (a cell phone trying to be found) or non-cooperative (a radar emitter that would rather not be), stationary or moving, and the medium may be air, water, or free space. TDOA-based localization appears in cellular emergency-caller location, acoustics with microphone arrays (e.g., gunshot-detection systems mounted on city streetlights), passive sonar, passive (non-emitting) radar, electronic warfare and signals intelligence, and even wildlife tracking. In each case the engineering details differ, but the mathematical skeleton is the same.
 
-The key behind TDOA is that when the same wavefront hits two sensors, the difference in arrival times depends only on geometry, not on when the source transmitted. To see why, consider the propagation time from an emitter to sensor :math:`i`: :math:`t_i = t_0 + r_i / c`, where :math:`t_0` is the (unknown) start of transmission, :math:`r_i` is the emitter-to-sensor distance, and :math:`c` is the propagation speed. If we subtract the arrival times at two sensors,
+The key behind TDOA is that when the same wavefront hits two sensors, the difference in arrival times depends only on geometry, not on when the emitter transmitted. To see why, consider the propagation time from an emitter to sensor :math:`i`: :math:`t_i = t_0 + r_i / c`, where :math:`t_0` is the (unknown) start of transmission, :math:`r_i` is the emitter-to-sensor distance, and :math:`c` is the propagation speed. If we subtract the arrival times at two sensors,
 
 .. math::
 
@@ -78,7 +78,7 @@ which reads "distance to one sensor minus distance to the other equals our measu
 * **The sign tells you which side you're on.** A hyperbola actually has two mirror-image branches, one curving toward each sensor. Whether your range difference came out positive or negative picks the branch nearer the closer sensor, so you don't get confused between the two halves.
 * **The shape depends on the measurement.** When the range difference is close to the full baseline, the hyperbola hugs the line between the sensors. When the range difference is near zero (the emitter is roughly equidistant), the curve straightens out into the line that perpendicularly bisects the baseline. Near both of these extremes the geometry becomes "ill-conditioned," meaning small measurement errors push the estimated position around a lot, so positioning there is less reliable.
 
-A single TDOA thus constrains the source to a curve, not a point. To fix a position we intersect several such curves.  Below we plot two sensors, and several hyperbola branches drawn for :math:`\Delta r < 0`, :math:`\Delta r = 0` (the perpendicular bisector), and :math:`\Delta r > 0`.  On each hyperbola, the TDOA between the two sensors is constant.  If you calculated the TDOA with just two sensors, you would know it is somewhere on that line but you would need a third sensor to find where on that line it is (performing geolocation).
+A single TDOA thus constrains the emitter's position to a curve, not a point. To fix a position we intersect several such curves.  Below we plot two sensors, and several hyperbola branches drawn for :math:`\Delta r < 0`, :math:`\Delta r = 0` (the perpendicular bisector), and :math:`\Delta r > 0`.  On each hyperbola, the TDOA between the two sensors is constant.  If you calculated the TDOA with just two sensors, you would know it is somewhere on that line but you would need a third sensor to find where on that line it is (performing geolocation).
 
 .. image:: ../_images/tdoa_hyperbola.svg
    :align: center 
@@ -88,10 +88,10 @@ A single TDOA thus constrains the source to a curve, not a point. To fix a posit
 Multilateration
 =====================
 
-With :math:`N` sensors we can form pairs and intersect their hyperbolas; the source lies at (or near) their common intersection. This process is **hyperbolic multilateration**. Counting degrees of freedom tells us how many sensors we need:
+With :math:`N` sensors we can form pairs and intersect their hyperbolas; the emitter lies at (or near) their common intersection. This process is **hyperbolic multilateration**. Counting degrees of freedom tells us how many sensors we need:
 
-* In **2D** the source has 2 unknowns :math:`(x,y)`. Each independent TDOA gives one equation, so we need at least 2 independent TDOAs, which requires **3 sensors**.  For example, if we know the emitter is on land and we're not having to take into account curvature of the Earth, this would work.
-* In **3D** the source has 3 unknowns :math:`(x,y,z)`, requiring 3 independent TDOAs and therefore **4 sensors**.
+* In **2D** the emitter position has 2 unknowns :math:`(x,y)`. Each independent TDOA gives one equation, so we need at least 2 independent TDOAs, which requires **3 sensors**.  For example, if we know the emitter is on land and we're not having to take into account curvature of the Earth, this would work.
+* In **3D** the emitter position has 3 unknowns :math:`(x,y,z)`, requiring 3 independent TDOAs and therefore **4 sensors**.
 
 In the noiseless case the hyperbolas meet at a single point (with an occasional geometric ambiguity resolved by branch signs or an extra sensor). With more sensors than the minimum the system is *overdetermined*: noisy hyperbolas no longer share an exact common point, and we must solve a least-squares or maximum-likelihood problem, as described below.
 
@@ -100,10 +100,10 @@ Reference Sensor and Independent Pairs
 
 From :math:`N` sensors one can form :math:`\binom{N}{2}` pairwise TDOAs, but they are not all independent. Choosing one sensor as a **reference** (say sensor 1) and forming :math:`\tau_{i1}` for :math:`i = 2,\dots,N` yields :math:`N-1` TDOAs from which every other pairwise difference can be reconstructed, since :math:`\tau_{ij} = \tau_{i1} - \tau_{j1}`. These :math:`N-1` are the *independent* measurements that carry all the geometric information.
 
-The redundant pairs are not worthless, however. Because each measured TDOA carries independent *noise*, using all :math:`\binom{N}{2}` pairs (with a correctly modeled, correlated noise covariance — the reference sensor's noise is common to every :math:`\tau_{i1}`) can improve the estimate. For clarity of exposition we develop the algorithms with the reference-sensor formulation and note where the full covariance enters.
+The redundant pairs are not worthless, however. Because each measured TDOA carries independent *noise*, using all :math:`\binom{N}{2}` pairs (with a correctly modeled, correlated noise covariance — the reference sensor's noise is common to every :math:`\tau_{i1}`) can improve the estimate.
 
 Example: A Three-Sensor 2D Fix
-============================================
+==============================
 
 Place three sensors at
 
@@ -111,7 +111,7 @@ Place three sensors at
 
    \mathbf{s}_1=(0,0),\quad \mathbf{s}_2=(100,0),\quad \mathbf{s}_3=(0,100)\ \text{(meters)},
 
-and suppose the true source is at :math:`\mathbf{u}=(40,30)`. The source-to-sensor distances are
+and suppose the true emitter is at :math:`\mathbf{u}=(40,30)`. The emitter-to-sensor distances are
 
 .. math::
 
@@ -126,7 +126,7 @@ Taking sensor 1 as reference, the range-difference measurements are
    \Delta r_{21}=r_2-r_1\approx 17.08\ \text{m},\qquad
    \Delta r_{31}=r_3-r_1\approx 30.62\ \text{m}.
 
-Each defines a hyperbola with foci :math:`\{\mathbf{s}_2,\mathbf{s}_1\}` and :math:`\{\mathbf{s}_3,\mathbf{s}_1\}` respectively; their intersection is the source. Solving the two hyperbola equations by hand is awkward, which is precisely the motivation for the algebraic linearization developed below — where we will recover :math:`(40,30)` from exactly these numbers in closed form.
+Each defines a hyperbola with foci :math:`\{\mathbf{s}_2,\mathbf{s}_1\}` and :math:`\{\mathbf{s}_3,\mathbf{s}_1\}` respectively; their intersection is the emitter's position. Solving the two hyperbola equations by hand is awkward, which is precisely the motivation for the algebraic linearization developed below — where we will recover :math:`(40,30)` from exactly these numbers in closed form.
 
 *************************************
 The Signal and Measurement Model
@@ -135,7 +135,7 @@ The Signal and Measurement Model
 Received-Signal Model
 ============================
 
-Each sensor receives a time-delayed, scaled, noisy copy of whatever the source is transmitting. Specifically, let :math:`s(t)` be the source waveform. Sensor :math:`i` receives:
+Each sensor receives a time-delayed, scaled, noisy copy of whatever the emitter is transmitting. Specifically, let :math:`s(t)` be the transmit waveform. Sensor :math:`i` receives:
 
 .. math::
 
@@ -152,12 +152,12 @@ The pairwise TDOA is the difference of arrival times,
 
    \tau_{ij} = t_i - t_j = \frac{r_i - r_j}{c} = \frac{|\mathbf{u}-\mathbf{s}_i| - |\mathbf{u}-\mathbf{s}_j|}{c}.
 
-The right-hand side makes explicit that the TDOA is a nonlinear function of the source coordinates :math:`\mathbf{u}`. The *measurement* problem is to estimate :math:`\tau_{ij}` from the waveforms :math:`x_i, x_j`; the *localization* problem is to invert the nonlinear map from :math:`\mathbf{u}` to the collection of TDOAs.
+The right-hand side makes explicit that the TDOA is a nonlinear function of the emitter coordinates :math:`\mathbf{u}`. The *measurement* problem is to estimate :math:`\tau_{ij}` from the waveforms :math:`x_i, x_j`; the *localization* problem is to invert the nonlinear map from :math:`\mathbf{u}` to the collection of TDOAs.
 
 Noise Assumptions
 ========================
 
-We assume each :math:`n_i(t)` is zero-mean, wide-sense stationary, Gaussian, and independent of the source signal and of the noise at other sensors. The per-sensor signal-to-noise ratio is
+We assume each :math:`n_i(t)` is zero-mean, wide-sense stationary, Gaussian, and independent of the trasnmitted signal and of the noise at other sensors. The per-sensor signal-to-noise ratio is
 
 .. math::
 
@@ -343,7 +343,7 @@ Looking at the right-hand plot, we can see how the original integer-only method 
 The Generalized Cross-Correlation Framework
 ==================================================
 
-Plain cross-correlation is fragile: if the source spectrum is concentrated or the channel is reverberant, the correlation peak is broad and easily shifted by noise. Knapp and Carter's *Generalized Cross-Correlation* (GCC) addresses this by inserting a frequency weighting :math:`\Psi(f)` before transforming back to the lag domain:
+Plain cross-correlation is fragile: if the transmitted signal is narrow in bandwidth or the channel contains multipath, the correlation peak is broad and easily shifted by noise. Knapp and Carter's *Generalized Cross-Correlation* (GCC) addresses this by inserting a frequency weighting :math:`\Psi(f)` before transforming back to the lag domain:
 
 .. math::
 
@@ -374,7 +374,7 @@ Practical Considerations
 
 Several effects govern real performance:
 
-* The **integration window** :math:`T` trades estimator variance (longer is better, since variance falls roughly as :math:`1/T`) against the stationarity assumption and, for moving sources, against blurring of the delay over the window.
+* The **integration window** :math:`T` trades estimator variance (longer is better, since variance falls roughly as :math:`1/T`) against the stationarity assumption and, for moving emitters, against blurring of the delay over the window.
 * **Coherence bandwidth** limits which frequencies actually carry usable phase.
 * **Signal bandwidth** is decisive: as the Cramér-Rao analysis below shows, delay variance falls as the *square* of the RMS bandwidth, so wideband signals localize far better than narrowband ones.
 
@@ -400,7 +400,7 @@ The measurement equations above are nonlinear and, taken directly, require itera
 The Linearization Strategy
 ==================================
 
-The trick is to square the range equations and subtract pairs, which cancels the nonlinear :math:`x^2+y^2` term and introduces :math:`r_1`, the range to the reference sensor, as a single auxiliary unknown. Starting with the squared range from the source :math:`\mathbf{u}=(x,y)` to sensor :math:`i` at :math:`\mathbf{s}_i=(x_i,y_i)`:
+The trick is to square the range equations and subtract pairs, which cancels the nonlinear :math:`x^2+y^2` term and introduces :math:`r_1`, the range to the reference sensor, as a single auxiliary unknown. Starting with the squared range from the emitter :math:`\mathbf{u}=(x,y)` to sensor :math:`i` at :math:`\mathbf{s}_i=(x_i,y_i)`:
 
 .. math::
 
@@ -485,7 +485,7 @@ The positive root is :math:`r_1 = 50.0` m (the negative root is non-physical and
 
    x = 48.54 - 0.1708(50) = 40.0, \qquad y = 45.31 - 0.3062(50) = 30.0 .
 
-We recover the true source :math:`\mathbf{u}=(40,30)` exactly, as we must in the noiseless case. This is the same fix that the intersecting hyperbolas illustrated above represented geometrically — now obtained by pure algebra, with no iteration and no initial guess. With noisy measurements the two equations would not be perfectly consistent, the quadratic root would be perturbed, and the weighting and second step of Chan's method would govern how gracefully the estimate degrades.
+We recover the true emitter position :math:`\mathbf{u}=(40,30)` exactly, as we must in the noiseless case. This is the same fix that the intersecting hyperbolas illustrated above represented geometrically — now obtained by pure algebra, with no iteration and no initial guess. With noisy measurements the two equations would not be perfectly consistent, the quadratic root would be perturbed, and the weighting and second step of Chan's method would govern how gracefully the estimate degrades.
 
 *****************************************
 Iterative and Statistical Estimation
@@ -514,7 +514,7 @@ Foy's classical approach linearizes :math:`\mathbf{h}` about the current estimat
    \frac{\partial h_i}{\partial \mathbf{u}} = \frac{\mathbf{u}-\mathbf{s}_i}{|\mathbf{u}-\mathbf{s}_i|} - \frac{\mathbf{u}-\mathbf{s}_1}{|\mathbf{u}-\mathbf{s}_1|}
    = \hat{\mathbf{e}}_i - \hat{\mathbf{e}}_1,
 
-a difference of *unit vectors* pointing from the candidate source toward sensor :math:`i` and the reference. The Gauss-Newton update is
+a difference of *unit vectors* pointing from the candidate emitter toward sensor :math:`i` and the reference. The Gauss-Newton update is
 
 .. math::
 
@@ -532,13 +532,13 @@ Robust, Recursive, and Bayesian Extensions
 
 Real measurements contain outliers — a multipath-corrupted TDOA can be wildly wrong while the rest are fine. Plain least squares, which squares residuals, is badly distorted by such outliers. *Robust* estimators replace the squared loss with one that grows more slowly (e.g. Huber's), or explicitly detect and discard inconsistent TDOAs via residual tests or RANSAC-style consensus.
 
-When the source *moves*, we want to fuse measurements over time rather than localize each instant independently. State-space filtering does this by modeling the source's position (and velocity) as an evolving state. The **Kalman filter** is optimal for linear-Gaussian dynamics, but the TDOA measurement is nonlinear, so practitioners use the **Extended Kalman Filter** (which linearizes the measurement with the same Jacobian as above), the **Unscented Kalman Filter** (which propagates a deterministic set of sigma points through the nonlinearity, avoiding explicit Jacobians and handling stronger nonlinearity better), or, for multimodal or heavily non-Gaussian problems, the **particle filter** (which represents the posterior by a weighted sample cloud). These trackers also naturally enforce motion continuity, which suppresses the per-snapshot ambiguities of static localization.
+When the emitter *moves*, we want to fuse measurements over time rather than localize each instant independently. State-space filtering does this by modeling the emitter's position (and velocity) as an evolving state. The **Kalman filter** is optimal for linear-Gaussian dynamics, but the TDOA measurement is nonlinear, so practitioners use the **Extended Kalman Filter** (which linearizes the measurement with the same Jacobian as above), the **Unscented Kalman Filter** (which propagates a deterministic set of sigma points through the nonlinearity, avoiding explicit Jacobians and handling stronger nonlinearity better), or, for multimodal or heavily non-Gaussian problems, the **particle filter** (which represents the posterior by a weighted sample cloud). These trackers also naturally enforce motion continuity, which suppresses the per-snapshot ambiguities of static localization.
 
 ***********************************************
 Performance Analysis and Fundamental Bounds
 ***********************************************
 
-Having estimators in hand, we ask: how accurate *can* a TDOA system be, and what governs that accuracy? Two ideas answer this — the Cramér-Rao bound, which sets a noise floor from the signals, and geometric dilution of precision, which describes how sensor-source geometry amplifies that floor.
+Having estimators in hand, we ask: how accurate *can* a TDOA system be, and what governs that accuracy? Two ideas answer this — the Cramér-Rao bound, which sets a noise floor from the signals, and geometric dilution of precision, which describes how sensor-emitter geometry amplifies that floor.
 
 Error Propagation
 ========================
@@ -565,7 +565,7 @@ where :math:`\beta` is the *RMS (Gabor) bandwidth* of the signal and :math:`\gam
 The Localization Cramér-Rao Lower Bound
 ==============================================
 
-Combining measurement quality and geometry, the Fisher information matrix for the source position is
+Combining measurement quality and geometry, the Fisher information matrix for the emitter position is
 
 .. math::
 
@@ -582,17 +582,17 @@ The bound is the benchmark against which estimators are judged: a method that at
 Geometric Dilution of Precision
 =======================================
 
-Even with perfect measurements, geometry can ruin a fix. **Geometric Dilution of Precision** (GDOP) quantifies how the sensor-source configuration amplifies measurement error into position error. If the range-difference errors are independent with common standard deviation :math:`\sigma`, so :math:`\mathbf{C}=\sigma^2\mathbf{I}`, then
+Even with perfect measurements, geometry can ruin a fix. **Geometric Dilution of Precision** (GDOP) quantifies how the sensor-emitter configuration amplifies measurement error into position error. If the range-difference errors are independent with common standard deviation :math:`\sigma`, so :math:`\mathbf{C}=\sigma^2\mathbf{I}`, then
 
 .. math::
 
    \mathrm{GDOP} = \sqrt{\mathrm{tr}\bigl[(\mathbf{J}^\top\mathbf{J})^{-1}\bigr]}, \qquad
    \sigma_{\text{position}} = \mathrm{GDOP}\cdot \sigma .
 
-GDOP is a pure number :math:`\ge 1`: it is the factor by which the underlying ranging error is magnified at a given source location. The geometric intuition follows from the Jacobian rows being differences of unit bearing vectors :math:`\hat{\mathbf{e}}_i - \hat{\mathbf{e}}_1`:
+GDOP is a pure number :math:`\ge 1`: it is the factor by which the underlying ranging error is magnified at a given emitter location. The geometric intuition follows from the Jacobian rows being differences of unit bearing vectors :math:`\hat{\mathbf{e}}_i - \hat{\mathbf{e}}_1`:
 
-* When the sensors surround the source so that the bearing vectors point in well-spread directions, the hyperbolas cross at large angles, :math:`\mathbf{J}^\top\mathbf{J}` is well-conditioned, and GDOP is small (good).
-* When the source lies far outside the sensor cluster, or the sensors are nearly collinear, the bearing vectors become nearly parallel, the hyperbolas intersect at shallow angles, :math:`\mathbf{J}^\top\mathbf{J}` becomes nearly singular, and GDOP explodes (bad).
+* When the sensors surround the emitter so that the bearing vectors point in well-spread directions, the hyperbolas cross at large angles, :math:`\mathbf{J}^\top\mathbf{J}` is well-conditioned, and GDOP is small (good).
+* When the emitter lies far outside the sensor cluster, or the sensors are nearly collinear, the bearing vectors become nearly parallel, the hyperbolas intersect at shallow angles, :math:`\mathbf{J}^\top\mathbf{J}` becomes nearly singular, and GDOP explodes (bad).
 
 This is the geometric counterpart of the observation above that hyperbolas degenerate near the baseline extremes. A practical TDOA system can be limited far more by where its sensors sit than by how well it measures time.
 
@@ -606,7 +606,7 @@ The figure below shows GDOP heat maps over a plane for (left) three sensors at t
 Sensor-Placement Optimization
 =====================================
 
-Because geometry is often a *design* variable, we can place sensors to minimize error. Common objectives minimize a scalar derived from :math:`\mathbf{F}^{-1}` — its trace (equivalent to GDOP), its determinant (the confidence-ellipse volume), or its largest eigenvalue (worst-case error). The qualitative results are intuitive: spread the sensors widely so long baselines sharpen angular resolution, surround the region of interest so sources fall inside the convex hull, avoid collinear or coplanar layouts that create ill-conditioned directions, and add sensors where redundancy both lowers variance and guards against outliers. For a moving target or large coverage area, placement is optimized over the whole region — minimizing average or worst-case GDOP — usually by numerical search.
+Because geometry is often a *design* variable, we can place sensors to minimize error. Common objectives minimize a scalar derived from :math:`\mathbf{F}^{-1}` — its trace (equivalent to GDOP), its determinant (the confidence-ellipse volume), or its largest eigenvalue (worst-case error). The qualitative results are intuitive: spread the sensors widely so long baselines sharpen angular resolution, surround the region of interest so emitters fall inside the convex hull, avoid collinear or coplanar layouts that create ill-conditioned directions, and add sensors where redundancy both lowers variance and guards against outliers. For a moving target or large coverage area, placement is optimized over the whole region — minimizing average or worst-case GDOP — usually by numerical search.
 
 *****************************************
 Practical Challenges in Real Systems
@@ -635,7 +635,7 @@ Everything so far has assumed a single line-of-sight path between the emitter an
 Sensor-Position Uncertainty and Calibration
 ===================================================
 
-The geometry assumed exact knowledge of the sensor coordinates :math:`\mathbf{s}_i`. Errors in those coordinates propagate into the position estimate just as measurement errors do, and for distant sources can be amplified by the same poor geometry that inflates GDOP. Careful survey of fixed installations, GPS positioning of mobile sensors, and *self-calibration* — jointly estimating sensor positions and source locations from sources of opportunity at known or constrained locations — are the standard responses. A full error budget must include sensor-position uncertainty alongside timing and TDE error; in well-synchronized systems it is often the next-largest term.
+The geometry assumed exact knowledge of the sensor coordinates :math:`\mathbf{s}_i`. Errors in those coordinates propagate into the position estimate just as measurement errors do, and for distant emitters can be amplified by the same poor geometry that inflates GDOP. Careful survey of fixed installations, GPS positioning of mobile sensors, and *self-calibration* — jointly estimating sensor positions and emitter locations from emitters of opportunity at known or constrained locations — are the standard responses. A full error budget must include sensor-position uncertainty alongside timing and TDE error; in well-synchronized systems it is often the next-largest term.
 
 Bandwidth and SNR Limits
 ================================
@@ -649,7 +649,7 @@ Advanced Topics
 Joint TDOA/FDOA Estimation
 ==================================
 
-When the source, the sensors, or both are *moving*, the relative motion imparts a Doppler shift that differs between sensors — a **Frequency Difference of Arrival** (FDOA). FDOA carries information about the source's *velocity* and, crucially, adds an independent geometric constraint that improves position observability, especially for the difficult far-field and few-sensor cases where TDOA alone is poorly conditioned. TDOA and FDOA are estimated jointly by maximizing the **Complex Ambiguity Function** (CAF) over both delay and frequency offset:
+When the emitter, the sensors, or both are *moving*, the relative motion imparts a Doppler shift that differs between sensors — a **Frequency Difference of Arrival** (FDOA). FDOA carries information about the emitter's *velocity* and, crucially, adds an independent geometric constraint that improves position observability, especially for the difficult far-field and few-sensor cases where TDOA alone is poorly conditioned. TDOA and FDOA are estimated jointly by maximizing the **Complex Ambiguity Function** (CAF) over both delay and frequency offset:
 
 .. math::
 

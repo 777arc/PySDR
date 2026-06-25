@@ -52,8 +52,11 @@ PySDR's prose is intentionally instructional, conversational, and example-driven
 - Keep technical terminology precise, but avoid sounding overly academic or formal.
 - When a section already has figures or code, make the surrounding prose point the reader to them and explain what they should notice.
 - Avoid hype, filler, and motivational fluff.
-
-When in doubt, read the surrounding chapter aloud mentally and aim for the same cadence and readability rather than a generic documentation voice.
+- Lead with a concrete scenario before any equation. Pose a small "what if" with real numbers (e.g. "the emitter is 100 m closer to one sensor"), then generalize. Introduce the named concept (hyperbola, foci) in plain words before showing the formula.
+- Read the equation back in plain English. Right after a .. math:: block, add a sentence translating it ("which reads: distance to one sensor minus distance to the other equals...").
+- Explain why, not just what. For each fact, give the intuition behind it (why a range difference can't exceed the baseline) rather than stating it as a rule.
+- Define jargon inline the moment it appears ("the baseline," "ill-conditioned, meaning small errors move the estimate a lot") instead of assuming the reader knows it.
+- Use second person and rhetorical questions to walk the reader through the reasoning as if thinking aloud.
 
 ## Notes
 

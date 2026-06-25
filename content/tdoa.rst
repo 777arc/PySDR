@@ -4,9 +4,9 @@
 TDOA
 ####
 
-Time Difference of Arrival (TDOA) is a technique that localizes an emitter from differences in signal arrival time across synchronized sensors, without needing the transmitter's clock. This chapter covers the full TDOA pipeline, geometry, GCC-PHAT time-delay estimation, closed-form and maximum-likelihood localization, accuracy bounds (CRLB and GDOP), and challenges like synchronization and multipath.  TDOA can be used in RF, acoustic, and sonar geolocation.
+Time Difference of Arrival (TDOA) is a technique that can find the position of a transmitter (a.k.a. emitter) using multiple synchronized receivers (a.k.a. sensors), by comparing differences in signal arrival time. This chapter covers the full TDOA pipeline, geometry, GCC-PHAT time-delay estimation, closed-form and maximum-likelihood localization, accuracy bounds (CRLB and GDOP), and challenges like synchronization and multipath.  TDOA is commonly used in both RF and acoustic/sonar applications.
 
-Try the interactive demo below to get a quick feel for how TDOA works, it involves intersection of hyperbolas.
+Before diving in, try playing with the interactive demo below to get a quick feel for how TDOA works, it involves intersection of hyperbolas.
 
 .. raw:: html
 
@@ -19,21 +19,15 @@ Try the interactive demo below to get a quick feel for how TDOA works, it involv
 Introduction
 ************
 
-A recurring problem across acoustics, radio engineering, and defense systems is this: a source emits a signal, several spatially separated sensors receive it, and we wish to recover the source's position from those received signals alone. The source may be cooperative (a cell phone trying to be found) or non-cooperative (a radar emitter that would rather not be), stationary or moving, and the medium may be air, water, or free space. Despite this diversity, the geometry and estimation theory that solve the problem are remarkably uniform, and *Time Difference of Arrival* (TDOA) sits at the center of them.
+A common problem across RF and acoustics/sonar is the desire to find the position of an emitter, also known as the process of geolocation. The emitter may be cooperative (a cell phone trying to be found) or non-cooperative (a radar emitter that would rather not be), stationary or moving, and the medium may be air, water, or free space. TDOA-based localization appears in cellular emergency-caller location, acoustics with microphone arrays (e.g., gunshot-detection systems mounted on city streetlights), passive sonar, passive (non-emitting) radar, electronic warfare and signals intelligence, and even wildlife tracking. In each case the engineering details differ, but the mathematical skeleton is the same.
 
-TDOA-based localization appears in cellular emergency-caller location, acoustics with microphone arrays (e.g., gunshot-detection systems mounted on city streetlights), passive sonar, passive (non-emitting) radar, electronic warfare and signals intelligence, and even wildlife tracking. In each case the engineering details differ, but the mathematical skeleton is the same one developed in this chapter.
-
-******************
-TDOA in a Nutshell
-******************
-
-The key insight is that when the same wavefront hits two sensors, the difference in arrival times depends only on geometry — not on when the source transmitted. To see why, consider the propagation time from a source to sensor :math:`i`: :math:`t_i = t_0 + r_i / c`, where :math:`t_0` is the (unknown) instant of transmission, :math:`r_i` is the source-to-sensor distance, and :math:`c` is the propagation speed. If we subtract the arrival times at two sensors,
+The key behind TDOA is that when the same wavefront hits two sensors, the difference in arrival times depends only on geometry, not on when the source transmitted. To see why, consider the propagation time from an emitter to sensor :math:`i`: :math:`t_i = t_0 + r_i / c`, where :math:`t_0` is the (unknown) start of transmission, :math:`r_i` is the emitter-to-sensor distance, and :math:`c` is the propagation speed. If we subtract the arrival times at two sensors,
 
 .. math::
 
    \tau_{ij} = t_i - t_j = \frac{r_i - r_j}{c},
 
-the unknown :math:`t_0` vanishes, which is good because we will likely never know :math:`t_0`. The TDOA depends only on the *difference* of ranges, which depends only on source and sensor geometry. This single fact is why TDOA dominates for non-cooperative emitters: we never need to know when the source transmitted, only that the same wavefront reached our synchronized receivers at measurable relative delays.
+the unknown :math:`t_0` vanishes, which is good because we will likely never know :math:`t_0`. The TDOA depends only on the *difference* of ranges, which depends only on emitter and sensor geometry. This single fact is why TDOA dominates for non-cooperative emitters; we never need to know when the emitter transmitted, only that the same wavefront reached our synchronized receivers at measurable relative delays.  You still need to isolate the signal so that you're only observing one emitter, so signal detection and classification may be nessesary, plus filtering.
 
 Each pair of sensors yields one TDOA, and each TDOA traces out one hyperbola, so the number of hyperbolas we can draw is just the number of sensor pairs. With :math:`N` sensors that is
 
@@ -41,13 +35,13 @@ Each pair of sensors yields one TDOA, and each TDOA traces out one hyperbola, so
 
    \binom{N}{2} = \frac{N(N-1)}{2},
 
-i.e. 3 sensors give 3 hyperbolas, 4 give 6, 5 give 10, and so on. Not all of these are independent — as we will see below, only :math:`N-1` carry new geometric information — but the full set is still useful for averaging down noise.
+i.e. 3 sensors give 3 hyperbolas, 4 give 6, 5 give 10, and so on. Not all of these are independent, as we will see below, only :math:`N-1` carry new geometric information, but the full set is still useful for averaging out noise.
 
-The price we pay is that the receivers must share a precise common time reference — a requirement that, as discussed later, is itself a demanding engineering problem because a timing error of one nanosecond corresponds to about 0.3 m of range error.
+The price we pay is that the receivers must share a precise common time reference, a requirement that, as discussed later, is itself a demanding engineering problem because a timing error of one nanosecond corresponds to about 1 foot or 0.3 meters of range error, at least in RF applications.
 
-*************************
-Geometric Foundations
-*************************
+*************
+TDOA Geometry
+*************
 
 From Time Difference to Range Difference
 ===============================================
@@ -58,7 +52,7 @@ Multiplying a measured time difference by the propagation speed converts it into
 
    \Delta r_{ij} = c\,\tau_{ij} = r_i - r_j .
 
-This is the quantity we actually localize with. For acoustic problems :math:`c \approx 343` m/s in air; for radio problems :math:`c \approx 2.998\times10^8` m/s. Note immediately the consequence for accuracy: in air, a :math:`0.1` ms timing error is only :math:`\sim`\3 cm, whereas in free space the same timing error is 30 km. Radio TDOA therefore demands extraordinarily precise timing, a theme we return to repeatedly.
+For acoustic problems :math:`c \approx 343` m/s in air; for radio problems :math:`c \approx 2.998\times10^8` m/s. Note immediately the consequence for accuracy: in air, a :math:`0.1` ms timing error is only :math:`\sim`\3 cm, whereas in free space the same timing error is 30 km. Radio TDOA therefore demands extraordinarily precise timing, a theme we return to repeatedly.
 
 The diagram below shows an example of an emitter and three sensors, with a time domain plot of the signal being received by each sensor at different times.
 
@@ -70,19 +64,21 @@ The diagram below shows an example of an emitter and three sensors, with a time 
 The Hyperbola
 ===================
 
-Fix two sensors at positions :math:`\mathbf{s}_i` and :math:`\mathbf{s}_j`, the *foci*. The set of source positions :math:`\mathbf{u}` consistent with a measured range difference satisfies
+Now think about what a single range difference actually tells us. Suppose we have two sensors, and we have measured that the emitter is, say, 100 meters closer to one sensor than the other. Where could the emitter be? Not at a single spot, it turns out, but anywhere along a curved line. As you slide along that line, the two distances to the sensors both change, but their *difference* stays fixed at 100 meters the whole way.
+
+That curve has a name: it is a **hyperbola**, with the two sensors sitting at its two focal points. (In 3D the same idea sweeps out a curved surface called a hyperboloid, but the 2D picture is easier to reason about and everything carries over). If we write the emitter position as :math:`\mathbf{u}` and the two sensor positions as :math:`\mathbf{s}_i` and :math:`\mathbf{s}_j`, the hyperbola is just the set of points obeying
 
 .. math::
 
-   |\mathbf{u}-\mathbf{s}_i| - |\mathbf{u}-\mathbf{s}_j| = \Delta r_{ij} = \text{constant}.
+   |\mathbf{u}-\mathbf{s}_i| - |\mathbf{u}-\mathbf{s}_j| = \Delta r_{ij} = \text{constant},
 
-This is the defining property of a **hyperbola** (in 3D, a hyperboloid of two sheets): the locus of points whose *difference* of distances to two fixed foci is constant. Several features matter in practice:
+which reads "distance to one sensor minus distance to the other equals our measured range difference".  A few practical consequences fall right out of this:
 
-* The constant equals :math:`2a`, where :math:`a` is the hyperbola's semi-transverse axis, so :math:`|\Delta r_{ij}| < |\mathbf{s}_i - \mathbf{s}_j|` always — a range difference can never exceed the baseline between the sensors. Measurements that violate this bound signal an error (noise, multipath, or a synchronization fault).
-* The *sign* of :math:`\Delta r_{ij}` selects which of the two branches the source lies on (the branch nearer the closer sensor).
-* As :math:`|\Delta r_{ij}| \to |\mathbf{s}_i-\mathbf{s}_j|`, the hyperbola degenerates toward the baseline ray; as :math:`\Delta r_{ij}\to 0`, it flattens into the perpendicular bisector of the baseline. Geometry near these extremes is ill-conditioned.
+* **A range difference can't exceed the spacing between the two sensors.** Intuitively, the difference of two distances is largest when the emitter lies directly out beyond one sensor along the line connecting them, and even then it can only equal that sensor-to-sensor spacing (often called the *baseline*). So if you ever measure a range difference bigger than the baseline, something is wrong, most likely noise, multipath, or a timing/synchronization error.
+* **The sign tells you which side you're on.** A hyperbola actually has two mirror-image branches, one curving toward each sensor. Whether your range difference came out positive or negative picks the branch nearer the closer sensor, so you don't get confused between the two halves.
+* **The shape depends on the measurement.** When the range difference is close to the full baseline, the hyperbola hugs the line between the sensors. When the range difference is near zero (the emitter is roughly equidistant), the curve straightens out into the line that perpendicularly bisects the baseline. Near both of these extremes the geometry becomes "ill-conditioned," meaning small measurement errors push the estimated position around a lot, so positioning there is less reliable.
 
-A single TDOA thus constrains the source to a curve, not a point. To fix a position we intersect several such curves.  Below we plot two sensors, and several hyperbola branches drawn for :math:`\Delta r < 0`, :math:`\Delta r = 0` (the perpendicular bisector), and :math:`\Delta r > 0`.  On each hyperbola, the TDOA between the two sensors is constant.  If you calculated the TDOA with just two sensors, you would know it is somewhere on that line but you would need a third sensor to get more specific.
+A single TDOA thus constrains the source to a curve, not a point. To fix a position we intersect several such curves.  Below we plot two sensors, and several hyperbola branches drawn for :math:`\Delta r < 0`, :math:`\Delta r = 0` (the perpendicular bisector), and :math:`\Delta r > 0`.  On each hyperbola, the TDOA between the two sensors is constant.  If you calculated the TDOA with just two sensors, you would know it is somewhere on that line but you would need a third sensor to find where on that line it is (performing geolocation).
 
 .. image:: ../_images/tdoa_hyperbola.svg
    :align: center 
@@ -92,12 +88,12 @@ A single TDOA thus constrains the source to a curve, not a point. To fix a posit
 Multilateration
 =====================
 
-With :math:`N` sensors we can form pairs and intersect their hyperbolae; the source lies at (or near) their common intersection. This process is **hyperbolic multilateration**. Counting degrees of freedom tells us how many sensors we need:
+With :math:`N` sensors we can form pairs and intersect their hyperbolas; the source lies at (or near) their common intersection. This process is **hyperbolic multilateration**. Counting degrees of freedom tells us how many sensors we need:
 
-* In **2D** the source has 2 unknowns :math:`(x,y)`. Each independent TDOA gives one equation, so we need at least 2 independent TDOAs, which requires **3 sensors**.
+* In **2D** the source has 2 unknowns :math:`(x,y)`. Each independent TDOA gives one equation, so we need at least 2 independent TDOAs, which requires **3 sensors**.  For example, if we know the emitter is on land and we're not having to take into account curvature of the Earth, this would work.
 * In **3D** the source has 3 unknowns :math:`(x,y,z)`, requiring 3 independent TDOAs and therefore **4 sensors**.
 
-In the noiseless, exactly-determined case the hyperbolae meet at a single point (with an occasional geometric ambiguity resolved by branch signs or an extra sensor). With more sensors than the minimum the system is *overdetermined*: noisy hyperbolae no longer share an exact common point, and we must solve a least-squares or maximum-likelihood problem, as described below.
+In the noiseless case the hyperbolas meet at a single point (with an occasional geometric ambiguity resolved by branch signs or an extra sensor). With more sensors than the minimum the system is *overdetermined*: noisy hyperbolas no longer share an exact common point, and we must solve a least-squares or maximum-likelihood problem, as described below.
 
 Reference Sensor and Independent Pairs
 =============================================
@@ -489,7 +485,7 @@ The positive root is :math:`r_1 = 50.0` m (the negative root is non-physical and
 
    x = 48.54 - 0.1708(50) = 40.0, \qquad y = 45.31 - 0.3062(50) = 30.0 .
 
-We recover the true source :math:`\mathbf{u}=(40,30)` exactly, as we must in the noiseless case. This is the same fix that the intersecting hyperbolae illustrated above represented geometrically — now obtained by pure algebra, with no iteration and no initial guess. With noisy measurements the two equations would not be perfectly consistent, the quadratic root would be perturbed, and the weighting and second step of Chan's method would govern how gracefully the estimate degrades.
+We recover the true source :math:`\mathbf{u}=(40,30)` exactly, as we must in the noiseless case. This is the same fix that the intersecting hyperbolas illustrated above represented geometrically — now obtained by pure algebra, with no iteration and no initial guess. With noisy measurements the two equations would not be perfectly consistent, the quadratic root would be perturbed, and the weighting and second step of Chan's method would govern how gracefully the estimate degrades.
 
 *****************************************
 Iterative and Statistical Estimation
@@ -595,10 +591,10 @@ Even with perfect measurements, geometry can ruin a fix. **Geometric Dilution of
 
 GDOP is a pure number :math:`\ge 1`: it is the factor by which the underlying ranging error is magnified at a given source location. The geometric intuition follows from the Jacobian rows being differences of unit bearing vectors :math:`\hat{\mathbf{e}}_i - \hat{\mathbf{e}}_1`:
 
-* When the sensors surround the source so that the bearing vectors point in well-spread directions, the hyperbolae cross at large angles, :math:`\mathbf{J}^\top\mathbf{J}` is well-conditioned, and GDOP is small (good).
-* When the source lies far outside the sensor cluster, or the sensors are nearly collinear, the bearing vectors become nearly parallel, the hyperbolae intersect at shallow angles, :math:`\mathbf{J}^\top\mathbf{J}` becomes nearly singular, and GDOP explodes (bad).
+* When the sensors surround the source so that the bearing vectors point in well-spread directions, the hyperbolas cross at large angles, :math:`\mathbf{J}^\top\mathbf{J}` is well-conditioned, and GDOP is small (good).
+* When the source lies far outside the sensor cluster, or the sensors are nearly collinear, the bearing vectors become nearly parallel, the hyperbolas intersect at shallow angles, :math:`\mathbf{J}^\top\mathbf{J}` becomes nearly singular, and GDOP explodes (bad).
 
-This is the geometric counterpart of the observation above that hyperbolae degenerate near the baseline extremes. A practical TDOA system can be limited far more by where its sensors sit than by how well it measures time.
+This is the geometric counterpart of the observation above that hyperbolas degenerate near the baseline extremes. A practical TDOA system can be limited far more by where its sensors sit than by how well it measures time.
 
 The figure below shows GDOP heat maps over a plane for (left) three sensors at the vertices of an equilateral triangle and (right) three nearly collinear sensors, showing a broad low-GDOP region inside the triangle versus a narrow usable corridor for the collinear array, with GDOP rising sharply outside the convex hull in both cases.
 

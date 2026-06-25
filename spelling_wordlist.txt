@@ -336,7 +336,6 @@ timestamping
 coplanar
 collinear
 GDOP
-hyperbolae
 Cramér
 Rao
 nonlinearity

@@ -35,6 +35,14 @@ The key insight is that when the same wavefront hits two sensors, the difference
 
 the unknown :math:`t_0` vanishes, which is good because we will likely never know :math:`t_0`. The TDOA depends only on the *difference* of ranges, which depends only on source and sensor geometry. This single fact is why TDOA dominates for non-cooperative emitters: we never need to know when the source transmitted, only that the same wavefront reached our synchronized receivers at measurable relative delays.
 
+Each pair of sensors yields one TDOA, and each TDOA traces out one hyperbola, so the number of hyperbolas we can draw is just the number of sensor pairs. With :math:`N` sensors that is
+
+.. math::
+
+   \binom{N}{2} = \frac{N(N-1)}{2},
+
+i.e. 3 sensors give 3 hyperbolas, 4 give 6, 5 give 10, and so on. Not all of these are independent — as we will see below, only :math:`N-1` carry new geometric information — but the full set is still useful for averaging down noise.
+
 The price we pay is that the receivers must share a precise common time reference — a requirement that, as discussed later, is itself a demanding engineering problem because a timing error of one nanosecond corresponds to about 0.3 m of range error.
 
 *************************

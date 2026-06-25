@@ -35,6 +35,7 @@
    content/pyqt
    content/detection
    content/fpv_video
+   content/tdoa
    content/about_author
 
 .. raw:: html

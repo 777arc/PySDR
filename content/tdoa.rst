@@ -591,7 +591,39 @@ When the emitter *moves*, we want to fuse measurements over time rather than loc
 Brute-Force Heatmap Approach
 ****************************
 
+Every method so far has been algebraic or iterative: we manipulated equations or descended a gradient. But there is a refreshingly simple alternative that needs neither. Lay a grid over the search area, and at every candidate position ask a single question: *if the emitter were here, what range differences would the sensors see, and how far off are those from what we actually measured?* Squaring and summing those mismatches gives a cost at each grid point, and the emitter is wherever that cost is smallest. The result is a heatmap of the same cost surface the Gauss-Newton iteration was quietly walking down, except now we can see all of it at once.
 
+We can do this with the variables we already have, ``range_diff``, ``rx_positions``, and ``pairs``:
+
+.. code-block:: python
+
+   # Evaluate the TDOA cost on a grid of candidate emitter positions
+   gx = np.linspace(0, 700, 400)
+   gy = np.linspace(0, 700, 400)
+   GX, GY = np.meshgrid(gx, gy)
+
+   cost = np.zeros_like(GX)
+   for k, (a, b) in enumerate(pairs):
+      r_a = np.hypot(GX - rx_positions[a, 0], GY - rx_positions[a, 1]) # range to Rx_a
+      r_b = np.hypot(GX - rx_positions[b, 0], GY - rx_positions[b, 1]) # range to Rx_b
+      cost += ((r_b - r_a) - range_diff[k])**2 # squared mismatch for this pair, summed over pairs
+
+   # The best estimate is simply the grid cell with the lowest cost
+   iy, ix = np.unravel_index(np.argmin(cost), cost.shape)
+   emitter_grid = np.array([gx[ix], gy[iy]])
+   print("Grid estimate:", emitter_grid) # ~[153, 355]
+
+   # Invert the cost into a likelihood-style surface so higher = more likely emitter location
+   likelihood = -np.log10(cost + 1e-9)
+
+Plotting ``likelihood`` as an image reveals the geometry directly: the bright ridges trace out the hyperbolas from earlier, and they all funnel into one bright peak at the true emitter. We take the negative log of the cost so that the most likely location is the maximum rather than a minimum, which is easier to read off visually. The trade-offs are exactly what you'd expect. The method is dead simple, needs no initial guess, and cannot diverge or land on the wrong root, so it is a great sanity check and a robust way to *seed* the iterative refiner. It also handles multimodal cost surfaces gracefully, since it sees every minimum, not just the nearest one. The price is resolution and speed: accuracy is limited by the grid spacing, and cost grows with the number of grid cells, so for a fine answer over a large area you would localize coarsely first and then refine, either by zooming the grid or by handing the result to Gauss-Newton.  Below shows the heatmap approach applied to our Python example.
+
+.. image:: ../_images/tdoa_python_heatmap.svg
+   :align: center 
+   :target: ../_images/tdoa_python_heatmap.svg
+   :alt: Adding heatmap to the tdoa plot shown earlier
+
+One nice part about the heatmap approach is if there is a lot of error, or sensors with low SNR without realizing it, there may be multiple hot spots on the heatmap, which your brain can notice.  The heatmap can even be overlaid on top of a satellite view of the area!
 
 ***********************************************
 Performance Analysis and Fundamental Bounds

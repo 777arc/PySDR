@@ -106,7 +106,7 @@ ax2.set_xlabel('lag [samples]'); ax2.set_ylabel('|cross-correlation|')
 ax2.set_title(f'Cross-correlation of Rx{b} vs Rx{a}')
 ax2.legend()
 ax2.grid()
-fig1.savefig('../_images/tdoa_python_integer.svg', bbox_inches='tight')
+#fig1.savefig('../_images/tdoa_python_integer.svg', bbox_inches='tight')
 fig1.tight_layout()
 
 # Subsample TDOA calc using a freq domain cross-correlation that was padded as a way to interpolate
@@ -189,6 +189,42 @@ ax2.set_title(f'Cross-correlation of Rx{b} vs Rx{a}')
 ax2.legend()
 ax2.grid()
 fig2.tight_layout()
-fig2.savefig('../_images/tdoa_python_subsample.svg', bbox_inches='tight')
+#fig2.savefig('../_images/tdoa_python_subsample.svg', bbox_inches='tight')
+
+
+# Heatmap portion: evaluate the TDOA cost on the grid and display it under the ax1 map
+cost = np.zeros_like(GX)
+for k, (a, b) in enumerate(pairs):
+    cost += ((rx_dist[b] - rx_dist[a]) - range_diff[k])**2 # squared mismatch for this pair, summed over pairs
+
+# The best estimate is simply the grid cell with the lowest cost
+iy, ix = np.unravel_index(np.argmin(cost), cost.shape)
+emitter_grid = np.array([grid_x[ix], grid_y[iy]])
+print("Grid estimate:", emitter_grid) # ~[153, 355]
+
+fig3, ax1 = plt.subplots(1, 1, figsize=(7, 6))
+# Invert the cost into a likelihood-style surface so higher (brighter) = more likely emitter location
+likelihood = -np.log10(cost + 1e-9)
+im = ax1.imshow(likelihood, origin='lower', cmap='viridis',
+                extent=[grid_x[0], grid_x[-1], grid_y[0], grid_y[-1]])
+fig3.colorbar(im, ax=ax1, label='likelihood (higher = more likely)')
+# Overlay the hyperbolas, receivers, true Tx, and the grid-search estimate
+hyperbola_handles = []
+for k, (a, b) in enumerate(pairs):
+    ax1.contour(GX, GY, (rx_dist[b] - rx_dist[a]) - range_diff[k], levels=[0],
+                colors=pair_colors[k], linewidths=1.5, linestyles='--')
+    hyperbola_handles.append(Line2D([0], [0], color=pair_colors[k], linestyle='--', label=f'Rx{a}-Rx{b}'))
+ax1.scatter(rx_positions[:, 0], rx_positions[:, 1], c='tab:cyan', marker='^', s=120, edgecolors='k', label='Receivers', zorder=5)
+for i in range(num_rx):
+    ax1.annotate(f'Rx{i}', rx_positions[i], textcoords='offset points', xytext=(8, 8), color='w', fontweight='bold', zorder=6)
+ax1.scatter(*tx_position, c='red', marker='*', s=300, edgecolors='k', label='True Tx', zorder=5)
+ax1.scatter(*emitter_grid, c='white', marker='x', s=120, linewidths=2, label='Grid estimate', zorder=6)
+ax1.set_xlim(grid_x[0], grid_x[-1]); ax1.set_ylim(grid_y[0], grid_y[-1])
+ax1.set_xlabel('x [m]'); ax1.set_ylabel('y [m]')
+ax1.set_title('Brute-force TDOA cost heatmap')
+ax1.legend(handles=ax1.get_legend_handles_labels()[0] + hyperbola_handles, loc='upper right')
+ax1.set_aspect('equal')
+fig3.tight_layout()
+fig3.savefig('../_images/tdoa_python_heatmap.svg', bbox_inches='tight')
 
 plt.show()

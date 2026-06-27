@@ -559,10 +559,7 @@ The receiver runs multiple parallel correlators, each shifted by a discrete freq
 
 This method provides the best SNR performance (full coherent gain) but is the most computationally expensive. The "bin spacing" must be tight enough (based on the Dirichlet formula) to ensure the worst-case loss between bins is acceptable (e.g., < 1 dB).
 
-In time-domain tapping, samples are convolved with a fixed set of weights. In a frequency search, this requires a separate FIR bank for every frequency bin. This is efficient for short preambles on FPGAs using Xilinx DSP48 slices.
-Frequency-Domain (FFT) Processing: To perform a search, you take the FFT of the incoming signal and the preamble. Multiplication in the frequency domain is equivalent to correlation.
-The "Frequency Shift Trick": To test different frequency offsets, you don't need multiple FFTs. You can simply circularly shift the FFT bins of the preamble relative to the signal before performing the point-wise multiplication and IFFT.
-For continuous streams, chunking methods such as Overlap-Save or Overlap-Add are used to process data in chunks without losing the correlation peaks at the edges of the FFT windows. 
+In time-domain tapping, samples are convolved with a fixed set of weights. In a frequency search, this requires a separate FIR bank for every frequency bin. This is efficient for short preambles on FPGAs using Xilinx DSP48 slices. Frequency-Domain (FFT) Processing: To perform a search, you take the FFT of the incoming signal and the preamble. Multiplication in the frequency domain is equivalent to correlation. The "Frequency Shift Trick": To test different frequency offsets, you don't need multiple FFTs. You can simply circularly shift the FFT bins of the preamble relative to the signal before performing the point-wise multiplication and IFFT.  For continuous streams, chunking methods such as Overlap-Save or Overlap-Add are used to process data in chunks without losing the correlation peaks at the edges of the FFT windows. 
 
 Frequency-offset resilience is a trade-off between processing gain and computational complexity. Non-coherent segmented correlation is the most robust choice for high-uncertainty environments, but it requires a higher link margin. Coherent segmented and brute-force FFT searches provide better sensitivity, but they require significantly more hardware resources. Understanding the Dirichlet-driven loss is critical when choosing the bin density for any frequency-searching receiver.
 
@@ -1098,3 +1095,37 @@ The three CFAR parameters control detector behavior:
 - Rule of thumb: start with 1e-5 for per-lag PFA, then adjust based on the system-level false-alarm rate
 
 Remember the relationship between per-lag and system-level false-alarm rates from earlier in the chapter.
+
+**************
+Rake Receivers
+**************
+
+Imagine you are standing outdoors with a phone, and the tower's signal reaches you by more than one path. Some of the energy arrives straight from the tower, but another copy bounces off a building 150 m away and shows up a little later, and maybe a third copy reflects off a hillside and arrives later still. Each path travels a different distance, so each copy lands at your receiver at a slightly different time and with a different strength and phase. This is multipath, and it is the normal state of affairs in any real wireless environment, not a rare edge case.
+
+What does multipath look like at the output of a correlator? If you slide your preamble or chip sequence across the received samples, you do not get one clean spike, you get several, you see one peak for the direct path and a smaller peak for each echo. The naive thing to do is grab the tallest peak and throw the rest away. But those smaller peaks are not noise, they are the same data arriving by a different route, and discarding them means discarding signal energy you paid for.
+
+A rake receiver is the answer to a simple question: instead of throwing the echoes away, why not collect them and add them back together? The name comes from a garden rake, where each finger of the rake reaches out and gathers one row. Here, each "finger" is a separate correlator tuned to one of the multipath delays. Finger one locks onto the direct path, finger two onto the echo from the building, finger three onto the hillside reflection, and so on. Each finger is doing exactly the cross-correlation we have used throughout this chapter, just with its template shifted to a different delay so it tracks one specific copy of the signal.
+
+Finding the Fingers
+###############################
+
+Before the rake can combine anything, it has to know where the copies are. That job belongs to the correlator output we already have. The set of multipath delays and their relative strengths is called the channel's *power delay profile*, and it is just the magnitude of the correlation peaks plotted against delay. To set up the rake, you scan that profile and pick the strongest few peaks, then assign one finger to each. A receiver might have three or four fingers because allocating a finger to a tiny peak buried in the noise costs more than it gains.
+
+Because the channel changes as you move, as cars drive by, and as the environment shifts, the fingers cannot be set once and forgotten. The receiver keeps re-scanning the delay profile and reassigning fingers as peaks rise, fade, and drift in delay. A finger that was tracking a strong reflection might find its peak fading away, at which point the receiver reassigns it to a new path that has grown stronger.
+
+Combining the Fingers
+###############################
+
+Once each finger has locked onto its copy of the signal, the receiver has several independent measurements of the same transmitted symbols. How should it merge them into one decision? You might be tempted to just add them up, but that would be a mistake, because a strong, clean copy and a weak, noisy copy do not deserve an equal vote. The weak finger is mostly noise, and giving it equal weight would drag the combined result down.
+
+The standard solution is *maximal ratio combining* (MRC), which weights each finger by its own strength before summing. A finger with a strong, high-SNR peak gets a large weight, and a finger that is barely above the noise gets a small one. If we call the complex output of finger :math:`k` at a given symbol :math:`r_k` and the channel gain that finger sees :math:`h_k`, the combined output is:
+
+.. math::
+
+    y = \sum_{k} h_k^{*} \, r_k
+
+I.e., take each finger's output, weight it by the conjugate of that finger's channel gain, and add them all up. The conjugate does two jobs at once; its magnitude :math:`|h_k|` scales each finger by how strong it is, so loud fingers count more, and its phase rotates each finger's contribution so that all the copies line up and add constructively rather than partially canceling.
+
+The payoff comes in two forms. The first is simply more signal energy; by gathering the echoes instead of discarding them, the rake recovers power that a single-peak detector would have thrown on the floor. The second, and often more important, benefit is *diversity*. The deep fades that wreck a wireless link happen when the paths to a single point momentarily cancel each other, but it is unlikely that several paths with different delays all fade at the same instant. So when the direct path drops into a fade, one of the reflections is probably still strong, and the rake leans on whichever fingers are healthy at that moment.
+
+Note that rake receivers are only possible for wideband signals, which have sharp auto-correlation, which means multipath copies show up as cleanly separated peaks in the delay profile. Narrowband signals smear those copies together and cannot resolve them, so the rake won't work.

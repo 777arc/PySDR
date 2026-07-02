@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="616.14941"
+   height="426.03174"
+   viewBox="0 0 616.14941 426.03174"
+   font-family="'Segoe UI', Helvetica, Arial, sans-serif"
+   version="1.1"
+   id="svg98"
+   sodipodi:docname="overlap_add.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview100"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="4.0184211"
+     inkscape:cx="305.46824"
+     inkscape:cy="208.29077"
+     inkscape:window-width="3840"
+     inkscape:window-height="2054"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg98" />
+  <defs
+     id="defs20">
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#hatch3"
+       id="pattern1315"
+       patternTransform="rotate(45,24.791717,-45.059548)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#hatch2"
+       id="pattern1313"
+       patternTransform="rotate(45,24.791717,-45.059548)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#hatch1"
+       id="pattern1311"
+       patternTransform="rotate(45,24.791717,-45.059548)" />
+    <marker
+       style="overflow:visible"
+       id="marker1245"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="TriangleStart"
+       markerWidth="5.3244081"
+       markerHeight="6.155385"
+       viewBox="0 0 5.3244081 6.1553851"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path1243" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="TriangleStart"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="TriangleStart"
+       markerWidth="5.3244081"
+       markerHeight="6.155385"
+       viewBox="0 0 5.3244081 6.1553851"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135" />
+    </marker>
+    <marker
+       id="arrow"
+       markerWidth="9"
+       markerHeight="9"
+       refX="6"
+       refY="3"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="M 0,0 6,3 0,6 Z"
+         fill="#555555"
+         id="path2" />
+    </marker>
+    <pattern
+       id="hatch1"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6"
+       patternTransform="rotate(45)">
+      <rect
+         width="6"
+         height="6"
+         fill="#cfe0f5"
+         id="rect5" />
+      <line
+         x1="0"
+         y1="0"
+         x2="0"
+         y2="6"
+         stroke="#4a76b8"
+         stroke-width="1.4"
+         id="line7" />
+    </pattern>
+    <pattern
+       id="hatch2"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6"
+       patternTransform="rotate(45)">
+      <rect
+         width="6"
+         height="6"
+         fill="#d3ecd6"
+         id="rect10" />
+      <line
+         x1="0"
+         y1="0"
+         x2="0"
+         y2="6"
+         stroke="#4a9d58"
+         stroke-width="1.4"
+         id="line12" />
+    </pattern>
+    <pattern
+       id="hatch3"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6"
+       patternTransform="rotate(45)">
+      <rect
+         width="6"
+         height="6"
+         fill="#f6e0c8"
+         id="rect15" />
+      <line
+         x1="0"
+         y1="0"
+         x2="0"
+         y2="6"
+         stroke="#c9822f"
+         stroke-width="1.4"
+         id="line17" />
+    </pattern>
+  </defs>
+  <!-- ===== Stage 1: input split into non-overlapping blocks ===== -->
+  <text
+     x="-0.60058594"
+     y="11.271973"
+     font-size="15px"
+     font-weight="600"
+     fill="#333333"
+     id="text22">1. Split input into blocks of length L</text>
+  <!-- block 1 -->
+  <rect
+     x="95.399414"
+     y="25.271973"
+     width="160"
+     height="40"
+     fill="#cfe0f5"
+     stroke="#3a6ea5"
+     stroke-width="1.5"
+     id="rect24" />
+  <text
+     x="175.39941"
+     y="50.271973"
+     font-size="14px"
+     fill="#1f3d63"
+     text-anchor="middle"
+     id="text26">block 1</text>
+  <!-- block 2 -->
+  <rect
+     x="255.39941"
+     y="25.271973"
+     width="160"
+     height="40"
+     fill="#d3ecd6"
+     stroke="#3a8c4e"
+     stroke-width="1.5"
+     id="rect28" />
+  <text
+     x="335.39941"
+     y="50.271973"
+     font-size="14px"
+     fill="#1f5c30"
+     text-anchor="middle"
+     id="text30">block 2</text>
+  <!-- block 3 -->
+  <rect
+     x="415.39941"
+     y="25.271973"
+     width="160"
+     height="40"
+     fill="#f6e0c8"
+     stroke="#b5701f"
+     stroke-width="1.5"
+     id="rect32" />
+  <text
+     x="495.39941"
+     y="50.271973"
+     font-size="14px"
+     fill="#7a4a12"
+     text-anchor="middle"
+     id="text34">block 3</text>
+  <!-- L brace -->
+  <line
+     x1="95.399414"
+     y1="73.271973"
+     x2="255.39941"
+     y2="73.271973"
+     stroke="#888888"
+     stroke-width="1"
+     id="line36" />
+  <line
+     x1="95.399414"
+     y1="69.271973"
+     x2="95.399414"
+     y2="77.271973"
+     stroke="#888888"
+     stroke-width="1"
+     id="line38" />
+  <line
+     x1="255.39941"
+     y1="69.271973"
+     x2="255.39941"
+     y2="77.271973"
+     stroke="#888888"
+     stroke-width="1"
+     id="line40" />
+  <text
+     x="175.39941"
+     y="89.271973"
+     font-size="12px"
+     fill="#666666"
+     text-anchor="middle"
+     id="text42">L</text>
+  <!-- arrow to stage 2 -->
+  <line
+     x1="335.39941"
+     y1="101.27197"
+     x2="335.39941"
+     y2="127.27197"
+     stroke="#555555"
+     stroke-width="1.6"
+     marker-end="url(#arrow)"
+     id="line44"
+     style="marker-end:url(#TriangleStart)" />
+  <text
+     x="347.39941"
+     y="119.27197"
+     font-size="12px"
+     fill="#555555"
+     id="text46">filter each block with h (length M)</text>
+  <!-- ===== Stage 2: each filtered block is L + M - 1 long ===== -->
+  <text
+     x="-0.60058594"
+     y="137.27197"
+     font-size="15px"
+     font-weight="600"
+     fill="#333333"
+     id="text48">2. Each output is longer by M−1 (the tail)</text>
+  <!-- output 1: body + hatched tail -->
+  <rect
+     x="95.399414"
+     y="171.27197"
+     width="160"
+     height="34"
+     fill="#cfe0f5"
+     stroke="#3a6ea5"
+     stroke-width="1.5"
+     id="rect50" />
+  <rect
+     x="255.39941"
+     y="171.27197"
+     width="40"
+     height="34"
+     fill="url(#hatch1)"
+     stroke="#3a6ea5"
+     stroke-width="1.5"
+     id="rect52"
+     style="fill:url(#pattern1311)" />
+  <text
+     x="175.39941"
+     y="193.27197"
+     font-size="13px"
+     fill="#1f3d63"
+     text-anchor="middle"
+     id="text54">output 1</text>
+  <!-- output 2 -->
+  <rect
+     x="255.39941"
+     y="213.27197"
+     width="160"
+     height="34"
+     fill="#d3ecd6"
+     stroke="#3a8c4e"
+     stroke-width="1.5"
+     id="rect56" />
+  <rect
+     x="415.39941"
+     y="213.27197"
+     width="40"
+     height="34"
+     fill="url(#hatch2)"
+     stroke="#3a8c4e"
+     stroke-width="1.5"
+     id="rect58"
+     style="fill:url(#pattern1313)" />
+  <text
+     x="335.39941"
+     y="235.27197"
+     font-size="13px"
+     fill="#1f5c30"
+     text-anchor="middle"
+     id="text60">output 2</text>
+  <!-- output 3 -->
+  <rect
+     x="415.39941"
+     y="255.27197"
+     width="160"
+     height="34"
+     fill="#f6e0c8"
+     stroke="#b5701f"
+     stroke-width="1.5"
+     id="rect62" />
+  <rect
+     x="575.39941"
+     y="255.27197"
+     width="40"
+     height="34"
+     fill="url(#hatch3)"
+     stroke="#b5701f"
+     stroke-width="1.5"
+     id="rect64"
+     style="fill:url(#pattern1315)" />
+  <text
+     x="495.39941"
+     y="277.27197"
+     font-size="13px"
+     fill="#7a4a12"
+     text-anchor="middle"
+     id="text66">output 3</text>
+  <!-- tail label -->
+  <line
+     x1="255.39941"
+     y1="165.27197"
+     x2="295.39941"
+     y2="165.27197"
+     stroke="#888888"
+     stroke-width="1"
+     id="line68" />
+  <line
+     x1="255.39941"
+     y1="161.27197"
+     x2="255.39941"
+     y2="169.27197"
+     stroke="#888888"
+     stroke-width="1"
+     id="line70" />
+  <line
+     x1="295.39941"
+     y1="161.27197"
+     x2="295.39941"
+     y2="169.27197"
+     stroke="#888888"
+     stroke-width="1"
+     id="line72" />
+  <text
+     x="275.39941"
+     y="154.27197"
+     font-size="11px"
+     fill="#666666"
+     text-anchor="middle"
+     id="text74">M−1</text>
+  <!-- arrow to stage 3 -->
+  <line
+     x1="335.39941"
+     y1="299.27197"
+     x2="335.39941"
+     y2="325.27197"
+     stroke="#555555"
+     stroke-width="1.6"
+     marker-end="url(#arrow)"
+     id="line76"
+     style="marker-end:url(#marker1245)" />
+  <text
+     x="347.39941"
+     y="317.27197"
+     font-size="12px"
+     fill="#555555"
+     id="text78">add the overlapping tails</text>
+  <!-- ===== Stage 3: overlap and add ===== -->
+  <text
+     x="-0.60058594"
+     y="355.27197"
+     font-size="15px"
+     font-weight="600"
+     fill="#333333"
+     id="text80">3. Overlapping regions are summed</text>
+  <!-- final output track -->
+  <rect
+     x="95.399414"
+     y="369.27197"
+     width="160"
+     height="34"
+     fill="#cfe0f5"
+     stroke="#3a6ea5"
+     stroke-width="1.5"
+     id="rect82" />
+  <rect
+     x="295.39941"
+     y="369.27197"
+     width="120"
+     height="34"
+     fill="#d3ecd6"
+     stroke="#3a8c4e"
+     stroke-width="1.5"
+     id="rect84" />
+  <rect
+     x="455.39941"
+     y="369.27197"
+     width="120"
+     height="34"
+     fill="#f6e0c8"
+     stroke="#b5701f"
+     stroke-width="1.5"
+     id="rect86" />
+  <!-- overlap (summed) regions -->
+  <rect
+     x="255.39941"
+     y="369.27197"
+     width="40"
+     height="34"
+     fill="#b9a7d6"
+     stroke="#6a4fa0"
+     stroke-width="1.5"
+     id="rect88" />
+  <rect
+     x="415.39941"
+     y="369.27197"
+     width="40"
+     height="34"
+     fill="#b9a7d6"
+     stroke="#6a4fa0"
+     stroke-width="1.5"
+     id="rect90" />
+  <text
+     x="275.39941"
+     y="391.27197"
+     font-size="15px"
+     fill="#3d2a63"
+     text-anchor="middle"
+     font-weight="700"
+     id="text92">+</text>
+  <text
+     x="435.39941"
+     y="391.27197"
+     font-size="15px"
+     fill="#3d2a63"
+     text-anchor="middle"
+     font-weight="700"
+     id="text94">+</text>
+  <text
+     x="335.39941"
+     y="423.27197"
+     font-size="12px"
+     fill="#6a4fa0"
+     text-anchor="middle"
+     id="text96">purple = tail of one block added to the start of the next</text>
+</svg>

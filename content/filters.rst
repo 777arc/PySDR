@@ -752,6 +752,115 @@ You can see that a lower value of :math:`\beta` reduces the spectrum used (for t
 
 You will learn a lot more about pulse shaping, including some special properties that pulse shaping filters must satisfy, in the :ref:`pulse-shaping-chapter` chapter.
 
+*******************
+Filtering in Chunks
+*******************
+
+So far we have filtered signals that fit comfortably in memory: we hand the whole array to :code:`np.convolve` and get the whole result back.  But what happens when the signal is enormous, say a recording that is tens of gigabytes, or when the signal needs to be processed in realtime?  We need a way to filter the signal a piece at a time, while producing the exact same output we would have gotten if we had filtered it all at once.
+
+At first this sounds trivial, just filter each chunk and stitch the outputs together.  But try it and you will see glitches at every chunk boundary.  The reason comes straight from how an FIR filter works: to compute one output sample, the filter reaches back across the previous :math:`M-1` input samples, where :math:`M` is the number of taps.  Right at the start of a new chunk, those previous samples live in the *previous* chunk, which we already threw away.  So the first :math:`M-1` outputs of every chunk are wrong, because the filter had nothing but zeros to reach back into.  Put simply, an FIR filter has *memory*, and if we filter chunk by chunk we have to carry that memory across the seams.
+
+The Simple Way: Carry the State
+###############################
+
+The most direct fix is to keep the last :math:`M-1` samples of each chunk around and glue them onto the front of the next chunk before filtering.  Those carried-over samples give the filter the history it needs, so the boundary is no longer starved of context.  We then use :code:`mode='valid'` so that only the outputs that don't depend on zero-padding are returned:
+
+.. code-block:: python
+
+    import numpy as np
+
+    h = np.load('taps.npy')  # our FIR filter taps, length M
+    M = len(h)
+
+    state = np.zeros(M - 1, dtype=np.complex64)  # the filter's "memory"
+
+    def process_chunk(x):  # x is one chunk from the SDR, length L
+        global state
+        x_padded = np.concatenate([state, x])      # prepend last chunk's tail
+        y = np.convolve(x_padded, h, mode='valid') # length L, all valid outputs
+        state = x_padded[-(M - 1):]                # save tail for next chunk
+        return y
+
+Each call returns exactly :code:`len(x)` output samples, and if you concatenate the outputs from every chunk it matches what you would get with filtering the entire signal in one shot.  This is really all you need for a lot of real-time work, and SciPy even provides it directly: :code:`scipy.signal.lfilter` accepts an initial-condition array :code:`zi` that holds exactly this state, and hands you back the updated state each call:
+
+.. code-block:: python
+
+    from scipy.signal import lfilter, lfilter_zi
+
+    zi = np.zeros(len(h) - 1, dtype=np.complex64)  # filter state
+    y1, zi = lfilter(h, 1.0, chunk1, zi=zi)        # filter first chunk
+    y2, zi = lfilter(h, 1.0, chunk2, zi=zi)        # state carries over
+    # ...and so on for every chunk
+
+So why bother with anything fancier?  Direct convolution costs on the order of :math:`M` multiply-adds per output sample.  When the filter is long, e.g. a sharp filter with thousands of taps, that gets expensive.  For long filters it is much cheaper to do the convolution in the frequency domain using the FFT (recall that convolution in time is multiplication in frequency).  But an FFT needs a finite block of samples, so we are right back to the chunking problem, this time with a twist: multiplying two FFTs together and taking the inverse FFT gives you *circular* convolution, which wraps the ends of the block around onto each other, not the *linear* convolution we actually want.  Overlap-add and overlap-save are the two classic tricks for getting correct linear convolution out of block-by-block FFTs.
+
+Overlap-Add
+###########
+
+Overlap-add starts from a simple observation: convolution is linear, so we can chop the input into non-overlapping blocks, filter each block on its own, and sum the results.  The catch is that filtering a length-:math:`L` block with a length-:math:`M` filter produces a result of length :math:`L + M - 1`, i.e. it is *longer* than the block we started with.  That extra :math:`M-1` samples of "tail" is the filter ringing out past the end of the block, and it spills into the region belonging to the next block.  The fix is right there in the name: we let the blocks' outputs overlap and we add the overlapping parts together, as shown below.
+
+.. image:: ../_images/overlap_add.svg
+   :align: center
+   :target: ../_images/overlap_add.svg
+
+Concretely, we FFT each input block (zero-padded up to :math:`N \ge L + M - 1`), multiply by the FFT of the taps, and inverse-FFT to get that block's full-length output.  We emit the first :math:`L` samples and remember the :math:`M-1` sample tail so we can add it into the start of the next block:
+
+.. code-block:: python
+
+    import numpy as np
+
+    h = np.load('taps.npy')
+    M = len(h)
+    L = 1024              # input block size (samples per chunk)
+    N = L + M - 1         # FFT size (round up to a power of 2 if you like)
+    H = np.fft.fft(h, N)  # precompute the filter's FFT once
+
+    tail = np.zeros(M - 1, dtype=np.complex64)  # leftover from previous block
+
+    def process_chunk(x):  # x has length L
+        global tail
+        conv = np.fft.ifft(np.fft.fft(x, N) * H)  # length N, linear conv
+        y = conv[:L].copy()
+        y[:M - 1] += tail   # add in the tail that rang over from last block
+        tail = conv[L:]     # this block's tail rings into the next one
+        return y
+
+Notice that nothing is thrown away here, every sample the filter produces ends up in the output, some of them just get split across two blocks and added back together.
+
+Overlap-Save
+############
+
+Overlap-save (sometimes called overlap-discard, which is arguably the clearer name) attacks the same problem from the other direction.  Instead of adding overlapping outputs, we overlap the *inputs* and throw away the outputs we know are garbage.  Recall the wrap-around from circular convolution corrupts exactly the first :math:`M-1` output samples of a block.  So the plan is: feed the filter overlapping input blocks, where each block reuses the last :math:`M-1` samples of the previous one, then simply discard those first :math:`M-1` polluted outputs and keep the rest, as shown below.
+
+.. image:: ../_images/overlap_save.svg
+   :align: center
+   :target: ../_images/overlap_save.svg
+
+Here we pick an FFT size :math:`N` and consume :math:`N - (M-1)` new samples per block, prepending the :math:`M-1` samples of overlap from last time to fill the block back up to :math:`N`:
+
+.. code-block:: python
+
+    import numpy as np
+
+    h = np.load('taps.npy')
+    M = len(h)
+    N = 2048               # FFT / block size, must be larger than M
+    step = N - (M - 1)     # number of NEW samples consumed per block
+    H = np.fft.fft(h, N)   # precompute the filter's FFT once
+
+    overlap = np.zeros(M - 1, dtype=np.complex64)  # carried-over input samples
+
+    def process_chunk(x):  # x has length 'step'
+        global overlap
+        block = np.concatenate([overlap, x])       # length N
+        conv = np.fft.ifft(np.fft.fft(block) * H)  # circular conv, length N
+        overlap = block[-(M - 1):]                 # save tail for next block
+        return conv[M - 1:]                        # discard the aliased outputs
+
+The trade-off between the two is mostly a matter of taste and plumbing.  Overlap-add does a little extra work adding the overlapping tails, while overlap-save does a little extra work re-processing the overlapping input samples only to throw the results away.  Both produce identical output, and both match plain :code:`np.convolve` over the full signal.
+
+Note that SciPy's :code:`scipy.signal.oaconvolve` performs overlap-add convolution for you, and internally it calls :code:`scipy.signal.fftconvolve` which will pick an efficient FFT-based approach automatically.  The value in understanding overlap-add and overlap-save is that when you are streaming from a live radio, *you* own the block boundaries, and knowing how the filter's memory crosses those boundaries is what lets you filter a never-ending signal without a single glitch at the seams.
+
 
 
 

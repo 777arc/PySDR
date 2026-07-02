@@ -27,6 +27,10 @@ You may think we only care about digital filters; this textbook explores DSP, af
    
 In DSP, where the input and output are signals, a filter has one input signal and one output signal:
 
+.. raw:: html
+
+   <div style="max-width: 700px; margin: 0 auto;">
+
 .. tikz:: [font=\sffamily\Large, scale=2]
    \definecolor{babyblueeyes}{rgb}{0.36, 0.61, 0.83}
    \node [draw,
@@ -36,9 +40,13 @@ In DSP, where the input and output are signals, a filter has one input signal an
     minimum height=2.4cm
    ]  (filter) {Filter};
    \draw[<-, very thick] (filter.west) -- ++(-2,0) node[left,align=center]{Input\\(time domain)} ;
-   \draw[->, very thick] (filter.east) -- ++(2,0) node[right,align=center]{Output\\(time domain)};   
+   \draw[->, very thick] (filter.east) -- ++(2,0) node[right,align=center]{Output\\(time domain)};
    :libs: positioning
-   :xscale: 80
+   :xscale: 100
+
+.. raw:: html
+
+   </div>
 
 You cannot feed two different signals into a single filter without adding them together first or doing some other operation.  Likewise, the output will always be one signal, i.e., a 1D array of numbers.
 
@@ -53,7 +61,7 @@ There are four basic types of filters: low-pass, high-pass, band-pass, and band-
 .. START OF FILTER TYPES TIKZ
 .. raw:: html
 
-   <table><tbody><tr><td>
+   <table style="max-width: 700px; margin: 0 auto;"><tbody><tr><td>
 
 .. This draw the lowpass filter
 .. tikz:: [font=\sffamily\large]    
@@ -255,8 +263,12 @@ Real vs. Complex Filters
 The filter I showed you had real taps, but taps can also be complex.  Whether the taps are real or complex doesn't have to match the signal you put through it, i.e., you can put a complex signal through a filter with real taps and vice versa.  When the taps are real, the filter's frequency response will be symmetrical around DC (0 Hz).  Typically we use complex taps when we need asymmetry, which does not happen too often.
 
 .. draw real vs complex filter
-.. tikz:: [font=\sffamily\Large,scale=2] 
-   \definecolor{babyblueeyes}{rgb}{0.36, 0.61, 0.83}   
+.. raw:: html
+
+   <div style="max-width: 800px; margin: 0 auto;">
+
+.. tikz:: [font=\sffamily\Large,scale=2]
+   \definecolor{babyblueeyes}{rgb}{0.36, 0.61, 0.83}
    \draw[->, thick] (-5,0) node[below]{$-\frac{f_s}{2}$} -- (5,0) node[below]{$\frac{f_s}{2}$};
    \draw[->, thick] (0,-0.5) node[below]{0 Hz} -- (0,1);
    \draw[babyblueeyes, smooth, line width=3pt] plot[tension=0.1] coordinates{(-5,0) (-1,0) (-0.5,2) (0.5,2) (1,0) (5,0)};
@@ -265,6 +277,11 @@ The filter I showed you had real taps, but taps can also be complex.  Whether th
    \draw[babyblueeyes, smooth, line width=3pt] plot[tension=0] coordinates{(6,0) (11,0) (11,2) (11.5,2) (12,0) (16,0)};
    \draw[font=\huge\bfseries] (0,2.5) node[above,align=center]{Example Low-Pass Filter\\with Real Taps};
    \draw[font=\huge\bfseries] (11,2.5) node[above,align=center]{Example Low-Pass Filter\\with Complex Taps};
+   :xscale: 100
+
+.. raw:: html
+
+   </div>
 
 As an example of complex taps, let's go back to the filtering use-case, except this time we want to receive the other interfering signal (without having to re-tune the radio).  That means we want a band-pass filter, but not a symmetrical one. We only want to keep (a.k.a "pass") frequencies between around 7 kHz to 13 kHz (we don't want to also pass -13 kHz to -7 kHz):
 
@@ -756,7 +773,7 @@ You will learn a lot more about pulse shaping, including some special properties
 Filtering in Chunks
 *******************
 
-So far we have filtered signals that fit comfortably in memory: we hand the whole array to :code:`np.convolve` and get the whole result back.  But what happens when the signal is enormous, say a recording that is tens of gigabytes, or when the signal needs to be processed in realtime?  We need a way to filter the signal a piece at a time, while producing the exact same output we would have gotten if we had filtered it all at once.
+So far we have filtered signals that fit comfortably in memory: we hand the whole array to :code:`np.convolve` and get the whole result back.  But what happens when the signal is enormous, say a recording that is tens of gigabytes, or when the signal needs to be processed in real-time?  We need a way to filter the signal a piece at a time, while producing the exact same output we would have gotten if we had filtered it all at once.
 
 At first this sounds trivial, just filter each chunk and stitch the outputs together.  But try it and you will see glitches at every chunk boundary.  The reason comes straight from how an FIR filter works: to compute one output sample, the filter reaches back across the previous :math:`M-1` input samples, where :math:`M` is the number of taps.  Right at the start of a new chunk, those previous samples live in the *previous* chunk, which we already threw away.  So the first :math:`M-1` outputs of every chunk are wrong, because the filter had nothing but zeros to reach back into.  Put simply, an FIR filter has *memory*, and if we filter chunk by chunk we have to carry that memory across the seams.
 

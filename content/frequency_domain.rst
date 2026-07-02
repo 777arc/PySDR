@@ -587,3 +587,37 @@ For those who prefer to think in code rather than equations, the following shows
    :alt: python implementation of fft example
 
 For those interested in JavaScript and/or WebAssembly based implementations, check out the `WebFFT <https://github.com/IQEngine/WebFFT>`_ library for performing FFTs in web or NodeJS applications, it includes several implementations under the hood, and there is a `benchmarking tool <https://webfft.com>`_ used to compare the performance of each implementation.
+
+*********************
+Boxcar and Sinc
+*********************
+
+Imagine you switch a signal on, hold it at a constant level for exactly one second, then switch it back off.  In time that is about the simplest pulse you can make: a flat-topped rectangle, one second wide.  This shape shows up constantly in DSP, so it has a name, the boxcar pulse (also called a rectangular pulse), because it looks like the boxcar of a train sitting on the time axis.  A natural question to ask is: if the pulse is so simple in time, what does it look like in the frequency domain?
+
+You might guess that a simple pulse has a simple spectrum, but it turns out the opposite is true.  Take the FFT of a boxcar and you get the shape shown on the right below, a tall central hump surrounded by ripples that fade out as you move away from the center.  That shape is called a sinc (pronounced "sink").  The plot below shows the pair side by side, the boxcar in time on the left and its sinc spectrum on the right.
+
+.. image:: ../_images/boxcar_sinc.svg
+   :align: center
+   :target: ../_images/boxcar_sinc.svg
+   :alt: A boxcar (rectangular) pulse in the time domain and its sinc-shaped spectrum
+
+Notice that the spectrum does not stop at the first dip, it keeps going with smaller and smaller bumps.  Those bumps are the sidelobes, and the tall bump in the middle is the mainlobe.  The reason a plain rectangle produces all this structure is the sharp edges: turning the signal on and off instantly requires energy spread across a wide range of frequencies, and the sinc is exactly how that energy is distributed.
+
+The math backs up the picture.  If our boxcar has amplitude :math:`A` and width :math:`T` (in seconds), its Fourier transform is:
+
+.. math::
+   X(f) = A T \, \mathrm{sinc}(f T)
+
+where the sinc function itself is defined as:
+
+.. math::
+   \mathrm{sinc}(x) = \frac{\sin(\pi x)}{\pi x}
+
+The spectrum of a rectangle is a sinc, scaled in height by :math:`AT` and stretched in frequency by :math:`T`. The mainlobe crosses zero for the first time when :math:`fT = 1`, i.e., at :math:`f = 1/T`, so the spectrum gets narrower as the pulse gets wider. Just like we saw with the scaling property, a short pulse in time is wide in frequency, and a wide pulse in time is narrow in frequency.  The two are inversely linked: you cannot make something compact in both domains at once.  If you want a signal that occupies very little bandwidth, you have to let it last a long time, and if you need a very short pulse, you have to accept that it smears out across a lot of frequencies.
+
+The animation below drives this home.  Watch what happens as the boxcar on the left starts out very short and gradually widens.  As the pulse fattens up in time, its sinc spectrum on the right squeezes in tighter and tighter toward the center, exactly as :math:`f = 1/T` predicts.
+
+.. image:: ../_images/boxcar_sinc_animation.gif
+   :align: center
+   :target: ../_images/boxcar_sinc_animation.gif
+   :alt: Animation of a boxcar pulse widening in time while its sinc spectrum narrows in frequency

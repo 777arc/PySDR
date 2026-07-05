@@ -498,7 +498,7 @@ In Python we can generate a spectrogram as follows:
      spectrogram[i,:] = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x[i*fft_size:(i+1)*fft_size])))**2)
  
  # Time starts at the top and goes down, eg sample x[0] will be part of the top row displayed
- plt.imshow(spectrogram, aspect='auto', extent = [sample_rate/-2/1e6, sample_rate/2/1e6, len(x)/sample_rate, 0])
+ plt.imshow(spectrogram, aspect='auto', extent = (sample_rate/-2/1e6, sample_rate/2/1e6, len(x)/sample_rate, 0))
  plt.xlabel("Frequency [MHz]")
  plt.ylabel("Time [s]")
  plt.show()

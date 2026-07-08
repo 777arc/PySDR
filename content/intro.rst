@@ -43,7 +43,7 @@ To cover foundational DSP theory, an entire semester of "Signals and Systems", a
 Why Python?
 ***********
 
-Given the name PySDR, you may think Python is a critical part of this resource, but in reality the choice of programming language is not a big deal.  In the era of AI, converting code between languages is trivial.  In this textbook **we use Python almost as a form of pseudocode**, with the bonus that we can actually run it, see results, plot signals, sweep params, etc.  Python was chosen as the language simply because it's free, easy to run on all platforms, low boilerplate, lightweight syntax, easily readable, and has a massive ecosystem of libraries and example code in the wild.  It also helps that most SDRs have a Python API.
+Given the name PySDR, you may think Python is a critical part of this resource, but in reality the choice of programming language is not a big deal.  In the era of AI, converting code between languages is trivial.  In this textbook **we use Python almost as a form of pseudocode**, with the bonus that we can actually run it, see results, plot signals, sweep parameters, etc.  Python was chosen as the language simply because it's free, easy to run on all platforms, low boilerplate, lightweight syntax, easily readable, and has a massive ecosystem of libraries and example code in the wild.  It also helps that most SDRs have a Python API.
 
 PySDR purposefully does not include a custom Python library or any wrapper functions, all code is in straight Python, using the standard libraries such as NumPy (standard library for arrays and high-level math), SciPy (more DSP-specific functions such as filter design), and Matplotlib (plotting, allows us to visualize signals).
 

@@ -39,12 +39,19 @@ This textbook is meant to introduce concepts quickly and smoothly, enabling the 
 
 To cover foundational DSP theory, an entire semester of "Signals and Systems", a typical course within electrical engineering, is condensed into a few chapters.  Once the DSP fundamentals are covered, we launch into SDRs, although DSP and wireless communications concepts continue to come up throughout the textbook.
 
-Code examples are provided in Python.  They utilize NumPy, which is Python's standard library for arrays and high-level math.  The examples also rely upon Matplotlib, which is a Python plotting library that provides an easy way to visualize signals, arrays, and complex numbers.  Note that while Python is "slower" than C++ in general, most math functions within Python/NumPy are implemented in C/C++ and heavily optimized.  Likewise, the SDR API we use is simply a set of Python bindings for C/C++ functions/classes.  Those who have little Python experience yet a solid foundation in MATLAB, Ruby, or Perl will likely be fine after familiarizing themselves with Python's syntax.
+***********
+Why Python?
+***********
 
+Given the name PySDR, you may think Python is a critical part of this resource, but in reality the choice of programming language is not a big deal.  In the era of AI, converting code between languages is trivial.  In this textbook **we use Python almost as a form of pseudocode**, with the bonus that we can actually run it, see results, plot signals, sweep params, etc.  Python was chosen as the language simply because it's free, easy to run on all platforms, low boilerplate, lightweight syntax, easily readable, and has a massive ecosystem of libraries and example code in the wild.  It also helps that most SDRs have a Python API.
 
-***************
+PySDR purposefully does not include a custom Python library or any wrapper functions, all code is in straight Python, using the standard libraries such as NumPy (standard library for arrays and high-level math), SciPy (more DSP-specific functions such as filter design), and Matplotlib (plotting, allows us to visualize signals).
+
+Note that while Python is "slower" than C/C++ in general, most functions within Python/NumPy are actually implemented in C/C++ under the hood and heavily optimized, so you might be surprised how fast CPU-based DSP can run in Python.  Likewise, the SDR APIs we use (e.g., UHD) are simply a set of Python bindings for C/C++ functions/classes.  For fielded RF systems, high-rate signal processing is typically implemented in the FPGA anyway!
+
+************
 Contributing
-***************
+************
 
 If you got value from PySDR, please share it with colleagues, students, and other lifelong learners who may be interested in the material.  You can also donate through the `PySDR Patreon <https://www.patreon.com/PySDR>`_ as a way to say thanks and get your name on the left of every page below the chapter list. There is also an option to `make a one-time donation <https://www.paypal.com/donate/?hosted_button_id=FH3LQCJRUVPWL>`_.
 

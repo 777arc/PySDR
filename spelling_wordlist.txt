@@ -12,6 +12,7 @@ sc
 np
 NumPy
 numpy
+Jupyter
 JupyterLite
 Arg
 frontend

@@ -586,7 +586,7 @@ For those who prefer to think in code rather than equations, the following shows
    :target: ../_images/fft_in_python.svg
    :alt: python implementation of fft example
 
-For those interested in JavaScript and/or WebAssembly based implementations, check out the `WebFFT <https://github.com/IQEngine/WebFFT>`_ library for performing FFTs in web or NodeJS applications, it includes several implementations under the hood, and there is a `benchmarking tool <https://webfft.com>`_ used to compare the performance of each implementation.
+If you want to try running the code purely in your browser, it's available as a `web-based jupyter notebook <../jupyterlite/notebooks/index.html?path=frequency_domain.ipynb>`_.
 
 *********************
 Boxcar and Sinc

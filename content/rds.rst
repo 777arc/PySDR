@@ -1,8 +1,8 @@
 .. _rds-chapter:
 
-##################
-End-to-End Example
-##################
+###########################
+End-to-End Example with RDS
+###########################
 
 In this chapter we bring together many of the concepts we previously learned about, and walk through a full example of receiving and decoding a real digital signal.  We will be looking at Radio Data System (RDS), which is a communications protocol for embedding small amounts of information in FM radio broadcasts, such as station and song name.  We will have to demodulate FM, frequency shift, filter, decimate, resample, synchronize, decode, and parse the bytes.  An example IQ file is provided for testing purposes or if you don't have an SDR handy.
 
@@ -631,7 +631,7 @@ Below shows the output of the parsing step for an example FM station.  Note how 
 Wrap-Up and Final Code
 ********************************
 
-You did it!  Below is all of the code above, concatenated, it should work with the `test FM radio recording you can find here <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_, although you should be able to feed in your own signal as long as its received at a high enough SNR, simply tune to the station's center frequency and sample at a rate of 250 kHz.  If you find you had to make tweaks to get it to work with your own recording or live SDR, let me know what you had to do, you can submit it as a GitHub PR at `the textbook's GitHub page <https://github.com/777arc/PySDR>`_.  You can also find a version of this code with dozens of debug plotting/printing included, that I originally used to make this chapter, `here <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/rds_demo.py>`_.  
+You did it!  Below is all of the code above, concatenated, it should work with the `test FM radio recording you can find here <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_, although you should be able to feed in your own signal as long as its received at a high enough SNR, simply tune to the station's center frequency and sample at a rate of 250 kHz.  If you find you had to make tweaks to get it to work with your own recording or live SDR, let me know what you had to do, you can submit it as a GitHub PR at `the textbook's GitHub page <https://github.com/777arc/PySDR>`_.  You can also find a version of this code with dozens of debug plotting/printing included, that I originally used to make this chapter, `here <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/rds_demo.py>`_.  Lastly, if you want to try running the code purely in your browser, it's available as `web-based jupyter notebook using jupyterlite <../jupyterlite/notebooks/index.html?path=rds.ipynb>`_.
 
 .. raw:: html
 

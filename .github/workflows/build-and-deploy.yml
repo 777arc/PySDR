@@ -105,6 +105,7 @@ jobs:
         run: |
           pip install -r requirements-jupyterlite.txt
           jupyter lite build --contents jupyterlite --output-dir _build/jupyterlite
+          python jupyterlite/inject_branding.py _build/jupyterlite
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3.0.1

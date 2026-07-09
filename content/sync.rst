@@ -449,7 +449,7 @@ Below is an animation of the time sync plus frequency sync running, the time syn
    :target: ../_images/costas_animation.gif
    :alt: Costas loop animation
 
-The following (collapsed) code block provides the full Python example of the chapter so far, this was tested to work using Python 3.12.3 and NumPy 1.26.4.  It also includes a bit error check at the end, although AWGN is left out for the sake of seeing how tight the BPSK can get through just synchronization alone, you are welcome to add AWGN, e.g., right after adding the fractional delay.  Note that the plot of IQ over time is before frequency synchronization, so you can see the BPSK energy slowly shift between I and Q.
+The following (collapsed) code block provides the full Python example of the chapter so far, this was tested to work using Python 3.12.3 and NumPy 1.26.4.  It also includes a bit error check at the end, although AWGN is left out for the sake of seeing how tight the BPSK can get through just synchronization alone, you are welcome to add AWGN, e.g., right after adding the fractional delay.  Note that the plot of IQ over time is before frequency synchronization, so you can see the BPSK energy slowly shift between I and Q.  If you want to try running the code purely in your browser, it's available as a `web-based jupyter notebook <../jupyterlite/notebooks/index.html?path=sync.ipynb>`_.
 
 .. raw:: html
 

@@ -12,6 +12,7 @@ sc
 np
 NumPy
 numpy
+JupyterLite
 Arg
 frontend
 dBm

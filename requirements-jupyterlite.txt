@@ -1,0 +1,5 @@
+# Used only to build the self-hosted JupyterLite environment deployed at /jupyterlite/
+# Kept separate from requirements.txt so it can't disturb the (older) Sphinx pins.
+jupyterlite-core==0.8.1
+jupyterlite-pyodide-kernel==0.8.1
+jupyter-server==2.20.0  # required for `jupyter lite build --contents` to bundle the notebook(s) in jupyterlite/

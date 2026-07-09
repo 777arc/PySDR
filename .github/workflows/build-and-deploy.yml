@@ -97,6 +97,15 @@ jobs:
         env:
           CREATOR_ID: ${{ secrets.CREATOR_ID }}
 
+      # Build a self-hosted JupyterLite environment into _build/jupyterlite so the
+      # interactive "run this code" links in the book point at our own deployment
+      # rather than a third-party demo site. Done last so its pip installs can't
+      # disturb the Sphinx builds above.
+      - name: Build JupyterLite
+        run: |
+          pip install -r requirements-jupyterlite.txt
+          jupyter lite build --contents jupyterlite --output-dir _build/jupyterlite
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3.0.1
         with:

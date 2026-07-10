@@ -15,6 +15,17 @@
 {{ super() }}
 <link rel="stylesheet" href="{{ pathto('_static/custom.css', 1) }}" type="text/css" />
 
+{# Description used for search-engine snippets and social link previews. #}
+{%- set pysdr_description = "PySDR is a free online textbook (not a Python library!) that provides a gentle introduction to wireless communications and software-defined radio (SDR) using an abundance of diagrams, animations, and Python code examples." %}
+<meta name="description" content="{{ pysdr_description }}" />
+<meta property="og:title" content="{% if 'no title' in title %}{{ docstitle }}{% else %}{{ title|striptags|e }}{{ customtitlesuffix }}{% endif %}" />
+<meta property="og:description" content="{{ pysdr_description }}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://pysdr.org/{{ pagename }}.html" />
+<meta property="og:image" content="https://pysdr.org/_static/logo.png" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:description" content="{{ pysdr_description }}" />
+
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TGRQK1JJYD"></script>
 <script>

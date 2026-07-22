@@ -12,6 +12,8 @@ Marc uses AI to help create the JavaScript mini-apps and solve issues like when 
 
 - Edit the `.rst` files under `content/` and the Sphinx config/templates under the repo root.
 - Treat `_build/` as generated output. Do not edit it directly.
+- Images (primarily in SVG format) referenced by the RST live in _images/
+- Python code used to produce images (primarily in SVG format) lives in figure-generating-scripts/
 - If you change a page, also check whether image assets, scripts, or config in `_static/`, `_images/`, `conf.py`, or `Makefile` need matching updates.
 
 ## How to build locally

@@ -290,6 +290,15 @@ What should you notice?  The signal converges to tight clusters at :math:`+1` an
 
 Everything above assumed a real signal (BPSK), where we only have to look at the I component.  For complex modulations like QPSK or QAM, the I and Q components each carry their own symbols, so you draw a **separate eye diagram for I and for Q**.  You'll usually see them side-by-side, and both eyes need to be open for reliable reception.
 
+To build intuition, try the interactive explorer below.  It generates random symbols, applies raised-cosine pulse shaping, and overlays the results into a live eye diagram.  Drag the sliders to add noise (lower the Eb/N0), introduce timing jitter, or change the roll-off factor, and watch the eye open and close.  Notice how noise closes the eye vertically (less amplitude margin) while jitter pinches it horizontally (less timing margin), and how switching from BPSK to a 4-level signal (4-ASK, which sends two bits per symbol using four amplitudes) splits it into three smaller, stacked eyes.
+
+.. raw:: html
+
+    <div id="eyeApp"></div>
+    <script>
+    eye_diagram_app("eyeApp")
+    </script>
+
 *************
 OQPSK and MSK
 *************

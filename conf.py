@@ -203,6 +203,7 @@ html_js_files = [
     'js/cyclostationary_app.js',
     'js/homepage_app.js',
     'js/tdoa.js',
+    'js/eye_diagram_app.js',
     'js/sidebar_groups.js'
     # we also include the index.js file from the PhasedArrayVisualizer directory in setup() above
 ]

@@ -75,7 +75,7 @@ function eye_diagram_app(containerId) {
         <button data-levels="2" aria-pressed="true">BPSK</button>
         <button data-levels="4" aria-pressed="false">4-ASK</button>
       </div>
-      <p class="seg-hint">BPSK sends one bit per symbol (two amplitudes). 4-ASK packs two bits into four amplitudes → three stacked eyes, each about a third the height, so it needs more Eb/N0.</p>
+      <p class="seg-hint">BPSK sends one bit per symbol (two amplitudes). 4-ASK packs two bits into four amplitudes → three stacked eyes, each about a third the height, so it needs more SNR.</p>
 
       <div class="seg" id="ed-shape" role="group" aria-label="Pulse-shaping filter">
         <button data-shape="rc" aria-pressed="true">Full RC</button>
@@ -96,9 +96,9 @@ function eye_diagram_app(containerId) {
       </div>
 
       <div class="ctrl">
-        <div class="row"><label for="ed-ebn0">Eb/N0</label><span class="val" id="ed-ebn0-v">30.0 dB</span></div>
-        <input type="range" id="ed-ebn0" min="2" max="30" step="0.5" value="30">
-        <div class="hint">Signal-to-noise per bit. Lower it and Gaussian noise fattens the traces, closing the eye vertically.</div>
+        <div class="row"><label for="ed-snr">SNR</label><span class="val" id="ed-snr-v">30.0 dB</span></div>
+        <input type="range" id="ed-snr" min="2" max="30" step="0.5" value="30">
+        <div class="hint">Signal-to-noise ratio in dB. Lower it and Gaussian noise fattens the traces, closing the eye vertically.</div>
       </div>
 
       <div class="ctrl">
@@ -156,7 +156,7 @@ function eye_diagram_app(containerId) {
   const px = phos.getContext('2d');
   px.fillStyle = 'rgb(' + BG.join(',') + ')'; px.fillRect(0, 0, EW, EH);
 
-  const params = { rolloff: 0.35, ebn0: 30, jitter: 0, persist: 0.9, shape: 'rc', levels: 2, heatmap: false };
+  const params = { rolloff: 0.35, snr: 30, jitter: 0, persist: 0.9, shape: 'rc', levels: 2, heatmap: false };
   let running = true;
   let stripWave = null, stripPtr = 0, stripDirty = true;
 
@@ -175,11 +175,11 @@ function eye_diagram_app(containerId) {
       return (b / Math.SQRT2) * (a + c); }
     const p = Math.PI * x, num = Math.sin(p * (1 - b)) + 4 * b * x * Math.cos(p * (1 + b));
     const den = p * (1 - (4 * b * x) * (4 * b * x)); return num / den; }
-  const ebn0Lin = () => Math.pow(10, params.ebn0 / 10);
+  const snrLin = () => Math.pow(10, params.snr / 10);
   const LEVELSETS = { 2: [-1, 1], 4: [-1, -1 / 3, 1 / 3, 1] };
   const levelArr = () => LEVELSETS[params.levels];
-  function ebPerBit() { const lv = levelArr(); let es = 0; for (const a of lv) es += a * a; return (es / lv.length) / Math.log2(lv.length); }
-  const sigma = () => Math.sqrt(ebPerBit() / (2 * ebn0Lin()));   // noise per real dimension, energy-per-bit accurate
+  function meanSymPower() { const lv = levelArr(); let es = 0; for (const a of lv) es += a * a; return es / lv.length; }
+  const sigma = () => Math.sqrt(meanSymPower() / snrLin());     // SNR = mean symbol power / noise variance
 
   // ---------- pulse-shaping filter (cached) ----------
   let filt = null, filtDirty = true;
@@ -324,7 +324,7 @@ function eye_diagram_app(containerId) {
   function bindRange(id, fmt, apply) { const el = $('#' + id), out = $('#' + id + '-v');
     const upd = () => { apply(+el.value); out.textContent = fmt(+el.value); fill(el); }; el.addEventListener('input', upd); upd(); }
   bindRange('ed-rolloff', v => v.toFixed(2), v => { params.rolloff = v; filtDirty = true; stripDirty = true; });
-  bindRange('ed-ebn0', v => v.toFixed(1) + ' dB', v => { params.ebn0 = v; stripDirty = true; });
+  bindRange('ed-snr', v => v.toFixed(1) + ' dB', v => { params.snr = v; stripDirty = true; });
   bindRange('ed-jitter', v => v.toFixed(0) + '%', v => { params.jitter = v / 100; });
   bindRange('ed-persist', v => v < 0.8 ? 'Short' : v < 0.9 ? 'Medium' : v < 0.94 ? 'Long' : 'Very long', v => { params.persist = v; });
 
@@ -351,7 +351,7 @@ function eye_diagram_app(containerId) {
     runBtn.classList.toggle('paused', !running); runBtn.setAttribute('aria-pressed', running); });
   $('#ed-reset').addEventListener('click', () => { clearPhosphor();
     const set = (id, val) => { const el = $('#' + id); el.value = val; el.dispatchEvent(new Event('input')); };
-    set('ed-rolloff', 0.35); set('ed-ebn0', 30); set('ed-jitter', 0); set('ed-persist', 0.9);
+    set('ed-rolloff', 0.35); set('ed-snr', 30); set('ed-jitter', 0); set('ed-persist', 0.9);
     root.querySelector('[data-shape="rc"]').click();
     root.querySelector('[data-levels="2"]').click();
     root.querySelector('[data-view="lines"]').click(); });

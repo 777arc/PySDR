@@ -275,6 +275,21 @@ If you want to play around with this concept further, below is an interactive `P
          ></iframe>
    <!-- ════════ /POTIK EMBED ════════ -->
 
+**********************************
+Eye Diagrams
+**********************************
+
+Now that we've built and sampled a pulse-shaped signal, there's a classic tool that lets us see the health of that entire signal at a glance: the eye diagram.  The idea is simple, take the pulse-shaped signal we just made, after the receive-side matched filter, and chop it into short chunks that are each a couple symbol periods long, and overlay all of those chunks on top of each other.  Because every chunk is aligned to the symbol timing, the pulses stack up and reveal a repeating pattern that, with a little imagination, looks like an eye:
+
+.. image:: ../_images/eye_diagram.svg
+   :align: center
+   :target: ../_images/eye_diagram.svg
+   :alt: An eye diagram of a BPSK signal with raised-cosine pulse shaping
+
+What should you notice?  The signal converges to tight clusters at :math:`+1` and :math:`-1` right at the symbol instants (the dashed line marks the ideal sample time, which we have purposefully set at x=0), while spreading out and crossing in between the ideal sample time.  That open region in the middle is the "eye", and its size tells you how much margin you have for timing error and noise.  The *height* of the opening is your amplitude margin, i.e., how much noise the signal can tolerate before samples land on the wrong side of zero.  The *width* of the opening is your timing margin, i.e., how far off the receiver's sample clock can drift before ISI starts closing the eye.  A wide-open eye means an easy signal to receive; a closed or fuzzy eye means noise, ISI, or timing error is eating into your margin.  This is exactly the same timing sensitivity we explored with the constellation plots above, just shown a different way.
+
+Everything above assumed a real signal (BPSK), where we only have to look at the I component.  For complex modulations like QPSK or QAM, the I and Q components each carry their own symbols, so you draw a **separate eye diagram for I and for Q**.  You'll usually see them side-by-side, and both eyes need to be open for reliable reception.
+
 *************
 OQPSK and MSK
 *************

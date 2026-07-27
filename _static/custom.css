@@ -198,6 +198,16 @@ canvas{
 	box-shadow: 3px 3px var(--shadow);
 	box-sizing: border-box;
 }
+
+/* Mermaid diagrams inherit a light gray canvas from the extension defaults.
+   Force a white background so they match the rest of the textbook pages. */
+pre.mermaid,
+pre.mermaid > svg,
+.mermaid-container > pre,
+.mermaid-container > pre > svg {
+	background-color: white !important;
+}
+
 .canvas-header{
 	margin: 10px 0 0 0;
 }
@@ -286,3 +296,32 @@ canvas{
 
 /* End of PhasedArrayVisualizer part */
 
+/* Collapsible "Specific SDRs" sidebar group (see js/sidebar_groups.js) */
+.sphinxsidebar .sdr-group-toggle {
+	cursor: pointer;
+	display: inline-block;
+	user-select: none;
+}
+.sphinxsidebar .sdr-caret {
+	display: inline-block;
+	width: 0;
+	height: 0;
+	margin-right: 6px;
+	border-left: 5px solid currentColor;
+	border-top: 4px solid transparent;
+	border-bottom: 4px solid transparent;
+	vertical-align: middle;
+	transition: transform 0.15s ease;
+}
+.sphinxsidebar .sdr-group.open .sdr-caret {
+	transform: rotate(90deg);
+}
+.sphinxsidebar .sdr-group-children {
+	display: none;
+	list-style: none;
+	margin: 0;
+	padding-left: 15px;
+}
+.sphinxsidebar .sdr-group.open .sdr-group-children {
+	display: block;
+}

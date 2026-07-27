@@ -1,12 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from gnuradio.filter import firdes
+#from gnuradio.filter import firdes
 from scipy.signal import resample_poly, firwin
 from matplotlib.animation import FuncAnimation
 
 #samples = np.fromfile('/home/marc/Downloads/fm_clip_for_rds.iq', dtype=np.complex64) # med SNR
 #samples = np.fromfile('/home/marc/Downloads/fm_rds_250k.iq', dtype=np.complex64) # high SNR
-samples = np.fromfile('fm_rds_250k_1Msamples.iq', dtype=np.complex64) # high SNR, shorter
+samples = np.fromfile('/home/marc/fm_rds_250k_1Msamples.iq', dtype=np.complex64) # high SNR, shorter
 
 # MAKE MY OWN RECORDING OF A COOLER STATION, JUST MAKE SURE ITS HIGH SNR AND SCALE IT TO THE SAME SIGNAL LEVEL AS THIS WORKING ONE
 
@@ -35,17 +35,19 @@ if False:
 x = 0.5 * np.angle(samples[0:-1] * np.conj(samples[1:])) # see https://wiki.gnuradio.org/index.php/Quadrature_Demod
 
 # PSD
-if False:
-    PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x)))**2)
-    PSD = PSD[::100]
+if True:
+    print(len(x))
+    PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x)))**2 / len(x) / sample_rate)
+    PSD = PSD[::10]
     PSD = PSD[len(PSD)//2:]
     PSD = PSD - np.max(PSD)
     f = np.linspace(0, sample_rate/2, len(PSD))/1e3
     plt.plot(f, PSD)
-    plt.axis([0, 125, -55, 1])
+    plt.axis([0, 80, -70, 0])
     plt.xlabel("Frequency [kHz]")
     plt.ylabel("PSD After FM Demod [dB]")
     plt.show()
+    exit()
 
 # Spectrogram (once i get a higher SNR better looking recording I can include spectrogram towards the start
 if False:

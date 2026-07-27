@@ -165,7 +165,7 @@ Pour spécifier le gain, vous pouvez utiliser la fonction normale set_rx_gain() 
 Contrôle automatique du gain
 ######################################
 
-Certains USRP, y compris les séries B200 et E310, prennent en charge la commande automatique de gain (AGC pour *automatic gain controller*  en anglais) qui ajuste automatiquement le gain de réception en fonction du niveau du signal reçu, afin d'essayer de "remplir" au mieux les bits de l'ADC.  L'AGC peut être activé en utilisant :
+Certains USRP, y compris les séries B200 et E310, prennent en charge la commande automatique de gain (AGC pour *automatic gain controller*  en anglais) qui ajuste automatiquement le gain de réception en fonction du niveau du signal reçu, afin d'essayer de "remplir" au mieux les bits du CAN.  L'AGC peut être activé en utilisant :
 
 .. code-block:: python
 
@@ -194,7 +194,7 @@ Dans l'exemple complet ci-dessus, vous verrez la ligne :code:`st_args = uhd.usrp
 
 Vous pouvez voir d'autres options dans la documentation de l'API UHD C++, mais elles n'ont jamais été implémentées dans l'API Python, du moins au moment de la rédaction de ce document.
 
-Le deuxième argument est le format de données "over-the-wire", c'est-à-dire le type de données lorsque les échantillons sont envoyés à l'hôte via USB/Ethernet/SFP.  Pour l'API Python, les options sont : "sc16", "sc12" et "sc8", l'option 12 bits n'étant prise en charge que par certains USRP.  Ce choix est important car la connexion entre l'USRP et l'ordinateur hôte est souvent le goulot d'étranglement, donc en passant de 16 bits à 8 bits, vous pouvez obtenir un taux plus élevé.  Rappelez-vous également que de nombreux USRP ont des ADC limités à 12 ou 14 bits, utiliser "sc16" ne signifie pas que l'ADC est de 16 bits. 
+Le deuxième argument est le format de données "over-the-wire", c'est-à-dire le type de données lorsque les échantillons sont envoyés à l'hôte via USB/Ethernet/SFP.  Pour l'API Python, les options sont : "sc16", "sc12" et "sc8", l'option 12 bits n'étant prise en charge que par certains USRP.  Ce choix est important car la connexion entre l'USRP et l'ordinateur hôte est souvent le goulot d'étranglement, donc en passant de 16 bits à 8 bits, vous pouvez obtenir un taux plus élevé.  Rappelez-vous également que de nombreux USRP ont des CAN limités à 12 ou 14 bits, utiliser "sc16" ne signifie pas que le CAN est de 16 bits. 
 
 Pour la partie canal du :code:`st_args`, voir la sous-section Sous-dispositif and Channels ci-dessous.
 

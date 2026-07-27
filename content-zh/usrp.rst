@@ -43,9 +43,15 @@ Python 玩转 USRP
 
 .. code-block:: bash
 
- sudo apt-get install git cmake libboost-all-dev libusb-1.0-0-dev python3-docutils python3-mako python3-numpy python3-requests python3-ruamel.yaml python3-setuptools build-essential # 译者注：这里可以提前配置 APT 源为清华源等镜像以加速下载
+ sudo apt update
+ sudo apt install git cmake libboost-all-dev libusb-1.0-0-dev build-essential # 译者注：这里可以提前配置 APT 源为清华源等镜像以加速下载
+ sudo pip install pybind11[global]
+ pip install numpy==1.26.4 docutils mako requests ruamel.yaml setuptools
  cd ~
  git clone https://github.com/EttusResearch/uhd.git # 译者注：这里需要注意网络环境
+ cd uhd
+ git checkout v4.8.0.0
+ cd host
  mkdir build
  cd build
  cmake -DENABLE_TESTS=OFF -DENABLE_C_API=OFF -DENABLE_PYTHON_API=ON -DENABLE_MANUAL=OFF ..
@@ -324,6 +330,12 @@ Python 玩转 USRP
 如果以上代码没有按照预期运行，但是又没有报错，你可以尝试把 3.0 改为 1.0 到 5.0 之间的任意值试试。你也可以在调用 :code:`recv()` 后检查元数据，即检查 :code:`if metadata.error_code != uhd.types.RXMetadataErrorCode.none:` 。
 
 为了 Debug，你可以通过检查 :code:`usrp.get_mboard_sensor("ref_locked", 0)` 的返回值来验证 10 MHz 信号是否传递到了 USRP。而对于 PPS 信号而言，如果它没有传递到 USRP，那么上面代码中的第一个 while 循环将永远不会结束。
+
+**********************************************
+多台 B210 的相位相干同步（用于 MIMO）
+**********************************************
+
+为了执行到达方向（DOA）估计和相控阵数字波束成形等操作，通常需要所有接收通道实现相位相干，即接收通道之间的相对相位保持恒定且可以通过校准消除。B200 和 B210 USRP 基于 AD9361 射频集成电路，其本振（LO）由芯片内部生成，无法外部馈入 LO。因此即使你为 USRP 提供了 10 MHz 参考信号和 PPS，也只能实现频率和采样时钟的同步，而无法实现相位同步。这是因为每次设备开机或改变频率时，VCO/PLL 链路中的分频器都会引入一个新的随机相位偏移，更多信息请参见 `此页面 <https://files.ettus.com/manual/page_sync.html>`_ 。实现相位同步的一种方法是增加硬件，将校准信号（可以是 USRP 自身生成的信号、宽带噪声源或单音信号）分路后馈入所有接收端口，每次 USRP 开机或重新调谐时进行一次快速校准。请注意，更改增益也会导致相位偏移，但只要 B210 保持相同的增益，相位差不应发生显著变化。 `Techtile 项目 <https://github.com/techtile-by-dramco/NI-B210-Sync/blob/main/README.md>`_ 提供了关于此主题的更多信息，包括可能允许多台 B210 同步重新调谐以保持同步的自定义固件镜像，但每次无线电开机时可能仍需要使用外部硬件进行校准。
 
 ****
 GPIO

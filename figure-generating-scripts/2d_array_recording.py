@@ -107,10 +107,15 @@ for i, theta_i in enumerate(theta_scan):
         #results[i, j] = np.abs(resp)[0,0] # power in signal, in dB
 
 results = 10*np.log10(results) # convert to dB
-results[results < -20] = -20 # crop the z axis to some level of dB
+
+# Crop the z axis
+floor = np.percentile(results, 5)  # keeps top 95%
+print("floor:", floor)
+results = np.maximum(results, floor)
 
 # 3D az-el DOA results
-if False:
+# Note that this is not a polar plot, it's using X and Y to represent the azimuth and elevation angles, and Z to represent the power in dB
+if True:
     fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
     surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
                             np.rad2deg(phi_scan[None,:]),
@@ -120,7 +125,7 @@ if False:
     ax.set_xlabel('Azimuth (theta)')
     ax.set_ylabel('Elevation (phi)')
     ax.set_zlabel('Power [dB]') # type: ignore
-    #fig.savefig('../_images/2d_array_3d_doa_plot.png', bbox_inches='tight', dpi=300) # increase dpi to 300
+    fig.savefig('../_images/2d_array_3d_doa_plot.png', bbox_inches='tight', dpi=300)
     plt.show()
 
 # 2D, az-el heatmap (same as above, but 2D)
@@ -132,12 +137,8 @@ plt.imshow(results.T, extent=extent, origin='lower', aspect='auto', cmap='viridi
 plt.colorbar(label='Power [linear]')
 plt.xlabel('Theta (azimuth, degrees)')
 plt.ylabel('Phi (elevation, degrees)')
-#plt.savefig('../_images/2d_array_2d_doa_plot.svg', bbox_inches='tight')
+plt.savefig('../_images/2d_array_2d_doa_plot.svg', bbox_inches='tight')
 plt.show()
-
-
-exit()
-
 
 '''
 # Interferometry

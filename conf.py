@@ -22,7 +22,8 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.autosectionlabel',
     #'sphinxcontrib.tikz', #added for dutch
-]
+    "sphinxcontrib.mermaid"
+] # NOTE YOU ALSO HAVE TO ADD NEW EXTENSIONS TO MAKEFILE!
 
 mathjax_path = "mathjax/tex-mml-chtml.js" # so that the textbook can work offline
 
@@ -69,7 +70,7 @@ release = u'0.1'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', 'index-fr.rst', 'content-fr/*', 'index-nl.rst', 'content-nl/*', 'index-ukraine.rst', 'content-ukraine/*', 'index-zh.rst', 'content-zh/*', 'index-es.rst', 'content-es/*', 'index-ja.rst', 'content-ja/*']
+exclude_patterns = ['_build', '.venv', 'index-fr.rst', 'content-fr/*', 'index-nl.rst', 'content-nl/*', 'index-ukraine.rst', 'content-ukraine/*', 'index-zh.rst', 'content-zh/*', 'index-es.rst', 'content-es/*', 'index-ja.rst', 'content-ja/*']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -200,7 +201,10 @@ html_js_files = [
     'js/beamforming_slider_app.js',
     'js/FFT.js',
     'js/cyclostationary_app.js',
-    'js/homepage_app.js'
+    'js/homepage_app.js',
+    'js/tdoa.js',
+    'js/eye_diagram_app.js',
+    'js/sidebar_groups.js'
     # we also include the index.js file from the PhasedArrayVisualizer directory in setup() above
 ]
 

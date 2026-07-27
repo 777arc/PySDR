@@ -19,7 +19,7 @@ The RTL-SDR came into existence around 2010 when folks discovered they could hac
 
 The RTL2832U chip includes the analog-to-digital converter (ADC) and USB controller, but it must be paired with an RF tuner.  Popular tuner chips include the Rafael Micro R820T, R828D, and Elonics E4000.  The tunable frequency range is based on the tuner chip and is usually around 50 - 1700 MHz.  The maximum sample rate, on the other hand, is determined by the RTL2832U and your computer's USB bus, and is usually around 2.4 MHz without dropping too many samples.  Keep in mind that these tuners are extremely low-cost and have very poor RF sensitivity, so adding a low-noise amplifier (LNA) and bandpass filter is often necessary to receive weak signals.
 
-The RTL2832U always uses 8-bit samples, so the host machine will receive two bytes per IQ sample.  Premium RTL-SDRs usually come with a temperature-controlled oscillator (a.k.a. TCXO) in place of the cheaper crystal oscillator, which provides better frequency stability.  Another optional feature is a bias tee (a.k.a. bias-T), which is an onboard circuit that provides ~4.5V DC on the SMA connector, used to conveniently power an external LNA or other RF components.  This extra DC offset is on the RF side of the SDR so it does not interfere with the basic receiving operation.
+The RTL2832U always uses 8-bit samples, so the host machine will receive two bytes per IQ sample.  Premium RTL-SDRs usually come with a temperature-controlled oscillator (a.k.a. TCXO) in place of the cheaper crystal oscillator, which provides better frequency stability.  Another optional feature is a bias tee (a.k.a. bias-T), which is an onboard circuit that provides ~4.5V DC on the SMA connector, used to conveniently power an external LNA or other RF components.  This extra DC voltage is on the RF side of the SDR so it does not interfere with the basic receiving operation.
 
 For those interested in direction of arrival (DOA) or other beamforming applications, the `KrakenSDR <https://www.crowdsupply.com/krakenrf/krakensdr>`_ is a phase-coherent SDR made from five RTL-SDRs that share an oscillator and sample clock.
 
@@ -168,7 +168,7 @@ By setting :code:`sdr.gain = 'auto'` we are enabling automatic gain control (AGC
    :target: ../_images/rtlsdr-gain.svg
    :alt: RTL-SDR manual gain example
 
-There are a couple things to note here.  The first ~2k samples do not seem to have much signal power in them, because they represent transients.  It is recommended to throw away the first 2k samples each script, e.g., using :code:`sdr.read_samples(2048)` and not doing anything with the output.  The other thing we notice is that pyrtlsdr is returning the samples to us as floats, in between -1 and +1.  Even though it uses an 8-bit ADC and produces integer values, pyrtlsdr is dividing by 127.0 for our convenience.
+There are a couple things to note here.  The first ~2k samples do not seem to have much signal power in them, because they represent transients.  It is recommended to throw away the first 2k samples each script, e.g., using :code:`sdr.read_samples(2048)` and not doing anything with the output.  The other thing we notice is that pyrtlsdr is returning the samples to us as floats, in between -1 and +1.  Even though it uses an 8-bit ADC and produces integer values, pyrtlsdr is dividing by 127.5 for our convenience.
 
 Allowed Sample Rates
 #####################

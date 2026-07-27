@@ -18,7 +18,7 @@ Cyclostationary signal processing (a.k.a., CSP or simply cyclostationary process
 
 If after reading through this chapter and playing around in Python, you want to dive deeper into CSP, check out William Gardner's 1994 textbook `Cyclostationarity in Communications and Signal Processing <https://faculty.engineering.ucdavis.edu/gardner/wp-content/uploads/sites/146/2014/05/Cyclostationarity.pdf>`_, his 1987 textbook `Statistical Spectral Analysis <https://faculty.engineering.ucdavis.edu/gardner/wp-content/uploads/sites/146/2013/02/Statistical_Spectral_Analysis_A_Nonprobabilistic_Theory.pdf>`_, or Chad Spooner's `collection of blog posts <https://cyclostationary.blog/>`_.
 
-One resource that you will find here and in no other textbook: at the end of the SCF chapter you will be rewarded with an interactive JavaScript app that allows you to play around with the SCF of an example signal, to see how the SCF changes with different signal and SCF parameters, all in your browser!  While these interactive demos are free for everyone, they are largely made possible by the support of PySDR's `Patreon <https://www.patreon.com/PySDR>`_ members.
+One resource that you will find here and in no other textbook: at the end of the SCF section you will be rewarded with an interactive JavaScript app that allows you to play around with the SCF of an example signal, to see how the SCF changes with different signal and SCF parameters, all in your browser!  While these interactive demos are free for everyone, they are largely made possible by the support of PySDR's `Patreon <https://www.patreon.com/PySDR>`_ members.
 
 *************************
 Review of Autocorrelation
@@ -284,6 +284,8 @@ Below is a minimal Python implementation of the FSM, which is a frequency-based 
     plt.xlabel('Frequency [Normalized Hz]')
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
     plt.show()
+
+Note that due to the way the shift is calculated and rounded to an integer number of samples, it helps to process at least :code:`2 / alpha_resolution` samples at a time.
 
 Let's calculate the SCF for the rectangular BPSK signal we used before, with 20 samples per symbol over a range of cyclic frequencies from 0 to 0.3 using a 0.001 step size:
 
@@ -679,7 +681,7 @@ Up until this point, we have been using the following formulas for the CAF and t
     R_x(\tau,\alpha) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x^*(t - \tau/2)e^{-j2\pi \alpha t}dt \\
     S_X(f,\alpha) = \lim_{T\rightarrow\infty} \frac{1}{T} \lim_{U\rightarrow\infty} \frac{1}{U} \int_{-U/2}^{U/2} X(t,f + \alpha/2) X^*(t,f - \alpha/2) dt
 
-There is, however, an alternate form for the CAF and SCF in which there is no conjugate included. These forms are called the *conjugate CAF* and the *conjugate SCF*, respectively.  The naming convention it's a little confusing, but the main thing to remember is that there's a "normal" version of the CAF/SCF, and a conjugate version.  The conjugate version is useful when you want to extract more information from the signal, but it's not always necessary depending on the signal.  The conjugate CAF and SCF are defined as:
+There is, however, an alternate form for the CAF and SCF in which there is no conjugate included. These forms are called the *conjugate CAF* and the *conjugate SCF*, respectively.  The naming convention is a little confusing, but the main thing to remember is that there's a "normal" version of the CAF/SCF, and a conjugate version.  The conjugate version is useful when you want to extract more information from the signal, but it's not always necessary depending on the signal.  The conjugate CAF and SCF are defined as:
 
 .. math::
     R_{x^*}(\tau,\alpha) = \lim_{T\rightarrow\infty} \frac{1}{T} \int_{-T/2}^{T/2} x(t + \tau/2)x(t - \tau/2)e^{-j2\pi \alpha t}dt \\
@@ -819,6 +821,17 @@ The FSM and TSM techniques presented earlier work great, especially when you wan
 
 The minimal Python code to implement the FAM is actually fairly simple, although because we are no longer looping over alpha it is not as easy to tie back to the math.  Just like the TSM, we break the signal into a bunch of time windows, with some overlap.  A Hanning window is applied to each chunk of samples.  There are two stages of FFTs performed as part of the FAM algorithm, and within the code note that the first FFT is performed on a 2D array, so it's doing a bunch of FFTs in one line of code.  After a frequency shift, we do a second FFT to build the SCF (we then take the magnitude squared).  For a more thorough explanation of the FAM, refer to the external resources at the end of this section.
 
+.. mermaid::
+
+   flowchart TD
+      A[Input samples] --> B[Split into overlapping windows]
+      B --> C[Apply Hanning window]
+      C --> D[First FFT across each window]
+      D --> E[Frequency shift]
+      E --> F[Second FFT]
+      F --> G[Magnitude squared]
+      G --> H[SCF estimate]
+
 .. code-block:: python
 
     N = 2**14
@@ -901,14 +914,14 @@ External Resources on FAM:
 OFDM
 ********************************
 
-Cyclostationarity is especially strong in OFDM signals due to OFDM's use of a cyclic prefix (CP), which is where the last several samples of each OFDM symbol is copied and added to the beginning of the OFDM symbol.  This leads to a strong cyclic frequency corresponding to the OFDM symbol length (which is equal to the inverse of the subcarrier spacing, plus CP duration). 
+Cyclostationarity is especially strong in OFDM signals due to OFDM's use of a cyclic prefix (CP), which is where the last several samples of each OFDM symbol is copied and added to the beginning of the OFDM symbol.  This leads to a strong cyclic frequency equal to the inverse of the OFDM symbol duration (which is the inverse of the subcarrier spacing, plus CP duration). 
 
-Let's play around with an OFDM signal.  Below is the simulation of an OFDM signal with a CP using 64 subcarriers, 25% CP, and QPSK modulation on each subcarrier.  We'll interpolate by 2x to simulate receiving at a reasonable sample rate, so that means the OFDM symbol length in number of samples will be (64 + (64*0.25)) * 2 = 160 samples.  That means we should get spikes at alphas that are an integer multiple of 1/160, or 0.00625, 0.0125, 0.01875, etc. We will simulate 100k samples which corresponds to 625 OFDM symbols (recall that each OFDM symbol is fairly long).  
+Let's play around with an OFDM signal.  Below is the simulation of an OFDM signal with a CP using 64 subcarriers, 25% CP, and QPSK modulation on each subcarrier.  We'll interpolate by 2x to simulate receiving at a reasonable sample rate, so that means the OFDM symbol length in number of samples will be (64 + (64*0.25)) * 2 = 160 samples.  That means we should get spikes at alphas that are an integer multiple of 1/160, or 0.00625, 0.0125, 0.01875, etc. We will simulate 200k samples which corresponds to 1250 OFDM symbols (recall that each OFDM symbol is fairly long).  
 
 .. code-block:: python
 
     from scipy.signal import resample
-    N = 100000 # number of samples to simulate
+    N = 200000 # number of samples to simulate
     num_subcarriers = 64
     cp_len = num_subcarriers // 4 # length of the cyclic prefix in symbols, in this case 25% of the starting OFDM symbol
     print("CP length in samples", cp_len*2) # remember there is 2x interpolation at the end
@@ -941,19 +954,14 @@ Let's play around with an OFDM signal.  Below is the simulation of an OFDM signa
     n = np.sqrt(np.var(samples) * 10**(-SNR_dB/10) / 2) * (np.random.randn(N) + 1j*np.random.randn(N))
     samples = samples + n
 
-Using the FSM to calculate the SCF at a relatively high cyclic resolution of 0.0001:
-
-.. image:: ../_images/scf_freq_smoothing_ofdm.svg
-   :align: center 
-   :target: ../_images/scf_freq_smoothing_ofdm.svg
-   :alt: SCF of OFDM using the Frequency Smoothing Method (FSM)
-
-Note the horizontal line towards the top, indicating there is a low cyclic frequency.  Zooming into the lower cyclic frequencies, we can clearly see the cyclic frequency corresponding to the OFDM symbol length (alpha = 0.0125).  Not sure why we only get a spike at 2x, and not 1x or 3x or 4x...  Even dropping the resolution by another 10x doesn't show anything else besides the 2x, if anyone knows feel free to use the "Suggest an Edit" link at the bottom of this page.
+Because we expect spikes at 0.00625, 0.0125, 0.01875, we will use a cyclic frequency resolution of 1e-5 so we get an even multiple.  For situations where it's impractical to use such a fine resolution, or the cyclic frequencies are unknown, oversampling can be used (e.g. increasing samples per symbol, in this OFDM example the oversampling factor is 2).  We must also process at least :code:`2 / alpha_resolution` as part of the FSM approach, so 200k samples.  Below are the results, specifically using :code:`alphas = np.arange(0, 0.02, 1e-5)` and max pooling turned on:
 
 .. image:: ../_images/scf_freq_smoothing_ofdm_zoomed_in.svg
    :align: center 
    :target: ../_images/scf_freq_smoothing_ofdm_zoomed_in.svg
-   :alt: SCF of OFDM using the Frequency Smoothing Method (FSM) zoomed into the lower cyclic freqs
+   :alt: SCF of OFDM using the Frequency Smoothing Method (FSM)
+
+Note the three spikes, which would be even more pronounced if we squash RF frequency and plot cyclic frequency in 1D.
 
 External resources on OFDM within the context of CSP:
 
@@ -964,3 +972,13 @@ Signal Detection With Known Cyclic Frequency
 ********************************************
 
 In some applications you may want to use CSP to detect a signal/waveform that is already known, such as variants of 802.11, LTE, 5G, etc.  If you know the cyclic frequency of the signal, and you know your sample rate, then you really only need to calculate a single alpha and single tau.  Coming soon will be an example of this type of problem using an RF recording of WiFi.
+
+******************
+External Resources
+******************
+
+#. Antonio Napolitano's textbook `Cyclostationary Processes and Time Series: Theory, Applications, and Generalizations <https://www.sciencedirect.com/book/monograph/9780081027080/cyclostationary-processes-and-time-series>`_
+#. R.S. Roberts, W. A. Brown, and H. H. Loomis, Jr., "Computationally Efficient Algorithms for Cyclic Spectral Analysis," IEEE Signal Processing Magazine, April 1991, pp. 38-49. `Available here <https://www.researchgate.net/profile/Faxin-Zhang-2/publication/353071530_Computationally_efficient_algorithms_for_cyclic_spectral_analysis/links/60e69d2d30e8e50c01eb9484/Computationally-efficient-algorithms-for-cyclic-spectral-analysis.pdf>`_
+#. Da Costa, Evandro Luiz. Detection and identification of cyclostationary signals. Diss. Naval Postgraduate School, 1996. `Available here <https://apps.dtic.mil/sti/pdfs/ADA311555.pdf>`_
+#. `Chad Spooner's Cyclostationary blog/website <https://cyclostationary.blog>`_
+#. Sutton, Paul D., Keith E. Nolan, and Linda E. Doyle. "Cyclostationary signatures in practical cognitive radio applications." IEEE Journal on selected areas in Communications 26.1 (2008): 13-24. `Available here <https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4413137&casa_token=81U1yMeRKMsAAAAA:6sQr9-VngNa2p_OW4zVyeQsRdUrZPkx3L-6ZPsH9LCo-pnTxs_AhjfAx27MFBbo4kl3YlgdkQJk&tag=1>`_

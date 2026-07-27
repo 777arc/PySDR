@@ -14,11 +14,16 @@
    content-zh/frequency_domain
    content-zh/sampling
    content-zh/digital_modulation
+   content-zh/pluto
    content-zh/usrp
+   content-zh/bladerf
+   content-zh/rtlsdr
+   content-zh/hackrf
    content-zh/noise
    content-zh/filters
    content-zh/link_budgets
    content-zh/channel_coding
    content-zh/iq_files
    content-zh/multipath_fading
+   content-zh/pulse_shaping
    content-zh/about_author

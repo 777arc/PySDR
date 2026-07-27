@@ -10,7 +10,7 @@ import scipy.signal
 # Simulate Rect BPSK #
 ######################
 
-if True:
+if False:
     N = 100000 # number of samples to simulate
     f_offset = 0.2 # Hz normalized
     sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
@@ -153,9 +153,9 @@ if False:
 ###########################
 
 # Adapted from https://dspillustrations.com/pages/posts/misc/python-ofdm-example.html
-if False:
+if True:
     from scipy.signal import resample
-    N = 100000 # number of samples to simulate
+    N = 200000 # number of samples to simulate
     num_subcarriers = 64
     cp_len = num_subcarriers // 4 # length of the cyclic prefix in symbols, in this case 25% of the starting OFDM symbol
     print("CP length in samples", cp_len*2) # remember there is 2x interpolation at the end
@@ -203,7 +203,7 @@ if False:
 # Direct CAF #
 ##############
 
-if True:
+if False:
     # CAF only at the correct alpha
     alpha_of_interest = 1/sps # equates to 0.05 Hz
     #alpha_of_interest = 0.08 # INCORRECT ALPHA FOR SAKE OF PLOT
@@ -254,13 +254,13 @@ if True:
 
 
 # Freq smoothing
-if False:
+if True:
     start_time = time.time()
 
     alphas = np.arange(0, 0.3, 0.001)
-    if False: # For OFDM example
-        #alphas = np.arange(0, 0.5+0.0001, 0.0001) # enable max pooling for this one
-        alphas = np.arange(0, 0.02+0.0001, 0.0001)
+    if True: # For OFDM example
+        #alphas = np.arange(0, 0.5+0.0001, 0.0001) # zoomed out, enable max pooling for this one
+        alphas = np.arange(0, 0.02+0.0001, 0.00001) # zoomed in and increased resolution
     Nw = 256 # window length
     N = len(samples) # signal length
     window = np.hanning(Nw)
@@ -277,15 +277,16 @@ if False:
     SCF = np.abs(SCF)
 
     # null out alpha= 0, 1, -1 which is just the PSD of the signal, it throws off the dynamic range
-    SCF[np.argmin(np.abs(alphas)), :] = 0 
+    SCF[np.argmin(np.abs(alphas)), :] = 0
+    SCF[np.argmin(np.abs(alphas))+1, :] = 0 # PSD bleeds into 2nd row
     SCF[np.argmin(np.abs(alphas - 1)), :] = 0
     SCF[np.argmin(np.abs(alphas - (-1))), :] = 0
 
     print("Time taken:", time.time() - start_time)
 
     print("SCF shape", SCF.shape)
-    # Max pooling in cyclic domain
-    if False:
+    # Max pooling in cyclic domain, used for OFDM example and possibly others
+    if True:
         import skimage.measure
         SCF = skimage.measure.block_reduce(SCF, block_size=(16, 1), func=np.max) # type: ignore
         print("Shape of SCF:", SCF.shape)
@@ -296,7 +297,7 @@ if False:
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
     #plt.savefig('../_images/scf_freq_smoothing.svg', bbox_inches='tight')
     #plt.savefig('../_images/scf_freq_smoothing_ofdm.svg', bbox_inches='tight') # for OFDM example
-    #plt.savefig('../_images/scf_freq_smoothing_ofdm_zoomed_in.svg', bbox_inches='tight') # for OFDM example 2
+    plt.savefig('../_images/scf_freq_smoothing_ofdm_zoomed_in.svg', bbox_inches='tight') # for OFDM example 2
     #plt.savefig('../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg', bbox_inches='tight')
     #plt.savefig('../_images/scf_freq_smoothing_pulse_shaped_bpsk2.svg', bbox_inches='tight')
     #plt.savefig('../_images/scf_freq_smoothing_pulse_shaped_bpsk3.svg', bbox_inches='tight')

@@ -126,7 +126,7 @@ To return to the time domain from frequency is almost the same, aside from a neg
 .. math::
    x(t) = \int X(f) e^{j2\pi ft} df
 
-Note that a lot of textbooks and other resources use :math:`w` in place of the :math:`2\pi f`, where :math:`w` is angular frequency in radians per second, while :math:`f` is in Hz.  All you have to know is that
+Note that a lot of textbooks and other resources use :math:`\omega` in place of the :math:`2\pi f`, where :math:`\omega` is angular frequency in radians per second, while :math:`f` is in Hz.  All you have to know is that
 
 .. math::
    \omega = 2 \pi f
@@ -444,7 +444,7 @@ If you are afraid of choosing the wrong window, don't be.  The difference betwee
 FFT Sizing
 *******************
 
-The last thing to note is FFT sizing.  The best FFT size is always an order of 2 because of the way the FFT is implemented.  You can use a size that is not an order of 2, but it will be slower. Common sizes are between 128 and 4,096, although you can certainly go larger.  In practice we may have to process signals that are millions or billions of samples long, so we need to break up the signal and do many FFTs.  That means we will get many outputs. We can either average them up or plot them over time (especially when our signal is changing over time).  You don't have to put *every* sample of a signal through an FFT to get a good frequency domain representation of that signal. For example you could only FFT 1,024 out of every 100k samples in a signal and it will still probably look fine, as long as the signal is always on.
+The last thing to note is FFT sizing.  The best FFT size is always a power of 2 because of the way the FFT is implemented.  You can use a size that is not an order of 2, but it will be slower. Common sizes are between 128 and 4,096, although you can certainly go larger.  In practice we may have to process signals that are millions or billions of samples long, so we need to break up the signal and do many FFTs.  That means we will get many outputs. We can either average them up or plot them over time (especially when our signal is changing over time).  You don't have to put *every* sample of a signal through an FFT to get a good frequency domain representation of that signal. For example you could only FFT 1,024 out of every 100k samples in a signal and it will still probably look fine, as long as the signal is always on.
 
 .. _spectrogram-section:
 
@@ -497,12 +497,13 @@ In Python we can generate a spectrogram as follows:
  for i in range(num_rows):
      spectrogram[i,:] = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(x[i*fft_size:(i+1)*fft_size])))**2)
  
- plt.imshow(spectrogram, aspect='auto', extent = [sample_rate/-2/1e6, sample_rate/2/1e6, len(x)/sample_rate, 0])
+ # Time starts at the top and goes down, eg sample x[0] will be part of the top row displayed
+ plt.imshow(spectrogram, aspect='auto', extent = (sample_rate/-2/1e6, sample_rate/2/1e6, len(x)/sample_rate, 0))
  plt.xlabel("Frequency [MHz]")
  plt.ylabel("Time [s]")
  plt.show()
 
-Which should produce the following, which is not the most interesting spectrogram because there is no time-varying behavior.  There are two tones because we simulated a real signal, and real signals always have a negative PSD that matches the positive side.  For more interesting examples of spectrograms, checkout https://www.IQEngine.org!
+Which should produce the following, which is not the most interesting spectrogram because there is no time-varying behavior.  There are two tones because we simulated a real signal, and real signals always have a negative PSD that matches the positive side.  Note that with this implementation, the top row corresponds to the beginning of the signal.  For more interesting examples of spectrograms, checkout https://www.IQEngine.org!
 
 .. image:: ../_images/spectrogram.svg
    :align: center
@@ -528,7 +529,7 @@ or
 
    y_1 = x_0 - x_1 w^k_N
 
-where :math:`w^k_N = e^{j2\pi k/N}` are known as twiddle factors (:math:`N` is the size of the sub-FFT and :math:`k` is the index).  Note that the input and output is intended to be complex, e.g., :math:`x_0` might be 0.6123 - 0.5213j, and the sums/multiplies are complex.
+where :math:`w^k_N = e^{-j2\pi k/N}` are known as twiddle factors (:math:`N` is the size of the sub-FFT and :math:`k` is the index).  Note that the input and output is intended to be complex, e.g., :math:`x_0` might be 0.6123 - 0.5213j, and the sums/multiplies are complex.
 
 The algorithm is recursive and breaks itself in half until all that is left is a series of butterflies, this is depicted below using a size 8 FFT:
 
@@ -585,4 +586,38 @@ For those who prefer to think in code rather than equations, the following shows
    :target: ../_images/fft_in_python.svg
    :alt: python implementation of fft example
 
-For those interested in JavaScript and/or WebAssembly based implementations, check out the `WebFFT <https://github.com/IQEngine/WebFFT>`_ library for performing FFTs in web or NodeJS applications, it includes several implementations under the hood, and there is a `benchmarking tool <https://webfft.com>`_ used to compare the performance of each implementation.
+If you want to try running the code purely in your browser, it's available as a `web-based jupyter notebook <../jupyterlite/notebooks/index.html?path=frequency_domain.ipynb>`_.
+
+*********************
+Boxcar and Sinc
+*********************
+
+Imagine you switch a signal on, hold it at a constant level for exactly one second, then switch it back off.  In time that is about the simplest pulse you can make: a flat-topped rectangle, one second wide.  This shape shows up constantly in DSP, so it has a name, the boxcar pulse (also called a rectangular pulse), because it looks like the boxcar of a train sitting on the time axis.  A natural question to ask is: if the pulse is so simple in time, what does it look like in the frequency domain?
+
+You might guess that a simple pulse has a simple spectrum, but it turns out the opposite is true.  Take the FFT of a boxcar and you get the shape shown on the right below, a tall central hump surrounded by ripples that fade out as you move away from the center.  That shape is called a sinc (pronounced "sink").  The plot below shows the pair side by side, the boxcar in time on the left and its sinc spectrum on the right.
+
+.. image:: ../_images/boxcar_sinc.svg
+   :align: center
+   :target: ../_images/boxcar_sinc.svg
+   :alt: A boxcar (rectangular) pulse in the time domain and its sinc-shaped spectrum
+
+Notice that the spectrum does not stop at the first dip, it keeps going with smaller and smaller bumps.  Those bumps are the sidelobes, and the tall bump in the middle is the mainlobe.  The reason a plain rectangle produces all this structure is the sharp edges: turning the signal on and off instantly requires energy spread across a wide range of frequencies, and the sinc is exactly how that energy is distributed.
+
+The math backs up the picture.  If our boxcar has amplitude :math:`A` and width :math:`T` (in seconds), its Fourier transform is:
+
+.. math::
+   X(f) = A T \, \mathrm{sinc}(f T)
+
+where the sinc function itself is defined as:
+
+.. math::
+   \mathrm{sinc}(x) = \frac{\sin(\pi x)}{\pi x}
+
+The spectrum of a rectangle is a sinc, scaled in height by :math:`AT` and stretched in frequency by :math:`T`. The mainlobe crosses zero for the first time when :math:`fT = 1`, i.e., at :math:`f = 1/T`, so the spectrum gets narrower as the pulse gets wider. Just like we saw with the scaling property, a short pulse in time is wide in frequency, and a wide pulse in time is narrow in frequency.  The two are inversely linked: you cannot make something compact in both domains at once.  If you want a signal that occupies very little bandwidth, you have to let it last a long time, and if you need a very short pulse, you have to accept that it smears out across a lot of frequencies.
+
+The animation below drives this home.  Watch what happens as the boxcar on the left starts out very short and gradually widens.  As the pulse fattens up in time, its sinc spectrum on the right squeezes in tighter and tighter toward the center, exactly as :math:`f = 1/T` predicts.
+
+.. image:: ../_images/boxcar_sinc_animation.gif
+   :align: center
+   :target: ../_images/boxcar_sinc_animation.gif
+   :alt: Animation of a boxcar pulse widening in time while its sinc spectrum narrows in frequency

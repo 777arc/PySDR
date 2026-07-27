@@ -216,7 +216,7 @@ For the bladeRF 2.0 xA9, the output should look something like:
         step  1
         scale 1.0
 
-The bandwidth parameter sets the filter used by the SDR when performing the receive operation, so we typically set it to be equal or slightly less than the sample_rate/2.  The gain modes are important to understand, the SDR uses either a manual gain mode where you provide the gain in dB, or automatic gain control (AGC) which has three different settings (fast, slow, hybrid).  For applications such as spectrum monitoring, manual gain is advised (so you can see when signals come and go), but for applications such as receiving a specific signal you expect to exist, AGC will be more useful because it will automatically adjust the gain to allow the signal to fill the analog-to-digital converter (ADC).
+The bandwidth parameter sets the filter used by the SDR when performing the receive operation, so we typically set it to be equal or slightly less than the sample_rate/2.  The gain modes are important to understand: the SDR uses either a manual gain mode, where you provide the gain in dB, or automatic gain control (AGC), which has three different settings (fast, slow, hybrid).  For applications such as spectrum monitoring, manual gain is advised so you can see when signals come and go.  For applications such as receiving a specific signal you expect to exist, AGC is more useful because it automatically adjusts the gain to allow the signal to fill the analog-to-digital converter (ADC).
 
 To set the main parameters of the SDR, we can add the following code:
 
@@ -270,7 +270,7 @@ Next, we will work off the previous code block to receive 1M samples in the FM r
      sdr.sync_rx(buf, num) # Read into buffer
      samples = np.frombuffer(buf, dtype=np.int16)
      samples = samples[0::2] + 1j * samples[1::2] # Convert to complex type
-     samples /= 2048.0 # Scale to -1 to 1 (its using 12 bit ADC)
+     samples /= 2048.0 # Scale to -1 to 1 (it is using a 12-bit ADC)
      x[num_samples_read:num_samples_read+num] = samples[0:num] # Store buf in samples array
      num_samples_read += num
  
@@ -331,7 +331,7 @@ The process of transmitting samples with the bladeRF is very similar to receivin
  f_tone = 1e6
  samples = np.exp(1j * 2 * np.pi * f_tone * t) # will be -1 to +1
  samples = samples.astype(np.complex64)
- samples *= 2048.0 # Scale to -1 to 1 (its using 12 bit DAC)
+ samples *= 2048.0 # Scale to -1 to 1 (it is using a 12-bit DAC)
  samples = samples.view(np.int16)
  buf = samples.tobytes() # convert our samples to bytes and use them as transmit buffer
  

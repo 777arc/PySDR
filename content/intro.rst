@@ -34,19 +34,28 @@ An example is a Computer Science student interested in a job involving wireless 
    :align: center
    :alt: The PySDR logo created using a Fourier transform
    
-This textbook is meant to introduce concepts quickly and smoothly, enabling the reader to perform DSP and use SDRs intelligently.  It's not meant to be a reference textbook for all DSP/SDR topics; there are plenty of great textbooks already out there, such as `Analog Device's SDR textbook
+This textbook is meant to introduce concepts quickly and smoothly, enabling the reader to perform DSP and use SDRs intelligently.  It is not meant to be a reference textbook for all DSP/SDR topics; there are plenty of great textbooks already out there, such as `Analog Devices' SDR textbook
 <https://www.analog.com/en/education/education-library/software-defined-radio-for-engineers.html>`_ and `dspguide.com <http://www.dspguide.com/>`_.  You can always use Google to recall trig identities or the Shannon limit.  Think of this textbook like a gateway into the world of DSP and SDR: it's lighter and less of a time and monetary commitment, when compared to more traditional courses and textbooks.
 
 To cover foundational DSP theory, an entire semester of "Signals and Systems", a typical course within electrical engineering, is condensed into a few chapters.  Once the DSP fundamentals are covered, we launch into SDRs, although DSP and wireless communications concepts continue to come up throughout the textbook.
 
-Code examples are provided in Python.  They utilize NumPy, which is Python's standard library for arrays and high-level math.  The examples also rely upon Matplotlib, which is a Python plotting library that provides an easy way to visualize signals, arrays, and complex numbers.  Note that while Python is "slower" than C++ in general, most math functions within Python/NumPy are implemented in C/C++ and heavily optimized.  Likewise, the SDR API we use is simply a set of Python bindings for C/C++ functions/classes.  Those who have little Python experience yet a solid foundation in MATLAB, Ruby, or Perl will likely be fine after familiarizing themselves with Python's syntax.
+***********
+Why Python?
+***********
 
+Given the name PySDR, you may think Python is a critical part of this resource, but in reality the choice of programming language is not a big deal.  In the era of AI, converting code between languages is trivial.  In this textbook **we use Python almost as a form of pseudocode**, with the bonus that we can actually run it, see results, plot signals, sweep parameters, etc.  Python was chosen as the language simply because it's free, easy to run on all platforms, low boilerplate, lightweight syntax, easily readable, and has a massive ecosystem of libraries and example code in the wild.  It also helps that most SDRs have a Python API.
 
-***************
+PySDR purposefully does not include a custom Python library or any wrapper functions, all code is in straight Python, using the standard libraries such as NumPy (standard library for arrays and high-level math), SciPy (more DSP-specific functions such as filter design), and Matplotlib (plotting, allows us to visualize signals).
+
+Note that while Python is "slower" than C/C++ in general, most functions within Python/NumPy are actually implemented in C/C++ under the hood and heavily optimized, so you might be surprised how fast CPU-based DSP can run in Python.  Likewise, the SDR APIs we use (e.g., UHD) are simply a set of Python bindings for C/C++ functions/classes.  For fielded RF systems, high-rate signal processing is typically implemented in the FPGA anyway!
+
+Some PySDR chapters contain example code that can be opened as a web-based Jupyter notebook (using JupyterLite), allowing you to play with and run the Python examples entirely from your browser without installing anything.  To check if it works on your browser, try opening `this example <../jupyterlite/notebooks/index.html?path=example.ipynb>`_.
+
+************
 Contributing
-***************
+************
 
-If you got value from PySDR, please share it with colleagues, students, and other lifelong learners who may be interested in the material.  You can also donate through the `PySDR Patreon <https://www.patreon.com/PySDR>`_ as a way to say thanks and get your name on the left of every page below the chapter list.
+If you got value from PySDR, please share it with colleagues, students, and other lifelong learners who may be interested in the material.  You can also donate through the `PySDR Patreon <https://www.patreon.com/PySDR>`_ as a way to say thanks and get your name on the left of every page below the chapter list. There is also an option to `make a one-time donation <https://www.paypal.com/donate/?hosted_button_id=FH3LQCJRUVPWL>`_.
 
 If you get through any amount of this textbook and email me at marc@pysdr.org with questions/comments/suggestions, then congratulations, you will have contributed to this textbook!  You can also edit the source material directly on the `textbook's GitHub page <https://github.com/777arc/PySDR/tree/master/content>`_ (your change will start a new pull request).  Feel free to submit an issue or even a Pull Request (PR) with fixes or improvements.  Those who submit valuable feedback/fixes will be permanently added to the acknowledgments section below.  Not good at Git but have changes to suggest?  Feel free to email me at marc@pysdr.org.
 
@@ -66,5 +75,6 @@ Thank you to anyone who has read any portion of this textbook and provided feedb
 - `Yimin Zhao <https://github.com/doctormin>`_ for `translating PySDR to Simplified Chinese <https://pysdr.org/zh/index-zh.html>`_
 - `Eduardo Chancay <https://github.com/edulchan>`_ for `translating PySDR to Spanish <https://pysdr.org/es/index-es.html>`_
 - John Marcovici
+- `Vishwaksen Reddy Dhareddy <https://www.linkedin.com/in/vishwaksen-/>`_ for contributing the Detection Chapter section on real-time packet detection
 
 As well as all `PySDR Patreon <https://www.patreon.com/PySDR>`_ supporters!

@@ -55,7 +55,7 @@ Let's examine Python code for simulating a non-integer delay and a frequency off
     h = np.sinc(t/Ts) * np.cos(np.pi*beta*t/Ts) / (1 - (2*beta*t/Ts)**2)
 
     # Filter our signal, in order to apply the pulse shaping
-    samples = np.convolve(pulse_train, h)
+    samples = np.convolve(pulse_train, h, "same")
 
 .. raw:: html
 
@@ -63,11 +63,12 @@ Let's examine Python code for simulating a non-integer delay and a frequency off
 
 We will leave out the plotting-related code because by now you have probably learned how to plot any signal you want.  Making the plots look pretty, as they often do in this textbook, requires a lot of extra code that is not necessary to understand.
 
+Next, we must simulate the delay a signal experiences as it travels through the wireless channel.  We can easily simulate a delay by shifting samples, but it only simulates a delay that is an integer multiple of our sample period.  In the real world the delay will be some fraction of a sample period, so to simulate that we need to create a "fractional delay" filter.
 
-Adding a Delay
-##############
+Fractional Delay Filters
+########################
 
-We can easily simulate a delay by shifting samples, but it only simulates a delay that is an integer multiple of our sample period.  In the real world the delay will be some fraction of a sample period.  We can simulate the delay of a fraction of a sample by making a "fractional delay" filter, which passes all frequencies but delays the samples by some amount that isn't limited to the sample interval.  You can think of it as an all-pass filter that applies the same phase shift to all frequencies.  (Recall that a time delay and phase shift are equivalent.)  The Python code to create this filter is shown below:
+A fractional delay filter is a type of all-pass filter which (ideally) passes all frequencies but delays the samples by some amount, typically between -0.5 and 0.5 of a sample period, because you can perform the integer portion of delay through simple indexing.  It applies a constant time delay to the entire signal, which in the frequency domain corresponds to a linear phase shift (phase that increases proportionally with frequency). Every frequency component gets delayed by the same amount of time, so the signal's shape is preserved, it just arrives later.  This is in contrast to doing a phase shift which shifts all frequencies by a constant phase; low frequencies get delayed more and high frequencies get delayed less.  The Python code to create a fractional delay filter is shown below, using the windowed-sinc method:
 
 .. code-block:: python
 
@@ -80,14 +81,13 @@ We can easily simulate a delay by shifting samples, but it only simulates a dela
     h /= np.sum(h) # normalize to get unity gain, we don't want to change the amplitude/power
     samples = np.convolve(samples, h) # apply filter
 
-As you can see, we are calculating the filter taps using a sinc() function.  A sinc in the time domain is a rectangle in the frequency domain, and our rectangle for this filter spans the entire frequency range of our signal.  This filter does not reshape the signal, it just delays it in time.  In our example we are delaying by 0.4 of a sample.  Keep in mind that applying *any* filter delays a signal by half of the filter taps minus one, due to the act of convolving the signal through the filter.
+As you can see, we are calculating the filter taps using a sinc() function.  A sinc in the time domain is a rectangle in the frequency domain, and our rectangle for this filter spans the entire frequency range of our signal.  This filter does not reshape the signal, it just delays it in time.  In our example we are delaying by 0.4 of a sample.  Keep in mind that applying a linear-phase FIR filter delays a signal by half of the filter taps minus one, due to the act of convolving the signal through the filter.
 
 If we plot the "before" and "after" of filtering a signal, we can observe the fractional delay.  In our plot we zoom into only a couple of symbols.  Otherwise, the fractional delay is not viewable.
 
 .. image:: ../_images/fractional-delay-filter.svg
    :align: center
    :target: ../_images/fractional-delay-filter.svg
-
 
 
 Adding a Frequency Offset
@@ -281,7 +281,7 @@ Let's watch what happens when our QPSK signal has a small phase rotation and mag
    :scale: 80 % 
    :align: center 
 
-It still becomes one cluster, just with a phase shift.  The main take-away here is that if you square QPSK twice (and BPSK once), it will merge all four clusters of points into one cluster.  Why is that useful?  Well by merging the clusters we are essentially removing the modulation!  If all points are now in the same cluster, that's like having a bunch of constants in a row.  It's as if there is no modulation anymore, and the only thing left is the sinusoid caused by the frequency offset (we also have noise but let's keep ignoring it for now).  It turns out that you have to square the signal N times, where N is the order of the modulation scheme used, which means that this trick only works if you know the modulation scheme ahead of time.  The equation is really:
+It still becomes one cluster, just with a phase shift.  The main take-away here is that if you square QPSK twice (and BPSK once), it will merge all four clusters of points into one cluster.  Why is that useful?  Well by merging the clusters we are essentially removing the modulation!  If all points are now in the same cluster, that's like having a bunch of constants in a row.  It's as if there is no modulation anymore, and the only thing left is the sinusoid caused by the frequency offset (we also have noise but let's keep ignoring it for now).  It turns out that you have to raise the signal to the Nth power, where N is the order of the modulation scheme used, which means that this trick only works if you know the modulation scheme ahead of time.  The equation is really:
 
 .. math::
 
@@ -329,7 +329,7 @@ We have to zoom way in to see which frequency the spike is on:
 
 You can try increasing the number of symbols simulated (e.g., 1000 symbols) so that we have enough samples to work with.  The more samples that go into our FFT, the more accurate our estimation of the frequency offset will be.  Just as a reminder, the code above should come *before* the timing synchronizer.
 
-The offset frequency spike shows up at :math:`Nf_o`.  We need to divide this bin (26.6 kHz) by 2 to find our final answer, which is very close to the 13 kHz frequency offset we applied at the beginning of the chapter!  If you had played with that number and it's no longer 13 kHz, that's fine.  Just make sure you are aware of what you set it to.
+The offset frequency spike shows up at :math:`Nf_o`.  We need to divide this bin (26 kHz) by 2 to find our final answer, which is very close to the 13 kHz frequency offset we applied at the beginning of the chapter!  If you had played with that number and it's no longer 13 kHz, that's fine.  Just make sure you are aware of what you set it to.
 
 Because our sample rate is 1 MHz, the maximum frequencies we can see are -500 kHz to 500 kHz.  If we take our signal to the power of N, that means we can only "see" frequency offsets up to :math:`500e3/N`, or in the case of BPSK +/- 250 kHz.  If we were receiving a QPSK signal then it would only be +/- 125 kHz, and carrier offset higher or lower than that would be out of our range using this technique.  To give you a feel for Doppler shift, if you were transmitting in the 2.4 GHz band and either the transmitter or receiver was traveling at 60 mph (it's the relative speed that matters), it would cause a frequency shift of 214 Hz.  The offset due to a low quality oscillator will probably be the main culprit in this situation.
 
@@ -350,7 +350,7 @@ Fine Frequency Synchronization
 
 Next we will switch gears to fine frequency sync.  The previous trick is more for coarse sync, and it's not a closed-loop (feedback type) operation.  But for fine frequency sync we will want a feedback loop that we stream samples through, which once again will be a form of PLL.  Our goal is to get the frequency offset to zero and maintain it there, even if the offset changes over time.  We have to continuously track the offset.  Fine frequency sync techniques work best with a signal that already has been synchronized in time at the symbol level, so the code we discuss in this section will come *after* timing sync.
 
-We will use a technique called a Costas Loop.  It is a form of PLL that is specifically designed for carrier frequency offset correction for digital signals like BPSK and QPSK.  It was invented by John P. Costas at General Electric in the 1950's, and it had a major impact on modern digital communications.  The Costas Loop will remove the frequency offset while also fixing any phase offset.  The energy is aligned with the I axis.  Frequency is just a change in phase so they can be tracked as one.  The Costas Loop is summarized using the following diagram (note that 1/2s have been left out of the equations because they don't functionally matter).
+We will use a technique called a Costas Loop.  It is a form of PLL that is specifically designed for carrier frequency offset correction for digital signals like BPSK and QPSK.  It was invented by John P. Costas at General Electric in the 1950's, and it had a major impact on modern digital communications.  The Costas Loop will remove the frequency offset while also fixing any phase offset.  For BPSK, the signal energy is aligned with the I axis after correction.  Frequency is just a change in phase so they can be tracked as one.  The Costas Loop is summarized using the following diagram (note that 1/2s have been left out of the equations because they don't functionally matter).
 
 .. image:: ../_images/costas-loop.svg
    :align: center 
@@ -391,7 +391,7 @@ Below is the Python code that is our Costas Loop:
     plt.plot(freq_log,'.-')
     plt.show()
 
-There is a lot here so let's step through it.  Some lines are simple and others are super complicated.  :code:`samples` is our input, and :code:`out` is the output samples.  :code:`phase` and :code:`frequency` are like the :code:`mu` from the time sync code.  They contain the current offset estimates, and each loop iteration we create the output samples by multiplying the input samples by :code:`np.exp(-1j*phase)`.  The :code:`error` variable holds the "error" metric, and for a 2nd order Costas Loop it's a very simple equation.  We multiply the real part of the sample (I) by the imaginary part (Q), and because Q should be equal to zero for BPSK, the error function is minimized when there is no phase or frequency offset that causes energy to shift from I to Q.  For a 4th order Costas Loop, it's still relatively simple but not quite one line, as both I and Q will have energy even when there is no phase or frequency offset, for QPSK.  If you are curious what it looks like click below, but we won't be using it in our code for now.  The reason this works for QPSK is because when you take the absolute value of I and Q, you will get +1+1j, and if there is no phase or frequency offset then the difference between the absolute value of I and Q should be close to zero.
+There is a lot here so let's step through it.  Some lines are simple and others are super complicated.  :code:`samples` is our input, and :code:`out` is the output samples.  :code:`phase` and :code:`frequency` are like the :code:`mu` from the time sync code.  They contain the current offset estimates, and each loop iteration we create the output samples by multiplying the input samples by :code:`np.exp(-1j*phase)`.  The :code:`error` variable holds the "error" metric, and for a 2nd order Costas Loop it's a very simple equation.  We multiply the real part of the sample (I) by the imaginary part (Q), and because Q should be equal to zero for BPSK, the error function is minimized when there is no phase or frequency offset that causes energy to shift from I to Q.  For a 4th order Costas Loop, it's still relatively simple but not quite one line, as both I and Q will have energy even when there is no phase or frequency offset, for QPSK.  If you are curious what it looks like click below, but we won't be using it in our code for now.  The reason this works for QPSK is because when you take the absolute value of I and Q, you will get magnitudes of approximately 1 for both, and if there is no phase or frequency offset then the difference between the absolute value of I and Q should be close to zero.
 
 .. raw:: html
 
@@ -449,6 +449,142 @@ Below is an animation of the time sync plus frequency sync running, the time syn
    :target: ../_images/costas_animation.gif
    :alt: Costas loop animation
 
+The following (collapsed) code block provides the full Python example of the chapter so far, this was tested to work using Python 3.12.3 and NumPy 1.26.4.  It also includes a bit error check at the end, although AWGN is left out for the sake of seeing how tight the BPSK can get through just synchronization alone, you are welcome to add AWGN, e.g., right after adding the fractional delay.  Note that the plot of IQ over time is before frequency synchronization, so you can see the BPSK energy slowly shift between I and Q.  If you want to try running the code purely in your browser, it's available as a `web-based jupyter notebook <../jupyterlite/notebooks/index.html?path=sync.ipynb>`_.
+
+.. raw:: html
+
+   <details>
+   <summary>Full Python Example</summary>
+
+.. code-block:: python
+
+   import numpy as np
+   import matplotlib.pyplot as plt
+   from scipy import signal
+
+   # Create BPSK signal
+   num_symbols = 100
+   sps = 8
+   bits = np.random.randint(0, 2, num_symbols) # Our data to be transmitted, 1's and 0's
+   pulse_train = np.array([])
+   for bit in bits:
+      pulse = np.zeros(sps)
+      pulse[0] = bit*2-1 # set the first value to either a 1 or -1
+      pulse_train = np.concatenate((pulse_train, pulse)) # add the 8 samples to the signal
+
+   # Apply pulse shaping to the BPSK
+   num_taps = 101
+   beta = 0.35
+   Ts = sps # Assume sample rate is 1 Hz, so sample period is 1, so *symbol* period is 8
+   t = np.arange(-51, 52) # remember it's not inclusive of final number
+   h = np.sinc(t/Ts) * np.cos(np.pi*beta*t/Ts) / (1 - (2*beta*t/Ts)**2)
+   samples = np.convolve(pulse_train, h, 'same')
+
+   # Create and apply fractional delay filter to emulate a random timing offset
+   delay = 0.456 # fractional delay, in samples
+   N = 21 # number of taps, keep this odd
+   n = np.arange(-(N-1)//2, N//2+1) # -10,-9,...,0,...,9,10
+   h = np.sinc(n - delay) # calc filter taps
+   h *= np.hamming(N) # window the filter to make sure it decays to 0 on both sides
+   h /= np.sum(h) # normalize to get unity gain, we don't want to change the amplitude/power
+   samples = np.convolve(samples, h) # apply filter
+
+   # Apply a pretty significant freq offset
+   fs = 1e6 # assume our sample rate is 1 MHz
+   fo = 13000 # simulate freq offset THIS REPRESENTS A COARSE OFFSET!
+   Ts = 1/fs # calc sample period
+   t = np.arange(0, Ts*len(samples), Ts) # create time vector
+   samples = samples * np.exp(1j*2*np.pi*fo*t) # perform freq shift
+
+   # Estimate and correct for the coarse freq offset
+   samples_sq = samples**2
+   psd = np.fft.fftshift(np.abs(np.fft.fft(samples_sq, 2048)))
+   f = np.linspace(-fs/2.0, fs/2.0, len(psd))
+   max_freq = f[np.argmax(psd)] / 2.0
+   print(f"Estimated freq offset: {max_freq:.2f} Hz")
+   Ts = 1/fs # calc sample period
+   t = np.arange(0, Ts*len(samples), Ts) # create time vector
+   samples = samples * np.exp(-1j*2*np.pi*max_freq*t)
+
+   # At this point there should be less than 1kHz of freq offset in our signal, depending how large an FFT you used above
+
+   # Symbol/Timing Sync
+   mu = 0 # initial estimate of phase of sample
+   out = np.zeros(len(samples) // sps + 2, dtype=np.complex64)
+   out_rail = np.zeros(len(samples) // sps + 2, dtype=np.complex64) # stores values, each iteration we need the previous 2 values plus current value
+   i_in = 0 # input samples index
+   i_out = 2 # output index (let first two outputs be 0)
+   interpolation_factor = 16
+   samples_interpolated = signal.resample_poly(samples, interpolation_factor, 1)
+   while i_out < len(samples) and i_in+16 < len(samples):
+      out[i_out] = samples_interpolated[i_in*interpolation_factor + int(mu*interpolation_factor)]
+      out_rail[i_out] = int(np.real(out[i_out]) > 0) + 1j*int(np.imag(out[i_out]) > 0)
+      x = (out_rail[i_out] - out_rail[i_out-2]) * np.conj(out[i_out-1])
+      y = (out[i_out] - out[i_out-2]) * np.conj(out_rail[i_out-1])
+      mm_val = np.real(y - x)
+      mu += sps + 0.3*mm_val
+      i_in += int(np.floor(mu)) # round down to nearest int since we are using it as an index
+      mu = mu - np.floor(mu) # remove the integer part of mu
+      i_out += 1 # increment output index
+   out = out[3:i_out] # remove the first few due to filter transients, and anything after i_out (that was never filled out)
+   samples = out
+
+   plt.figure(2)
+   plt.plot(np.real(samples))
+   plt.plot(np.imag(samples))
+   plt.xlabel('Sample Index')
+   plt.ylabel('Sample Value')
+   plt.legend(['I', 'Q'])
+   plt.grid()
+
+   N = len(samples)
+   phase = 0
+   freq = 0
+   # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
+   alpha = 0.132
+   beta = 0.00932
+   out = np.zeros(N, dtype=np.complex64)
+   freq_log = []
+   for i in range(N):
+      out[i] = samples[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset
+      error = np.real(out[i]) * np.imag(out[i]) # This is the error formula for 2nd order Costas Loop (e.g. for BPSK)
+
+      # Advance the loop (recalc phase and freq offset)
+      freq += (beta * error)
+      freq_log.append(freq * fs / (2*np.pi)) # convert from angular velocity to Hz for logging
+      phase += freq + (alpha * error)
+
+      # Optional: Adjust phase so its always between 0 and 2pi, recall that phase wraps around every 2pi
+      while phase >= 2*np.pi:
+         phase -= 2*np.pi
+      while phase < 0:
+         phase += 2*np.pi
+
+   # Calc BER
+   rx_bits = (np.real(out) > 0).astype(int)
+   num_bit_errors = np.sum(rx_bits != bits[:len(rx_bits)])
+   print(f"Number of bit errors: {num_bit_errors} out of {len(rx_bits)} bits, BER: {num_bit_errors/len(rx_bits):.4f}")
+
+   # Plot freq over time to see how long it takes to hit the right offset
+   plt.figure(0)
+   plt.plot(freq_log,'.-')
+   plt.xlabel('Sample Index')
+   plt.ylabel('Frequency Offset Estimate (Hz)')
+
+   # Appears to be synced after ~80 samples so lets plot the constellation of the remaining 20 samples
+   plt.figure(1)
+   plt.plot(np.real(out[80:]), np.imag(out[80:]), '.')
+   plt.xlabel('I')
+   plt.ylabel('Q')
+   plt.xlim(-1.5, 1.5)
+   plt.ylim(-1.5, 1.5)
+   plt.grid()
+   plt.show()
+
+.. raw:: html
+
+   </details>
+
 ***************************
 Frame Synchronization
 ***************************
@@ -483,14 +619,3 @@ You can think of it as 11 BPSK symbols.  We can look at the autocorrelation of t
 You can see it's 11 (length of the sequence) in the center, and -1 or 0 for all other delays.  It works well for finding the start of a frame because it essentially integrates 11 symbols worth of energy in an attempt to create a 1 bit spike in the output of the cross-correlation.  In fact, the hardest part of performing start-of-frame detection is figuring out a good threshold.  You don't want frames that aren't actually part of your protocol to trigger it.  That means in addition to cross-correlation you also have to do some sort of power normalizing, which we won't consider here.  In deciding a threshold, you have to make a trade-off between probability of detection and probability of false alarms.  Remember that the frame header itself will have information, so some false alarms are OK; you will quickly find it is not actually a frame when you go to decode the header and the CRC inevitably fails (because it wasn't actually a frame).  Yet while some false alarms are OK, missing a frame detection altogether is bad.
 
 Another sequence with great autocorrelation properties is Zadoff-Chu sequences, which are used in LTE.  They have the benefit of being in sets; you can have multiple different sequences that all have good autocorrelation properties, but they won't trigger each other (i.e., also good cross-correlation properties, when you cross-correlate different sequences in the set).  Thanks to that feature, different cell towers will be assigned different sequences so that a phone can not only find the start of the frame but also know which tower it is receiving from.
-
-
-
-
-
-
-
-
-
-
-

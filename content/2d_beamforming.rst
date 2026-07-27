@@ -181,7 +181,7 @@ Instead of looking at the beam pattern in the crummy 3D plot, we'll use an alter
  resp = w.conj().T @ a # scalar
  print("Power in direction we are pointing:", 10*np.log10(np.abs(resp)[0,0]), 'dB')
 
-This outputs 0 dB, which is what we expect because MVDR's goal is to achieve unit power in the desired direction.  Now let's check the power in the directions of the two jammers, as well as a random direction and a direction that is one degree off of our desired direction (the same code is used, just update :code:`dir`).  The results are shown in the table below:
+This outputs 0 dB, which is what we expect because MVDR's goal is to achieve unit gain in the desired direction.  Now let's check the power in the directions of the two jammers, as well as a random direction and a direction that is one degree off of our desired direction (the same code is used, just update :code:`dir`).  The results are shown in the table below:
 
 .. list-table::
    :widths: 70 30
@@ -208,7 +208,14 @@ The code for this section can be found `here <https://github.com/777arc/PySDR/bl
 Processing Signals from an Actual 2D Array
 **********************************************
 
-In this section we work with some actual data recorded from a 3x5 array made out of a `QUAD-MxFE <https://www.analog.com/en/resources/evaluation-hardware-and-software/evaluation-boards-kits/quad-mxfe.html#eb-overview>`_ platform from Analog Devices which supports up to 16 transmit and receive channels (we only used 15 and only in receive mode).  Two recordings are provided below, the first one contains one emitter located at boresight to the array, which we will use for calibration.  The second recording contains two emitters at different directions, which we will use for beamforming and DOA testing.
+In this section we work with some actual data recorded by `Jon Kraft <https://www.youtube.com/@jonkraft>`_ using a 3x5 digital array made out of a `QUAD-MxFE <https://www.analog.com/en/resources/evaluation-hardware-and-software/evaluation-boards-kits/quad-mxfe.html#eb-overview>`_ platform from Analog Devices which supports up to 16 transmit and receive channels (we only used 15 and only in receive mode).  Below are some pictures showing the setup, with transmitters labeled.
+
+.. image:: ../_images/2d_array_ladder_pic.png
+   :align: center 
+   :target: ../_images/2d_array_ladder_pic.png
+   :alt: Images showing the 3x5 array used to record the data, which was made using a QUAD-MxFE platform from Analog Devices
+
+Two downloadable recordings are provided below, the first one contains one emitter located at boresight to the array, which we will use for calibration.  The second recording contains two emitters at different directions, which we will use for beamforming and DOA testing.
 
 - `IQ recording of just C <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/C_only_capture1.npy>`_ (used for calibration, as C is at boresight)
 - `IQ recording of B and D <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/DandB_capture1.npy>`_ (used for beamforming/DOA testing)
@@ -347,14 +354,19 @@ Next we will perform DOA estimation using the MUSIC algorithm.  We will use the 
 			music_metric = np.abs(music_metric).squeeze()
 			music_metric = np.clip(music_metric, 0, 2) # Useful for ABCD one
 			results[i, j] = music_metric
+	
+	results = 10*np.log10(results) # convert to dB
+	
+	# Keep the top 95%
+	floor = np.percentile(results, 5)
+	print("floor:", floor)
+	results = np.maximum(results, floor)
 
 Our results are in 2D, because the array is 2D, so we must either use a 3D plot or a 2D heatmap plot.  Let's try both. First, we will do a 3D plot that has elevation on one axis and azimuth on the other:
 
 .. code-block:: python
 
 	# 3D az-el DOA results
-	results = 10*np.log10(results) # convert to dB
-	results[results < -20] = -20 # crop the z axis to some level of dB
 	fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
 	surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
 							np.rad2deg(phi_scan[None,:]),

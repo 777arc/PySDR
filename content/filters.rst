@@ -27,6 +27,10 @@ You may think we only care about digital filters; this textbook explores DSP, af
    
 In DSP, where the input and output are signals, a filter has one input signal and one output signal:
 
+.. raw:: html
+
+   <div style="max-width: 700px; margin: 0 auto;">
+
 .. tikz:: [font=\sffamily\Large, scale=2]
    \definecolor{babyblueeyes}{rgb}{0.36, 0.61, 0.83}
    \node [draw,
@@ -36,9 +40,13 @@ In DSP, where the input and output are signals, a filter has one input signal an
     minimum height=2.4cm
    ]  (filter) {Filter};
    \draw[<-, very thick] (filter.west) -- ++(-2,0) node[left,align=center]{Input\\(time domain)} ;
-   \draw[->, very thick] (filter.east) -- ++(2,0) node[right,align=center]{Output\\(time domain)};   
+   \draw[->, very thick] (filter.east) -- ++(2,0) node[right,align=center]{Output\\(time domain)};
    :libs: positioning
-   :xscale: 80
+   :xscale: 100
+
+.. raw:: html
+
+   </div>
 
 You cannot feed two different signals into a single filter without adding them together first or doing some other operation.  Likewise, the output will always be one signal, i.e., a 1D array of numbers.
 
@@ -53,7 +61,7 @@ There are four basic types of filters: low-pass, high-pass, band-pass, and band-
 .. START OF FILTER TYPES TIKZ
 .. raw:: html
 
-   <table><tbody><tr><td>
+   <table style="max-width: 700px; margin: 0 auto;"><tbody><tr><td>
 
 .. This draw the lowpass filter
 .. tikz:: [font=\sffamily\large]    
@@ -131,7 +139,7 @@ For most filters we will see (known as FIR, or Finite Impulse Response, type fil
 Example Use-Case
 ########################
 
-To learn how filters are used, let's look an an example where we tune our SDR to a frequency of an existing signal, and we want to isolate it from other signals.  Remember that we tell our SDR which frequency to tune to, but the samples that the SDR captures are at baseband, meaning the signal will display as centered around 0 Hz. We will have to keep track of which frequency we told the SDR to tune to.  Here is what we might receive:
+To learn how filters are used, let's look at an example where we tune our SDR to a frequency of an existing signal, and we want to isolate it from other signals.  Remember that we tell our SDR which frequency to tune to, but the samples that the SDR captures are at baseband, meaning the signal will display as centered around 0 Hz. We will have to keep track of which frequency we told the SDR to tune to.  Here is what we might receive:
 
 .. image:: ../_images/filter_use_case.png
    :scale: 70 % 
@@ -255,8 +263,12 @@ Real vs. Complex Filters
 The filter I showed you had real taps, but taps can also be complex.  Whether the taps are real or complex doesn't have to match the signal you put through it, i.e., you can put a complex signal through a filter with real taps and vice versa.  When the taps are real, the filter's frequency response will be symmetrical around DC (0 Hz).  Typically we use complex taps when we need asymmetry, which does not happen too often.
 
 .. draw real vs complex filter
-.. tikz:: [font=\sffamily\Large,scale=2] 
-   \definecolor{babyblueeyes}{rgb}{0.36, 0.61, 0.83}   
+.. raw:: html
+
+   <div style="max-width: 800px; margin: 0 auto;">
+
+.. tikz:: [font=\sffamily\Large,scale=2]
+   \definecolor{babyblueeyes}{rgb}{0.36, 0.61, 0.83}
    \draw[->, thick] (-5,0) node[below]{$-\frac{f_s}{2}$} -- (5,0) node[below]{$\frac{f_s}{2}$};
    \draw[->, thick] (0,-0.5) node[below]{0 Hz} -- (0,1);
    \draw[babyblueeyes, smooth, line width=3pt] plot[tension=0.1] coordinates{(-5,0) (-1,0) (-0.5,2) (0.5,2) (1,0) (5,0)};
@@ -265,6 +277,11 @@ The filter I showed you had real taps, but taps can also be complex.  Whether th
    \draw[babyblueeyes, smooth, line width=3pt] plot[tension=0] coordinates{(6,0) (11,0) (11,2) (11.5,2) (12,0) (16,0)};
    \draw[font=\huge\bfseries] (0,2.5) node[above,align=center]{Example Low-Pass Filter\\with Real Taps};
    \draw[font=\huge\bfseries] (11,2.5) node[above,align=center]{Example Low-Pass Filter\\with Complex Taps};
+   :xscale: 100
+
+.. raw:: html
+
+   </div>
 
 As an example of complex taps, let's go back to the filtering use-case, except this time we want to receive the other interfering signal (without having to re-tune the radio).  That means we want a band-pass filter, but not a symmetrical one. We only want to keep (a.k.a "pass") frequencies between around 7 kHz to 13 kHz (we don't want to also pass -13 kHz to -7 kHz):
 
@@ -387,7 +404,7 @@ Now that we are starting to understand convolution, I will present the mathemati
 
  (f * g)(t) = \int f(\tau) g(t - \tau) d\tau
  
-In this above expression, :math:`g(t)` is the signal or input that is flipped and slides across :math:`f(t)`, but :math:`g(t)` and :math:`f(t)` can be swapped and it's still the same expression.  Typically, the shorter array will be used as :math:`g(t)`.  Convolution is equal to a cross-correlation, defined as :math:`\int f(\tau) g(t+\tau)`, when :math:`g(t)` is symmetrical, i.e., it doesn't change when flipped about the origin.
+In this above expression, :math:`g(t)` is the signal or input that is flipped and slides across :math:`f(t)`, but :math:`g(t)` and :math:`f(t)` can be swapped and it's still the same expression.  Typically, the shorter array will be used as :math:`g(t)`.  Convolution is equal to a cross-correlation, defined as :math:`\int f(\tau) g(t+\tau) d\tau`, when :math:`g(t)` is symmetrical, i.e., it doesn't change when flipped about the origin.
 
 
 *************************
@@ -523,7 +540,7 @@ The above code shows basic usage of these four methods, but you may be wondering
    :align: center 
    :target: ../_images/convolve_comparison_100000.svg
 
-As you can see, :code:`scipy.signal.convolve` actually switches its method to FFT-based automatically at a certain input size.  Either way, :code:`fftconvolve` is the clear winner for these size taps and inputs, which represent fairly typical sizes in RF applications.  A lot of the code within PySDR actually uses :code:`np.convolve:` simply because it's one less import and the performance difference is negligible for low data rate or non-real-time applications.
+As you can see, :code:`scipy.signal.convolve` actually switches its method to FFT-based automatically at a certain input size.  Either way, :code:`fftconvolve` is the clear winner for these size taps and inputs, which represent fairly typical sizes in RF applications.  A lot of the code within PySDR actually uses :code:`np.convolve` simply because it's one less import and the performance difference is negligible for low data rate or non-real-time applications.
 
 Lastly, we will show the output in the frequency domain, so we can finally check whether the firwin2 method gave us a filter that matched our design parameters.  Starting from the code above that gave us :code:`h2`:
 
@@ -661,7 +678,7 @@ We will use these taps shown above as our filter.  We know that the impulse resp
    :scale: 70 % 
    :align: center 
 
-See how the frequency response not very straight... it doesn't match our original very well, if you recall the shape that we initially wanted to make a filter for.  A big reason is because our impulse response isn't done decaying, i.e., the left and right sides don't reach zero.  We have two options that will allow it to decay to zero:
+See how the frequency response is not very straight... it doesn't match our original very well, if you recall the shape that we initially wanted to make a filter for.  A big reason is because our impulse response isn't done decaying, i.e., the left and right sides don't reach zero.  We have two options that will allow it to decay to zero:
 
 **Option 1:** We "window" our current impulse response so that it decays to 0 on both sides.  It involves multiplying our impulse response with a "windowing function" that starts and ends at zero.
 
@@ -699,7 +716,7 @@ See how the frequency response not very straight... it doesn't match our origina
    :scale: 50 % 
    :align: center 
 
-Both options worked.  Which one would you choose?  The second method resulted in more taps, but the first method resulted in a frequency response that wasn't very sharp and had a falling edge wasn't very steep.  There are numerous ways to design a filter, each with their own trade-offs along the way. Many consider filter design an art.
+Both options worked.  Which one would you choose?  The second method resulted in more taps, but the first method resulted in a frequency response that wasn't very sharp and had a falling edge that wasn't very steep.  There are numerous ways to design a filter, each with their own trade-offs along the way. Many consider filter design an art.
 
 *************************
 Intro to Pulse Shaping
@@ -751,6 +768,115 @@ These filters generally have a parameter you can adjust to decrease the bandwidt
 You can see that a lower value of :math:`\beta` reduces the spectrum used (for the same amount of data). However, if the value is too low then the time domain symbols take longer to decay to zero. Actually when :math:`\beta=0` the symbols never fully decay to zero, which means we can't transmit such symbols in practice.  A :math:`\beta` value around 0.35 is common.
 
 You will learn a lot more about pulse shaping, including some special properties that pulse shaping filters must satisfy, in the :ref:`pulse-shaping-chapter` chapter.
+
+*******************
+Filtering in Chunks
+*******************
+
+So far we have filtered signals that fit comfortably in memory: we hand the whole array to :code:`np.convolve` and get the whole result back.  But what happens when the signal is enormous, say a recording that is tens of gigabytes, or when the signal needs to be processed in real-time?  We need a way to filter the signal a piece at a time, while producing the exact same output we would have gotten if we had filtered it all at once.
+
+At first this sounds trivial, just filter each chunk and stitch the outputs together.  But try it and you will see glitches at every chunk boundary.  The reason comes straight from how an FIR filter works: to compute one output sample, the filter reaches back across the previous :math:`M-1` input samples, where :math:`M` is the number of taps.  Right at the start of a new chunk, those previous samples live in the *previous* chunk, which we already threw away.  So the first :math:`M-1` outputs of every chunk are wrong, because the filter had nothing but zeros to reach back into.  Put simply, an FIR filter has *memory*, and if we filter chunk by chunk we have to carry that memory across the seams.
+
+The Simple Way: Carry the State
+###############################
+
+The most direct fix is to keep the last :math:`M-1` samples of each chunk around and glue them onto the front of the next chunk before filtering.  Those carried-over samples give the filter the history it needs, so the boundary is no longer starved of context.  We then use :code:`mode='valid'` so that only the outputs that don't depend on zero-padding are returned:
+
+.. code-block:: python
+
+    import numpy as np
+
+    h = np.load('taps.npy')  # our FIR filter taps, length M
+    M = len(h)
+
+    state = np.zeros(M - 1, dtype=np.complex64)  # the filter's "memory"
+
+    def process_chunk(x):  # x is one chunk from the SDR, length L
+        global state
+        x_padded = np.concatenate([state, x])      # prepend last chunk's tail
+        y = np.convolve(x_padded, h, mode='valid') # length L, all valid outputs
+        state = x_padded[-(M - 1):]                # save tail for next chunk
+        return y
+
+Each call returns exactly :code:`len(x)` output samples, and if you concatenate the outputs from every chunk it matches what you would get with filtering the entire signal in one shot.  This is really all you need for a lot of real-time work, and SciPy even provides it directly: :code:`scipy.signal.lfilter` accepts an initial-condition array :code:`zi` that holds exactly this state, and hands you back the updated state each call:
+
+.. code-block:: python
+
+    from scipy.signal import lfilter, lfilter_zi
+
+    zi = np.zeros(len(h) - 1, dtype=np.complex64)  # filter state
+    y1, zi = lfilter(h, 1.0, chunk1, zi=zi)        # filter first chunk
+    y2, zi = lfilter(h, 1.0, chunk2, zi=zi)        # state carries over
+    # ...and so on for every chunk
+
+So why bother with anything fancier?  Direct convolution costs on the order of :math:`M` multiply-adds per output sample.  When the filter is long, e.g. a sharp filter with thousands of taps, that gets expensive.  For long filters it is much cheaper to do the convolution in the frequency domain using the FFT (recall that convolution in time is multiplication in frequency).  But an FFT needs a finite block of samples, so we are right back to the chunking problem, this time with a twist: multiplying two FFTs together and taking the inverse FFT gives you *circular* convolution, which wraps the ends of the block around onto each other, not the *linear* convolution we actually want.  Overlap-add and overlap-save are the two classic tricks for getting correct linear convolution out of block-by-block FFTs.
+
+Overlap-Add
+###########
+
+Overlap-add starts from a simple observation: convolution is linear, so we can chop the input into non-overlapping blocks, filter each block on its own, and sum the results.  The catch is that filtering a length-:math:`L` block with a length-:math:`M` filter produces a result of length :math:`L + M - 1`, i.e. it is *longer* than the block we started with.  That extra :math:`M-1` samples of "tail" is the filter ringing out past the end of the block, and it spills into the region belonging to the next block.  The fix is right there in the name: we let the blocks' outputs overlap and we add the overlapping parts together, as shown below.
+
+.. image:: ../_images/overlap_add.svg
+   :align: center
+   :target: ../_images/overlap_add.svg
+
+Concretely, we FFT each input block (zero-padded up to :math:`N \ge L + M - 1`), multiply by the FFT of the taps, and inverse-FFT to get that block's full-length output.  We emit the first :math:`L` samples and remember the :math:`M-1` sample tail so we can add it into the start of the next block:
+
+.. code-block:: python
+
+    import numpy as np
+
+    h = np.load('taps.npy')
+    M = len(h)
+    L = 1024              # input block size (samples per chunk)
+    N = L + M - 1         # FFT size (round up to a power of 2 if you like)
+    H = np.fft.fft(h, N)  # precompute the filter's FFT once
+
+    tail = np.zeros(M - 1, dtype=np.complex64)  # leftover from previous block
+
+    def process_chunk(x):  # x has length L
+        global tail
+        conv = np.fft.ifft(np.fft.fft(x, N) * H)  # length N, linear conv
+        y = conv[:L].copy()
+        y[:M - 1] += tail   # add in the tail that rang over from last block
+        tail = conv[L:]     # this block's tail rings into the next one
+        return y
+
+Notice that nothing is thrown away here, every sample the filter produces ends up in the output, some of them just get split across two blocks and added back together.
+
+Overlap-Save
+############
+
+Overlap-save (sometimes called overlap-discard, which is arguably the clearer name) attacks the same problem from the other direction.  Instead of adding overlapping outputs, we overlap the *inputs* and throw away the outputs we know are garbage.  Recall the wrap-around from circular convolution corrupts exactly the first :math:`M-1` output samples of a block.  So the plan is: feed the filter overlapping input blocks, where each block reuses the last :math:`M-1` samples of the previous one, then simply discard those first :math:`M-1` polluted outputs and keep the rest, as shown below.
+
+.. image:: ../_images/overlap_save.svg
+   :align: center
+   :target: ../_images/overlap_save.svg
+
+Here we pick an FFT size :math:`N` and consume :math:`N - (M-1)` new samples per block, prepending the :math:`M-1` samples of overlap from last time to fill the block back up to :math:`N`:
+
+.. code-block:: python
+
+    import numpy as np
+
+    h = np.load('taps.npy')
+    M = len(h)
+    N = 2048               # FFT / block size, must be larger than M
+    step = N - (M - 1)     # number of NEW samples consumed per block
+    H = np.fft.fft(h, N)   # precompute the filter's FFT once
+
+    overlap = np.zeros(M - 1, dtype=np.complex64)  # carried-over input samples
+
+    def process_chunk(x):  # x has length 'step'
+        global overlap
+        block = np.concatenate([overlap, x])       # length N
+        conv = np.fft.ifft(np.fft.fft(block) * H)  # circular conv, length N
+        overlap = block[-(M - 1):]                 # save tail for next block
+        return conv[M - 1:]                        # discard the aliased outputs
+
+The trade-off between the two is mostly a matter of taste and plumbing.  Overlap-add does a little extra work adding the overlapping tails, while overlap-save does a little extra work re-processing the overlapping input samples only to throw the results away.  Both produce identical output, and both match plain :code:`np.convolve` over the full signal.
+
+Note that SciPy's :code:`scipy.signal.oaconvolve` performs overlap-add convolution for you, and internally it calls :code:`scipy.signal.fftconvolve` which will pick an efficient FFT-based approach automatically.  The value in understanding overlap-add and overlap-save is that when you are streaming from a live radio, *you* own the block boundaries, and knowing how the filter's memory crosses those boundaries is what lets you filter a never-ending signal without a single glitch at the seams.
 
 
 

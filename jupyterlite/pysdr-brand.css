@@ -1,0 +1,31 @@
+/* PySDR branding for the self-hosted JupyterLite deployment.
+ *
+ * JupyterLab 4 / Notebook 7 build the top-left logo in JavaScript and expose no
+ * user-CSS hook, so inject_branding.py inlines this file into every generated
+ * app page after `jupyter lite build`. We hide the built-in Jupyter mark and
+ * paint the PySDR logo (served at /_static/logo.svg on the deployed site)
+ * instead. logo.svg is ~1983x1192 (=1.66:1); at 28px tall that is ~47px wide. */
+
+/* Notebook 7 apps: notebooks/, tree/, edit/, consoles/ (this is what opens) */
+#jp-NotebookLogo {
+  background-image: url(/_static/logo.svg);
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: contain;
+  width: 48px;
+}
+#jp-NotebookLogo svg {
+  visibility: hidden;
+}
+
+/* JupyterLab app: lab/ */
+#jp-MainLogo {
+  background-image: url(/_static/logo.svg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  width: 48px;
+}
+#jp-MainLogo svg {
+  visibility: hidden;
+}

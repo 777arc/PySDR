@@ -10,7 +10,7 @@ You can also support PySDR through the [PySDR Patreon page](https://www.patreon.
 
 ## Building
 
-Note that the website is now automatically built and deployed with each push/merge into master branch, using the GitHub action [build-and-deploy.yml](https://github.com/777arc/PySDR/blob/master/.github/workflows/build-and-deploy.yml) and the GitHub pages system for hosting the actual textbook.
+Note that the website is now automatically built and deployed with each push/merge into master branch, using the GitHub action [build-and-deploy.yml](https://github.com/777arc/PySDR/blob/master/.github/workflows/build-and-deploy.yml), which uploads the built site to Cloudflare Pages (project `pysdr`) with wrangler.  The build has to happen in the GitHub action rather than Cloudflare's own build system because it needs texlive/ghostscript/enchant.  To deploy by hand after building locally, run `npx wrangler pages deploy` from the repo root (settings come from [wrangler.toml](https://github.com/777arc/PySDR/blob/master/wrangler.toml)).
 
 For testing changes to the textbook locally, you can build using the following steps:
 

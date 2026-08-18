@@ -1,6 +1,7 @@
-# Simple workflow for deploying static content to GitHub Pages
-# adapted from https://github.com/actions/starter-workflows/blob/main/pages/static.yml
-name: Build and Deploy to Pages
+# Builds the site and deploys it to Cloudflare Pages (project "pysdr") via wrangler direct upload.
+# The build itself runs here rather than in Cloudflare's build system because it needs
+# texlive/ghostscript/enchant, which that image doesn't provide.
+name: Build and Deploy to Cloudflare Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -14,11 +15,9 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# Only needed for creating the monthly release below
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
@@ -29,9 +28,6 @@ concurrency:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -107,14 +103,22 @@ jobs:
           jupyter lite build --contents jupyterlite --output-dir _build/jupyterlite
           python jupyterlite/inject_branding.py _build/jupyterlite
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3.0.1
-        with:
-          path: './_build'
+      # Sphinx's pickled doctrees are build cache, not website content
+      - name: Remove doctrees from output
+        run: |
+          rm -rf _build/doctrees
+          echo "files to upload = $(find _build -type f | wc -l)"
 
-      - name: Deploy to GitHub Pages
+      # Requires repo secrets CLOUDFLARE_API_TOKEN (with the "Cloudflare Pages: Edit"
+      # permission) and CLOUDFLARE_ACCOUNT_ID. This lands as a production deploy only if the
+      # pysdr project's production branch is set to master in the Cloudflare dashboard.
+      - name: Deploy to Cloudflare Pages
         id: deployment
-        uses: actions/deploy-pages@v5.0.0
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy --branch=master
 
       - name: Get current date
         id: date

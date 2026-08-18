@@ -118,6 +118,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Without this the action installs its own pinned default (3.90.0)
+          wranglerVersion: "4"
           command: pages deploy --branch=master
 
       - name: Get current date

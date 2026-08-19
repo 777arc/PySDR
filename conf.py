@@ -7,6 +7,8 @@ import sys, os
 sys.path.append(os.path.relpath('.')) # needed for sphinx to allow importing
 from scrape_patreon import scrape_patreon
 scrape_patreon()
+from gnuradioworld_examples import generate_gnuradioworld_list
+generate_gnuradioworld_list()
 
 ###############################
 # -- General configuration ----

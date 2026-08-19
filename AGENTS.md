@@ -30,6 +30,7 @@ make fast-html
 
 - The rendered HTML site will be in `_build/`.
 - Open `_build/index.html` for the main site, or the relevant page under `_build/content/`.
+- If you need to serve the site locally rather than opening the files directly, always use port 8091, e.g. `python -m http.server 8091 --directory _build`.  Port 8090 is taken by the GNU Radio World dev server.
 
 ## Practical workflow
 

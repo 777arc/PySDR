@@ -150,15 +150,14 @@ Let's say we have an IQ sample, which is the single complex number :math:`I + jQ
  
  \qquad \qquad \qquad \qquad = \left(\sqrt{I^2+Q^2}\right) \cos\left(2\pi ft - \tan^{-1}\left(\frac{Q}{I}\right)\right)
 
-Even though we saw the math, let's play around with adding two sinusoids that are 90 degrees out of phase.  In the video below, there is a slider for adjusting I and another for adjusting Q, the amplitude of the cosine and sine.  What is plotted are the cosine (red), sine (blue), and the sum of the two (green).
+Even though we saw the math, let's play around with adding two sinusoids that are 90 degrees out of phase.  In the interactive app below, there is a slider for adjusting I and another for adjusting Q, the amplitude of the cosine and sine.  What is plotted are the cosine (red), sine (blue), and the sum of the two (green).
 
-.. image:: ../_images/IQ3.gif
-   :scale: 100%
-   :align: center
-   :target: ../_images/IQ3.gif
-   :alt: GNU Radio animation showing I and Q as amplitudes of sinusoids that get summed together
+.. raw:: html
 
-The code used for this pyqtgraph-based Python app can be found `here <https://raw.githubusercontent.com/777arc/PySDR/master/figure-generating-scripts/sin_plus_cos.py>`_.
+    <div id="sinPlusCosApp"></div>
+    <script>
+    sin_plus_cos_app("sinPlusCosApp")
+    </script>
 
 The important takeaways are that when we add the cos() and sin(), we get another pure sine wave of the same frequency but with a different phase and amplitude.   Also, the phase shifts as we slowly remove or add one of the two parts (the amplitude also changes).  This is all a result of the trig identity: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`.  The "utility" of this behavior is that we can control the phase and amplitude of a resulting sine wave by adjusting the amplitudes I and Q (we don't have to adjust the phase of the cosine or sine).  For example, we could adjust I and Q in a way that keeps the amplitude constant and makes the phase whatever we want.  As a transmitter this ability is extremely useful because we know that we need to transmit a sinusoidal signal in order for it to fly through the air as an electromagnetic wave.  And it's much easier to adjust two amplitudes and perform an addition operation compared to adjusting an amplitude and a phase.  It also allows us to represent baseband signals more conveniently, keeping them agnostic of the carrier.
 

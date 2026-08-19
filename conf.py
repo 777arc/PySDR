@@ -206,6 +206,7 @@ html_js_files = [
     'js/homepage_app.js',
     'js/tdoa.js',
     'js/eye_diagram_app.js',
+    'js/sin_plus_cos_app.js',
     'js/sidebar_groups.js'
     # we also include the index.js file from the PhasedArrayVisualizer directory in setup() above
 ]

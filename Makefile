@@ -59,10 +59,12 @@ spelling:
 .PHONY: fast-html
 fast-html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
+	cp extra/_headers $(BUILDDIR)/
 
 .PHONY: html
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
+	cp extra/_headers $(BUILDDIR)/
 	$(SPHINXBUILD) -b spelling . _spelling
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

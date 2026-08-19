@@ -439,6 +439,20 @@ A simple approach for beginners is to just stick with a Hamming window, which ca
 
 If you are afraid of choosing the wrong window, don't be.  The difference between Hamming, Hanning, Blackman, and Kaiser is very minimal compared to not using a window at all since they all taper to zero on both sides and solve the underlying problem.
 
+If you want to see spectral leakage for yourself, the flowgraph below is real GNU Radio, compiled to run inside your browser using `GNU Radio World <https://gnuradioworld.com>`_.  It generates two tones, one strong and one roughly 50 dB weaker sitting right next to it, and plots the spectrum.  Hit run and you'll find the weak tone is nowhere to be seen; it's buried under the leakage from its loud neighbor because no window is being applied (i.e., a rectangular window).  Open the control panel on the frequency sink and switch the FFT window to Hamming or Blackman, and the weak tone pops right out.  While you're in there, try changing the FFT size, and take a look at the waterfall below the spectrum, both of which we cover in the next two sections.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=analog/frequency_domain_windowing"
+             title="PySDR: Windowing, FFT Size, and the Waterfall"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
+
 
 *******************
 FFT Sizing

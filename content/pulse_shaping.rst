@@ -260,6 +260,20 @@ Here is another example of a poor sample time, somewhere in between our ideal an
    
 Remember that our Q values are not shown on the time domain plot because they are roughly zero, allowing the IQ plots to spread horizontally only.
 
+If you want to play with this concept further, the interactive GNU Radio flowgraph below generates a BPSK signal with RRC pulse shaping, sends it through a noisy channel and a matched filter, then samples it.  The sampling instant is on a slider, in units of samples.  Leave it at 0 and the constellation is two tight clusters; move it away from the peak of the pulse and watch the points collapse toward the origin, just like the figures above.  The roll-off factor is adjustable too, so you can see how beta affects the occupied bandwidth and the eye diagram (the subject of the next section) at the same time.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=filter/pulse_shaping_rrc_eye"
+             title="PySDR: RRC Pulse Shaping, Eye Diagram, and Sampling Instant"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
+
 **********************************
 Eye Diagrams
 **********************************

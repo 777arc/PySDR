@@ -1,11 +1,15 @@
 # Cloudflare Pages consumes this file (it is not served) to set response headers.
-# The homepage embeds GNU Radio World, which needs SharedArrayBuffer and therefore a
-# cross-origin isolated context. Scoped to the homepage only so the rest of the book
-# keeps loading third-party subresources normally.
+# The homepage and the English chapter pages embed GNU Radio World, which needs
+# SharedArrayBuffer and therefore a cross-origin isolated context. Scoped to those pages
+# so the translated chapters keep loading third-party subresources normally.
 /
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
 
 /index.html
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+/content/*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp

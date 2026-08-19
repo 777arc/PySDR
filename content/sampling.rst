@@ -69,6 +69,20 @@ We must identify the highest frequency component, then double it, and make sure 
 
 If we don't sample fast enough we get something called aliasing, which we will learn about later, but we try to avoid it at all costs.  What our SDRs do (and most receivers in general) is filter out everything above Fs/2 right before the sampling is performed. If we attempt to receive a signal with too low a sample rate, that filter will chop off part of the signal.  Our SDRs go to great lengths to provide us with samples free of aliasing and other imperfections.  Because the SDR's anti-aliasing filter doesn't go from passband to stopband instantly (it needs a small transition band), the rule of thumb is to assume only the center 4/5 of your sample rate is usable bandwidth, known as "Sean's 4/5 rule".
 
+Rather than take my word for it, the interactive GNU Radio flowgraph below lets you cause aliasing yourself, running entirely in your browser.  A cosine wave is being sampled at 100 kHz, so Nyquist is 50 kHz.  Run it, then slowly drag the tone frequency slider upward.  Below 50 kHz the peak moves to the right like you would expect, but above 50 kHz it turns around and folds back down, and the time domain plot shows the samples tracing out a slower sinusoid entirely.  That folded-over tone is the "incorrect signal" from the figures above, showing up as an actual measurement.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=analog/sampling_aliasing"
+             title="PySDR: Nyquist Sampling and Aliasing"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
+
 *************************
 Quadrature Sampling
 *************************
@@ -322,6 +336,20 @@ The blue box above shows what is actually sampled by the SDR, and the green box 
 There is one problem: if we want our signal to be centered at 100 MHz and only contain 5 MHz, we will have to perform a frequency shift, filter, and downsample the signal ourselves (something we will learn how to do later). Fortunately, this process of offtuning, a.k.a applying an LO offset, is often built into the SDRs, where they will automatically perform offtuning and then shift the frequency to your desired center frequency.  We benefit when the SDR can do it internally: we don't have to send a higher sample rate over our USB or Ethernet connection, which bottleneck how high a sample rate we can use.
 
 This subsection regarding DC offsets is a good example of where this textbook differs from others. Your average DSP textbook will discuss sampling, but it tends not to include implementation hurdles such as DC offsets despite their prevalence in practice.
+
+The GNU Radio flowgraph below simulates this entire situation, scaled down from the 20 MHz example above to 1 MHz so that it runs comfortably in a browser.  The top spectrum is what the SDR hands you, a big DC spike sitting at the LO with the signal we actually want off to one side.  The bottom spectrum is after the frequency shift and filter that offset tuning implies, and the signal is now centered with no spike in sight.  Slide the DC offset down to zero to see what a receiver free of LO leakage would look like.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=filter/sampling_dc_spike_offset_tuning"
+             title="PySDR: DC Spike and Offset Tuning"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
 
 
 ****************************

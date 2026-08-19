@@ -179,6 +179,20 @@ Let's visualize transition width.  In the diagram below, the :green:`green` line
 You might be wondering why we wouldn't just set the transition width as small as possible.  The reason is mainly that a smaller transition width results in more taps, and more taps means more computations--we will see why shortly.  A 50-tap filter can run all day long using 1% of the CPU on a Raspberry Pi.  Meanwhile, a 50,000 tap filter will cause your CPU to explode!
 Typically we use a filter designer tool, then see how many taps it outputs, and if it's way too many (e.g., more than 100) we increase the transition width.  It all depends on the application and hardware running the filter, of course.
 
+The interactive GNU Radio flowgraph below recreates the exact scenario from this section, running in your browser.  There is a signal of interest at 0 Hz, an interferer at 10 kHz, and a noise floor, all feeding a low-pass filter whose cutoff frequency and transition width are on sliders.  Drag the cutoff below 10 kHz and watch the interferer drop below where the noise floor used to be.  Then adjust the transition width while keeping an eye on the tap count displayed next to the sliders; it is the trade-off described above in real numbers, where tightening the transition band buys a sharper rolloff and costs you taps.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=filter/filters_lowpass_interference"
+             title="PySDR: Low-Pass Filtering Out an Interferer"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
+
 In the filtering example above, we had used a cutoff of 3 kHz and a transition width of 1 kHz (it's hard to actually see the transition width just looking at these screenshots).  The resulting filter had 77 taps.
 
 Back to filter representation.  Even though we might show the list of taps for a filter, we usually represent filters visually in the frequency domain.  We call this the "frequency response" of the filter, and it shows us the behavior of the filter in frequency. Here is the frequency response of the filter we were just using:

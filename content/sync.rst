@@ -585,6 +585,20 @@ The following (collapsed) code block provides the full Python example of the cha
 
    </details>
 
+Now that we have written time sync, coarse frequency sync, and fine frequency sync by hand, it is worth seeing the same job done with GNU Radio's built-in blocks.  The interactive flowgraph below transmits BPSK through a channel with adjustable noise, frequency offset, and timing offset, then recovers it using a Polyphase Clock Sync block for timing followed by a Costas Loop for frequency and phase.  The three constellation plots show the received signal, the signal after clock recovery, and the fully synchronized signal.  Start with everything low to get a feel for a clean lock, then push the frequency offset up until the Costas loop can no longer keep up and the constellation starts to spin.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=digital/synchronization_bpsk_recovery"
+             title="PySDR: BPSK Timing and Frequency Synchronization"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
+
 ***************************
 Frame Synchronization
 ***************************

@@ -67,6 +67,20 @@ Here is an example of a 16 MHz wide signal that is continuously transmitting.  T
    :scale: 60 % 
    :align: center
    :alt: Example of frequency selective fading on a spectrogram (a.k.a. waterfall plot) showing smearing and a hole in the spectrogram where a deep null is
+
+The flowgraph below lets you watch frequency-selective fading, with a slider to adjust the amount of Doppler.  A wideband signal is sent through a three-path channel, and you will see notches carved into the spectrum that crawl around as the channel changes, i.e., frequency selective fading.  Turn up the Doppler, which is equivalent to moving faster, and everything starts changing much more quickly.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=channels/multipath_fading_flat_vs_selective"
+             title="PySDR: Flat vs Frequency-Selective Fading"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
    
 **************************
 Simulating Rayleigh Fading

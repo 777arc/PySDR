@@ -47,3 +47,4 @@ Radar-2025-Labs/
 
 # jupyterlite incremental build database
 .jupyterlite.doit.db
+.env

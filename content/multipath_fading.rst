@@ -68,7 +68,7 @@ Here is an example of a 16 MHz wide signal that is continuously transmitting.  T
    :align: center
    :alt: Example of frequency selective fading on a spectrogram (a.k.a. waterfall plot) showing smearing and a hole in the spectrogram where a deep null is
 
-The flowgraph below lets you watch frequency-selective fading, with a slider to adjust the amount of Doppler.  A wideband signal is sent through a three-path channel, and you will see notches carved into the spectrum that crawl around as the channel changes, i.e., frequency selective fading.  Turn up the Doppler, which is equivalent to moving faster, and everything starts changing much more quickly.
+The flowgraph below lets you watch `frequency-selective fading <https://gnuradioworld.com/examples/channels/multipath-fading-flat-vs-selective/>`_, with a slider to adjust the amount of Doppler.  A wideband signal is sent through a three-path channel, and you will see notches carved into the spectrum that crawl around as the channel changes, i.e., frequency selective fading.  Turn up the Doppler, which is equivalent to moving faster, and everything starts changing much more quickly.
 
 .. raw:: html
 

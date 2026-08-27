@@ -179,6 +179,8 @@ The GNU Radio flowgraph below generates complex Gaussian noise and shows it thre
 
 You can then produce the flat PSD that we had in GNU Radio by taking the log and averaging a bunch together.  The signal we generated and took the FFT of was a real signal (versus complex), and the FFT of any real signal will have matching negative and positive portions, so that's why we only saved the positive portion of the FFT output (the 2nd half).  But why did we only generate "real" noise, and how do complex signals work into this?
 
+More information about this GNU Radio World example can be found `here <https://gnuradioworld.com/examples/analog/noise-awgn-psd/>`_.
+
 *************************
 Complex Noise
 *************************

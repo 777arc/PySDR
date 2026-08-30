@@ -61,6 +61,10 @@ fast-html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
 	cp extra/_headers $(BUILDDIR)/
 
+.PHONY: serve
+serve:
+	python serve.py
+
 .PHONY: html
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)

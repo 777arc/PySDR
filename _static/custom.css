@@ -325,3 +325,12 @@ pre.mermaid > svg,
 .sphinxsidebar .sdr-group.open .sdr-group-children {
 	display: block;
 }
+
+/* GNU Radio World embeds are width:100% with a 21/9 aspect-ratio, so on a wide
+   window they grow taller than they need to be (a 3440px screen gives a frame
+   over 1300px tall).  Cap the height and let the frame go wider than 21/9
+   instead, which just shows more canvas.  Applies to every embed in the book;
+   max-height isn't in their inline styles, so no !important is needed. */
+iframe[src*="gnuradioworld.com"] {
+	max-height: min(60vh, 640px);
+}

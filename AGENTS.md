@@ -30,7 +30,7 @@ make fast-html
 
 - The rendered HTML site will be in `_build/`.
 - Open `_build/index.html` for the main site, or the relevant page under `_build/content/`.
-- If you need to serve the site locally rather than opening the files directly, always use port 8091, e.g. `python -m http.server 8091 --directory _build`.  Port 8090 is taken by the GNU Radio World dev server.
+- If you need to serve the site locally rather than opening the files directly, use `make serve` (serve.py, port 8091).  It sets the same COOP/COEP headers extra/_headers sets in production, which the GNU Radio World embeds need for SharedArrayBuffer; a plain `python -m http.server` serves the pages fine but every embed fails when you press Run.  Port 8090 is taken by the GNU Radio World dev server.
 
 ## Practical workflow
 

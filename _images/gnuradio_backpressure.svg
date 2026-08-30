@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="900.75"
+   height="438.5332"
+   viewBox="0 0 900.75 438.5332"
+   font-family="Helvetica, Arial, sans-serif"
+   version="1.1"
+   id="svg112"
+   sodipodi:docname="gnuradio_backpressure.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs116" />
+  <sodipodi:namedview
+     id="namedview114"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="3.2106383"
+     inkscape:cx="449.59907"
+     inkscape:cy="200.58317"
+     inkscape:window-width="3840"
+     inkscape:window-height="2054"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg112" />
+  <!-- ============ Panel A ============ -->
+  <text
+     x="0.75"
+     y="12.376465"
+     font-size="17px"
+     font-weight="bold"
+     fill="#111111"
+     id="text4">A rate-setting block is present, so the flowgraph runs at that rate</text>
+  <rect
+     x="0.75"
+     y="34.376465"
+     width="150"
+     height="62"
+     rx="4"
+     fill="#f7f2fb"
+     stroke="#3a3a5a"
+     stroke-width="1.5"
+     id="rect6" />
+  <text
+     x="75.75"
+     y="62.376465"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text8">Signal</text>
+  <text
+     x="75.75"
+     y="81.376465"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text10">Source</text>
+  <rect
+     x="340.75"
+     y="34.376465"
+     width="150"
+     height="62"
+     rx="4"
+     fill="#f7f2fb"
+     stroke="#3a3a5a"
+     stroke-width="1.5"
+     id="rect12" />
+  <text
+     x="415.75"
+     y="62.376465"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text14">Low Pass</text>
+  <text
+     x="415.75"
+     y="81.376465"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text16">Filter</text>
+  <rect
+     x="680.75"
+     y="34.376465"
+     width="160"
+     height="62"
+     rx="4"
+     fill="#f7f2fb"
+     stroke="#3a3a5a"
+     stroke-width="1.5"
+     id="rect18" />
+  <text
+     x="760.75"
+     y="62.376465"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text20">Audio Sink</text>
+  <text
+     x="760.75"
+     y="81.376465"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text22">48 kHz</text>
+  <!-- buffer 1 (full) -->
+  <rect
+     x="175.75"
+     y="45.376465"
+     width="140"
+     height="40"
+     rx="3"
+     fill="#ffffff"
+     stroke="#666666"
+     stroke-width="1.5"
+     id="rect24" />
+  <rect
+     x="177.75"
+     y="47.376465"
+     width="122"
+     height="36"
+     fill="#e8664d"
+     id="rect26" />
+  <text
+     x="245.75"
+     y="108.37646"
+     font-size="13px"
+     text-anchor="middle"
+     fill="#333333"
+     id="text28">buffer: full</text>
+  <path
+     d="m 150.75,65.376465 h 22"
+     stroke="#111111"
+     stroke-width="2"
+     id="path30" />
+  <path
+     d="m 318.75,65.376465 h 18"
+     stroke="#111111"
+     stroke-width="2"
+     id="path32" />
+  <path
+     d="m 331.75,60.376465 12,5 -12,5 z"
+     fill="#111111"
+     id="path34" />
+  <!-- buffer 2 (full) -->
+  <rect
+     x="515.75"
+     y="45.376465"
+     width="140"
+     height="40"
+     rx="3"
+     fill="#ffffff"
+     stroke="#666666"
+     stroke-width="1.5"
+     id="rect36" />
+  <rect
+     x="517.75"
+     y="47.376465"
+     width="118"
+     height="36"
+     fill="#e8664d"
+     id="rect38" />
+  <text
+     x="585.75"
+     y="108.37646"
+     font-size="13px"
+     text-anchor="middle"
+     fill="#333333"
+     id="text40">buffer: full</text>
+  <path
+     d="m 490.75,65.376465 h 22"
+     stroke="#111111"
+     stroke-width="2"
+     id="path42" />
+  <path
+     d="m 658.75,65.376465 h 18"
+     stroke="#111111"
+     stroke-width="2"
+     id="path44" />
+  <path
+     d="m 671.75,60.376465 12,5 -12,5 z"
+     fill="#111111"
+     id="path46" />
+  <text
+     x="760.75"
+     y="122.37646"
+     font-size="13px"
+     text-anchor="middle"
+     fill="#2a6f2a"
+     id="text48">drains 48,000</text>
+  <text
+     x="760.75"
+     y="139.37646"
+     font-size="13px"
+     text-anchor="middle"
+     fill="#2a6f2a"
+     id="text50">samples/sec</text>
+  <g
+     id="g401"
+     transform="translate(-25.790755,-35.06555)">
+    <path
+       d="M 700,175 H 200"
+       stroke="#b03030"
+       stroke-width="1.5"
+       fill="none"
+       stroke-dasharray="6, 4"
+       id="path52" />
+    <path
+       d="m 206,170 -12,5 12,5 z"
+       fill="#b03030"
+       id="path54" />
+  </g>
+  <g
+     id="g405"
+     transform="translate(119.97465,-26.656007)">
+    <text
+       x="20"
+       y="200"
+       font-size="15px"
+       fill="#b03030"
+       id="text56">Backpressure: the buffers upstream stay full, so the scheduler stops calling work() on</text>
+    <text
+       x="20"
+       y="221"
+       font-size="15px"
+       fill="#b03030"
+       id="text58">the Signal Source and the filter. The whole chain settles at the rate of the slowest block.</text>
+  </g>
+  <line
+     x1="0.75"
+     y1="230.37646"
+     x2="900.75"
+     y2="230.37646"
+     stroke="#cccccc"
+     stroke-width="1.5"
+     id="line60" />
+  <!-- ============ Panel B ============ -->
+  <text
+     x="0.75"
+     y="270.37646"
+     font-size="17px"
+     font-weight="bold"
+     fill="#111111"
+     id="text62">No rate-setting block, so it runs as fast as the CPU allows</text>
+  <rect
+     x="0.75"
+     y="292.37646"
+     width="150"
+     height="62"
+     rx="4"
+     fill="#f7f2fb"
+     stroke="#3a3a5a"
+     stroke-width="1.5"
+     id="rect64" />
+  <text
+     x="75.75"
+     y="320.37646"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text66">Signal</text>
+  <text
+     x="75.75"
+     y="339.37646"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text68">Source</text>
+  <rect
+     x="340.75"
+     y="292.37646"
+     width="150"
+     height="62"
+     rx="4"
+     fill="#f7f2fb"
+     stroke="#3a3a5a"
+     stroke-width="1.5"
+     id="rect70" />
+  <text
+     x="415.75"
+     y="320.37646"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text72">Multiply</text>
+  <text
+     x="415.75"
+     y="339.37646"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text74">Const</text>
+  <rect
+     x="680.75"
+     y="292.37646"
+     width="160"
+     height="62"
+     rx="4"
+     fill="#f7f2fb"
+     stroke="#3a3a5a"
+     stroke-width="1.5"
+     id="rect76" />
+  <text
+     x="760.75"
+     y="320.37646"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text78">Null Sink</text>
+  <text
+     x="760.75"
+     y="339.37646"
+     font-size="14px"
+     font-weight="bold"
+     text-anchor="middle"
+     fill="#111111"
+     id="text80">(or a GUI sink)</text>
+  <!-- buffer 3 (nearly empty) -->
+  <rect
+     x="175.75"
+     y="303.37646"
+     width="140"
+     height="40"
+     rx="3"
+     fill="#ffffff"
+     stroke="#666666"
+     stroke-width="1.5"
+     id="rect82" />
+  <rect
+     x="177.75"
+     y="305.37646"
+     width="30"
+     height="36"
+     fill="#5aa469"
+     id="rect84" />
+  <text
+     x="245.75"
+     y="366.37646"
+     font-size="13px"
+     text-anchor="middle"
+     fill="#333333"
+     id="text86">buffer: never fills</text>
+  <path
+     d="m 150.75,323.37646 h 22"
+     stroke="#111111"
+     stroke-width="2"
+     id="path88" />
+  <path
+     d="m 318.75,323.37646 h 18"
+     stroke="#111111"
+     stroke-width="2"
+     id="path90" />
+  <path
+     d="m 331.75,318.37646 12,5 -12,5 z"
+     fill="#111111"
+     id="path92" />
+  <!-- buffer 4 (nearly empty) -->
+  <rect
+     x="515.75"
+     y="303.37646"
+     width="140"
+     height="40"
+     rx="3"
+     fill="#ffffff"
+     stroke="#666666"
+     stroke-width="1.5"
+     id="rect94" />
+  <rect
+     x="517.75"
+     y="305.37646"
+     width="26"
+     height="36"
+     fill="#5aa469"
+     id="rect96" />
+  <text
+     x="585.75"
+     y="366.37646"
+     font-size="13px"
+     text-anchor="middle"
+     fill="#333333"
+     id="text98">buffer: never fills</text>
+  <path
+     d="m 490.75,323.37646 h 22"
+     stroke="#111111"
+     stroke-width="2"
+     id="path100" />
+  <path
+     d="m 658.75,323.37646 h 18"
+     stroke="#111111"
+     stroke-width="2"
+     id="path102" />
+  <path
+     d="m 671.75,318.37646 12,5 -12,5 z"
+     fill="#111111"
+     id="path104" />
+  <text
+     x="760.75"
+     y="375.39304"
+     font-size="13px"
+     text-anchor="middle"
+     fill="#b03030"
+     id="text106">consumes instantly</text>
+  <text
+     x="0.75"
+     y="414.37646"
+     font-size="15px"
+     fill="#b03030"
+     id="text108">One CPU core pegged at 100%, samples flying by at tens of Msps. This is when you add a</text>
+  <text
+     x="0.75"
+     y="435.37646"
+     font-size="15px"
+     fill="#b03030"
+     id="text110">Throttle block, which does nothing but sleep to hold the average rate down.</text>
+</svg>

@@ -35,7 +35,7 @@ Each pair of sensors yields one TDOA, and each TDOA traces out one hyperbola, so
 
    \binom{N}{2} = \frac{N(N-1)}{2},
 
-i.e. 3 sensors give 3 hyperbolas, 4 give 6, 5 give 10, and so on. Not all of these are independent, as we will see below, only :math:`N-1` carry new geometric information, but the full set is still useful for averaging out noise.
+i.e. 3 sensors give 3 hyperbolas, 4 give 6, 5 give 10, and so on. Not all of these are independent, as we will see below, only :math:`N-1` carry new geometric information, and because any two pairs that share a sensor also share that sensor's noise, the extra ones do not average down error the way independent measurements would.
 
 The price we pay is that the receivers must share a precise common time reference, a requirement that, as discussed later, is itself a demanding engineering problem because a timing error of one nanosecond corresponds to about 1 foot or 0.3 meters of range error, at least in RF applications.
 
@@ -100,7 +100,11 @@ Reference Sensor and Independent Pairs
 
 From :math:`N` sensors one can form :math:`\binom{N}{2}` pairwise TDOAs, but they are not all independent. Choosing one sensor as a **reference** (say sensor 1) and forming :math:`\tau_{i1}` for :math:`i = 2,\dots,N` yields :math:`N-1` TDOAs from which every other pairwise difference can be reconstructed, since :math:`\tau_{ij} = \tau_{i1} - \tau_{j1}`. These :math:`N-1` are the *independent* measurements that carry all the geometric information.
 
-The redundant pairs are not worthless, however. Because each measured TDOA carries independent *noise*, using all :math:`\binom{N}{2}` pairs (with a correctly modeled, correlated noise covariance, where the reference sensor's noise is common to every :math:`\tau_{i1}`) can improve the estimate.
+It is tempting to assume the redundant pairs at least buy extra noise averaging, but that is not the case, and assuming otherwise is one of the classic TDOA mistakes. Every pair that touches sensor :math:`i` inherits the *same* timing error from sensor :math:`i`, so the pairwise measurements are not independent draws. At usable SNR the delay error of a pair splits, to first order, into a contribution from each of the two sensors' noise, :math:`\delta\tau_{ij}\approx \epsilon_j-\epsilon_i`, where :math:`\epsilon_i` is a timing error belonging to sensor :math:`i` alone. That means the *errors* obey the same closure relation the measurements do, :math:`\delta\tau_{ij} = \delta\tau_{i1}-\delta\tau_{j1}` (a result going back to Hahn and Tretter). The third correlation of a triangle therefore contains no error that isn't already in the other two, and it adds no new information: :math:`N` sensors give you :math:`N-1` independent numbers no matter how many correlations you compute.
+
+So what are the redundant pairs good for? Two things. First, **consistency**: the closure relation has to hold, so a pair that badly violates it flags multipath, a blocked direct path, or a synchronization fault, which is the basis of the outlier tests described later in this chapter. Second, **symmetry**: if you weight the pairs with the correct correlated covariance, you get the same position estimate whether you use all :math:`\binom{N}{2}` pairs or any one reference subset, so the arbitrary choice of reference sensor washes out. That invariance is a handy check that you got the weighting right, because with a wrong (diagonal) weight the answer shifts depending on which sensor you happened to call the reference.
+
+What you must *not* do is feed the estimator all the pairs while treating them as independent measurements. That double counts the same sensor noise, and the resulting error covariance and CRLB come out optimistic, i.e. your system looks more accurate on paper than it is. The next section writes down what the covariance actually looks like. (One practical caveat: each correlation is computed separately and peak picking is nonlinear, so real redundant estimates are not *exactly* the difference of the others, and at low SNR or coarse lag resolution they can recover a little genuine averaging, but never plan your error budget on it.)
 
 Example: A Three-Sensor 2D Fix
 ==============================
@@ -163,7 +167,7 @@ We assume each :math:`n_i(t)` is zero-mean, wide-sense stationary, Gaussian, and
 
    \mathrm{SNR}_i = \frac{a_i^2 \sigma_s^2}{\sigma_{n_i}^2},
 
-with :math:`\sigma_s^2` and :math:`\sigma_{n_i}^2` the signal and noise powers. These are idealizations; real noise is often colored and partially correlated across sensors, but they lead to estimators and bounds that perform well in practice, and the framework extends to a general noise covariance when needed.
+with :math:`\sigma_s^2` and :math:`\sigma_{n_i}^2` the signal and noise powers. These are idealizations; real noise is often colored and partially correlated across sensors, but they lead to estimators and bounds that perform well in practice, and the framework extends to a general noise covariance when needed. Note carefully what is being assumed independent here: the *noise at each sensor*. The TDOA *measurements* built from that noise are a different story, since each one is formed from two sensors, and we work out how correlated they end up being a couple of sections below.
 
 The Nonlinear Measurement Equations
 ==========================================
@@ -176,6 +180,42 @@ Collecting the :math:`N-1` reference-based range differences into a vector :math
    h_i(\mathbf{u}) = |\mathbf{u}-\mathbf{s}_i| - |\mathbf{u}-\mathbf{s}_1|,
 
 and the noisy measurement is :math:`\tilde{\mathbf{m}} = \mathbf{h}(\mathbf{u}) + \boldsymbol{\varepsilon}`, where :math:`\boldsymbol{\varepsilon}` is the range-difference error induced by time-delay estimation errors. The function :math:`\mathbf{h}` is nonlinear because of the Euclidean norms, and this nonlinearity is the source of every algorithmic complication that follows. Two broad strategies address it: algebraically *linearize* by introducing an auxiliary variable (described in the next section), or *iteratively* linearize about a current estimate (described further below).
+
+The Range-Difference Covariance
+==========================================
+
+Every weighted estimator and every bound in the rest of this chapter needs :math:`\mathbf{C}=\mathrm{Cov}(\boldsymbol{\varepsilon})`, the covariance of those range-difference errors, so let's derive it instead of guessing at it.
+
+Start one level down, at the individual sensors. As noted above, at usable SNR the delay error of a cross-correlation splits into a contribution from each of the two sensors' noise, so we can write each range-difference error as a difference of *per-sensor* ranging errors :math:`\epsilon_i` (the same per-sensor errors as before, now in meters instead of seconds),
+
+.. math::
+
+   \varepsilon_{ij} = \epsilon_j - \epsilon_i,
+
+where the :math:`\epsilon_i` have variance :math:`\sigma^2` and are independent *across sensors*, since the thermal noise in one receiver has nothing to do with the noise in another. The independence lives at the sensors, not at the pairs, and that distinction is the whole point: two pairs that share a sensor share that sensor's :math:`\epsilon`. For the reference-based set :math:`m_i = r_i - r_1`, every single measurement contains :math:`-\epsilon_1`, so
+
+.. math::
+
+   \mathrm{var}(\varepsilon_{i1}) = 2\sigma^2, \qquad
+   \mathrm{cov}(\varepsilon_{i1}, \varepsilon_{j1}) = \sigma^2 \quad (i \ne j),
+
+or, collecting the :math:`N-1` measurements into a matrix,
+
+.. math::
+
+   \mathbf{C} = \sigma^2\bigl(\mathbf{I} + \mathbf{1}\mathbf{1}^\top\bigr),
+
+with :math:`\mathbf{1}` a column of ones. Which reads: each range difference has twice the variance of a single sensor's ranging error, and any two of them are correlated with a correlation coefficient of :math:`1/2`. Those off-diagonal halves are not a detail to be swept under the rug, they are as large as half the diagonal. The tidy :math:`\mathbf{C}=\sigma_{\text{TDOA}}^2\mathbf{I}` that gets written down out of habit is simply the wrong model for reference-based TDOAs.
+
+For an arbitrary set of pairs, the easiest way to build :math:`\mathbf{C}` is from a differencing matrix :math:`\mathbf{D}`, one row per pair, holding :math:`-1` in the column of sensor :math:`a` and :math:`+1` in the column of sensor :math:`b`:
+
+.. math::
+
+   \mathbf{C} = \mathbf{D}\,\mathrm{diag}(\sigma_1^2,\dots,\sigma_N^2)\,\mathbf{D}^\top .
+
+This form costs nothing extra and handles unequal sensor quality for free, a low-SNR sensor automatically drags down every pair it appears in, and it collapses back to :math:`\sigma^2(\mathbf{I}+\mathbf{1}\mathbf{1}^\top)` for the reference set with equal per-sensor variances. If you include redundant pairs, :math:`\mathbf{C}` comes out **singular**, with rank :math:`N-1`. That is not a bug to be patched, it is the earlier statement that only :math:`N-1` measurements are independent, now stated in linear algebra. Nothing breaks in practice: use the pseudo-inverse :math:`\mathbf{C}^{+}` wherever :math:`\mathbf{C}^{-1}` appears, and it ignores exactly the directions in which the measurements carry no information.
+
+One convenient special case is worth knowing, because it explains why some naive code still gets the right answer. If you use *all* :math:`\binom{N}{2}` pairs and the sensors are of equal quality, :math:`\mathbf{C}` works out to :math:`N\sigma^2` times a projection matrix, and the Jacobian we will meet later already lives in the subspace that projection keeps. The weighting then cancels out completely, and an unweighted least-squares fit over all pairs *is* the correctly weighted one. Drop to a reference subset, or give the sensors unequal SNR, and that coincidence evaporates.
 
 *************************************************
 Time-Delay Estimation (the Measurement Front End)
@@ -464,7 +504,7 @@ The estimator that became the practical standard is Chan and Ho's two-step weigh
 
    \hat{\boldsymbol{\theta}} = (\mathbf{A}^\top \mathbf{W}\mathbf{A})^{-1}\mathbf{A}^\top \mathbf{W}\,\mathbf{b},
 
-with the weight :math:`\mathbf{W}` chosen as the inverse covariance of the equation errors. Because that covariance itself depends on the unknown ranges, in practice one first solves with :math:`\mathbf{W}=\mathbf{I}` (or the raw TDOA noise covariance), then recomputes :math:`\mathbf{W}` from the resulting range estimates and re-solves, a one- or two-pass refinement.
+with the weight :math:`\mathbf{W}` chosen as the inverse covariance of the equation errors, which is built from the correlated :math:`\mathbf{C}=\sigma^2(\mathbf{I}+\mathbf{1}\mathbf{1}^\top)` derived earlier and not from a diagonal stand-in. Chan and Ho carry that :math:`\mathbf{I}+\mathbf{1}\mathbf{1}^\top` structure through their derivation explicitly, it is not an optional polish step, and it is a large part of why the method reaches the CRLB while the earlier closed-form estimators do not. Because the equation-error covariance *also* depends on the unknown ranges (the linearization multiplies :math:`\mathbf{C}` by a diagonal matrix of those ranges), in practice one first solves with a rough weight, then recomputes :math:`\mathbf{W}` from the resulting range estimates and re-solves, a one- or two-pass refinement.
 
 **Second step.** The first step ignored the known relationship :math:`r_1^2 = (x-x_1)^2+(y-y_1)^2` that couples the auxiliary variable to the position. The second step restores it: form a new small least-squares problem in the squared quantities :math:`[(x-x_1)^2,(y-y_1)^2,r_1^2]`, using the first-step covariance to weight it, and solve for a corrected position. This second WLS removes much of the bias of the naive linear solution and is what brings Chan's estimator close to optimal.
 
@@ -511,7 +551,7 @@ We take ``Rx0`` as the reference sensor. The pairs were built as ``(0,1)``, ``(0
 
 The structure mirrors the math exactly: ``M`` and ``d`` are the two boxed linear equations, ``g`` and ``h`` express :math:`x` and :math:`y` as straight-line functions of the still-unknown reference range :math:`r_1` (called ``r_ref`` here), and substituting those into :math:`r_1^2=(x-x_1)^2+(y-y_1)^2` collapses everything to the scalar quadratic that ``np.roots`` solves. We discard the non-physical (negative or complex) root, keep the positive real one, and back-substitute to read off the position. With our high-SNR, wideband simulation the estimate lands right on top of the true emitter at :math:`(153, 355)`, with no human in the loop reading off a hyperbola intersection.
 
-With noisier measurements the two linear equations would no longer be perfectly consistent, the quadratic root would be perturbed, and, because three sensors give us no redundancy to average over, the error would pass straight through. That is exactly where the redundant pairs and the weighting and second step of Chan's method earn their keep, governing how gracefully the estimate degrades.
+With noisier measurements the two linear equations would no longer be perfectly consistent, the quadratic root would be perturbed, and, because three sensors in 2D give us exactly as many independent measurements as unknowns, the error would pass straight through with nothing to average it against. Note that adding a *pair* does not fix this, only adding a *sensor* does, for the reasons covered earlier. That is where extra sensors, plus the weighting and second step of Chan's method, earn their keep, governing how gracefully the estimate degrades.
 
 *****************************************
 Iterative and Statistical Estimation
@@ -553,9 +593,17 @@ Maximum-Likelihood Estimation
 
 Under Gaussian noise, the negative log-likelihood is, up to constants, exactly the weighted squared residual above. So **the maximum-likelihood estimator coincides with weighted nonlinear least squares**, the Gauss-Newton iteration is not a heuristic, it is the statistically optimal estimator under the assumed model. This is also the estimator whose covariance the Cramér-Rao bound below predicts.
 
-Let's put that to work by continuing the Python example one more time. We already have a position from the closed-form solver, ``emitter_est``, and the theory tells us two things: the maximum-likelihood estimate is just the Gauss-Newton iteration above, and the closed-form fix is the ideal seed for it because it drops us right inside the basin of the true minimum. So we'll start at ``emitter_est`` and take a few Gauss-Newton steps, each one re-linearizing the range-difference model at the current guess and solving a tiny least-squares problem for the correction. Unlike Fang's solver, which used only the two pairs touching the reference sensor, this one uses *all three* pairs in ``range_diff``, so the extra pair acts as redundancy that the iteration averages over.
+Let's put that to work by continuing the Python example one more time. We already have a position from the closed-form solver, ``emitter_est``, and the theory tells us two things: the maximum-likelihood estimate is just the Gauss-Newton iteration above, and the closed-form fix is the ideal seed for it because it drops us right inside the basin of the true minimum. So we'll start at ``emitter_est`` and take a few Gauss-Newton steps, each one re-linearizing the range-difference model at the current guess and solving a tiny least-squares problem for the correction. Unlike Fang's solver, which used only the two pairs touching the reference sensor, this one uses *all three* pairs in ``range_diff``. As we saw earlier, that third pair is not an independent measurement, so it is not a third look at the emitter; what it buys is symmetry, no sensor gets singled out as the reference, provided we weight the pairs with the correlated covariance :math:`\mathbf{C}` instead of pretending they are independent. So we build :math:`\mathbf{C}` first, straight from the differencing matrix, and carry its (pseudo-)inverse into the update.
 
 .. code-block:: python
+
+   # The range-difference errors are NOT independent: pairs sharing a sensor share its timing error.
+   # Build the covariance from the pair-differencing matrix D, row k is -1 at Rx_a and +1 at Rx_b
+   D = np.zeros((len(pairs), num_rx))
+   for k, (a, b) in enumerate(pairs):
+      D[k, a], D[k, b] = -1.0, 1.0
+   C = D @ D.T # = D diag(sigma_i^2) D^T with equal sensors, the common sigma^2 cancels out below
+   W = np.linalg.pinv(C) # pseudo-inverse, C is singular because only num_rx-1 pairs are independent
 
    # Refine the closed-form fix with Gauss-Newton (= maximum likelihood under Gaussian noise)
    u = emitter_est.copy() # seed the iteration with the closed-form estimate
@@ -569,7 +617,7 @@ Let's put that to work by continuing the Python example one more time. We alread
          J[k] = e_b - e_a # row of the Jacobian is a difference of unit bearing vectors
 
       residual = range_diff - h # measured minus predicted range differences
-      delta, *_ = np.linalg.lstsq(J, residual, rcond=None) # Gauss-Newton step (J^T J)^-1 J^T residual
+      delta = np.linalg.solve(J.T @ W @ J, J.T @ W @ residual) # weighted Gauss-Newton step
       u = u + delta
       if np.linalg.norm(delta) < 1e-9: # stop once the update stops moving the estimate
          break
@@ -578,7 +626,9 @@ Let's put that to work by continuing the Python example one more time. We alread
    print("ML (Gauss-Newton) estimate:", emitter_ml) # ~[153, 355]
    print("True emitter position:     ", tx_position)
 
-A couple of details worth pointing out. Because we assumed the range-difference errors are independent with equal variance, the weight :math:`\mathbf{C}^{-1}=\sigma^{-2}\mathbf{I}` is a scalar that cancels out of the update, which is why a plain ``np.linalg.lstsq`` (no weight matrix) computes the step exactly; if the pairs had unequal quality we would fold their inverse variances in here. The Jacobian rows are literally the ``e_b - e_a`` differences of unit bearing vectors from the math above, so you can watch the geometry enter the estimator directly. Starting from the already-good closed-form seed, the iteration converges in just a handful of steps and lands on the true emitter at :math:`(153, 355)`. In our high-SNR simulation it barely moves off the closed-form answer, but with noisier measurements this is where the extra pair and the iterative refinement pay off, and it is this same :math:`\mathbf{J}^\top\mathbf{C}^{-1}\mathbf{J}` that reappears in the Cramér-Rao bound below as the estimator's covariance.
+A couple of details worth pointing out. ``C`` here is the :math:`\mathbf{D}\,\mathrm{diag}(\sigma_i^2)\,\mathbf{D}^\top` from the covariance section, printed out it is ``[[2,1,-1],[1,2,1],[-1,1,2]]``, so the off-diagonal entries are half the size of the diagonal ones and the signs simply record whether the two pairs list a shared sensor on the same side. Its rank is 2, not 3, which is the singularity we predicted, hence ``pinv`` rather than ``inv``. Now, if you run it both ways you will find this particular example lands on the same position with a plain unweighted ``np.linalg.lstsq(J, residual)``, and it is worth being clear about why, because it is not because the errors are independent. Three sensors in 2D give us two independent measurements for two unknowns, so the fit is effectively *determined*, and no choice of weight, right or wrong, can move a determined solution. Weighting only starts to bite once there are more independent measurements than unknowns, which here means a fourth sensor (or a fifth in 3D). Add that fourth sensor and the difference is easy to see: solve with the three reference pairs and the correct :math:`\mathbf{C}^{-1}`, and you get the same position no matter which of the four sensors you nominate as the reference, while the unweighted version gives four different answers spread over a meter or so, none of them the maximum-likelihood one. Writing ``W`` out explicitly costs two lines and keeps the code honest when you scale the array up.
+
+The Jacobian rows are literally the ``e_b - e_a`` differences of unit bearing vectors from the math above, so you can watch the geometry enter the estimator directly. Starting from the already-good closed-form seed, the iteration converges in just a handful of steps and lands on the true emitter at :math:`(153, 355)`. In our high-SNR simulation it barely moves off the closed-form answer, but with noisier measurements, and especially with more sensors, this is where the iterative refinement pays off, and it is this same :math:`\mathbf{J}^\top\mathbf{C}^{-1}\mathbf{J}`, with the correlated :math:`\mathbf{C}` and not a diagonal stand-in, that reappears in the Cramér-Rao bound below as the estimator's covariance.
 
 Robust, Recursive, and Bayesian Extensions
 ==================================================
@@ -608,7 +658,10 @@ Back to the Python example, we can do this with the variables we already have, `
       r_b = np.hypot(GX - rx_positions[b, 0], GY - rx_positions[b, 1]) # range to Rx_b
       cost += ((r_b - r_a) - range_diff[k])**2 # squared mismatch for this pair, summed over pairs
 
-   # The best estimate is simply the grid cell with the lowest cost
+   # The best estimate is simply the grid cell with the lowest cost.  Note that this plain
+   # sum of squares is unweighted, which is fine here: for a complete pair set with equally
+   # good sensors, weighting by C^+ only rescales the cost and shifts it by a constant, so
+   # the minimum sits in the same place.  With unequal sensors, weight the terms.
    iy, ix = np.unravel_index(np.argmin(cost), cost.shape)
    emitter_grid = np.array([gx[ix], gy[iy]])
    print("Grid estimate:", emitter_grid) # ~[153, 355]
@@ -642,7 +695,7 @@ System accuracy is a two-stage cascade. First, finite SNR and bandwidth limit ho
 
    \mathrm{Cov}(\hat{\mathbf{u}}) \approx (\mathbf{J}^\top \mathbf{C}^{-1}\mathbf{J})^{-1}.
 
-This single expression contains both stages: :math:`\mathbf{C}` is the measurement quality (from TDE) and :math:`\mathbf{J}` is the geometry.
+This single expression contains both stages: :math:`\mathbf{C}` is the measurement quality (from TDE) and :math:`\mathbf{J}` is the geometry. It is worth repeating that :math:`\mathbf{C}` here is the *correlated* covariance :math:`\mathbf{D}\,\mathrm{diag}(\sigma_i^2)\,\mathbf{D}^\top` we derived earlier, not a diagonal matrix of per-pair variances. Substituting a diagonal :math:`\mathbf{C}` is the most common way to end up with an error ellipse that is too small, and it gets worse the more redundant pairs you throw in, since each one re-counts sensor noise that is already in the sum.
 
 The Time-Delay Estimation Bound
 =======================================
@@ -681,16 +734,18 @@ The bound is the benchmark against which estimators are judged: a method that at
 Geometric Dilution of Precision
 =======================================
 
-Suppose your sensors can measure range differences to about 1 m of accuracy, a respectable number for a well-synchronized radio system. You might expect to then pin down the emitter to roughly 1 m as well. But where is the emitter? Picture it sitting comfortably inside a triangle of three sensors: the hyperbolas from each sensor pair slice across one another at steep, nearly right angles, and where they cross is pinned down tightly, so your 1 m of ranging error turns into maybe 1.5 m of position error. Now slide that same emitter far off to one side, well outside the cluster. The hyperbolas now graze each other at a shallow angle, like two gently curving lines that nearly overlap, and the crossing point smears out along the direction they share. The very same 1 m of ranging error can now balloon into tens of meters of position error. Nothing about your hardware changed, only the geometry did.
+Suppose each of your sensors can time an arrival to about 1 m worth of equivalent range accuracy, a respectable number for a well-synchronized radio system. You might expect to then pin down the emitter to roughly 1 m as well. But where is the emitter? Picture it sitting comfortably inside a triangle of three sensors: the hyperbolas from each sensor pair slice across one another at steep, nearly right angles, and where they cross is pinned down tightly, so your 1 m of ranging error turns into maybe 1.5 m of position error. Now slide that same emitter far off to one side, well outside the cluster. The hyperbolas now graze each other at a shallow angle, like two gently curving lines that nearly overlap, and the crossing point smears out along the direction they share. The very same 1 m of ranging error can now balloon into tens of meters of position error. Nothing about your hardware changed, only the geometry did.
 
-That blow-up factor has a name: **Geometric Dilution of Precision** (GDOP). It captures how much the sensor-emitter layout magnifies measurement error into position error. If the range-difference errors are independent and each has the same standard deviation :math:`\sigma`, so the covariance is :math:`\mathbf{C}=\sigma^2\mathbf{I}` (a diagonal matrix with :math:`\sigma^2` on the diagonal), then
+That blow-up factor has a name: **Geometric Dilution of Precision** (GDOP). It captures how much the sensor-emitter layout magnifies measurement error into position error. Take every sensor to be equally good, with per-sensor ranging error :math:`\sigma`, so the range-difference covariance is the :math:`\mathbf{C}=\sigma^2(\mathbf{I}+\mathbf{1}\mathbf{1}^\top)` from earlier. Then
 
 .. math::
 
-   \mathrm{GDOP} = \sqrt{\mathrm{tr}\bigl[(\mathbf{J}^\top\mathbf{J})^{-1}\bigr]}, \qquad
+   \mathrm{GDOP} = \frac{1}{\sigma}\sqrt{\mathrm{tr}\bigl[(\mathbf{J}^\top\mathbf{C}^{-1}\mathbf{J})^{-1}\bigr]}, \qquad
    \sigma_{\text{position}} = \mathrm{GDOP}\cdot \sigma .
 
-Your position error is just your ranging error multiplied by GDOP, so GDOP is a unitless number, always :math:`\ge 1`, telling you the factor by which ranging error gets magnified at a given emitter location.
+Because :math:`\mathbf{C}` is proportional to :math:`\sigma^2`, that :math:`\sigma` cancels straight back out and GDOP is pure geometry, a unitless number telling you the factor by which each sensor's ranging error gets magnified at a given emitter location. You will often see GDOP written as the tidier :math:`\sqrt{\mathrm{tr}[(\mathbf{J}^\top\mathbf{J})^{-1}]}`, which is what the expression above collapses to if :math:`\mathbf{C}` really were :math:`\sigma^2\mathbf{I}`. It isn't, and the shortcut isn't cosmetic: for three sensors it reports a *sub-unity* GDOP at the center of the array, which would mean localizing the emitter better than any one sensor can time an arrival, from measurements built entirely out of those arrivals.
+
+With the covariance modeled properly, the floor sits where intuition says it should. Three sensors in an equilateral triangle bottom out at :math:`\mathrm{GDOP} = 2/\sqrt{3} \approx 1.15` right at the center, and it climbs steeply from there. Note that GDOP is not bounded below by 1 in general, adding sensors adds genuinely independent measurements, and a well-placed ring of six sensors reaches about 0.8 near its center.
 
 Where does the magnification come from? It is baked into the Jacobian :math:`\mathbf{J}`, whose rows are differences of unit bearing vectors :math:`\hat{\mathbf{e}}_i - \hat{\mathbf{e}}_1` (the direction to one sensor minus the direction to another). When those directions point all over the place, :math:`\mathbf{J}^\top\mathbf{J}` is *well-conditioned* (far from singular, so its inverse stays small) and GDOP is small. When they nearly line up, :math:`\mathbf{J}^\top\mathbf{J}` becomes nearly singular and GDOP blows up. So an emitter surrounded by the sensors, with bearing vectors well-spread and hyperbolas crossing at large angles, gets a small GDOP (good), while an emitter far outside the cluster, or sensors nearly collinear (almost in a straight line), leaves the bearing vectors nearly parallel and the hyperbolas grazing at shallow angles, giving a huge GDOP (bad).
 

@@ -1,8 +1,8 @@
 .. _freq-domain-chapter:
 
-##########################
+############################
 Циклічно-стаціонарна обробка
-##########################
+############################
 
 .. raw:: html
 
@@ -20,9 +20,9 @@
 
 Ресурс, який ви знайдете лише тут і ні в жодному підручнику: наприкінці розділу про SCF на вас чекає інтерактивний JavaScript-додаток, що дає змогу експериментувати зі SCF для сигналу прикладу та спостерігати, як SCF змінюється за різних параметрів сигналу, а також самої SCF. І усе це просто у вашому браузері!  Хоча ці інтерактивні демонстрації безкоштовні для всіх, здебільшого вони стали можливими завдяки підтримці учасників `Patreon PySDR <https://www.patreon.com/PySDR>`_.
 
-*************************
-Огляд фунції автокореляції
-*************************
+***************************
+Огляд функції автокореляції
+***************************
 
 Навіть якщо ви вважаєте, що знайомі з автокореляційною функцією, варто зробити паузу й пригадати її, адже вона лежить в основі CSP. Автокореляційна функція — це міра подібності (кореляції) між сигналом і його копією, зсуненою в часі.  Інтуїтивно вона відображає, наскільки сигнал демонструє повторювану поведінку.  Автокореляція сигналу :math:`x(t)` визначається так:
 
@@ -38,9 +38,9 @@
 
 Якщо сигнал має певну періодичність, наприклад періодичну форму символів у QPSK, то автокореляція, обчислена на проміжку різних :math:`\tau`, теж буде періодичною.  Наприклад, якщо QPSK-сигнал має 8 відліків на символ, то для :math:`\tau`, кратних 8, міра «подібності» значно вища, ніж для інших значень :math:`\tau`.  Період автокореляції — це те, що зрештою виявляють методи CSP.
 
-************************************************
+**********************************************************************
 Циклічна автокореляційна функція (Cyclic Autocorrelation Function CAF)
-************************************************
+**********************************************************************
 
 Як зазначено вище, ми прагнемо визначити, чи є періодичність в автокореляції.  Пригадаємо формулу перетворення Фур’є: якщо ми хочемо з’ясувати, наскільки сильно в деякому сигналі :math:`x(t)` присутня певна частота :math:`f`, ми можемо обчислити:
 
@@ -64,9 +64,9 @@
 У Python CAF модулюючого baseband сигналу :code:`samples` для заданих :code:`alpha` та :code:`tau` можна обчислити за допомогою такого фрагмента коду (пізніше додамо обрамлювальний код):
 
 .. code-block:: python
-
+ 
  CAF = (np.exp(1j * np.pi * alpha * tau) *
-        np.sum(samples * np.conj(np.roll(samples, tau)) *
+        np.sum(samples * np.conj(np.roll(samples, tau)) * 
                np.exp(-2j * np.pi * alpha * np.arange(N))))
 
 Ми використовуємо :code:`np.roll()` для зсуву одного набору відліків на :code:`tau`, адже потрібно зміщувати на ціле число відліків.  Якби ми зсували обидва набори у протилежних напрямках, ми пропускали б кожне друге зміщення.  Також необхідно додати частотний зсув, щоб компенсувати те, що ми зміщуємо на 1 відлік за раз і лише з одного боку (замість половини відліку в обидва боки, як у базовому рівнянні CAF).  Частота цього зсуву дорівнює :code:`alpha/2`.
@@ -80,7 +80,7 @@
  N = 100000 # number of samples to simulate
  f_offset = 0.2 # Hz normalized
  sps = 20 # cyclic freq (alpha) will be 1/sps or 0.05 Hz normalized
-
+ 
  symbols = np.random.randint(0, 2, int(np.ceil(N/sps))) * 2 - 1 # random 1's and -1's
  bpsk = np.repeat(symbols, sps)  # repeat each symbol sps times to make rectangular BPSK
  bpsk = bpsk[:N]  # clip off the extra samples
@@ -93,7 +93,7 @@
 Для розігріву погляньмо на щільність спектральної потужності (PSD, тобто FFT) сигналу до будь-якої обробки функцією CSP:
 
 .. image:: ../_images/psd_of_bpsk_used_for_caf.svg
-   :align: center
+   :align: center 
    :target: ../_images/psd_of_bpsk_used_for_caf.svg
    :alt:  Щільність спектральної потужності PSD прямокутного сигналу BPSK, що використовується для CAF
 
@@ -109,20 +109,20 @@
     CAF = np.zeros(len(taus), dtype=complex)
     for i in range(len(taus)):
         CAF[i] = (np.exp(1j * np.pi * alpha_of_interest * taus[i]) * # This term is to make up for the fact we're shifting by 1 sample at a time, and only on one side
-                  np.sum(samples * np.conj(np.roll(samples, taus[i])) *
+                  np.sum(samples * np.conj(np.roll(samples, taus[i])) * 
                          np.exp(-2j * np.pi * alpha_of_interest * np.arange(N))))
 
 Побудуємо дійсну частину :code:`CAF` за допомогою :code:`plt.plot(taus, np.real(CAF))`:
 
 .. image:: ../_images/caf_at_correct_alpha.svg
-   :align: center
+   :align: center 
    :target: ../_images/caf_at_correct_alpha.svg
    :alt: CAF для вірного значення значення alpha
 
 Вигляд трохи дивний, але ж згадайте, що :math:`\tau` представляє часову вісь, і найважливіше, що велика енергія CAF при цьому значені :math:`\alpha`, адже воно відповідає циклічній частоті нашого сигналу.  Щоб переконатися, розгляньмо CAF для «неправильного» :math:`\alpha`, скажімо 0.08 Гц:
 
 .. image:: ../_images/caf_at_incorrect_alpha.svg
-   :align: center
+   :align: center 
    :target: ../_images/caf_at_incorrect_alpha.svg
    :alt: CAF для неправильного значення alpha
 
@@ -137,7 +137,7 @@
     for j in range(len(alphas)):
         for i in range(len(taus)):
             CAF[j, i] = (np.exp(1j * np.pi * alphas[j] * taus[i]) *
-                         np.sum(samples * np.conj(np.roll(samples, taus[i])) *
+                         np.sum(samples * np.conj(np.roll(samples, taus[i])) * 
                                 np.exp(-2j * np.pi * alphas[j] * np.arange(N))))
     CAF_magnitudes = np.average(np.abs(CAF), axis=1) # at each alpha, calc power in the CAF
     plt.plot(alphas, CAF_magnitudes)
@@ -145,7 +145,7 @@
     plt.ylabel('CAF Power')
 
 .. image:: ../_images/caf_avg_over_alpha.svg
-   :align: center
+   :align: center 
    :target: ../_images/caf_avg_over_alpha.svg
    :alt: Середня потужність CAF залежно від alpha
 
@@ -153,9 +153,9 @@
 
 Хоч CAF цікавий, ми зазвичай хочемо побачити циклічну частоту *як функцію RF-частоти*, а не лише циклічну частоту, як у графіку вище.  Це приводить нас до спектральної кореляційної функції (SCF), яку розглянемо нижче.
 
-************************************************
+*******************************************************************
 Спектральна кореляційна функція (Spectral Correlation Function SCF)
-************************************************
+*******************************************************************
 
 Подібно тому, як CAF показує періодичність в автокореляції сигналу, SCF демонструє періодичність у PSD сигналу. Автокореляція та PSD є парою перетворення Фур’є, тож не дивно, що CAF і SCF також є парою перетворення Фур’є. Це співвідношення називають *циклічним співвідношенням Вінера* (Cyclic Wiener Relationship). Воно стає ще зрозумілішим, якщо згадати, що CAF і SCF при :math:`\alpha = 0` відповідають автокореляції та PSD відповідно.
 
@@ -170,7 +170,7 @@ SCF можна отримати простим перетворенням Фур
  plt.ylabel('SCF')
 
 .. image:: ../_images/fft_of_caf.svg
-   :align: center
+   :align: center 
    :target: ../_images/fft_of_caf.svg
    :alt: FFT від CAF
 
@@ -231,16 +231,16 @@ SCF можна отримати простим перетворенням Фур
     </body>
 
 
-********************************
+**************************************************************
 Метод частотного згладжування (Frequency Smoothing Method FSM)
-********************************
+**************************************************************
 
 Тепер, коли ми маємо добре концептуальне розуміння SCF, розгляньмо, як можна ефективно його обчислювати. Спершу згадаємо періодограму — це просто квадрат модуля від перетворення Фур’є сигналу:
 
 .. math::
 
  I(u,f) = \frac{1}{N}\left|X(u,f)\right|^2
-
+ 
 Циклічну періодограму можна отримати, перемноживши два спектри Фур’є, зсунуті за частотою:
 
 .. math::
@@ -269,7 +269,7 @@ SCF можна отримати простим перетворенням Фур
     window = np.hanning(Nw)
 
     X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
-
+    
     num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
     SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
     for i in range(len(alphas)):
@@ -285,18 +285,20 @@ SCF можна отримати простим перетворенням Фур
     plt.ylabel('Cyclic Frequency [Normalized Hz]')
     plt.show()
 
+Зверніть увагу, що через спосіб обчислення зсуву та його округлення до цілої кількості відліків, варто обробляти щонайменше :code:`2 / alpha_resolution` відліків за раз.
+
 Обчислимо SCF для прямокутного BPSK, який ми використовували раніше, із 20 відліками на символ, у діапазоні циклічних частот від 0 до 0.3 з кроком 0.001:
 
 .. image:: ../_images/scf_freq_smoothing.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_freq_smoothing.svg
    :alt: SCF, обчислена методом частотного згладжування (FSM)
 
 Цей метод має ту перевагу що вимагає лише одного великого FFT, але недолік - потребує численних операцій згортки для згладжування.  Зверніть увагу на проріджування після згортки :code:`[::Nw]`; воно не обов’язкове, але дуже бажане, щоб зменшити кількість пікселів для відображення, і завдяки способу обчислення SCF ми не «викидаємо» інформацію, проріджуючи по :code:`Nw`.
 
-***************************
+*******************************************************
 Метод часового згладжування (Time Smoothing Method TSM)
-***************************
+*******************************************************
 
 Далі розглянемо реалізацію TSM на Python. Наведений нижче код ділить сигнал на *num_windows* блоків, кожен довжини *Nw* з перекриттям на *Noverlap* кількість відліків.  Зверніть увагу, що перекриття не є обов’язковим, але зазвичай дає кращий результат.  Сигнал множиться на віконну функцію (у нашому випадку — вікно Ганна, але можна використовувати будь-яке) і береться FFT.  Потім SCF обчислюється шляхом усереднення результатів для кожного блоку.  Довжина вікна відіграє таку саму роль, як і в FSM, визначаючи компроміс між роздільністю та згладженістю.
 
@@ -329,15 +331,15 @@ SCF можна отримати простим перетворенням Фур
     plt.show()
 
 .. image:: ../_images/scf_time_smoothing.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_time_smoothing.svg
    :alt: SCF, обчислена методом згладжування за часом (TSM)
 
-Результат дуже схожий на FSM!
-
-*****************
+РРРРРРРРРРРРРРРРРРРРРРРРРРРРР
+BPSK із формуванням імпульсу
+РРРРРРРРРРРРРРРРРРРРРРРРРРРРР
 BPSK із формуванням імпульсу Pulse-Shaped
-*****************
+*****************************************
 
 Досі ми розглядали CSP лише для *прямокутного* сигналу BPSK.  Проте в реальних RF-системах майже ніколи не зустрінеш прямокутних імпульсів (виняток — чипова послідовність BPSK у DSSS, яка приблизно прямокутна).
 
@@ -349,7 +351,7 @@ BPSK із формуванням імпульсу Pulse-Shaped
 Параметр :math:`\beta` визначає, наскільки швидко фільтр спадає в часі, що обернено пропорційно швидкості спадання по частоті:
 
 .. image:: ../_images/raised_cosine_freq.svg
-   :align: center
+   :align: center 
    :target: ../_images/raised_cosine_freq.svg
    :alt: Частотна характеристика фільтра з піднятим косинусом для різних коефіцієнтів спадання roll-off
 
@@ -375,7 +377,7 @@ BPSK із формуванням імпульсу Pulse-Shaped
     t = np.arange(num_taps) - (num_taps-1)//2
     h = np.sinc(t/sps) * np.cos(np.pi*beta*t/sps) / (1 - (2*beta*t/sps)**2) # RC equation
     bpsk = np.convolve(pulse_train, h, 'same') # apply the pulse shaping
-
+    
     bpsk = bpsk[:N]  # clip off the extra samples
     bpsk = bpsk * np.exp(2j * np.pi * f_offset * np.arange(N)) # Freq shift up the BPSK, this is also what makes it complex
     noise = np.random.randn(N) + 1j*np.random.randn(N) # complex white Gaussian noise
@@ -393,7 +395,7 @@ BPSK із формуванням імпульсу Pulse-Shaped
 Нижче показано сигнал BPSK із формуванням імпульсу в часовій області, до додавання шуму і частотного зсуву:
 
 .. image:: ../_images/pulse_shaped_BSPK.svg
-   :align: center
+   :align: center 
    :target: ../_images/pulse_shaped_BSPK.svg
    :alt: Сигнал BPSK із формуванням імпульсу з RC
 
@@ -402,21 +404,21 @@ BPSK із формуванням імпульсу Pulse-Shaped
 :code:`beta = 0.3`:
 
 .. image:: ../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_freq_smoothing_pulse_shaped_bpsk.svg
    :alt: SCF сигналу BPSK із формуванням імпульсу (FSM), beta = 0.3
 
 :code:`beta = 0.6`:
 
 .. image:: ../_images/scf_freq_smoothing_pulse_shaped_bpsk2.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_freq_smoothing_pulse_shaped_bpsk2.svg
    :alt: SCF сигналу BPSK із формуванням імпульсу (FSM), beta = 0.6
 
 :code:`beta = 0.9`:
 
 .. image:: ../_images/scf_freq_smoothing_pulse_shaped_bpsk3.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_freq_smoothing_pulse_shaped_bpsk3.svg
    :alt: SCF сигналу BPSK із формуванням імпульсу (FSM), beta = 0.9
 
@@ -434,9 +436,9 @@ QPSK та модуляції вищих порядків
 
 Незабаром! У розділі буде QPSK, вищі порядки PSK, QAM та короткий вступ до циклічних моментів і кумулянтів вищих порядків.
 
-********************************
+**********************************
 Кілька сигналів, що перекриваються
-********************************
+**********************************
 
 Досі ми розглядали один сигнал, але що буде, якщо в отриманому сигналі одночасно присутні кілька сигналів, які перекриваються по частоті та часу і навіть по циклічній частоті (тобто мають однакову кількість відліків на символ)?  Якщо сигнали зовсім не перекриваються по частоті, можна застосувати просте фільтрування та PSD для їх виявлення (за умови, що сигнали вище шумового порога).  Якщо сигнали не перетинаються в часі, можна визначити моменти увімкнення/вимкнення кожної передачі, а потім обробляти кожен сигнал окремо.  У CSP нас зазвичай цікавить виявлення сигналів на різних циклічних частотах, які перекриваються одночасно і по часу, і по частоті.
 
@@ -513,7 +515,7 @@ QPSK та модуляції вищих порядків
 Перш ніж перейти до CSP, подивімося на PSD цього сигналу:
 
 .. image:: ../_images/psd_of_multiple_signals.svg
-   :align: center
+   :align: center 
    :target: ../_images/psd_of_multiple_signals.svg
    :alt: PSD трьох різних сигналів
 
@@ -522,7 +524,7 @@ QPSK та модуляції вищих порядків
 Тепер використаємо FSM для обчислення SCF суми цих сигналів:
 
 .. image:: ../_images/scf_freq_smoothing_pulse_multiple_signals.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_freq_smoothing_pulse_multiple_signals.svg
    :alt: SCF трьох сигналів, обчислена методом частотного згладжування (FSM)
 
@@ -554,7 +556,7 @@ SCF — не єдиний спосіб виявляти для сигналу й
 Далі можна застосувати алгоритм пошуку піків, наприклад :code:`signal.find_peaks()` зі SciPy.  На рисунку нижче показано :code:`magnitude_metric` для кожного з трьох сигналів із попереднього розділу (спершу показан результат для кожного сигналу окремого, потім результат для їх суми):
 
 .. image:: ../_images/non_csp_metric.svg
-   :align: center
+   :align: center 
    :target: ../_images/non_csp_metric.svg
    :alt: Метрика для виявлення циклічно-стаціонарності без використання CAF чи SCF
 
@@ -576,9 +578,9 @@ SCF — не єдиний спосіб виявляти для сигналу й
 
 Спробуйте цей метод на своїх синтизованих чи записаних сигналах — він дуже корисний і поза межами CSP.
 
-*********************************
+********************************************************************
 Функція спектральної когерентності (Spectral Coherence Function COH)
-*********************************
+********************************************************************
 
 *Коротко: функція спектральної когерентності — це нормалізована версія SCF, яка в деяких випадках є кориснішою за звичайну SCF.*
 
@@ -619,9 +621,9 @@ COH позширює цю концепцію на спектральну кор�
     Nw = 256 # window length
     N = len(samples) # signal length
     window = np.hanning(Nw)
-
+    
     X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
-
+    
     num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
     SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
     COH = np.zeros((len(alphas), num_freqs), dtype=complex)
@@ -656,22 +658,22 @@ COH позширює цю концепцію на спектральну кор�
 Тепер обчислимо COH (а також звичайну SCF) для прямокутного BPSK із 20 відліками на символ і частотним зсувом 0.2 Гц:
 
 .. image:: ../_images/scf_coherence.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_coherence.svg
    :alt: SCF і COH прямокутного сигналу BPSK із 20 відліками на символ і зсувом 0.2 Гц
 
 Бачимо, що порівняно з SCF в COH значно виразніші високі значення :math:`\alpha`.  Якщо запустити той самий код для BPSK із формуванням імпульсу, різниця буде не такою помітною:
 
 .. image:: ../_images/scf_coherence_pulse_shaped.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_coherence_pulse_shaped.svg
    :alt: SCF і COH сигналу BPSK з формуванням імпульсу, 20 відліків на символ, зсув 0.2 Гц
 
 Спробуйте обчислити SCF і COH для вашої задачі, щоб визначити, який варіант вам підходить краще!
 
-**********
+*****************
 Спряжені варіанти
-**********
+*****************
 
 Досі ми використовували такі формули для CAF і SCF, де в другому множнику застосовується комплексне спряження (:math:`*`):
 
@@ -709,8 +711,7 @@ COH позширює цю концепцію на спектральну кор�
 Повернімося до CAF і спробуймо обчислити «добуток затримок», тобто частину :math:`x(t + \tau/2) x(t - \tau/2)`:
 
 .. math::
-    \left(z(t + \tau/2) e^{j 2 \pi f_c (t + \tau/2) + j \phi} + z^*(t + \tau/2) e^{-j 2 \pi f_c (t + \tau/2) - j \phi}\right) \times \\
-    \left(z(t - \tau/2) e^{j 2 \pi f_c (t - \tau/2) + j \phi} + z^*(t - \tau/2) e^{-j 2 \pi f_c (t - \tau/2) - j \phi}\right)
+    \left(z(t + \tau/2) e^{j 2 \pi f_c (t + \tau/2) + j \phi} + z^*(t + \tau/2) e^{-j 2 \pi f_c (t + \tau/2) - j \phi}\right) \times \\ \left(z(t - \tau/2) e^{j 2 \pi f_c (t - \tau/2) + j \phi} + z^*(t - \tau/2) e^{-j 2 \pi f_c (t - \tau/2) - j \phi}\right)
 
 Хоч це неочевидно одразу, результат містить чотири доданки — усі комбінації спряжених і неспряжених :math:`z(t)`:
 
@@ -743,7 +744,7 @@ COH позширює цю концепцію на спектральну кор�
     window = np.hanning(Nw)
 
     X = np.fft.fftshift(np.fft.fft(samples)) # FFT of entire signal
-
+    
     num_freqs = int(np.ceil(N/Nw)) # freq resolution after decimation
     SCF = np.zeros((len(alphas), num_freqs), dtype=complex)
     for i in range(len(alphas)):
@@ -763,7 +764,7 @@ COH позширює цю концепцію на спектральну кор�
 Що ж нам дає спряжена SCF?  Для початку подивімося на спряжену SCF нашого базового прямокутного BPSK із 20 відліками на символ (циклічна частота 0.05 Гц) і частотним зсувом 0.2 Гц:
 
 .. image:: ../_images/scf_conj_rect_bpsk.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_conj_rect_bpsk.svg
    :alt: Спряжена SCF прямокутного BPSK, обчислена методом FSM
 
@@ -775,7 +776,7 @@ COH позширює цю концепцію на спектральну кор�
 Розгляньмо BPSK із формуванням імпульсу з тими ж параметрами (зсув 0.2 Гц, 20 відліків на символ, з коефіцієнтом згасання roll-off 0.3):
 
 .. image:: ../_images/scf_conj_pulseshaped_bpsk.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_conj_pulseshaped_bpsk.svg
    :alt: Спряжена SCF BPSK із формуванням імпульсу RC, обчислена методом FSM
 
@@ -784,14 +785,14 @@ COH позширює цю концепцію на спектральну кор�
 А тепер найцікавіше — розглянемо спряжену SCF прямокутного QPSK з тими ж 0.2 Гц і 20 відліками на символ:
 
 .. image:: ../_images/scf_conj_rect_qpsk.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_conj_rect_qpsk.svg
    :alt: Спряжена SCF прямокутного QPSK, обчислена методом FSM
 
 Спершу може здатися, що в коді помилка, але погляньте на кольорову шкалу — вона показує, які значення відповідають яким кольорам.  Якщо використовувати :code:`plt.imshow()` зі стандартним масштабуванням, треба пам’ятати, що кольори (у нас — від фіолетового до жовтого) завжди масштабуються від мінімального до максимального значення вхідного 2D-масиву.  У випадку спряженої SCF QPSK весь результат дуже малий, адже *піки відсутні*.  Ось той самий результат, але зі шкалою, як у попередніх прикладах з BPSK:
 
 .. image:: ../_images/scf_conj_rect_qpsk_scaled.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_conj_rect_qpsk_scaled.svg
    :alt: Спряжена SCF прямокутного QPSK (FSM) із переналаштованою шкалою
 
@@ -806,7 +807,7 @@ COH позширює цю концепцію на спектральну кор�
 * Сигнал 3: QPSK із формуванням імпульсу, 4 відліки на символ, частотний зсув 0.2 Гц, коефіцієнт roll-off 0.21
 
 .. image:: ../_images/scf_conj_multiple_signals.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_conj_multiple_signals.svg
    :alt: Спряжена SCF трьох сигналів, обчислена методом FSM
 
@@ -819,6 +820,17 @@ COH позширює цю концепцію на спектральну кор�
 Методи FSM і TSM чудово працюють, особливо коли потрібно обчислити конкретний набір циклічних частот (зверніть увагу, що в обох реалізаціях зовнішнім циклом є перебір :math:`\alpha`). Проте існує ще ефективніша реалізація SCF — метод накопичення FFT (FFT Accumulation Method, FAM), який автоматично обчислює *всі* циклічні частоти (тобто ті, що відповідають кожному цілочисельному зсуву сигналу; їх кількість залежить від довжини сигналу).  Існує схожий підхід, відомий як `Strip Spectral Correlation Analyzer (SSCA) <https://cyclostationary.blog/2016/03/22/csp-estimators-the-strip-spectral-correlation-analyzer/>`_, який також обчислює всі циклічні частоти за раз, але щоб уникнути повторів, ми не розглядатимемо його тут.  Цей клас методів іноді називають «сліпими оцінювачами», адже їх використовують, коли наперед невідомо, які циклічні частоти очікуються (інакше можна було б оцінити потрібні :math:`\alpha` за допомогою FSM чи TSM).  FAM належить до методів згладжування за часом (сприймайте його як удосконалений TSM), тоді як SSCA — як удосконалений FSM.
 
 Мінімальна реалізація FAM на Python досить проста, хоча через відсутність явного циклу за :math:`\alpha` складніше співвіднести її з математикою.  Як і в TSM, ми ділимо сигнал на часові вікна з певним перекриттям та застосовуємо вікно Ганна.  Алгоритм FAM виконує два етапи FFT; зверніть увагу, що перше FFT застосовується до 2D-масиву, тож за один рядок виконується багато окремих FFT.  Після частотного зсуву виконується друге FFT для побудови SCF (потім беремо квадрат модуля).  Детальніше про FAM можна прочитати в матеріалах наприкінці розділу.
+
+.. mermaid::
+
+   flowchart TD
+      A[Вхідні відліки] --> B[Розбиття на вікна з перекриттям]
+      B --> C[Застосування вікна Ганна]
+      C --> D[Перше FFT для кожного вікна]
+      D --> E[Частотний зсув]
+      E --> F[Друге FFT]
+      F --> G[Квадрат модуля]
+      G --> H[Оцінка SCF]
 
 .. code-block:: python
 
@@ -862,14 +874,14 @@ COH позширює цю концепцію на спектральну кор�
             SCF[a-Mp:a+Mp, i] = np.abs(XF2[(P//2-Mp):(P//2+Mp)])**2
 
 .. image:: ../_images/scf_fam.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_fam.svg
    :alt: SCF, обчислена методом накопичення FFT (FAM)
 
 Збільшимо ділянку навколо 0.2 Гц і низьких циклічних частот, щоб побачити деталі:
 
 .. image:: ../_images/scf_fam_zoomedin.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_fam_zoomedin.svg
    :alt: Збільшений фрагмент SCF, обчисленої методом FAM
 
@@ -878,7 +890,7 @@ COH позширює цю концепцію на спектральну кор�
 Можна також «сплющити» вісь RF-частоти та побудувати SCF в 1D, щоб легше побачити присутні циклічні частоти:
 
 .. image:: ../_images/scf_fam_1d.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_fam_1d.svg
    :alt: Циклічні частоти, отримані методом FAM
 
@@ -904,12 +916,12 @@ OFDM
 
 Циклічно-стаціонарність особливо виражена в OFDM-сигналах через використання циклічного префікса (CP), коли кілька останніх відліків кожного OFDM-символу копіюються на його початок.  Це створює сильну циклічну частоту, що відповідає довжині OFDM-символу (яка дорівнює оберненій величині міжсубдіапазонного інтервалу плюс тривалість CP).
 
-Змоделюймо OFDM-сигнал.  Нижче наведено код, який генерує OFDM із CP, використовуючи 64 піднесучі, 25% CP і QPSK на кожній піднесучій.  Ми інтерполюємо сигнал удвічі, щоб змоделювати приймання з достатньо високою швидкістю дискретизації, тому довжина OFDM-символу в відліках становитиме (64 + (64*0.25)) * 2 = 160.  Це означає, що очікуємо піки на :math:`\alpha`, кратних 1/160 (0.00625, 0.0125, 0.01875 тощо).  Симулюємо 100 тис. відліків, що відповідає 625 OFDM-символам (кожен символ доволі довгий).
+Змоделюймо OFDM-сигнал.  Нижче наведено код, який генерує OFDM із CP, використовуючи 64 піднесучі, 25% CP і QPSK на кожній піднесучій.  Ми інтерполюємо сигнал удвічі, щоб змоделювати приймання з достатньо високою швидкістю дискретизації, тому довжина OFDM-символу у відліках становитиме (64 + (64*0.25)) * 2 = 160 відліків.  Це означає, що очікуємо піки на :math:`\alpha`, кратних 1/160, тобто 0.00625, 0.0125, 0.01875 тощо. Симулюємо 200 тис. відліків, що відповідає 1250 OFDM-символам (пригадайте, що кожен OFDM-символ доволі довгий).
 
 .. code-block:: python
 
     from scipy.signal import resample
-    N = 100000 # number of samples to simulate
+    N = 200000 # number of samples to simulate
     num_subcarriers = 64
     cp_len = num_subcarriers // 4 # length of the cyclic prefix in symbols, in this case 25% of the starting OFDM symbol
     print("CP length in samples", cp_len*2) # remember there is 2x interpolation at the end
@@ -942,26 +954,31 @@ OFDM
     n = np.sqrt(np.var(samples) * 10**(-SNR_dB/10) / 2) * (np.random.randn(N) + 1j*np.random.randn(N))
     samples = samples + n
 
-Використаймо FSM для обчислення SCF з високою роздільністю за циклічною частотою (крок 0.0001):
-
-.. image:: ../_images/scf_freq_smoothing_ofdm.svg
-   :align: center
-   :target: ../_images/scf_freq_smoothing_ofdm.svg
-   :alt: SCF OFDM-сигналу, обчислена методом FSM
-
-Зверніть увагу на горизонтальну смугу у верхній частині — вона вказує на низьку циклічну частоту.  Якщо наблизити нижній діапазон :math:`\alpha`, добре видно циклічну частоту, що відповідає довжині OFDM-символу (:math:`\alpha = 0.0125`).  Не зовсім зрозуміло, чому ми бачимо пік лише на подвоєній частоті, а не на одинарній/потрійній/четвертній...  Навіть зменшення роздільності в 10 разів не показує інших піків; якщо знаєте відповідь — натисніть «Suggest an Edit» внизу сторінки.
+Оскільки ми очікуємо піки на 0.00625, 0.0125, 0.01875, візьмемо роздільність за циклічною частотою 1e-5, щоб отримати ціле кратне.  Для випадків, коли така дрібна роздільність непрактична або циклічні частоти невідомі, можна застосувати передискретизацію (наприклад, збільшити кількість відліків на символ; у цьому прикладі з OFDM коефіцієнт передискретизації дорівнює 2).  Крім того, у межах підходу FSM потрібно обробляти щонайменше :code:`2 / alpha_resolution` відліків, тобто 200 тис.  Нижче наведено результати, отримані саме з :code:`alphas = np.arange(0, 0.02, 1e-5)` та увімкненим max pooling:
 
 .. image:: ../_images/scf_freq_smoothing_ofdm_zoomed_in.svg
-   :align: center
+   :align: center 
    :target: ../_images/scf_freq_smoothing_ofdm_zoomed_in.svg
-   :alt: SCF OFDM-сигналу (FSM) у збільшеній області низьких циклічних частот
+   :alt: SCF OFDM-сигналу, обчислена методом частотного згладжування (FSM)
+
+Зверніть увагу на три піки — вони були б ще виразнішими, якби ми «сплющили» вісь RF-частоти та побудували циклічну частоту в 1D.
 
 Додаткові джерела про OFDM у контексті CSP:
 
 #. Sutton, Paul D., Keith E. Nolan, and Linda E. Doyle. "Cyclostationary signatures in practical cognitive radio applications." IEEE Journal on selected areas in Communications 26.1 (2008): 13-24. `Доступно тут <https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4413137&casa_token=81U1yMeRKMsAAAAA:6sQr9-VngNa2p_OW4zVyeQsRdUrZPkx3L-6ZPsH9LCo-pnTxs_AhjfAx27MFBbo4kl3YlgdkQJk&tag=1>`_
 
-********************************************
+************************************************
 Виявлення сигналів із відомою циклічною частотою
-********************************************
+************************************************
 
 В окремих застосунках CSP використовують для виявлення сигналу/хвилі, який вже відомий, наприклад варіантів 802.11, LTE, 5G тощо.  Якщо відома циклічна частота сигналу та частота дискретизації, достатньо обчислити один :math:`\alpha` і один :math:`\tau`.  Найближчим часом ми додамо приклад такої задачі на основі RF-запису WiFi.
+
+******************
+Зовнішні ресурси
+******************
+
+#. Підручник Антоніо Наполітано `Cyclostationary Processes and Time Series: Theory, Applications, and Generalizations <https://www.sciencedirect.com/book/monograph/9780081027080/cyclostationary-processes-and-time-series>`_
+#. R.S. Roberts, W. A. Brown, and H. H. Loomis, Jr., "Computationally Efficient Algorithms for Cyclic Spectral Analysis," IEEE Signal Processing Magazine, April 1991, pp. 38-49. `Доступно тут <https://www.researchgate.net/profile/Faxin-Zhang-2/publication/353071530_Computationally_efficient_algorithms_for_cyclic_spectral_analysis/links/60e69d2d30e8e50c01eb9484/Computationally-efficient-algorithms-for-cyclic-spectral-analysis.pdf>`_
+#. Da Costa, Evandro Luiz. Detection and identification of cyclostationary signals. Diss. Naval Postgraduate School, 1996. `Доступно тут <https://apps.dtic.mil/sti/pdfs/ADA311555.pdf>`_
+#. `Блог/сайт Чада Спунера про циклостаціонарність <https://cyclostationary.blog>`_
+#. Sutton, Paul D., Keith E. Nolan, and Linda E. Doyle. "Cyclostationary signatures in practical cognitive radio applications." IEEE Journal on selected areas in Communications 26.1 (2008): 13-24. `Доступно тут <https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4413137&casa_token=81U1yMeRKMsAAAAA:6sQr9-VngNa2p_OW4zVyeQsRdUrZPkx3L-6ZPsH9LCo-pnTxs_AhjfAx27MFBbo4kl3YlgdkQJk&tag=1>`_

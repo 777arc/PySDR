@@ -6,9 +6,9 @@
 
 Цей розділ розширює матеріал про 1D формування променя/визначення напрямку приходу (DOA) на двовимірні решітки.  Ми почнемо з простої прямокутної решітки та виведемо рівняння вектора наведення й формувач променя MVDR, після чого попрацюємо з реальними даними з решітки 3x5.  Наостанок скористаємося інтерактивним інструментом, щоб дослідити вплив різних геометрій решіток і відстаней між елементами.
 
-******************************************
+*******************************************
 Прямокутні решітки та 2D формування променя
-******************************************
+*******************************************
 
 Прямокутні решітки (відомі також як планарні решітки) складаються з двовимірного масиву елементів.  Додатковий вимір додає трохи складності, але діють ті ж базові принципи, і найважчою частиною стане візуалізація результатів (наприклад, простих полярних графіків уже не буде, нам знадобляться 3D-поверхні).  Хоч наша решітка тепер 2D, це не означає, що ми повинні додавати вимір до кожної структури даних, з якою працювали.  Наприклад, вагові коефіцієнти ми й далі зберігатимемо як 1D масив комплексних чисел.  Втім, позиції елементів нам доведеться представити у 2D.  Ми й надалі використовуватимемо :code:`theta` для позначення азимутального кута, але введемо новий кут — :code:`phi`, тобто кут місця.  Існує багато конвенцій сферичних координат, але ми використовуватимемо таку:
 
@@ -208,7 +208,14 @@
 Обробка сигналів із реальної 2D решітки
 **********************************************
 
-У цій секції ми працюємо з реальними даними, записаними з решітки 3x5, створеної на основі платформи `QUAD-MxFE <https://www.analog.com/en/resources/evaluation-hardware-and-software/evaluation-boards-kits/quad-mxfe.html#eb-overview>`_ від Analog Devices, яка підтримує до 16 каналів передавання та приймання (ми використали лише 15 і тільки в режимі приймача).  Нижче наведено два записи: перший містить один випромінювач, розташований на осьовій лінії решітки, і використовується для калібрування.  Другий запис містить два випромінювачі в різних напрямках, які ми використаємо для формування променя та тестування DOA.
+У цій секції ми працюємо з реальними даними, записаними `Джоном Крафтом <https://www.youtube.com/@jonkraft>`_ за допомогою цифрової решітки 3x5, створеної на основі платформи `QUAD-MxFE <https://www.analog.com/en/resources/evaluation-hardware-and-software/evaluation-boards-kits/quad-mxfe.html#eb-overview>`_ від Analog Devices, яка підтримує до 16 каналів передавання та приймання (ми використали лише 15 і тільки в режимі приймача).  Нижче наведено кілька зображень, які показують установку, з підписаними передавачами.
+
+.. image:: ../_images/2d_array_ladder_pic.png
+   :align: center 
+   :target: ../_images/2d_array_ladder_pic.png
+   :alt: Зображення решітки 3x5, яку використали для запису даних і яку було створено на основі платформи QUAD-MxFE від Analog Devices
+
+Нижче наведено два записи, доступні для завантаження: перший містить один випромінювач, розташований на осьовій лінії решітки, і використовується для калібрування.  Другий запис містить два випромінювачі в різних напрямках, які ми використаємо для формування променя та тестування DOA.
 
 - `IQ-запис лише випромінювача C <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/C_only_capture1.npy>`_ (використовується для калібрування, оскільки C розташовано на осьовій лінії)
 - `IQ-запис випромінювачів B і D <https://github.com/777arc/RADAR-2025-Beamforming-Labs/raw/refs/heads/main/Lab%207%20-%202D%20Rectangular%20Array/DandB_capture1.npy>`_ (використовується для формування променя/DOA)
@@ -222,44 +229,44 @@ QUAD-MxFE було налаштовано на 2.8 ГГц, а всі перед�
     import numpy as np
     import matplotlib.pyplot as plt
 
-    r = np.load("DandB_capture1.npy")[0:15] # 16-й елемент не підключено, але його все одно записали
-    r_cal = np.load("C_only_capture1.npy")[0:15] # лише калібрувальний сигнал (на осьовій лінії)
+    r = np.load("DandB_capture1.npy")[0:15] # 16th element is not connected but was still recorded
+    r_cal = np.load("C_only_capture1.npy")[0:15] # only the calibration signal (at boresight) on
 
 Відстань між антенами становила 0.051 метра.  Ми можемо представити позиції елементів як список координат x, y, z у метрах.  Розмістимо решітку в площині X-Z, оскільки її було змонтовано вертикально (з осьовою лінією, спрямованою горизонтально).
 
 .. code-block:: python
 
-        fc = 2.8e9 # центральна частота в Гц
-        d = 0.051 # відстань між антенами в метрах
-        wavelength = 3e8 / fc
-        Nr = 15
-        rows = 3
-        cols = 5
+	fc = 2.8e9 # center frequency in Hz
+	d = 0.051 # spacing between antennas in meters
+	wavelength = 3e8 / fc
+	Nr = 15
+	rows = 3
+	cols = 5
 
-        # Позиції елементів як список координат x, y, z у метрах
-        pos = np.zeros((Nr, 3))
-        for i in range(Nr):
-                pos[i,0] = d * (i % cols)  # координата x
-                pos[i,1] = 0 # координата y
-                pos[i,2] = d * (i // cols) # координата z
+	# Element positions, as a list of x,y,z coordinates in meters
+	pos = np.zeros((Nr, 3))
+	for i in range(Nr):
+		pos[i,0] = d * (i % cols)  # x position
+		pos[i,1] = 0 # y position
+		pos[i,2] = d * (i // cols) # z position
 
-        # Побудуємо та підпишемо позиції елементів
-        fig = plt.figure()
-        ax = fig.add_subplot(projection='3d')
-        ax.scatter(pos[:,0], pos[:,1], pos[:,2], 'o')
-        # Підписи індексів
-        for i in range(Nr):
-                ax.text(pos[i,0], pos[i,1], pos[i,2], str(i), fontsize=10)
-        plt.xlabel("Позиція X [м]")
-        plt.ylabel("Позиція Y [м]")
-        ax.set_zlabel("Позиція Z [м]")
-        plt.grid()
-        plt.show()
+	# Plot and label positions of elements
+	fig = plt.figure()
+	ax = fig.add_subplot(projection='3d')
+	ax.scatter(pos[:,0], pos[:,1], pos[:,2], 'o')
+	# Label indices
+	for i in range(Nr):
+		ax.text(pos[i,0], pos[i,1], pos[i,2], str(i), fontsize=10)
+	plt.xlabel("X Position [m]")
+	plt.ylabel("Y Position [m]")
+	ax.set_zlabel("Z Position [m]")
+	plt.grid()
+	plt.show()
 
-На графіку кожен елемент позначений власним індексом, який відповідає порядку елементів у IQ-відліках :code:`r` та :code:`r_cal`.
+На графіку кожен елемент позначений власним індексом, який відповідає порядку елементів у записаних IQ-відліках :code:`r` та :code:`r_cal`.
 
 .. image:: ../_images/2d_array_element_positions.svg
-   :align: center
+   :align: center 
    :target: ../_images/2d_array_element_positions.svg
    :alt: Позиції елементів 2D-решітки
 
@@ -269,34 +276,34 @@ QUAD-MxFE було налаштовано на 2.8 ГГц, а всі перед�
 
 .. code-block:: python
 
-        # Обчислюємо коваріаційну матрицю, вона має розмір Nr x Nr
-        R_cal = r_cal @ r_cal.conj().T
+	# Calc covariance matrix, it's Nr x Nr
+	R_cal = r_cal @ r_cal.conj().T
 
-    # власне розкладання, v[:,i] — власний вектор, що відповідає власному значенню w[i]
-        w, v = np.linalg.eig(R_cal)
+    # eigenvalue decomposition, v[:,i] is the eigenvector corresponding to the eigenvalue w[i]
+	w, v = np.linalg.eig(R_cal) 
 
-        # Побудуємо власні значення, щоб переконатися, що одне з них значно більше за інші
-        w_dB = 10*np.log10(np.abs(w))
-        w_dB -= np.max(w_dB) # нормалізація
-        fig, (ax1) = plt.subplots(1, 1, figsize=(7, 3))
-        ax1.plot(w_dB, '.-')
-        ax1.set_xlabel('Індекс')
-        ax1.set_ylabel('Власне значення [дБ]')
-        plt.show()
+	# Plot eigenvalues to make sure we have just one large one
+	w_dB = 10*np.log10(np.abs(w))
+	w_dB -= np.max(w_dB) # normalize
+	fig, (ax1) = plt.subplots(1, 1, figsize=(7, 3))
+	ax1.plot(w_dB, '.-')
+	ax1.set_xlabel('Index')
+	ax1.set_ylabel('Eigenvalue [dB]')
+	plt.show()
 
-        # Використовуємо максимальний власний вектор для калібрування
-        v_max = v[:, np.argmax(np.abs(w))]
-        mags = np.mean(np.abs(r_cal), axis=1)
-        mags = mags[0] / mags # нормалізуємо відносно першого елемента
-        phases = np.angle(v_max)
-        phases = phases[0] - phases # нормалізуємо відносно першого елемента
-        cal_table = mags * np.exp(1j * phases)
-        print("cal_table", cal_table)
+	# Use max eigenvector to calibrate
+	v_max = v[:, np.argmax(np.abs(w))]
+	mags = np.mean(np.abs(r_cal), axis=1)
+	mags = mags[0] / mags # normalize to first element
+	phases = np.angle(v_max)
+	phases = phases[0] - phases # normalize to first element
+	cal_table = mags * np.exp(1j * phases)
+	print("cal_table", cal_table)
 
-На рисунку нижче показано розподіл власних значень; ми хочемо переконатися, що є лише одне велике значення, а решта малі, що відповідає одному прийнятому сигналу.  Будь-які завади або багатопроменевість погіршуватимуть процес калібрування.
+На рисунку нижче показано розподіл власних значень; ми хочемо переконатися, що є лише одне велике значення, а решта малі, що відповідає одному прийнятому сигналу.  Будь-які завади або багатопроменевість погіршуватимуть процес калібрування. 
 
 .. image:: ../_images/2d_array_eigenvalues.svg
-   :align: center
+   :align: center 
    :target: ../_images/2d_array_eigenvalues.svg
    :alt: Розподіл власних значень 2D-решітки
 
@@ -304,20 +311,20 @@ QUAD-MxFE було налаштовано на 2.8 ГГц, а всі перед�
 
 .. code-block:: python
 
-        [1.        +0.j          0.99526771+0.76149029j -0.91754588-0.66825262j
-        -0.96840297+0.37251012j  0.87866849+0.40446665j  0.56040169+1.50499875j
-        -0.80109196-1.29299264j -1.28464742-0.31133052j  1.26622038+0.46047599j
-         2.01855809+9.77121302j -0.29249322-1.09413205j -1.0372309 -0.17983522j
-        -0.70614339+0.78682873j -0.75612972+5.67234809j  1.00032754-0.60824109j]
+	[1.        +0.j          0.99526771+0.76149029j -0.91754588-0.66825262j
+	-0.96840297+0.37251012j  0.87866849+0.40446665j  0.56040169+1.50499875j
+	-0.80109196-1.29299264j -1.28464742-0.31133052j  1.26622038+0.46047599j
+	 2.01855809+9.77121302j -0.29249322-1.09413205j -1.0372309 -0.17983522j
+	-0.70614339+0.78682873j -0.75612972+5.67234809j  1.00032754-0.60824109j]
 
 
 Ми можемо застосувати ці зсуви до будь-якого набору відліків, записаних решіткою, просто перемноживши кожен елемент відліків на відповідний елемент таблиці калібрування:
 
 .. code-block:: python
 
-        # Застосовуємо калібрувальні зсуви до r
-        for i in range(Nr):
-                r[i, :] *= cal_table[i]
+	# Apply cal offsets to r
+	for i in range(Nr):
+		r[i, :] *= cal_table[i]
 
 Як невеличкий відступ, саме тому ми обчислювали зсуви у вигляді :code:`mags[0] / mags` та :code:`phases[0] - phases`: якби ми зробили навпаки, то довелося б ділити значення під час застосування, а нам зручніше множити.
 
@@ -325,50 +332,55 @@ QUAD-MxFE було налаштовано на 2.8 ГГц, а всі перед�
 
 .. code-block:: python
 
-        # DOA з використанням MUSIC
-        resolution = 400 # кількість точок у кожному напрямку
-        theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # азимутальні кути
-        phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # кути місця
-        results = np.zeros((resolution, resolution)) # 2D масив для результатів
-        R = np.cov(r) # коваріаційна матриця 15 x 15
-        Rinv = np.linalg.pinv(R)
-        expected_num_signals = 4
-        w, v = np.linalg.eig(R) # власне розкладання, v[:,i] — власний вектор для w[i]
-        eig_val_order = np.argsort(np.abs(w))
-        v = v[:, eig_val_order] # сортуємо власні вектори у цьому порядку
-        V = np.zeros((Nr, Nr - expected_num_signals), dtype=np.complex64) # шумовий підпростір — решта власних значень
-        for i in range(Nr - expected_num_signals):
-                V[:, i] = v[:, i]
-        for i, theta_i in enumerate(theta_scan):
-                for j, phi_i in enumerate(phi_scan):
-                        dir_i = get_unit_vector(-1*theta_i, phi_i) # TODO з’ясувати, чому потрібний множник -1, щоб збігалося з реальністю
-                        s = steering_vector(pos, dir_i) # 15 x 1
-                        music_metric = 1 / (s.conj().T @ V @ V.conj().T @ s)
-                        music_metric = np.abs(music_metric).squeeze()
-                        music_metric = np.clip(music_metric, 0, 2) # Корисно для варіанта ABCD
-                        results[i, j] = music_metric
+	# DOA using MUSIC
+	resolution = 400 # number of points in each direction
+	theta_scan = np.linspace(-np.pi/2, np.pi/2, resolution) # azimuth angles
+	phi_scan = np.linspace(-np.pi/4, np.pi/4, resolution) # elevation angles
+	results = np.zeros((resolution, resolution)) # 2D array to store results
+	R = np.cov(r) # Covariance matrix, 15 x 15
+	Rinv = np.linalg.pinv(R)
+	expected_num_signals = 4
+	w, v = np.linalg.eig(R) # eigenvalue decomposition, v[:,i] is the eigenvector corresponding to the eigenvalue w[i]
+	eig_val_order = np.argsort(np.abs(w))
+	v = v[:, eig_val_order] # sort eigenvectors using this order
+	V = np.zeros((Nr, Nr - expected_num_signals), dtype=np.complex64) # Noise subspace is the rest of the eigenvalues
+	for i in range(Nr - expected_num_signals):
+		V[:, i] = v[:, i]
+	for i, theta_i in enumerate(theta_scan):
+		for j, phi_i in enumerate(phi_scan):
+			dir_i = get_unit_vector(-1*theta_i, phi_i) # TODO figure out why -1* was needed to match reality
+			s = steering_vector(pos, dir_i) # 15 x 1
+			music_metric = 1 / (s.conj().T @ V @ V.conj().T @ s)
+			music_metric = np.abs(music_metric).squeeze()
+			music_metric = np.clip(music_metric, 0, 2) # Useful for ABCD one
+			results[i, j] = music_metric
+	
+	results = 10*np.log10(results) # convert to dB
+	
+	# Keep the top 95%
+	floor = np.percentile(results, 5)
+	print("floor:", floor)
+	results = np.maximum(results, floor)
 
 Наші результати двовимірні, адже решітка теж 2D, тому нам доведеться використати або 3D-графік, або 2D-теплокарту.  Спробуймо обидва. Спочатку побудуємо 3D-графік, де на одній осі буде кут місця, а на іншій — азимут:
 
 .. code-block:: python
 
-        # 3D-графік DOA у координатах азимут/кут місця
-        results = 10*np.log10(results) # переводимо в дБ
-        results[results < -20] = -20 # обрізаємо вісь z на певному рівні дБ
-        fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
-        surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
-                                                        np.rad2deg(phi_scan[None,:]),
-                                                        results,
-                                                        cmap='viridis')
-        #ax.set_zlim(-10, results[max_idx])
-        ax.set_xlabel('Азимут (theta)')
-        ax.set_ylabel('Кут місця (phi)')
-        ax.set_zlabel('Потужність [дБ]') # type: ignore
-        fig.savefig('../_images/2d_array_3d_doa_plot.svg', bbox_inches='tight')
-        plt.show()
+	# 3D az-el DOA results
+	fig, ax = plt.subplots(subplot_kw={"projection": "3d", "computed_zorder": False})
+	surf = ax.plot_surface(np.rad2deg(theta_scan[:,None]), # type: ignore
+							np.rad2deg(phi_scan[None,:]),
+							results,
+							cmap='viridis')
+	#ax.set_zlim(-10, results[max_idx])
+	ax.set_xlabel('Azimuth (theta)')
+	ax.set_ylabel('Elevation (phi)')
+	ax.set_zlabel('Power [dB]') # type: ignore
+	fig.savefig('../_images/2d_array_3d_doa_plot.svg', bbox_inches='tight')
+	plt.show()
 
 .. image:: ../_images/2d_array_3d_doa_plot.png
-   :align: center
+   :align: center 
    :scale: 30%
    :target: ../_images/2d_array_3d_doa_plot.png
    :alt: 3D-графік DOA
@@ -377,24 +389,24 @@ QUAD-MxFE було налаштовано на 2.8 ГГц, а всі перед�
 
 .. code-block:: python
 
-        # 2D-теплокарта азимут/кут місця (аналогічно до попереднього, але в 2D)
-        extent=(np.min(theta_scan)*180/np.pi,
-                        np.max(theta_scan)*180/np.pi,
-                        np.min(phi_scan)*180/np.pi,
-                        np.max(phi_scan)*180/np.pi)
-        plt.imshow(results.T, extent=extent, origin='lower', aspect='auto', cmap='viridis') # type: ignore
-        plt.colorbar(label='Потужність [лінійна]')
-        plt.xlabel('Theta (азимут, градуси)')
-        plt.ylabel('Phi (кут місця, градуси)')
-        plt.savefig('../_images/2d_array_2d_doa_plot.svg', bbox_inches='tight')
-        plt.show()
+	# 2D, az-el heatmap (same as above, but 2D)
+	extent=(np.min(theta_scan)*180/np.pi,
+			np.max(theta_scan)*180/np.pi,
+			np.min(phi_scan)*180/np.pi,
+			np.max(phi_scan)*180/np.pi)
+	plt.imshow(results.T, extent=extent, origin='lower', aspect='auto', cmap='viridis') # type: ignore
+	plt.colorbar(label='Power [linear]')
+	plt.xlabel('Theta (azimuth, degrees)')
+	plt.ylabel('Phi (elevation, degrees)')
+	plt.savefig('../_images/2d_array_2d_doa_plot.svg', bbox_inches='tight')
+	plt.show()
 
 .. image:: ../_images/2d_array_2d_doa_plot.svg
-   :align: center
+   :align: center 
    :target: ../_images/2d_array_2d_doa_plot.svg
    :alt: 2D-графік DOA
 
-З цієї 2D-карти ми легко можемо зчитати оцінені азимут і кут місця двох випромінювачів (і переконатися, що їх було лише два).  Відповідно до випробувальної установки, яка використовувалася для цього запису, результати відповідають реальності, хоча *точні* азимут і кут місця випромінювачів не вимірювалися, адже для цього потрібне спеціалізоване обладнання.
+З цієї 2D-карти ми легко можемо зчитати оцінені азимут і кут місця двох випромінювачів (і переконатися, що їх було лише два).  Відповідно до випробувальної установки, яка використовувалася для цього запису, результати відповідають реальності, хоча *точні* азимут і кут місця випромінювачів не вимірювалися, адже для цього потрібне спеціалізоване обладнання. 
 
 Як вправу, спробуйте застосувати звичайний формувач променя, а також MVDR, і порівняйте результати з MUSIC.
 

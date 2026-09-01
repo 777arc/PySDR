@@ -195,9 +195,9 @@ FM-демодуляція
 
 І знову ж таки, не забувайте оновлювати змінну :code:`sample_rate` після кожної операції, що змінює частоту дискретизації.
 
-***********************************
+**************************************
 Синхронізація в часі (рівень символів)
-***********************************
+**************************************
 
 .. code-block:: python
 
@@ -244,7 +244,7 @@ FM-демодуляція
  freq = 0
  # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
  alpha = 8.0 
- beta = 0.002
+ beta = 0.02
  out = np.zeros(N, dtype=np.complex64)
  freq_log = []
  for i in range(N):
@@ -645,7 +645,7 @@ FM-демодуляція
  import matplotlib.pyplot as plt
 
  # Read in signal
- x = np.fromfile('/home/marc/Downloads/fm_rds_250k_from_sdrplay.iq', dtype=np.complex64)
+ x = np.fromfile('/your/path/fm_rds_250k_1Msamples.iq', dtype=np.complex64)
  sample_rate = 250e3
  center_freq = 99.5e6
 
@@ -701,7 +701,7 @@ FM-демодуляція
  freq = 0
  # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
  alpha = 8.0 
- beta = 0.002
+ beta = 0.02
  out = np.zeros(N, dtype=np.complex64)
  freq_log = []
  for i in range(N):

@@ -34,7 +34,7 @@
 
     import numpy as np
     import matplotlib.pyplot as plt
-    з scipy import signal
+    from scipy import signal
     import math
 
     # ця частина прийшла з вправи на формування пульсу
@@ -42,7 +42,7 @@
     sps = 8
     bits = np.random.randint(0, 2, num_symbols) # Наші дані для передачі, 1 та 0
     pulse_train = np.array([])
-    для біта в бітах:
+    for bit in bits:
         pulse = np.zeros(sps)
         pulse[0] = bit*2-1 # встановлюємо перше значення в 1 або -1
         pulse_train = np.concatenate((pulse_train, pulse)) # додаємо 8 відліків до сигналу
@@ -55,13 +55,15 @@
     h = np.sinc(t/Ts) * np.cos(np.pi*beta*t/Ts) / (1 - (2*beta*t/Ts)**2)
 
     # Фільтруємо наш сигнал, щоб застосувати формування імпульсів
-    samples = np.convolve(pulse_train, h)
+    samples = np.convolve(pulse_train, h, "same")
 
 .. raw:: html
 
-   </details> </details
+   </details>
 
 Ми пропустимо код, пов'язаний з побудовою графіків, оскільки ви вже навчилися будувати графіки будь-яких сигналів.  Надання графікам красивого вигляду, як це часто робиться у цьому підручнику, вимагає багато додаткового коду, який не обов'язково розуміти.
+
+Далі ми повинні змоделювати затримку, якої зазнає сигнал під час проходження через бездротовий канал.  Ми можемо легко імітувати затримку, зсуваючи відліки, але це імітує лише затримку, яка є цілим числом, кратним періоду нашого відліку.  У реальному світі затримка буде становити деяку частку від періоду відліку, тому, щоб змоделювати це, нам потрібно створити фільтр "дробової затримки".
 
 Додавання затримки
 ##################
@@ -73,7 +75,7 @@
     # Створити і застосувати фільтр дробової затримки
     delay = 0.4 # дробова затримка, у відліках
     N = 21 # кількість відведень
-    n = np.arange(-N/2, N//2) # ...-3,-2,-1,0,1,2,3...
+    n = np.arange(-(N-1)//2, N//2+1) # -10,-9,...,0,...,9,10
     h = np.sinc(n - delay) # обчислюємо відгалуження фільтру
     h *= np.hamming(N) # вікно фільтра, щоб переконатися, що він розпадається до 0 з обох боків
     h /= np.sum(h) # нормалізуємо, щоб отримати одиничний коефіцієнт підсилення, ми не хочемо змінювати амплітуду/потужність
@@ -137,12 +139,12 @@
 .. code-block:: python
 
     mu = 0 # початкова оцінка фази зразка
-    out = np.zeros(len(samples) + 10, dtype=np.complex)
-    out_rail = np.zeros(len(samples) + 10, dtype=np.complex) # зберігає значення, на кожній ітерації нам потрібні 2 попередні значення плюс поточне значення
+    out = np.zeros(len(samples) + 10, dtype=np.complex64)
+    out_rail = np.zeros(len(samples) + 10, dtype=np.complex64)  # зберігає значення, на кожній ітерації нам потрібні 2 попередні значення плюс поточне значення
     i_in = 0 # індекс вхідних відліків
     i_out = 2 # індекс виходу (нехай перші два виходи дорівнюють 0)
     while i_out < len(samples) and i_in+16 < len(samples):
-        out[i_out] = samples[i_in + int(mu)] # беремо те, що вважаємо "найкращим" зразком
+        out[i_out] = samples[i_in]  # беремо те, що вважаємо "найкращим" зразком
         out_rail[i_out] = int(np.real(out[i_out]) > 0) + 1j*int(np.imag(out[i_out]) > 0)
         x = (out_rail[i_out] - out_rail[i_out-2]) * np.conj(out[i_out-1])
         y = (out[i_out] - out[i_out-2]) * np.conj(out_rail[i_out-1])
@@ -189,7 +191,7 @@
  plt.figure('before interp')
  plt.plot(samples,'.-')
  plt.figure('after interp')
- plt.plot(samples_interpolated, '.-')
+ plt.plot(samples_interpolated,'.-')
  plt.show()
 
 Якщо ми збільшимо масштаб, то побачимо, що це той самий сигнал, тільки з 16x більшою кількістю точок:
@@ -345,47 +347,48 @@
 
 Далі ми перемкнемо передачу на точну частотну синхронізацію.  Попередній трюк більше підходить для грубої синхронізації, і він не є операцією із замкнутим контуром (типу зворотного зв'язку).  Але для точної частотної синхронізації нам потрібен контур зворотного зв'язку, через який ми пропускаємо семпли, що знову ж таки буде формою PLL.  Наша мета - звести частотний зсув до нуля і утримувати його на цьому рівні, навіть якщо зсув змінюється з часом.  Ми повинні постійно відстежувати зміщення.  Методи точної частотної синхронізації найкраще працюють з сигналом, який вже було синхронізовано в часі на рівні символів, тому код, який ми обговорюватимемо в цьому розділі, з'явиться *після* синхронізації в часі.
 
-Ми будемо використовувати техніку, яка називається петлею Костаса.  Це форма ШПФ, яка спеціально розроблена для корекції зсуву несучої частоти для цифрових сигналів, таких як BPSK і QPSK.  Вона була винайдена Джоном П. Костасом в General Electric в 1950-х роках і мала великий вплив на сучасні цифрові комунікації.  Петля Костаса усуває зсув частоти, а також фіксує будь-який зсув фази.  Енергія вирівнюється з віссю I.  Частота - це лише зміна фази, тому їх можна відстежувати як одне ціле.  Петлю Костаса узагальнено за допомогою наступної діаграми (зауважте, що 1/2s не враховано в рівняннях, оскільки вони не мають функціонального значення).
+Ми будемо використовувати техніку, яка називається петлею Костаса.  Це форма ФАПЧ, яка спеціально розроблена для корекції зсуву несучої частоти для цифрових сигналів, таких як BPSK і QPSK.  Вона була винайдена Джоном П. Костасом в General Electric в 1950-х роках і мала великий вплив на сучасні цифрові комунікації.  Петля Костаса усуває зсув частоти, а також фіксує будь-який зсув фази.  Для BPSK енергія сигналу після корекції вирівнюється з віссю I.  Частота - це лише зміна фази, тому їх можна відстежувати як одне ціле.  Петлю Костаса узагальнено за допомогою наступної діаграми (зауважте, що 1/2s не враховано в рівняннях, оскільки вони не мають функціонального значення).
 
 .. image:: ../_images/costas-loop.svg
    :align: center 
    :target: ../_images/costas-loop.svg
-   :alt: Діаграма петлі Костаса, що включає математичні вирази, це форма ФНЧ, яка використовується в обробці радіочастотних сигналів
+   :alt: Діаграма петлі Костаса, що включає математичні вирази, це форма ФАПЧ, яка використовується в обробці радіочастотних сигналів
 
 Генератор, керований напругою (VCO) - це просто генератор хвиль sin/cos, який використовує частоту на основі вхідного сигналу.  У нашому випадку, оскільки ми моделюємо бездротовий канал, це не напруга, а скоріше рівень, представлений змінною.  Він визначає частоту і фазу генерованих синусоїдальних і косинусоїдальних хвиль.  Він множить отриманий сигнал на внутрішньо згенеровану синусоїду, намагаючись вирівняти зсув частоти і фази.  Ця поведінка схожа на те, як SDR перетворює сигнал вниз і створює гілки I і Q.
 
-Нижче наведено код на Python, який є нашим циклом Костаса:
+
+Нижче наведено код на Python, який є нашою петлею Костаса:
 
 .. code-block:: python
 
     N = len(samples)
     phase = 0
     freq = 0
-    # Наступні два параметри - це те, що потрібно налаштувати, щоб зробити цикл зворотного зв'язку швидшим або повільнішим (що впливає на стабільність)
+    # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
     alpha = 0.132
     beta = 0.00932
-    out = np.zeros(N, dtype=np.complex)
+    out = np.zeros(N, dtype=np.complex64)
     freq_log = []
     for i in range(N):
-        out[i] = samples[i] * np.exp(-1j*phase) # коригуємо вхідну вибірку на величину, обернену до оціненого фазового зсуву
-        error = np.real(out[i]) * np.imag(out[i]) # Це формула похибки для петлі Костаса 2-го порядку (наприклад, для BPSK)
+        out[i] = samples[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset
+        error = np.real(out[i]) * np.imag(out[i]) # This is the error formula for 2nd order Costas Loop (e.g. for BPSK)
         
-        # Просуваємо цикл (перераховуємо фазу і зсув частоти)
+        # Advance the loop (recalc phase and freq offset)
         freq += (beta * error)
-        freq_log.append(freq * fs / (2*np.pi)) # перетворення кутової швидкості у Гц для логування
+        freq_log.append(freq * fs / (2*np.pi)) # convert from angular velocity to Hz for logging
         phase += freq + (alpha * error)
         
-        # Необов'язково: Відрегулюйте фазу так, щоб вона завжди була між 0 і 2pi, пам'ятайте, що фаза обертається навколо кожних 2pi
+        # Optional: Adjust phase so its always between 0 and 2pi, recall that phase wraps around every 2pi
         while phase >= 2*np.pi:
             phase -= 2*np.pi
         while phase < 0:
             phase += 2*np.pi
 
-    # Побудувати графік залежності freq від часу, щоб побачити, скільки часу потрібно для досягнення потрібного зсуву
+    # Plot freq over time to see how long it takes to hit the right offset
     plt.plot(freq_log,'.-')
     plt.show()
 
-Тут багато рядків, тому давайте пройдемося по ним.  Деякі рядки прості, а деякі дуже складні. :code:`samples` - це наші вхідні дані, а :code:`out` - вихідні. :code:`phase` і :code:`frequency` схожі на :code:`mu` з коду часової синхронізації.  Вони містять поточні оцінки зсуву, і на кожній ітерації циклу ми створюємо вихідні відліки шляхом множення вхідних відліків на :code:`np.exp(-1j*phase)`.  Змінна :code:`error` містить метрику "помилки", і для циклу Костаса 2-го порядку це дуже просте рівняння.  Ми множимо дійсну частину відліку (I) на уявну частину (Q), і оскільки Q має дорівнювати нулю для BPSK, функція помилки мінімізується, коли немає фазового або частотного зсуву, який спричиняє зміщення енергії від I до Q. Для петлі Костаса 4-го порядку це все ще відносно просто, але не зовсім в один рядок, оскільки і I, і Q матимуть енергію навіть за відсутності фазового або частотного зсуву, для QPSK.  Якщо вам цікаво, як вона виглядає, натисніть нижче, але ми поки що не будемо використовувати її в нашому коді.  Причина, чому це працює для QPSK, полягає в тому, що коли ви берете абсолютне значення I і Q, ви отримаєте +1+1j, і якщо немає фазового або частотного зсуву, то різниця між абсолютними значеннями I і Q повинна бути близькою до нуля.
+Тут багато рядків, тому давайте пройдемося по ним.  Деякі рядки прості, а деякі дуже складні. :code:`samples` - це наші вхідні дані, а :code:`out` - вихідні. :code:`phase` і :code:`frequency` схожі на :code:`mu` з коду часової синхронізації.  Вони містять поточні оцінки зсуву, і на кожній ітерації циклу ми створюємо вихідні відліки шляхом множення вхідних відліків на :code:`np.exp(-1j*phase)`.  Змінна :code:`error` містить метрику "помилки", і для петлі Костаса 2-го порядку це дуже просте рівняння.  Ми множимо дійсну частину відліку (I) на уявну частину (Q), і оскільки Q має дорівнювати нулю для BPSK, функція помилки мінімізується, коли немає фазового або частотного зсуву, який спричиняє зміщення енергії від I до Q. Для петлі Костаса 4-го порядку це все ще відносно просто, але не зовсім в один рядок, оскільки і I, і Q матимуть енергію навіть за відсутності фазового або частотного зсуву, для QPSK.  Якщо вам цікаво, як вона виглядає, натисніть нижче, але ми поки що не будемо використовувати її в нашому коді.  Причина, чому це працює для QPSK, полягає в тому, що коли ви берете абсолютне значення I і Q, ви отримаєте величини, приблизно рівні 1, для обох, і якщо немає фазового або частотного зсуву, то різниця між абсолютними значеннями I і Q повинна бути близькою до нуля.
 
 .. raw:: html
 
@@ -394,25 +397,28 @@
 
 .. code-block:: python
 
-    # Для QPSK
+    # For QPSK
     def phase_detector_4(sample):
         if sample.real > 0:
             a = 1.0
-        else
+        else:
             a = -1.0
-        if sample.imag > 0
+        if sample.imag > 0:
             b = 1.0
-        else
+        else:
             b = -1.0   
         return a * sample.imag - b * sample.real
 
+
+
+
 .. raw:: html
 
-   </details> </details
+   </details>
 
 Змінні :code:`alpha` і :code:`beta` визначають швидкість оновлення фази і частоти відповідно.  Існує певна теорія, чому я вибрав саме ці два значення, але ми не будемо розглядати її тут.  Якщо вам цікаво, ви можете спробувати змінити значення :code:`alpha` та/або :code:`beta` і подивитися, що станеться.
 
-Ми записуємо значення :code:`freq` на кожній ітерації, щоб в кінці побудувати графік і побачити, як петля Костаса сходиться до правильного частотного зсуву.  Нам потрібно помножити :code:`freq` на частоту дискретизації і перевести з кутової частоти в Гц, поділивши на :math:`2\pi`.  Зауважте, що якщо ви виконували синхронізацію часу перед циклом Костаса, вам доведеться також поділити на ваше значення :code:`sps` (наприклад, 8), тому що семпли, які виходять з синхронізації часу, мають частоту, що дорівнює вашій початковій частоті, поділеній на :code:`sps`. 
+Ми записуємо значення :code:`freq` на кожній ітерації, щоб в кінці побудувати графік і побачити, як петля Костаса сходиться до правильного частотного зсуву.  Нам потрібно помножити :code:`freq` на частоту дискретизації і перевести з кутової частоти в Гц, поділивши на :math:`2\pi`.  Зауважте, що якщо ви виконували синхронізацію часу перед петлею Костаса, вам доведеться також поділити на ваше значення :code:`sps` (наприклад, 8), тому що семпли, які виходять з синхронізації часу, мають частоту, що дорівнює вашій початковій частоті, поділеній на :code:`sps`. 
 
 Нарешті, після перерахунку фази, ми додаємо або забираємо достатню кількість :math:`2 \pi`, щоб утримати фазу між 0 і :math:`2 \pi`, що обертає фазу навколо.
 
@@ -431,14 +437,164 @@
 
 Алгоритму потрібно майже 70 відліків, щоб повністю зафіксуватися на частотному зсуві.  Ви можете бачити, що в моєму симульованому прикладі після грубої частотної синхронізації залишилося близько -300 Гц.  У вас може бути інакше.  Як я вже згадував раніше, ви можете вимкнути грубу частотну синхронізацію і встановити початкове зміщення частоти на будь-яке значення, яке ви хочете, і подивитися, чи зрозуміє це петля Костаса.
 
-Петля Костаса, окрім усунення зсуву частоти, вирівняла наш BPSK-сигнал по I-частині, зробивши добротність знову нульовою.  Це зручний побічний ефект петлі Костаса, і він дозволяє петлі Костаса по суті діяти як наш демодулятор.  Тепер все, що нам потрібно зробити, це взяти I і подивитися, чи є він більшим або меншим за нуль.  Насправді ми не знатимемо, як перетворити від'ємне і додатне значення на 0 і 1, тому що інверсія може бути, а може і не бути; петля Костаса (або наша синхронізація часу) ніяк не може про це дізнатися.  Саме тут в гру вступає диференціальне кодування.  Воно усуває двозначність, тому що 1 і 0 базуються на тому, чи змінився символ, а не на тому, чи був він +1 чи -1.  Якби ми додали диференціальне кодування, ми б все одно використовували BPSK.  Ми б додали блок диференціального кодування безпосередньо перед модуляцією на стороні tx і відразу після демодуляції на стороні rx.
+Петля Костаса, окрім усунення зсуву частоти, вирівняла наш BPSK-сигнал по I-частині, зробивши Q знову нульовим.  Це зручний побічний ефект петлі Костаса, і він дозволяє петлі Костаса по суті діяти як наш демодулятор.  Тепер все, що нам потрібно зробити, це взяти I і подивитися, чи є він більшим або меншим за нуль.  Насправді ми не знатимемо, як перетворити від'ємне і додатне значення на 0 і 1, тому що інверсія може бути, а може і не бути; петля Костаса (або наша синхронізація часу) ніяк не може про це дізнатися.  Саме тут в гру вступає диференціальне кодування.  Воно усуває двозначність, тому що 1 і 0 базуються на тому, чи змінився символ, а не на тому, чи був він +1 чи -1.  Якби ми додали диференціальне кодування, ми б все одно використовували BPSK.  Ми б додали блок диференціального кодування безпосередньо перед модуляцією на стороні tx і відразу після демодуляції на стороні rx.
 
 Нижче наведено анімацію роботи часової синхронізації плюс частотної синхронізації, часова синхронізація насправді відбувається майже миттєво, але частотна синхронізація займає майже весь час анімації, і це тому, що :code:`alpha` і :code:`beta` були встановлені занадто низько, до 0.005 і 0.001 відповідно.  Код, використаний для створення цієї анімації, можна знайти `тут <https://github.com/777arc/PySDR/blob/master/figure-generating-scripts/costas_loop_animation.py>`_. 
 
 .. image:: ../_images/costas_animation.gif
    :align: center
    :target: ../_images/costas_animation.gif
-   :alt: Циклічна анімація Costas
+   :alt: Анімація петлі Костаса
+
+Наступний (згорнутий) блок коду містить повний приклад на Python для цього розділу книги на даний момент; його було перевірено на працездатність з Python 3.12.3 та NumPy 1.26.4.  Він також включає перевірку бітових помилок наприкінці, хоча AWGN пропущено заради того, щоб побачити, наскільки чітким може стати BPSK лише завдяки самій синхронізації; ви можете додати AWGN, наприклад, одразу після додавання дробової затримки.  Зауважте, що графік IQ у часі побудовано до частотної синхронізації, тож ви можете побачити, як енергія BPSK поволі переходить між I та Q.  Якщо ви хочете спробувати запустити код прямо у браузері, він доступний як `вебзошит jupyter <../jupyterlite/notebooks/index.html?path=sync.ipynb>`_.
+
+.. raw:: html
+
+   <details>
+   <summary>Повний приклад на Python</summary>
+
+.. code-block:: python
+
+   import numpy as np
+   import matplotlib.pyplot as plt
+   from scipy import signal
+
+   # Create BPSK signal
+   num_symbols = 100
+   sps = 8
+   bits = np.random.randint(0, 2, num_symbols) # Our data to be transmitted, 1's and 0's
+   pulse_train = np.array([])
+   for bit in bits:
+      pulse = np.zeros(sps)
+      pulse[0] = bit*2-1 # set the first value to either a 1 or -1
+      pulse_train = np.concatenate((pulse_train, pulse)) # add the 8 samples to the signal
+
+   # Apply pulse shaping to the BPSK
+   num_taps = 101
+   beta = 0.35
+   Ts = sps # Assume sample rate is 1 Hz, so sample period is 1, so *symbol* period is 8
+   t = np.arange(-51, 52) # remember it's not inclusive of final number
+   h = np.sinc(t/Ts) * np.cos(np.pi*beta*t/Ts) / (1 - (2*beta*t/Ts)**2)
+   samples = np.convolve(pulse_train, h, 'same')
+
+   # Create and apply fractional delay filter to emulate a random timing offset
+   delay = 0.456 # fractional delay, in samples
+   N = 21 # number of taps, keep this odd
+   n = np.arange(-(N-1)//2, N//2+1) # -10,-9,...,0,...,9,10
+   h = np.sinc(n - delay) # calc filter taps
+   h *= np.hamming(N) # window the filter to make sure it decays to 0 on both sides
+   h /= np.sum(h) # normalize to get unity gain, we don't want to change the amplitude/power
+   samples = np.convolve(samples, h) # apply filter
+
+   # Apply a pretty significant freq offset
+   fs = 1e6 # assume our sample rate is 1 MHz
+   fo = 13000 # simulate freq offset THIS REPRESENTS A COARSE OFFSET!
+   Ts = 1/fs # calc sample period
+   t = np.arange(0, Ts*len(samples), Ts) # create time vector
+   samples = samples * np.exp(1j*2*np.pi*fo*t) # perform freq shift
+
+   # Estimate and correct for the coarse freq offset
+   samples_sq = samples**2
+   psd = np.fft.fftshift(np.abs(np.fft.fft(samples_sq, 2048)))
+   f = np.linspace(-fs/2.0, fs/2.0, len(psd))
+   max_freq = f[np.argmax(psd)] / 2.0
+   print(f"Estimated freq offset: {max_freq:.2f} Hz")
+   Ts = 1/fs # calc sample period
+   t = np.arange(0, Ts*len(samples), Ts) # create time vector
+   samples = samples * np.exp(-1j*2*np.pi*max_freq*t)
+
+   # At this point there should be less than 1kHz of freq offset in our signal, depending how large an FFT you used above
+
+   # Symbol/Timing Sync
+   mu = 0 # initial estimate of phase of sample
+   out = np.zeros(len(samples) // sps + 2, dtype=np.complex64)
+   out_rail = np.zeros(len(samples) // sps + 2, dtype=np.complex64) # stores values, each iteration we need the previous 2 values plus current value
+   i_in = 0 # input samples index
+   i_out = 2 # output index (let first two outputs be 0)
+   interpolation_factor = 16
+   samples_interpolated = signal.resample_poly(samples, interpolation_factor, 1)
+   while i_out < len(samples) and i_in+16 < len(samples):
+      out[i_out] = samples_interpolated[i_in*interpolation_factor + int(mu*interpolation_factor)]
+      out_rail[i_out] = int(np.real(out[i_out]) > 0) + 1j*int(np.imag(out[i_out]) > 0)
+      x = (out_rail[i_out] - out_rail[i_out-2]) * np.conj(out[i_out-1])
+      y = (out[i_out] - out[i_out-2]) * np.conj(out_rail[i_out-1])
+      mm_val = np.real(y - x)
+      mu += sps + 0.3*mm_val
+      i_in += int(np.floor(mu)) # round down to nearest int since we are using it as an index
+      mu = mu - np.floor(mu) # remove the integer part of mu
+      i_out += 1 # increment output index
+   out = out[3:i_out] # remove the first few due to filter transients, and anything after i_out (that was never filled out)
+   samples = out
+
+   plt.figure(2)
+   plt.plot(np.real(samples))
+   plt.plot(np.imag(samples))
+   plt.xlabel('Sample Index')
+   plt.ylabel('Sample Value')
+   plt.legend(['I', 'Q'])
+   plt.grid()
+
+   N = len(samples)
+   phase = 0
+   freq = 0
+   # These next two params is what to adjust, to make the feedback loop faster or slower (which impacts stability)
+   alpha = 0.132
+   beta = 0.00932
+   out = np.zeros(N, dtype=np.complex64)
+   freq_log = []
+   for i in range(N):
+      out[i] = samples[i] * np.exp(-1j*phase) # adjust the input sample by the inverse of the estimated phase offset
+      error = np.real(out[i]) * np.imag(out[i]) # This is the error formula for 2nd order Costas Loop (e.g. for BPSK)
+
+      # Advance the loop (recalc phase and freq offset)
+      freq += (beta * error)
+      freq_log.append(freq * fs / (2*np.pi)) # convert from angular velocity to Hz for logging
+      phase += freq + (alpha * error)
+
+      # Optional: Adjust phase so its always between 0 and 2pi, recall that phase wraps around every 2pi
+      while phase >= 2*np.pi:
+         phase -= 2*np.pi
+      while phase < 0:
+         phase += 2*np.pi
+
+   # Calc BER
+   rx_bits = (np.real(out) > 0).astype(int)
+   num_bit_errors = np.sum(rx_bits != bits[:len(rx_bits)])
+   print(f"Number of bit errors: {num_bit_errors} out of {len(rx_bits)} bits, BER: {num_bit_errors/len(rx_bits):.4f}")
+
+   # Plot freq over time to see how long it takes to hit the right offset
+   plt.figure(0)
+   plt.plot(freq_log,'.-')
+   plt.xlabel('Sample Index')
+   plt.ylabel('Frequency Offset Estimate (Hz)')
+
+   # Appears to be synced after ~80 samples so lets plot the constellation of the remaining 20 samples
+   plt.figure(1)
+   plt.plot(np.real(out[80:]), np.imag(out[80:]), '.')
+   plt.xlabel('I')
+   plt.ylabel('Q')
+   plt.xlim(-1.5, 1.5)
+   plt.ylim(-1.5, 1.5)
+   plt.grid()
+   plt.show()
+
+.. raw:: html
+
+   </details>
+
+Тепер, коли ми написали часову синхронізацію, а також грубу й точну частотну синхронізацію вручну, варто побачити ту саму роботу, виконану вбудованими блоками GNU Radio.  Інтерактивна схема нижче передає BPSK через канал із регульованими шумом, частотним зсувом і часовим зсувом, а потім відновлює його за допомогою `блока Polyphase Clock Sync для тактування, а далі петлі Костаса для частоти й фази <https://gnuradioworld.com/examples/digital/synchronization-bpsk-recovery/>`_.  Три діаграми сузір'я показують прийнятий сигнал, сигнал після відновлення тактування та повністю синхронізований сигнал.  Почніть із низьких значень усіх параметрів, щоб відчути чисте захоплення, а потім піднімайте частотний зсув, доки петля Костаса вже не встигатиме і сузір'я не почне обертатися.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=digital/synchronization_bpsk_recovery"
+             title="PySDR: BPSK Timing and Frequency Synchronization"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
 
 ***************************
 Синхронізація кадрів
@@ -454,7 +610,7 @@
 
 .. code-block::
 
-    +1 +1 +1 -1 -1 -1 +1 -1 -1 +1 -1
+    +1 +1 +1 −1 −1 −1 +1 −1 −1 +1 −1
 
 Ви можете думати про це як про 11 символів BPSK.  Ми можемо дуже легко подивитися на автокореляцію цієї послідовності в Python:
 

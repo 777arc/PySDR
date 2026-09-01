@@ -134,7 +134,7 @@ IQ файли та SigMF
  mkdir build
  cd build
  cmake ..
- зробити
+ make
  sudo make install
  inspectrum
 
@@ -401,5 +401,105 @@ SigMF та анотування IQ файлів
 3. Упакувати всі файли разом у файл .sigmf
 4. (За бажанням) Поділитися файлом .sigmf з іншими!
 
+Щоб потім прочитати запис, просто пам'ятайте, що розпаковувати tar-архів не обов'язково — файли можна читати безпосередньо.
 
+************************
+Формат файлів Midas Blue
+************************
 
+Blue-файли, вони ж BLUEFILES або Midas-файли, - це формат файлів, здатний представляти різноманітні структури даних, зокрема одно- та двовимірні, і в деяких організаціях він використовується для запису сирих радіочастотних сигналів у файл.  Тобто в контексті RF/SDR Blue-файли можна вважати форматом IQ-файлів. Blue-файли використовуються у фреймворку обробки сигналів X-Midas, а також у його відгалуженнях Midas 2k (C++), NeXtMidas (Java) та XMPy (Python). Тим, хто чув про REDAWK: частина NeXtMidas вбудована в нього. Деякі застосунки створюють Blue-файли з розширенням :code:`.blue`, інші використовують :code:`.cdif`, але формат під ними той самий.
+
+Blue-файли - це двійкові файли з трьох компонентів у такому порядку:
+
+1. 512-байтний заголовок із метаданими файлу
+2. Дані, у нашому випадку двійкові IQ (цілі числа або числа з рухомою комою у вигляді IQIQIQ...)
+3. Необов'язковий "розширений заголовок" (він же кінцеві байти) з допоміжними метаданими у вигляді довільних пар ключ/значення
+
+Поля, що містяться в заголовку, описано на `цій сторінці <https://sigplot.lgsinnovations.com/html/doc/bluefile.html>`_.  Важливі для нас такі:
+
+- Байт 52: код формату даних, два символи.  Перший символ вказує, чи дані дійсні (S), чи комплексні (C).  Другий символ позначає тип даних, де :code:`B` - 8-бітне ціле зі знаком, :code:`I` - 16-бітне ціле зі знаком, :code:`L` - 32-бітне ціле зі знаком, :code:`F` - 32-бітне число з рухомою комою, :code:`D` - 64-бітне число з рухомою комою.
+- Байт 8: представлення даних, чотири символи, де :code:`IEEE` означає big-endian, а :code:`EEEI` - little-endian (найпоширеніший варіант)
+- Байт 24: початок розширеного заголовка, int32, у 512-байтних блоках
+- Байт 28: розмір розширеного заголовка, int32, у байтах
+- Байт 264: інтервал часу між відліками, тобто 1/sample_rate, як float64 у секундах
+
+Наприклад, :code:`CI` еквівалентний :code:`ci16_le` у SigMF, а :code:`CF` - це :code:`cf32_le` у SigMF.  Хоча для розширеного заголовка (тобто кінцевих байтів) вказано і довжину, і початкову позицію, ледачий підхід полягає в тому, щоб просто проігнорувати останні кілька тисяч IQ-відліків файлу - тоді ви майже напевно не зачепите розширений заголовок і не зчитаєте сміття замість IQ-значень.
+
+Код на Python для зчитування описаних вище полів, а також самих IQ-відліків, має такий вигляд:
+
+.. code-block:: python
+
+    import numpy as np
+    import os
+    import matplotlib.pyplot as plt
+
+    filename = 'yourfile.blue' # or cdif
+
+    filesize = os.path.getsize(filename)
+    print('File size', filesize, 'bytes')
+    with open(filename, 'rb') as f:
+        header = f.read(512)
+
+    # Decode the header
+    dtype = header[52:54].decode('utf-8') # eg 'CI'
+    endianness = header[8:12].decode('utf-8') # better be 'EEEI'! we'll assume it is from this point on
+    extended_header_start = int.from_bytes(header[24:28], byteorder='little') * 512 # in units of bytes
+    extended_header_size = int.from_bytes(header[28:32], byteorder='little')
+    if extended_header_size != filesize - extended_header_start:
+        print('Warning: extended header size seems wrong')
+    time_interval = np.frombuffer(header[264:272], dtype=np.float64)[0]
+    sample_rate = 1/time_interval
+    print('Sample rate', sample_rate/1e6, 'MHz')
+
+    # Read in the IQ samples
+    if dtype == 'CI':
+        samples = np.fromfile(filename, dtype=np.int16, offset=512, count=(filesize-extended_header_size))
+        samples = samples[::2] + 1j*samples[1::2] # convert to IQIQIQ...
+
+    # Plot every 1000th sample to make sure there's no garbage
+    print(len(samples))
+    plt.plot(samples.real[::1000])
+    plt.show()
+
+"Розширений заголовок" (він же кінцеві байти), що є довільними парами ключ/значення, описано у форматі, визначеному в розділі 3.3 `специфікації формату Blue File <https://web.archive.org/web/20150413061156/http://nextmidas.techma.com/nm/nxm/sys/docs/MidasBlueFileFormat.pdf>`_.  Він часто містить таку інформацію, як радіочастота, підсилення та використаний приймач/SDR. Код на Python для декодування цих пар ключ/значення наведено нижче; його адаптовано з `цього коду <https://github.com/tkzilla/rsa_api_sandbox/blob/master/cdif_reader.py>`_:
+
+.. code-block:: python
+
+    ...
+
+    # Read in the extended header at the end of the file
+    with open(filename, 'rb') as f:
+        f.seek(filesize-extended_header_size)
+        ext_header = f.read(extended_header_size)
+        print("length of extended header", len(ext_header), '\n')
+
+    def parse_extended_header(idx):
+        next_offset = np.frombuffer(ext_header[idx:idx+4], dtype=np.int32)[0]
+        non_data_length = np.frombuffer(ext_header[idx+4:idx+6], dtype=np.int16)[0]
+        name_length = ext_header[idx+6]
+        dataStart = idx + 8
+        dataLength = dataStart + next_offset - non_data_length
+        midas_to_np = {'O' : np.uint8, 'B' : np.int8, 'I' : np.int16, 'L' : np.int32, 'X' : np.int64, 'F' : np.float32, 'D' : np.float64}
+        format_code = chr(ext_header[idx+7])
+        if format_code == 'A':
+            val = ext_header[dataStart:dataLength].decode('latin_1')
+        else:
+            val = np.frombuffer(ext_header[dataStart:dataLength], dtype=midas_to_np[format_code])[0]
+        key = ext_header[dataLength:dataLength+name_length].decode('latin_1')
+        print(key, '  ', val)
+        return idx + next_offset
+
+    next_idx = 0
+    while next_idx < extended_header_size:
+        next_idx = parse_extended_header(next_idx)
+
+До речі, саме через Blue-файли та інші двійкові IQ-формати, у яких метадані й дані містяться в одному файлі, SigMF має різновид під назвою Non-Conforming Datasets (NCD): він дозволяє "вписати" у формат типу SigMF двійкові IQ-файли з додатковими байтами на початку та/або в кінці (використаними для метаданих).  Докладніше див. поля метаданих SigMF: dataset, header_bytes, trailing_bytes.  Тобто суто з погляду читання даних ми можемо поводитися з Blue-файлом як зі звичайним двійковим IQ-файлом, якщо ігноруємо перші 512 байтів і будь-які байти розширеного заголовка в кінці.
+
+Зовнішні ресурси, пов'язані з Blue-файлами:
+
+#.  https://web.archive.org/web/20150413061156/http://nextmidas.techma.com/nm/nxm/sys/docs/MidasBlueFileFormat.pdf
+#.  https://sigplot.lgsinnovations.com/html/doc/bluefile.html
+#.  https://lgsinnovations.github.io/sigfile/bluefile.js.html
+#.  http://nextmidas.com.s3-website-us-gov-west-1.amazonaws.com/
+#.  https://web.archive.org/web/20181020012349/http://nextmidas.techma.com/nm/htdocs/usersguide/BlueFiles.html
+#.  https://github.com/Geontech/XMidasBlueReader

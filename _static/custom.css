@@ -326,11 +326,13 @@ pre.mermaid > svg,
 	display: block;
 }
 
-/* GNU Radio World embeds are width:100% with a 21/9 aspect-ratio, so on a wide
-   window they grow taller than they need to be (a 3440px screen gives a frame
-   over 1300px tall).  Cap the height and let the frame go wider than 21/9
-   instead, which just shows more canvas.  Applies to every embed in the book;
-   max-height isn't in their inline styles, so no !important is needed. */
+/* GNU Radio World embeds are injected with inline width/aspect-ratio/min-height
+   styles in the book content.  Keep the styling centralized here so changing
+   their size only takes one edit.  The issue request is to make them 50%
+   taller, so increase the aspect ratio height, min-height, and wide-screen cap
+   by that amount for every embed in the book. */
 iframe[src*="gnuradioworld.com"] {
-	max-height: min(60vh, 640px);
+	aspect-ratio: 14 / 9 !important;
+	min-height: 518px !important;
+	max-height: min(90vh, 960px);
 }

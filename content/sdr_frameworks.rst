@@ -232,7 +232,7 @@ GNU Radio 4.0
 
 GNU Radio 4.0 (a.k.a. GR4) is a ground-up rewrite of the runtime, and as of this writing it has reached the release-candidate stage (`RC3 was released in September 2026 <https://github.com/gnuradio/gnuradio4/releases/tag/4.0.0-RC3>`_), while GNU Radio 3 remains the stable series for production use.  The motivation is that GNU Radio 3's design dates back to the early 2000s, and a lot has changed since then in C++ and in computer hardware.  The biggest changes are:
 
-* **Much faster.** GR4 can glue blocks together at compile time, so the memory copies between blocks that GR3 requires disappear entirely, leading to 2–10x gains from eliminating inter-block buffers alone.  The scheduler itself can be swapped out for a custom one.
+* **Much faster.** GR4 lets you optionally merge blocks together at compile time, so the buffer between them disappears entirely, along with the trip through memory and the scheduler overhead it costs.  The scheduler itself can be swapped out for a custom one.
 * **Modern C++23.** Blocks are written in a much more compact style, and much of the work of connecting blocks is checked at compile time.  There's less boilerplate when writing a custom block, and a block's logic is no longer spread across a bunch of files.
 * **Block registry and plugins.** GR4's new registry and plugin system means block metadata (parameters, ports, constraints) can be read programmatically, so blocks can be auto-discovered, UIs generated automatically, and configurations validated.  The registry is used for run-time discovery of blocks contained in shared library plugins.
 
@@ -342,7 +342,7 @@ The Software Communications Architecture
 
 In the late 1990s the U.S. military launched the Joint Tactical Radio System (JTRS) program, aiming to replace a large number of incompatible military radios with a family of software-defined radios.  The central idea was **waveform portability**: a waveform (the military term for a complete signal processing application, like a specific communications protocol) should be written once and run on radios from different manufacturers.  To make that possible, JTRS created the **Software Communications Architecture (SCA)**, whose first version appeared in 2000.
 
-The SCA is not a DSP library; it's a specification for how software components get described, deployed, connected, configured, and started on a radio's processors.  Components are described in XML files, they communicate over CORBA (a middleware standard for calling functions on objects in other processes or on other machines), and a "core framework" on each radio reads those XML files to launch the waveform on whatever processors are available.  Notice the emphasis: deployment and portability come first, and the DSP itself is up to you.  Several commercial SCA implementations exist, and the specification is still maintained, but it is mostly confined to the military radio world.
+The SCA is not a DSP library; it's a specification for how software components get described, deployed, connected, configured, and started on a radio's processors.  Components are described in XML files, they communicate over CORBA (a middleware standard for calling functions on objects in other processes or on other machines, which was mandatory up through SCA 2.2.2 and became optional in SCA 4), and a "core framework" on each radio reads those XML files to launch the waveform on whatever processors are available.  Notice the emphasis: deployment and portability come first, and the DSP itself is up to you.  Several commercial SCA implementations exist, and the specification is still maintained, but it is mostly confined to the military radio world.
 
 REDHAWK
 #######
@@ -351,7 +351,7 @@ REDHAWK
 
 REDHAWK's vocabulary maps onto the concepts from earlier like this:
 
-* **Components** are the blocks, written in C++, Python, or Java, each running as its own process.
+* **Components** are the blocks, written in C++, Python, or Java.  Python and Java components each run as their own process, while C++ components (since REDHAWK 2.1) can be loaded together into a single shared process to avoid the overhead of passing samples between processes.
 * **Waveforms** (also called applications) are the flowgraphs, described in XML.
 * **Devices** represent hardware, both SDRs and the computers that components run on, and are managed by **device managers**.
 * A **domain manager** oversees everything, deciding which computer each component runs on when a waveform is launched, which lets one waveform span several machines.
@@ -426,7 +426,7 @@ OpenCPI
 
 `OpenCPI <https://opencpi.github.io/>`_ (Open Component Portability Infrastructure) is another government-funded, LGPL-3 licensed framework, which dates back to around 2010 and is still actively released (version 2.4.9 came out in 2026).  Like REDHAWK, it inherits the SCA's focus on portable components, but its specialty is **heterogeneous** systems: a single application can contain components running on a CPU, on an FPGA, and on a GPU, all connected together.
 
-In OpenCPI, components are implemented by **workers**, and each worker is written in an "authoring model" that matches where it runs: C/C++ for CPUs and VHDL for FPGAs.  The same component can have multiple workers, e.g., a CPU version and an FPGA version, and the framework picks which one to use based on the hardware available when the application is launched.  Applications are described in XML, and support for specific hardware platforms (such as Xilinx Zynq-based SDRs) comes from separate platform support projects.  This makes OpenCPI attractive for embedded radios where the heavy DSP lives in the FPGA, which, as mentioned earlier, is how many fielded systems are built.
+In OpenCPI, components are implemented by **workers**, and each worker is written in an "authoring model" that matches where it runs: C/C++ for CPUs, VHDL (or Verilog) for FPGAs, and OpenCL for GPUs.  The same component can have multiple workers, e.g., a CPU version and an FPGA version, and the framework picks which one to use based on the hardware available when the application is launched.  Applications are described in XML, and support for specific hardware platforms (such as Xilinx Zynq-based SDRs) comes from separate platform support projects.  This makes OpenCPI attractive for embedded radios where the heavy DSP lives in the FPGA, which, as mentioned earlier, is how many fielded systems are built.
 
 FM Receiver in OpenCPI
 ######################
@@ -449,7 +449,7 @@ OpenCPI's component library for this kind of work is **ocpi.comp.sdr**, and it h
    </instance>
  </application>
 
-You run it with :code:`ocpirun -v fm_rx.xml`, and the :code:`done="file_write"` attribute tells OpenCPI the application is finished once the file writer has received the end of the file.
+You run it with :code:`ocpirun -v fm_rx.xml`, and the :code:`done="file_write"` attribute tells OpenCPI the application is finished once the file writer has received the end of the file.  Unlike the other versions, this one skips the decimate-by-5 step, so the output file is still at 250 kHz, and the FM demod has no gain, so you would need to normalize the output when converting it to WAV.
 
 Notice that the application only names *components*, never *workers*.  When it's launched, OpenCPI looks at the hardware available and picks an implementation (worker) for each component.  Here's the core of the CPU worker for the FM demod, which is written in C++ using OpenCPI's RCC ("Resource-Constrained C/C++") authoring model:
 

@@ -39,6 +39,7 @@
    content/detection
    content/fpv_video
    content/tdoa
+   content/sdr_frameworks
    content/about_author
 
 .. raw:: html

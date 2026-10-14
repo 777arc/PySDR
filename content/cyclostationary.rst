@@ -1,4 +1,4 @@
-.. _freq-domain-chapter:
+.. _cyclostationary-chapter:
 
 ##########################
 Cyclostationary Processing

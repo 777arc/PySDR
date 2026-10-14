@@ -12,3 +12,5 @@ docutils==0.17.1
 requests # used by scrape_patreon.py to hit the Patreon v2 API
 setuptools<72 # was needed by the patreon package, may no longer be needed now that it's gone
 imageio==2.11.0
+marimo==0.25.1 # turns figure-generating-scripts/tdoa.py into the in-browser notebook embedded in the TDOA chapter, see `make marimo`
+jupytext==1.19.6 # needed by `marimo convert` to read the # %% cell markers

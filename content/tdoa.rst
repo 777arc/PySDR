@@ -338,7 +338,7 @@ Not much to it!  This gives us the following results:
 
 Note that this code doesn't fully "solve" the problem, even though it might seem like it does at first glance because the lines intersect exactly at the position of the emitter, but it's really your brain doing the final "solving" of the position, by looking at the intersection of the hyperbolas.  Also, if there was more noise, the hyperbolas would not all intersect at one point.  We will dive into automated solutions later in this chapter.
 
-The full Python code (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/tdoa.py>`_.
+The full Python code (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/tdoa.py>`_, or you can `open it as a marimo notebook <../marimo/tdoa/index.html>`_ that runs entirely in your browser, no install required.
 
 Resolution and Sub-Sample Estimation
 ==========================================
@@ -349,7 +349,7 @@ With sampling rate :math:`f_s`, the correlation is computed on a lag grid spaced
 
    U = 16 # correlation upsampling factor
    half = (buffer_len + 1) // 2 # number of DC + positive-frequency bins
-   range_diff = np.zeros(len(pairs)) # meters
+   range_diff_sub = np.zeros(len(pairs)) # meters
    for k, (a, b) in enumerate(pairs):
       # Cross-correlation in the frequency domain
       X = np.conj(np.fft.fft(rx_signals[a])) * np.fft.fft(rx_signals[b])
@@ -367,7 +367,7 @@ With sampling rate :math:`f_s`, the correlation is computed on a lag grid spaced
       if peak_idx > U * buffer_len // 2:
          peak_idx -= U * buffer_len
       peak_lag = peak_idx / U # sub-sample lag, +ve => Rx_b farther
-      range_diff[k] = (peak_lag / sample_rate) * c # meters
+      range_diff_sub[k] = (peak_lag / sample_rate) * c # meters
 
 When doing the same Python simulation as before, but with subsampling, we get the following results.  You would have to zoom in on the left-hand plot to see the accuracy difference.
 
@@ -806,3 +806,9 @@ When the emitter, the sensors, or both are *moving*, the relative motion imparts
    A(\tau,\nu) = \int_0^T x_i(t)\, x_j^{*}(t-\tau)\, e^{-j2\pi \nu t}\, dt,
 
 whose two-dimensional peak gives :math:`(\hat\tau_{ij},\hat\nu_{ij})` simultaneously. The CAF generalizes the cross-correlation technique above by adding a frequency-search dimension, at correspondingly higher computational cost.  Note that this is not the same CAF introduced in the cyclostationary chapter as the cyclic autocorrelation function.  Joint TDOA/FDOA processing is the backbone of satellite and airborne geolocation of radio emitters, where a single pair of moving platforms can localize a stationary emitter from the combined delay and Doppler constraints.
+
+******************************************
+External Resources and Example Python Code
+******************************************
+
+The full Python code used to create the figures and example code in this chapter can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/tdoa.py>`_, or you can `open it as a marimo notebook <../marimo/tdoa/index.html>`_ that runs entirely in your browser, no install required.

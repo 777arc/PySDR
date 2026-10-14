@@ -17,6 +17,9 @@ PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 EXTENSIONS      = -D extensions=sphinx.ext.mathjax,sphinx.ext.autosectionlabel,sphinxcontrib.tikz,sphinxcontrib.mermaid -D tikz_includegraphics_path=_images -D tikz_tikzlibraries=positioning,shapes,arrows,snakes
+# Scripts in figure-generating-scripts/ (with # %% cell markers) that get turned into in-browser marimo notebooks at
+# _build/marimo/<name>/, the converted notebook only ever exists in _build, never in the repo
+MARIMO_NOTEBOOKS = tdoa
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
@@ -56,10 +59,26 @@ clean:
 spelling:
 	$(SPHINXBUILD) -b spelling . _spelling
 
+# convert turns the # %% markers into cells, check fails the build if a cell breaks marimo's rules, and export
+# produces an in-browser (Pyodide) notebook.  The export always embeds marimo's default config, which doesn't run
+# cells on load, so the sed flips that (and the grep fails the build if a future marimo version renames the setting)
+.PHONY: marimo
+marimo:
+	@mkdir -p $(BUILDDIR)/marimo
+	@for nb in $(MARIMO_NOTEBOOKS); do \
+		echo "building marimo notebook from figure-generating-scripts/$$nb.py"; \
+		marimo -q -y convert figure-generating-scripts/$$nb.py -o $(BUILDDIR)/marimo/$$nb.py && \
+		marimo check $(BUILDDIR)/marimo/$$nb.py && \
+		marimo -q -y export html-wasm $(BUILDDIR)/marimo/$$nb.py -o $(BUILDDIR)/marimo/$$nb --mode edit -f && \
+		sed -i 's/"auto_instantiate": false/"auto_instantiate": true/' $(BUILDDIR)/marimo/$$nb/index.html && \
+		grep -q '"auto_instantiate": true' $(BUILDDIR)/marimo/$$nb/index.html || exit 1; \
+	done
+
 .PHONY: fast-html
 fast-html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
 	cp extra/_headers $(BUILDDIR)/
+	$(MAKE) marimo
 
 .PHONY: serve
 serve:
@@ -69,6 +88,7 @@ serve:
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(EXTENSIONS) $(BUILDDIR)
 	cp extra/_headers $(BUILDDIR)/
+	$(MAKE) marimo
 	$(SPHINXBUILD) -b spelling . _spelling
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

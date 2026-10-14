@@ -36,7 +36,7 @@ At its core, an SDR framework is a runtime that executes a graph of signal proce
 
 Let's walk through the parts:
 
-* **Blocks** are the blue boxes.  Each one does a single job, like FM demodulation or filtering, and is written once and reused.  Most SDR frameworks ship with hundreds of blocks and contain basic signal processing and DSP operations.
+* **Blocks** are the blue boxes.  Each one does a single job, like FM demodulation or filtering, and is written once and reused.  Most SDR frameworks ship with hundreds of blocks covering basic signal processing and DSP operations.
 * **Ports** are the connection points on each block.  A port has a data type (e.g., a stream of samples, either complex floats or real floats), and the framework checks that you only connect compatible ports, which catches a whole class of bugs before you even run anything.
 * **Buffers** sit between blocks and hold samples that one block has produced but the next block hasn't consumed yet.  Note how the sample rate changes along the chain: 250 kHz complex, then 250 kHz real after the demod, then 50 kHz after decimation.  The framework keeps track of these rate changes so each block gets the right number of samples.
 * **The scheduler** decides when each block runs, how many samples it gets to process at a time, and on which thread.  If the WAV sink falls behind, the buffer in front of it fills up, and the scheduler stops calling the upstream blocks until there is room again.  This is called **back-pressure**, and it's what keeps a fast source from overrunning a slow consumer.
@@ -133,17 +133,17 @@ With a live SDR you would have to process samples in chunks, carrying the filter
 GNU Radio
 ***********
 
-`GNU Radio <https://www.gnuradio.org/>`_ is the oldest and by far the most widely used open source SDR framework.  It was started in 2001 by Eric Blossom with funding from John Gilmore, and today it is used across academia, hobbyists, industry, and defense.  It is written in C++ with Python bindings, licensed under GPL-3, and runs on Linux, macOS, and Windows.  If someone says "SDR framework" without qualification, they probably mean GNU Radio.  Where GNU Radio really shines is the incredible ecosystem, which consists of:
+`GNU Radio <https://www.gnuradio.org/>`_ is the oldest and by far the most widely used open source SDR framework.  It was started in 2001 by Eric Blossom with funding from John Gilmore, and today it is used by hobbyists and across academia, industry, and defense.  It is written in C++ with Python bindings, licensed under GPL-3, and runs on Linux, macOS, and Windows.  If someone says "SDR framework" without qualification, they probably mean GNU Radio.  Where GNU Radio really shines is its incredible ecosystem, which consists of:
 
 * **Software:** Third-party blocks, example flowgraphs, SDR/hardware support, as well as contributors to the core code.  There are also applications like `GNU Radio World <https://gnuradioworld.com/>`_ that build on GNU Radio and its ecosystem of software.
 * **Community:** People who use it and develop it, and the GNU Radio conferences that double as a way to bring together folks who work in areas related to SDR and RF signal processing, or simply do it as a hobby.
-* **Education:** From high school to graduate level, it's used to teach and practice RF and DSP concepts without getting bogged down with code.
+* **Education:** From high school to graduate level, it's used to teach and practice RF and DSP concepts without getting bogged down in code.
 
 Full disclosure: I'm one of the leads of the GNU Radio project, so take my enthusiasm with a grain of salt!
 
 GNU Radio's current stable series is 3.10.  Let's start with how it maps to the concepts from earlier:
 
-* **Blocks** are C++ or Python classes.  The most common kind is a "sync block", which outputs one sample for every input sample, plus decimators and interpolators that change the rate by a fixed ratio.
+* **Blocks** are C++ or Python classes.  The most common kind is a "sync block", which outputs one sample for every input sample.  There are also decimators and interpolators, which change the rate by a fixed ratio.
 * **The scheduler** runs each block in its own thread (the "thread-per-block" scheduler), so a flowgraph with 20 blocks automatically uses many CPU cores.
 * **Buffers** are circular buffers that use a clever trick: the same physical memory is mapped twice, back to back, so a block can always read or write a contiguous chunk without worrying about wrapping around the end of the buffer.
 * **Stream tags** and **messages** are two extras GNU Radio adds on top of those core concepts.  Stream tags are small pieces of metadata attached to a specific sample, which travel through the flowgraph alongside the samples.  For example, the source might tag the first sample with the time it was received, and that tag will come out of the far end of the chain still attached to the corresponding sample, even after decimation.  Messages are asynchronous, not tied to any sample, and are used for control (e.g., a GUI slider changing a filter's cutoff frequency) or for passing around packets once you've demodulated bits.  Messages use a type system called PMTs (polymorphic types) and are sent between blocks through message ports.
@@ -232,14 +232,14 @@ GNU Radio 4.0
 
 GNU Radio 4.0 (a.k.a. GR4) is a ground-up rewrite of the runtime, and as of this writing it has reached the release-candidate stage (`RC3 was released in September 2026 <https://github.com/gnuradio/gnuradio4/releases/tag/4.0.0-RC3>`_), while GNU Radio 3 remains the stable series for production use.  The motivation is that GNU Radio 3's design dates back to the early 2000s, and a lot has changed since then in C++ and in computer hardware.  The biggest changes are:
 
-* **Much faster.** GR4 can glue blocks together at compile time so the memory copies between blocks that GR3 requires disappear entirely, leading to 2-10x gains from eliminating inter-block buffers alone.  The scheduler itself can be swapped out for a custom one.
+* **Much faster.** GR4 can glue blocks together at compile time, so the memory copies between blocks that GR3 requires disappear entirely, leading to 2–10x gains from eliminating inter-block buffers alone.  The scheduler itself can be swapped out for a custom one.
 * **Modern C++23.** Blocks are written in a much more compact style, and much of the work of connecting blocks is checked at compile time.  There's less boilerplate when writing a custom block, and a block's logic is no longer spread across a bunch of files.
 * **Block registry and plugins.** GR4's new registry and plugin system means block metadata (parameters, ports, constraints) can be read programmatically, so blocks can be auto-discovered, UIs generated automatically, and configurations validated.  The registry is used for run-time discovery of blocks contained in shared library plugins.
 
 FM Receiver in GNU Radio 4.0
 ############################
 
-Here is our FM receiver in GR4, written in C++.  It was tested against 4.0.0-RC3, and since GR4 is still in release candidates, expect some of the names to shift before the final release.
+Here is our FM receiver in GR4, written in C++.  It was tested against 4.0.0-RC3, and since GR4 is still at the release-candidate stage, expect some of the names to shift before the final release.
 
 .. code-block:: c++
 
@@ -342,7 +342,7 @@ The Software Communications Architecture
 
 In the late 1990s the U.S. military launched the Joint Tactical Radio System (JTRS) program, aiming to replace a large number of incompatible military radios with a family of software-defined radios.  The central idea was **waveform portability**: a waveform (the military term for a complete signal processing application, like a specific communications protocol) should be written once and run on radios from different manufacturers.  To make that possible, JTRS created the **Software Communications Architecture (SCA)**, whose first version appeared in 2000.
 
-The SCA is not a DSP library; it's a specification for how software components get described, deployed, connected, configured, and started on a radio's processors.  Components are described in XML files, they communicate over CORBA (a middleware standard for calling functions on objects in other processes or on other machines), and a "core framework" on each radio reads those XML files to launch the waveform on whatever processors are available.  Notice the emphasis: deployment and portability come first, and the DSP itself is up to you.  Several commercial SCA implementations exist and the specification is still maintained, but it is mostly confined to the military radio world.
+The SCA is not a DSP library; it's a specification for how software components get described, deployed, connected, configured, and started on a radio's processors.  Components are described in XML files, they communicate over CORBA (a middleware standard for calling functions on objects in other processes or on other machines), and a "core framework" on each radio reads those XML files to launch the waveform on whatever processors are available.  Notice the emphasis: deployment and portability come first, and the DSP itself is up to you.  Several commercial SCA implementations exist, and the specification is still maintained, but it is mostly confined to the military radio world.
 
 REDHAWK
 #######
@@ -362,7 +362,7 @@ The killer feature was distribution: you could launch a waveform and have its co
 FM Receiver in REDHAWK
 ######################
 
-REDHAWK ships with a set of basic components that cover most of our receiver: **rh.FileReader** reads the IQ file, **rh.AmFmPmBasebandDemod** performs the FM demod, **rh.fastfilter** is a low-pass filter (it filters using FFTs, but doesn't decimate), **rh.ArbitraryRateResampler** brings the rate down to 50 kHz, and **rh.FileWriter** saves the result.  You would normally drag these onto a canvas in the REDHAWK IDE and draw the connections, and the IDE saves the result as a waveform described in a "software assembly descriptor" XML file (:code:`.sad.xml`).  The full file is long, so here is an abbreviated version showing the first two components and the first connection:
+REDHAWK ships with a set of basic components that cover most of our receiver: **rh.FileReader** reads the IQ file, **rh.AmFmPmBasebandDemod** performs the FM demod, **rh.fastfilter** is a low-pass filter (it filters using FFTs, but doesn't decimate), **rh.ArbitraryRateResampler** brings the rate down to 50 kHz, and **rh.FileWriter** saves the result.  You would normally drag these onto a canvas in the REDHAWK IDE and draw the connections, and the IDE saves the flowgraph as a waveform described in a "software assembly descriptor" XML file (:code:`.sad.xml`).  The full file is long, so here is an abbreviated version showing the first two components and the first connection:
 
 .. code-block:: xml
 
@@ -424,7 +424,7 @@ To run it, you start a domain manager and a device manager, install the waveform
 OpenCPI
 #######
 
-`OpenCPI <https://opencpi.github.io/>`_ (Open Component Portability Infrastructure) is another government-funded, LGPL-3 licensed framework, which dates back to around 2010 and is still actively released (version 2.4.9 came out in 2026).  Like REDHAWK it inherits the SCA's focus on portable components, but its specialty is **heterogeneous** systems: a single application can contain components running on a CPU, on an FPGA, and on a GPU, all connected together.
+`OpenCPI <https://opencpi.github.io/>`_ (Open Component Portability Infrastructure) is another government-funded, LGPL-3 licensed framework, which dates back to around 2010 and is still actively released (version 2.4.9 came out in 2026).  Like REDHAWK, it inherits the SCA's focus on portable components, but its specialty is **heterogeneous** systems: a single application can contain components running on a CPU, on an FPGA, and on a GPU, all connected together.
 
 In OpenCPI, components are implemented by **workers**, and each worker is written in an "authoring model" that matches where it runs: C/C++ for CPUs and VHDL for FPGAs.  The same component can have multiple workers, e.g., a CPU version and an FPGA version, and the framework picks which one to use based on the hardware available when the application is launched.  Applications are described in XML, and support for specific hardware platforms (such as Xilinx Zynq-based SDRs) comes from separate platform support projects.  This makes OpenCPI attractive for embedded radios where the heavy DSP lives in the FPGA, which, as mentioned earlier, is how many fielded systems are built.
 
@@ -482,7 +482,7 @@ If you come from GNU Radio or plain Python, REDHAWK and OpenCPI can feel heavy, 
 CyberEther
 **********
 
-`CyberEther <https://github.com/luigifcruz/CyberEther>`_ is a GPU-accelerated signal processing and visualization tool created by Luigi Cruz in 2021 as a personal project, and licensed under MIT.  It includes a flowgraph editor and real-time plots rendered on the GPU using Vulkan, Metal, or WebGPU, so it runs on Linux, macOS, Windows, mobile devices, and even in the browser through WebAssembly, and it has a remote interface for running on headless machines.  It is very actively developed, but note that it is primarily one person's project, and while it resembles a framework, there isn't an ecosystem of third-party blocks or a large community of users building on top of it.  Its strength is fast, smooth visualization of wideband signals, which is an area where older frameworks have historically struggled.
+`CyberEther <https://github.com/luigifcruz/CyberEther>`_ is a GPU-accelerated signal processing and visualization tool created by Luigi Cruz in 2021 as a personal project, and is licensed under MIT.  It includes a flowgraph editor and real-time plots rendered on the GPU using Vulkan, Metal, or WebGPU, so it runs on Linux, macOS, Windows, mobile devices, and even in the browser through WebAssembly, and it has a remote interface for running on headless machines.  It is very actively developed, but note that it is primarily one person's project, and while it resembles a framework, there isn't an ecosystem of third-party blocks or a large community of users building on top of it.  Its strength is fast, smooth visualization of wideband signals, which is an area where older frameworks have historically struggled.
 
 FM Receiver in CyberEther
 #########################
@@ -592,7 +592,7 @@ The table below summarizes the frameworks covered in this chapter, as of late 20
    * - REDHAWK
      - C++, Python, Java
      - LGPL
-     - Unknown, public version is not maintained
+     - Unknown; public version is not maintained
      - Eclipse IDE
      - Existing government programs, distributed processing
    * - OpenCPI

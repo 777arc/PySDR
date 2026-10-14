@@ -4,15 +4,15 @@
 SDR Frameworks
 ##############
 
-When you want to build an SDR or RF signal processing application of some sort, you must choose whether to write it as a bespoke application from scratch, or if it's worth using an existing framework.  In most a SDR frameworks, you connect pre-built processing blocks together (often with some of your own custom blocks) and a runtime handles moving samples between them.  The SDR framework tends to also come with GUIs and signal debugging tools, and sometimes support for a variety of hardware.  By creating an application within this type of framework, you automatically get support for many SDRs and you don't have to spend as much time writing GUIs and such.  In this chapter we will learn what an SDR framework actually does for you, when it's worth using one (often it's not!), and then tour the popular frameworks, from GNU Radio to government-born frameworks like REDHAWK.  As an example we will build the same FM radio receiver in each one.
+When you want to build an SDR or RF signal processing application of some sort, you must choose whether to write it as a bespoke application from scratch, or whether it's worth using an existing framework.  In most SDR frameworks, you connect pre-built processing blocks together (often with some of your own custom blocks) and a runtime handles moving samples between them.  The SDR framework tends to also come with GUIs and signal debugging tools, and sometimes support for a variety of hardware.  By creating an application within this type of framework, you automatically get support for many SDRs and you don't have to spend as much time writing GUIs and such.  In this chapter we will learn what an SDR framework actually does for you, when it's worth using one (often it's not!), and then tour the popular frameworks, from GNU Radio to government-born frameworks like REDHAWK.  As an example we will build the same FM radio receiver in each one.
 
 ************
 Introduction
 ************
 
-Imagine you want to listen to an FM radio station.  On a whiteboard the receiver is just a few boxes connected by arrows: get samples, FM demodulate, filter, and play the audio.  If you have an IQ recording you can write that in a dozen lines of Python.  Now imagine the samples are streaming live from an SDR, nonstop, at 250 thousand samples per second, and the audio must come out of your speakers without gaps or stutters.  The boxes and arrows haven't changed, but suddenly you need to worry about threads, buffers, what happens when one step runs slower than another, and how to process an endless stream in chunks without glitches at the chunk boundaries.  None of that is DSP, it's plumbing, and plumbing is exactly what an SDR framework provides.
+Imagine you want to listen to an FM radio station.  On a whiteboard the receiver is just a few boxes connected by arrows: get samples, FM demodulate, filter, and play the audio.  If you have an IQ recording you can write that in a dozen lines of Python.  Now imagine the samples are streaming live from an SDR, nonstop, at 250 thousand samples per second, and the audio must come out of your speakers without gaps or stutters.  The boxes and arrows haven't changed, but suddenly you need to worry about threads, buffers, what happens when one step runs slower than another, and how to process an endless stream in chunks without glitches at the chunk boundaries.  None of that is DSP; it's plumbing, and plumbing is exactly what an SDR framework provides.
 
-Throughout this chapter we will use a single example: a mono FM broadcast receiver.  Every version, in every framework, uses the same input, which is the 250 kHz FM recording from the :ref:`rds-chapter` chapter, which you can `download here <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_.  It contains 1 million complex64 samples (about 4 seconds) centered on an FM station received at high SNR.  Using a recording instead of live hardware means anyone can run every example without owning an SDR, and it lets us compare the frameworks on equal footing.
+Throughout this chapter we will use a single example: a mono FM broadcast receiver.  Every version, in every framework, uses the same input: the 250 kHz FM recording from the :ref:`rds-chapter` chapter, which you can `download here <https://github.com/777arc/498x/blob/master/fm_rds_250k_1Msamples.iq?raw=true>`_.  It contains 1 million complex64 samples (about 4 seconds) centered on an FM station received at high SNR.  Using a recording instead of live hardware means anyone can run every example without owning an SDR, and it lets us compare the frameworks on equal footing.
 
 The receiver chain is intentionally minimal, so that it looks the same in every framework:
 
@@ -41,7 +41,7 @@ Let's walk through the parts:
 * **Buffers** sit between blocks and hold samples that one block has produced but the next block hasn't consumed yet.  Note how the sample rate changes along the chain: 250 kHz complex, then 250 kHz real after the demod, then 50 kHz after decimation.  The framework keeps track of these rate changes so each block gets the right number of samples.
 * **The scheduler** decides when each block runs, how many samples it gets to process at a time, and on which thread.  If the WAV sink falls behind, the buffer in front of it fills up, and the scheduler stops calling the upstream blocks until there is room again.  This is called **back-pressure**, and it's what keeps a fast source from overrunning a slow consumer.
 
-On top of these core pieces, most frameworks add a library of blocks, sources and sinks for popular SDR hardware, GUI widgets for plotting, and some way to describe the graph, either graphically (dragging blocks around and drawing wires) or in code.  Graphically describing it typically involves a block diagram referred to as a "flowgraph".  Some frameworks include methods of adding metadata to specific samples, and/or providing a way to pass asynchronous messages between blocks (e.g., to change a block's parameter).
+On top of these core pieces, most frameworks add a library of blocks, sources and sinks for popular SDR hardware, GUI widgets for plotting, and some way to describe the graph, either graphically (dragging blocks around and drawing wires) or in code.  Graphically describing it typically involves a block diagram referred to as a "flowgraph".  Some frameworks also provide a way to attach metadata to specific samples and/or to pass asynchronous messages between blocks (e.g., to change a block's parameter).
 
 It is easy to confuse SDR frameworks with other kinds of SDR software, because many of these projects blur the lines.  The table below is a rough guide:
 
@@ -98,7 +98,7 @@ And the drawbacks:
 
 As a rule of thumb, reach for a framework when you need continuous real-time streaming, when the blocks you need already exist, or when you want a quick interactive prototype.  Stick with a plain script for offline analysis, learning, one-off experiments, and anything where you want full control and visibility over every step.
 
-It is no secret that in the era of AI, existing software (applications to a great extent and frameworks to a lesser extent) lose some of their value, due to how rapidly you can create new software that does exactly what you want.  Instead of taking an existing open source application and tweaking it to do what you want, it's often easier to just create it from scratch to do exactly what you want.  Frameworks, on the other hand, lose some value in the era of AI but not all their value, especially if you are planning on collaborating with others or showing off what you created.
+It is no secret that in the era of AI, existing software (applications to a great extent and frameworks to a lesser extent) loses some of its value, due to how rapidly you can create new software that does exactly what you want.  Instead of taking an existing open source application and tweaking it, it's often easier to just create a new one from scratch.  Frameworks hold up better; they lose some value in the era of AI but not all of it, especially if you are planning on collaborating with others or showing off what you created.
 
 Example: FM Receiver Without a Framework
 #########################################
@@ -125,7 +125,7 @@ To make this concrete, here is our FM receiver written the PySDR way, with nothi
  x = x / np.max(np.abs(x))
  wavfile.write('fm.wav', int(sample_rate/5), (x * 32767).astype(np.int16))
 
-Because FM puts the audio in the instantaneous frequency, and frequency is the rate of phase change, :code:`y` is the audio.  Open :code:`fm.wav` in any audio player and you should hear about 4 seconds of the station.
+Because FM puts the audio in the instantaneous frequency, and frequency is the rate of phase change, the output of the FM demod line is the audio.  Open :code:`fm.wav` in any audio player and you should hear about 4 seconds of the station.
 
 With a live SDR you would have to process samples in chunks, carrying the filter state, the previous sample for the demod, and the decimation phase from one chunk to the next, all while a separate thread keeps up with the incoming samples.  That's very doable (the :ref:`pyqt-chapter` chapter builds a real-time app without a framework), but it's exactly the plumbing a framework handles for you.
 
@@ -135,13 +135,13 @@ GNU Radio
 
 `GNU Radio <https://www.gnuradio.org/>`_ is the oldest and by far the most widely used open source SDR framework.  It was started in 2001 by Eric Blossom with funding from John Gilmore, and today it is used across academia, hobbyists, industry, and defense.  It is written in C++ with Python bindings, licensed under GPL-3, and runs on Linux, macOS, and Windows.  If someone says "SDR framework" without qualification, they probably mean GNU Radio.  Where GNU Radio really shines is the incredible ecosystem, which consists of:
 
-* **Software:** 3rd party blocks, example flowgraphs, SDR/hardware support, as well as contributors to the core code. There are also applications like `GNU Radio World <https://gnuradioworld.com/>`_ that build off of GNU Radio and its ecosystem of software.
-* **Community:** People who use it and develop it, and the GNU Radio conferences that double as a way to bring together folks that work in areas related to SDR and RF signal processing, or simply do it as a hobby
-* **Education:** From highschool to graduate level, it's used to teach and practice with RF and DSP concepts without getting bogged down with code
+* **Software:** Third-party blocks, example flowgraphs, SDR/hardware support, as well as contributors to the core code.  There are also applications like `GNU Radio World <https://gnuradioworld.com/>`_ that build on GNU Radio and its ecosystem of software.
+* **Community:** People who use it and develop it, and the GNU Radio conferences that double as a way to bring together folks who work in areas related to SDR and RF signal processing, or simply do it as a hobby.
+* **Education:** From high school to graduate level, it's used to teach and practice RF and DSP concepts without getting bogged down with code.
 
 Full disclosure: I'm one of the leads of the GNU Radio project, so take my enthusiasm with a grain of salt!
 
-GNU Radio's current stable series is 3.10, so let's start with how it maps to the concepts from earlier:
+GNU Radio's current stable series is 3.10.  Let's start with how it maps to the concepts from earlier:
 
 * **Blocks** are C++ or Python classes.  The most common kind is a "sync block", which outputs one sample for every input sample, plus decimators and interpolators that change the rate by a fixed ratio.
 * **The scheduler** runs each block in its own thread (the "thread-per-block" scheduler), so a flowgraph with 20 blocks automatically uses many CPU cores.
@@ -154,11 +154,50 @@ The part of GNU Radio most people see first is **GNU Radio Companion (GRC)**, a 
 FM Receiver in GNU Radio 3
 ##########################
 
-.. TODO: FM receiver in GNU Radio 3.10
-   - GRC screenshot of the flowgraph (File Source -> Quadrature Demod -> Low Pass Filter w/ decimation 5 -> WAV File Sink)
-   - The equivalent Python API version
-   - "What to notice" list compared to the plain Python baseline (lines of code, how the chain is described, how sample rates are handled)
-   - GNU Radio World embed of the FM receiver (may need to be created in the GNU Radio World repo first)
+.. TODO: GRC screenshot of the flowgraph (File Source -> Quadrature Demod -> Low Pass Filter w/ decimation 5 -> Wav File Sink)
+
+In GRC, our receiver is four blocks wired in a row: a File Source, a Quadrature Demod, a Low Pass Filter with its decimation set to 5, and a Wav File Sink.  Here is the same flowgraph written directly with the Python API, which is essentially what GRC generates for you, minus the boilerplate:
+
+.. code-block:: python
+
+ import numpy as np
+ from gnuradio import gr, blocks, analog, filter
+
+ sample_rate = 250e3
+
+ tb = gr.top_block()
+ src = blocks.file_source(gr.sizeof_gr_complex, 'fm_rds_250k_1Msamples.iq', False)
+ demod = analog.quadrature_demod_cf(sample_rate / (2 * np.pi * 75e3))  # FM demod, scaled so 75 kHz deviation = 1.0
+ taps = filter.firdes.low_pass(1.0, sample_rate, 15e3, 5e3)  # 15 kHz cutoff, 5 kHz transition width
+ lpf = filter.fir_filter_fff(5, taps)  # low-pass filter and decimate by 5
+ snk = blocks.wavfile_sink('fm.wav', 1, int(sample_rate/5), blocks.FORMAT_WAV, blocks.FORMAT_PCM_16, False)
+
+ tb.connect(src, demod, lpf, snk)
+ tb.run()
+
+Run it and you'll get essentially the same :code:`fm.wav` as the plain Python version.  The line count is about the same too, but a few things are worth noticing:
+
+* **The code describes the graph; it doesn't process anything.**  Each line creates a block, :code:`connect()` wires them together in order, and nothing happens until :code:`tb.run()` hands the graph to the scheduler, which streams the file through in chunks until the File Source runs out of samples.
+* **The demod uses a gain instead of a normalization.**  The Quadrature Demod block computes the exact same angle as our :code:`np.angle()` line, times a gain.  In the NumPy version we normalized by the maximum value at the end, but a streaming flowgraph never sees "the end", so that's not an option.  Instead we use the fact that broadcast FM has a maximum frequency deviation of 75 kHz, and pick the gain so that full deviation maps to 1.0, which is the full-scale value the WAV sink expects.
+* **The filter is specified by its transition width, not its number of taps.**  :code:`firdes.low_pass()` works out how many taps it needs (121 here) to go from passband to stopband within 5 kHz.
+* **Decimation is a parameter of the filter.**  :code:`fir_filter_fff(5, taps)` only computes every 5th output sample, instead of filtering everything and then throwing 80% of it away like our :code:`x[::5]` did.
+* **You keep track of sample rates yourself.**  GNU Radio 3 doesn't pass the sample rate along the graph, so everything that depends on it (the demod gain, the filter design, and the WAV sink in this case) has to be told what rate it is running at.  Get it wrong and the audio plays at the wrong pitch.
+
+To turn this into a live radio, swap the File Source for an SDR source block (e.g., from gr-osmosdr, gr-uhd, or gr-iio) and the Wav File Sink for an Audio Sink; the blocks in between stay the same.
+
+The flowgraph below is the same receiver running in your browser using `GNU Radio World <https://gnuradioworld.com/examples/audio/fm-receiver-recording/>`_, reading the exact same recording.  Instead of writing a WAV file it plays the audio through your speakers, and instead of separate demod and filter blocks it uses the **WBFM Receive** block, which is a hierarchical block (a block made of other blocks) that bundles the quadrature demod, low-pass filter, decimation, and a de-emphasis filter into one.  It also resamples from 250 kHz to 240 kHz first, so that decimating by 5 lands on 48 kHz, a rate every sound card supports.  Hit run, give it a moment, and you should hear the station.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=audio/fm_receiver_recording"
+             title="PySDR: FM Receiver from Recording"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
 
 Bringing Your Own NumPy Code
 ############################
@@ -193,14 +232,45 @@ GNU Radio 4.0
 
 GNU Radio 4.0 (a.k.a. GR4) is a ground-up rewrite of the runtime, and as of this writing it has reached the release-candidate stage (`RC3 was released in September 2026 <https://github.com/gnuradio/gnuradio4/releases/tag/4.0.0-RC3>`_), while GNU Radio 3 remains the stable series for production use.  The motivation is that GNU Radio 3's design dates back to the early 2000s, and a lot has changed since then in C++ and in computer hardware.  The biggest changes are:
 
-* **Much faster.** GR4 can glue blocks together at compile time so the previous memory copies between blocks of GR3 disappear entirely, leading to 2-10x gains from eliminating inter-block buffers alone.  The scheduler itself can be swapped out for a custom one.
-* **Modern C++23.** Blocks are written in a much more compact style, and much of the work of connecting blocks is checked at compile time.  Less boilerplate when writing a custom block, and logic is no longer distributed across a bunch of files.
-* GR4's new registry and plugins system means block metadata (parameters, ports, constraints) can be read programmatically, so blocks can be auto-discovered, UIs generated automatically, and configurations validated.  The registry is used for run-time discovery of blocks contained in shared library plugins.
+* **Much faster.** GR4 can glue blocks together at compile time so the memory copies between blocks that GR3 requires disappear entirely, leading to 2-10x gains from eliminating inter-block buffers alone.  The scheduler itself can be swapped out for a custom one.
+* **Modern C++23.** Blocks are written in a much more compact style, and much of the work of connecting blocks is checked at compile time.  There's less boilerplate when writing a custom block, and a block's logic is no longer spread across a bunch of files.
+* **Block registry and plugins.** GR4's new registry and plugin system means block metadata (parameters, ports, constraints) can be read programmatically, so blocks can be auto-discovered, UIs generated automatically, and configurations validated.  The registry is used for run-time discovery of blocks contained in shared library plugins.
 
 FM Receiver in GNU Radio 4.0
 ############################
 
-.. TODO: FM receiver in GNU Radio 4.0 (C++ and/or Studio screenshot), if the API is stable enough at time of writing
+Here is our FM receiver in GR4, written in C++.  It was tested against 4.0.0-RC3, and since GR4 is still in release candidates, expect some of the names to shift before the final release.
+
+.. code-block:: c++
+
+ #include <gnuradio-4.0/Graph.hpp>
+ #include <gnuradio-4.0/Scheduler.hpp>
+ #include <gnuradio-4.0/fileio/BasicFileIo.hpp>
+ #include <gnuradio-4.0/fileio/WavBlocks.hpp>
+ #include <gnuradio-4.0/analog/QuadratureDemod.hpp>
+ #include <gnuradio-4.0/filter/FirDecimator.hpp>
+ #include <numbers>
+
+ int main() {
+     using namespace gr;
+     const float sample_rate = 250e3f;
+
+     Graph fg;
+     auto& src = fg.emplaceBlock<blocks::fileio::BasicFileSource<std::complex<float>>>({{"file_name", std::string("./fm_rds_250k_1Msamples.iq")}});
+     auto& demod = fg.emplaceBlock<incubator::analog::QuadratureDemod<float>>({{"gain", sample_rate / (2 * std::numbers::pi * 75e3)}});
+     auto& lpf = fg.emplaceBlock<incubator::filter::FirDecimator<float>>({{"decim", 5U}, {"sample_rate", sample_rate}, {"f_low", 15e3f}, {"transition_width", 5e3f}});
+     auto& snk = fg.emplaceBlock<blocks::fileio::WavSink<float>>({{"uri", std::string("./fm.wav")}, {"sample_rate", sample_rate / 5}});
+
+     fg.connect<"out", "in">(src, demod).value();
+     fg.connect<"out", "in">(demod, lpf).value();
+     fg.connect<"out", "in">(lpf, snk).value();
+
+     scheduler::Simple sched;
+     sched.exchange(std::move(fg)).value();
+     sched.runAndWait().value();
+ }
+
+The shape is the same as the GNU Radio 3 version: create the blocks, connect them, hand the graph to a scheduler, and run.
 
 ***********
 FutureSDR
@@ -219,7 +289,47 @@ So why build another framework?  FutureSDR is designed around a few ideas that a
 FM Receiver in FutureSDR
 ########################
 
-.. TODO: FM receiver in FutureSDR (Rust), plus "what to notice" list compared to the baseline and GNU Radio
+Here is our receiver in FutureSDR 0.9.  Note that FutureSDR uses some unstable Rust features, so you need the nightly Rust compiler (:code:`rustup toolchain install nightly`) and the :code:`audio` feature enabled in :code:`Cargo.toml` for the WAV sink.
+
+.. code-block:: rust
+
+ use futuresdr::blocks::audio::WavSink;
+ use futuresdr::blocks::{Apply, FileSource, FirBuilder};
+ use futuresdr::futuredsp::{firdes, windows};
+ use futuresdr::hound;
+ use futuresdr::prelude::*;
+
+ fn main() -> Result<()> {
+     let sample_rate = 250e3;
+     let mut fg = Flowgraph::new();
+
+     let src = FileSource::<Complex32>::new("fm_rds_250k_1Msamples.iq", false);
+
+     // FM demod, which needs to remember the previous sample
+     let gain = (sample_rate / (2.0 * std::f64::consts::PI * 75e3)) as f32;
+     let mut last = Complex32::new(0.0, 0.0);
+     let demod = Apply::new(move |x: &Complex32| -> f32 {
+         let y = (x * last.conj()).arg() * gain;
+         last = *x;
+         y
+     });
+
+     // Low-pass filter to keep only the mono audio (0 to 15 kHz), then decimate by 5 to get 50 kHz
+     let taps = firdes::lowpass::<f32>(15e3 / sample_rate, &windows::hamming(101, false));
+     let lpf = FirBuilder::decimating_with_taps::<f32, f32, _>(5, taps);
+
+     let spec = hound::WavSpec {
+         channels: 1,
+         sample_rate: (sample_rate / 5.0) as u32,
+         bits_per_sample: 32,
+         sample_format: hound::SampleFormat::Float,
+     };
+     let snk = WavSink::<f32>::new("fm.wav", spec);
+
+     connect!(fg, src > demod > lpf > snk);
+     Runtime::new().run(fg)?;
+     Ok(())
+ }
 
 *************************************
 REDHAWK, OpenCPI, and the SCA
@@ -232,7 +342,7 @@ The Software Communications Architecture
 
 In the late 1990s the U.S. military launched the Joint Tactical Radio System (JTRS) program, aiming to replace a large number of incompatible military radios with a family of software-defined radios.  The central idea was **waveform portability**: a waveform (the military term for a complete signal processing application, like a specific communications protocol) should be written once and run on radios from different manufacturers.  To make that possible, JTRS created the **Software Communications Architecture (SCA)**, whose first version appeared in 2000.
 
-The SCA is not a DSP library, it's a specification for how software components get described, deployed, connected, configured, and started on a radio's processors.  Components are described in XML files, they communicate over CORBA (a middleware standard for calling functions on objects in other processes or on other machines), and a "core framework" on each radio reads those XML files to launch the waveform on whatever processors are available.  Notice the emphasis: deployment and portability come first, and the DSP itself is up to you.  Several commercial SCA implementations exist and the specification is still maintained, but it is mostly confined to the military radio world.
+The SCA is not a DSP library; it's a specification for how software components get described, deployed, connected, configured, and started on a radio's processors.  Components are described in XML files, they communicate over CORBA (a middleware standard for calling functions on objects in other processes or on other machines), and a "core framework" on each radio reads those XML files to launch the waveform on whatever processors are available.  Notice the emphasis: deployment and portability come first, and the DSP itself is up to you.  Several commercial SCA implementations exist and the specification is still maintained, but it is mostly confined to the military radio world.
 
 REDHAWK
 #######
@@ -252,7 +362,64 @@ The killer feature was distribution: you could launch a waveform and have its co
 FM Receiver in REDHAWK
 ######################
 
-.. TODO: FM receiver in REDHAWK, likely abbreviated (components + waveform XML), since it is spread across many files
+REDHAWK ships with a set of basic components that cover most of our receiver: **rh.FileReader** reads the IQ file, **rh.AmFmPmBasebandDemod** performs the FM demod, **rh.fastfilter** is a low-pass filter (it filters using FFTs, but doesn't decimate), **rh.ArbitraryRateResampler** brings the rate down to 50 kHz, and **rh.FileWriter** saves the result.  You would normally drag these onto a canvas in the REDHAWK IDE and draw the connections, and the IDE saves the result as a waveform described in a "software assembly descriptor" XML file (:code:`.sad.xml`).  The full file is long, so here is an abbreviated version showing the first two components and the first connection:
+
+.. code-block:: xml
+
+ <softwareassembly id="DCE:..." name="fm_rx">
+   <componentfiles>
+     <!-- one entry per component type, pointing to that component's .spd.xml file -->
+   </componentfiles>
+   <partitioning>
+     <componentplacement>
+       <componentfileref refid="FileReader_..."/>
+       <componentinstantiation id="FileReader_1" startorder="0">
+         <usagename>FileReader_1</usagename>
+         <componentproperties>
+           <simpleref refid="source_uri" value="file:///data/fm_rds_250k_1Msamples.iq"/>
+           <simpleref refid="file_format" value="COMPLEX_FLOAT_LITTLE_ENDIAN"/>
+           <simpleref refid="sample_rate" value="250Ksps"/>
+           <simpleref refid="playback_state" value="PLAY"/>
+         </componentproperties>
+         <findcomponent>
+           <namingservice name="FileReader_1"/>
+         </findcomponent>
+       </componentinstantiation>
+     </componentplacement>
+     <componentplacement>
+       <componentfileref refid="AmFmPmBasebandDemod_..."/>
+       <componentinstantiation id="AmFmPmBasebandDemod_1" startorder="1">
+         <usagename>AmFmPmBasebandDemod_1</usagename>
+         <componentproperties>
+           <simpleref refid="freqDeviation" value="75000.0"/>
+         </componentproperties>
+         <findcomponent>
+           <namingservice name="AmFmPmBasebandDemod_1"/>
+         </findcomponent>
+       </componentinstantiation>
+     </componentplacement>
+     <!-- fastfilter (lowpass, freq1 = 15000), ArbitraryRateResampler (outputRate = 50000),
+          and FileWriter follow the same pattern -->
+   </partitioning>
+   <assemblycontroller>
+     <componentinstantiationref refid="FileReader_1"/>
+   </assemblycontroller>
+   <connections>
+     <connectinterface id="connection_1">
+       <usesport>
+         <usesidentifier>dataFloat_out</usesidentifier>
+         <componentinstantiationref refid="FileReader_1"/>
+       </usesport>
+       <providesport>
+         <providesidentifier>dataFloat_in</providesidentifier>
+         <componentinstantiationref refid="AmFmPmBasebandDemod_1"/>
+       </providesport>
+     </connectinterface>
+     <!-- three more connectinterface entries, one per arrow in the flowgraph -->
+   </connections>
+ </softwareassembly>
+
+To run it, you start a domain manager and a device manager, install the waveform into the domain, and launch it from the IDE or from Python.  One last wrinkle: rh.FileWriter only writes raw samples or BLUE files (a format common in government signal processing), not WAV, so to listen to the result you would convert the raw float32 file to WAV with a couple of lines of Python.  Even abbreviated, this receiver touches far more files than any other version in this chapter, because each component also has its own XML files describing its properties, ports, and implementation.  That overhead is the main reason REDHAWK feels heavy for small projects, and it pays off only when you need what it was built for: launching and managing waveforms across many computers.
 
 OpenCPI
 #######
@@ -264,7 +431,47 @@ In OpenCPI, components are implemented by **workers**, and each worker is writte
 FM Receiver in OpenCPI
 ######################
 
-.. TODO: FM receiver in OpenCPI, likely abbreviated (application XML + worker excerpts)
+OpenCPI's component library for this kind of work is **ocpi.comp.sdr**, and it has a floating-point FM demodulator and FIR filter we can use.  An OpenCPI application is described in XML (an "OAS", OpenCPI Application Specification), and it is refreshingly short:
+
+.. code-block:: xml
+
+ <application done="file_write">
+   <instance component="ocpi.core.file_read" connect="frequency_demodulator_xf_f">
+     <property name="fileName" value="fm_rds_250k_1Msamples.iq"/>
+   </instance>
+   <instance component="ocpi.comp.sdr.dsp.frequency_demodulator_xf_f" connect="fir_filter_f"/>
+   <instance component="ocpi.comp.sdr.dsp.fir_filter_f" connect="file_write">
+     <!-- 64 low-pass taps from firwin(64, 15e3, fs=250e3), as a comma-separated list -->
+     <property name="taps" value="..."/>
+   </instance>
+   <instance component="ocpi.core.file_write">
+     <property name="fileName" value="fm_250k.f32"/>
+   </instance>
+ </application>
+
+You run it with :code:`ocpirun -v fm_rx.xml`, and the :code:`done="file_write"` attribute tells OpenCPI the application is finished once the file writer has received the end of the file.
+
+Notice that the application only names *components*, never *workers*.  When it's launched, OpenCPI looks at the hardware available and picks an implementation (worker) for each component.  Here's the core of the CPU worker for the FM demod, which is written in C++ using OpenCPI's RCC ("Resource-Constrained C/C++") authoring model:
+
+.. code-block:: c++
+
+ RCCResult run(bool) {
+   if (input.opCode() == Complex_float_timed_sampleSample_OPERATION) {
+     size_t length = input.sample().data().size();
+     const Complex_float_timed_sampleSampleData* inData = input.sample().data().data();
+     RCCFloat* outData = output.sample().data().data();
+     output.setOpCode(Float_timed_sampleSample_OPERATION);
+     output.sample().data().resize(length);
+     for (size_t i = 0; i < length; i++) {
+       *outData = atan2(lastSample.real * inData->imaginary - lastSample.imaginary * inData->real,
+                        lastSample.real * inData->real + lastSample.imaginary * inData->imaginary);
+       lastSample = *inData++;
+       outData++;
+     }
+     return RCC_ADVANCE;
+   }
+   // ... other opcodes (time, sample interval, flush, metadata, etc.) are passed through
+ }
 
 Why Do These Feel So Different?
 ###############################
@@ -280,7 +487,64 @@ CyberEther
 FM Receiver in CyberEther
 #########################
 
-.. TODO: FM receiver in CyberEther (screenshot), check that it can read a raw complex64 IQ file
+.. TODO: screenshot of the CyberEther flowgraph below
+
+CyberEther can read our raw complex64 recording directly with its File Reader block, which defaults to the CF32 data type (complex float32, the same thing as NumPy's complex64).  You normally build flowgraphs by dragging blocks around in the GUI, but they are saved as human-readable YAML files, so here is our receiver in that form, with the GUI layout information removed:
+
+.. code-block:: yaml
+
+ version: 2
+ title: FM Receiver from Recording
+ graph:
+   - name: file_reader
+     module: file_reader
+     device: cpu
+     runtime: native
+     provider: generic
+     config:
+       filepath: fm_rds_250k_1Msamples.iq
+       fileFormat: raw
+       dataType: CF32
+       batchSize: 12500
+       loop: true
+   - name: throttle
+     module: throttle
+     device: cpu
+     runtime: native
+     provider: generic
+     config:
+       intervalMs: 50
+     input:
+       buffer: '${graph.file_reader.output.signal}'
+   - name: fm
+     module: fm
+     device: cpu
+     runtime: native
+     provider: generic
+     config:
+       mode: narrow
+       sampleRate: 250000
+     input:
+       signal: '${graph.throttle.output.buffer}'
+   - name: audio
+     module: audio
+     device: cpu
+     runtime: native
+     provider: generic
+     config:
+       inSampleRate: 250000
+       outSampleRate: 48000
+     input:
+       buffer: '${graph.fm.output.signal}'
+   - name: spectrum_analyzer
+     module: spectrum_analyzer
+     device: cpu
+     runtime: native
+     provider: generic
+     input:
+       buffer: '${graph.throttle.output.buffer}'
+
+This one is structured a little differently from the others.  CyberEther is built around watching and listening to signals live, so the natural sink is the Audio block, which also takes care of resampling the 250 kHz demod output down to the 48 kHz the sound card wants.
 
 **************************
 Comparison

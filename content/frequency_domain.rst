@@ -640,4 +640,4 @@ The animation below drives this home.  Watch what happens as the boxcar on the l
 External Resources and Example Python Code
 ******************************************
 
-The full Python code from the FFT in Python, Windowing, Spectrogram/Waterfall, and FFT Implementation sections (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/frequency_domain.py>`_, or you can `open it as a marimo notebook <../marimo/frequency_domain.html>`_ that runs entirely in your browser, no install required.
+The full Python code from the FFT in Python, Windowing, Spectrogram/Waterfall, and FFT Implementation sections (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/frequency_domain.py>`__, or you can `open it as a marimo notebook <../marimo/frequency_domain.html>`_ that runs entirely in your browser, no install required.

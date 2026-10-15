@@ -155,4 +155,4 @@ If anyone wants to contribute a robust Python color demodulator, please reach ou
 External Resources and Example Python Code
 ******************************************
 
-The Python code used to demodulate the video in this chapter, including the plots along the way, can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/ntsc_pal_bw_minimal.py>`_, or you can `open it as a marimo notebook <../marimo/ntsc_pal_bw_minimal.html>`_ that runs entirely in your browser and downloads the FPV recording for you, no install required.
+The Python code used to demodulate the video in this chapter, including the plots along the way, can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/ntsc_pal_bw_minimal.py>`__, or you can `open it as a marimo notebook <../marimo/ntsc_pal_bw_minimal.html>`_ that runs entirely in your browser and downloads the FPV recording for you, no install required.

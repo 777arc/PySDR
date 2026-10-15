@@ -422,4 +422,4 @@ And as you can see, it looks exactly like our MSK from before, but generated usi
 External Resources and Example Python Code
 ******************************************
 
-The Python code used to create most of the figures in this chapter, including the Python exercise and the OQPSK/MSK examples, can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/pulse_shaping.py>`_, or you can `open it as a marimo notebook <../marimo/pulse_shaping.html>`_ that runs entirely in your browser, no install required.
+The Python code used to create most of the figures in this chapter, including the Python exercise and the OQPSK/MSK examples, can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/pulse_shaping.py>`__, or you can `open it as a marimo notebook <../marimo/pulse_shaping.html>`_ that runs entirely in your browser, no install required.

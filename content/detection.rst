@@ -1134,4 +1134,4 @@ Note that rake receivers are only possible for wideband signals, which have shar
 External Resources and Example Python Code
 ******************************************
 
-The full Python code used to create the figures and simulations in this chapter can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/detection.py>`_, or you can `open it as a marimo notebook <../marimo/detection.html>`_ that runs entirely in your browser, no install required.  Note that the notebook uses fewer Monte Carlo trials than the script, so it finishes in a reasonable amount of time, which makes its curves a little noisier.
+The full Python code used to create the figures and simulations in this chapter can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/detection.py>`__, or you can `open it as a marimo notebook <../marimo/detection.html>`_ that runs entirely in your browser, no install required.  Note that the notebook uses fewer Monte Carlo trials than the script, so it finishes in a reasonable amount of time, which makes its curves a little noisier.

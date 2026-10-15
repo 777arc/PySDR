@@ -638,4 +638,4 @@ Another sequence with great autocorrelation properties is Zadoff-Chu sequences, 
 External Resources and Example Python Code
 ******************************************
 
-The full Python example from this chapter (essentially the same code as the collapsed Full Python Example block above, split into cells) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/sync_chapter_only_full_example.py>`_, or you can `open it as a marimo notebook <../marimo/sync_chapter_only_full_example.html>`_ that runs entirely in your browser, no install required.
+The full Python example from this chapter (essentially the same code as the collapsed Full Python Example block above, split into cells) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/sync_chapter_only_full_example.py>`__, or you can `open it as a marimo notebook <../marimo/sync_chapter_only_full_example.html>`_ that runs entirely in your browser, no install required.

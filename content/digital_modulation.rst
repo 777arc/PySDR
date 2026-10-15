@@ -436,4 +436,4 @@ Further Reading
 External Resources and Example Python Code
 ******************************************
 
-The Python code from the Python Example section of this chapter (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/digital_modulation_python.py>`_, or you can `open it as a marimo notebook <../marimo/digital_modulation_python.html>`_ that runs entirely in your browser, no install required.
+The Python code from the Python Example section of this chapter (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/digital_modulation_python.py>`__, or you can `open it as a marimo notebook <../marimo/digital_modulation_python.html>`_ that runs entirely in your browser, no install required.

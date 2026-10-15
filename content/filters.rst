@@ -896,4 +896,4 @@ Note that SciPy's :code:`scipy.signal.oaconvolve` performs overlap-add convoluti
 External Resources and Example Python Code
 ******************************************
 
-The Python code for several of this chapter's examples (designing a low-pass filter and shifting it to make a band-pass filter, comparing the different convolution methods, and filtering noise with :code:`fftconvolve`) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/filters_chapter.py>`_, or you can `open it as a marimo notebook <../marimo/filters_chapter.html>`_ that runs entirely in your browser, no install required.
+The Python code for several of this chapter's examples (designing a low-pass filter and shifting it to make a band-pass filter, comparing the different convolution methods, and filtering noise with :code:`fftconvolve`) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/filters_chapter.py>`__, or you can `open it as a marimo notebook <../marimo/filters_chapter.html>`_ that runs entirely in your browser, no install required.

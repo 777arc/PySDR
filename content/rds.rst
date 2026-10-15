@@ -1022,4 +1022,4 @@ Further Reading
 External Resources and Example Python Code
 ******************************************
 
-The version of this chapter's code with the debug plotting/printing included can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/rds_demo.py>`_, or you can `open it as a marimo notebook <../marimo/rds_demo.html>`_ that runs entirely in your browser and downloads the FM recording for you, no install required.
+The version of this chapter's code with the debug plotting/printing included can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/rds_demo.py>`__, or you can `open it as a marimo notebook <../marimo/rds_demo.html>`_ that runs entirely in your browser and downloads the FM recording for you, no install required.

@@ -45,6 +45,4 @@ Radar-2025-Labs/
 # wrangler local state/upload cache (Cloudflare Pages deploys)
 .wrangler/
 
-# jupyterlite incremental build database
-.jupyterlite.doit.db
 .env

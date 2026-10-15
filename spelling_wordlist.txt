@@ -13,7 +13,7 @@ np
 NumPy
 numpy
 Jupyter
-JupyterLite
+marimo
 Arg
 frontend
 dBm

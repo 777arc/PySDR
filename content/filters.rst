@@ -892,7 +892,8 @@ The trade-off between the two is mostly a matter of taste and plumbing.  Overlap
 
 Note that SciPy's :code:`scipy.signal.oaconvolve` performs overlap-add convolution for you, and internally it calls :code:`scipy.signal.fftconvolve` which will pick an efficient FFT-based approach automatically.  The value in understanding overlap-add and overlap-save is that when you are streaming from a live radio, *you* own the block boundaries, and knowing how the filter's memory crosses those boundaries is what lets you filter a never-ending signal without a single glitch at the seams.
 
+******************************************
+External Resources and Example Python Code
+******************************************
 
-
-
-
+The Python code for several of this chapter's examples (designing a low-pass filter and shifting it to make a band-pass filter, comparing the different convolution methods, and filtering noise with :code:`fftconvolve`) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/filters_chapter.py>`_, or you can `open it as a marimo notebook <../marimo/filters_chapter.html>`_ that runs entirely in your browser, no install required.

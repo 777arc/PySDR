@@ -13,3 +13,8 @@
 /content/*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
+
+# The marimo notebooks (linked from the chapters) run Python in the browser, being cross-origin isolated lets marimo interrupt running code
+/marimo/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp

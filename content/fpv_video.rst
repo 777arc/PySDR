@@ -150,3 +150,9 @@ Limiting it to one frame's worth of samples is easy, we already calculated :code
    :alt: Demodded image cropping to a single frame
 
 If anyone wants to contribute a robust Python color demodulator, please reach out, but it must be shown to work on a variety of recordings (e.g. both synthetic and live without manually tuning anything).
+
+******************************************
+External Resources and Example Python Code
+******************************************
+
+The Python code used to demodulate the video in this chapter, including the plots along the way, can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/ntsc_pal_bw_minimal.py>`_, or you can `open it as a marimo notebook <../marimo/ntsc_pal_bw_minimal.html>`_ that runs entirely in your browser and downloads the FPV recording for you, no install required.

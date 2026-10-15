@@ -18,7 +18,8 @@ PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 EXTENSIONS      = -D extensions=sphinx.ext.mathjax,sphinx.ext.autosectionlabel,sphinxcontrib.tikz,sphinxcontrib.mermaid -D tikz_includegraphics_path=_images -D tikz_tikzlibraries=positioning,shapes,arrows,snakes
 # Scripts in figure-generating-scripts/ (with # %% cell markers) that get turned into in-browser marimo notebooks at
-# _build/marimo/<name>/, the converted notebook only ever exists in _build, never in the repo
+# _build/marimo/<name>.html, the converted notebook only ever exists in _build, never in the repo.  They all export into
+# the same folder so they share one copy of marimo's frontend (_build/marimo/assets/ etc.), which is identical across notebooks
 MARIMO_NOTEBOOKS = tdoa sync_chapter_only_full_example rds_demo frequency_domain
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
@@ -69,9 +70,9 @@ marimo:
 		echo "building marimo notebook from figure-generating-scripts/$$nb.py"; \
 		marimo -q -y convert figure-generating-scripts/$$nb.py -o $(BUILDDIR)/marimo/$$nb.py && \
 		marimo check $(BUILDDIR)/marimo/$$nb.py && \
-		marimo -q -y export html-wasm $(BUILDDIR)/marimo/$$nb.py -o $(BUILDDIR)/marimo/$$nb --mode edit -f && \
-		sed -i 's/"auto_instantiate": false/"auto_instantiate": true/' $(BUILDDIR)/marimo/$$nb/index.html && \
-		grep -q '"auto_instantiate": true' $(BUILDDIR)/marimo/$$nb/index.html || exit 1; \
+		marimo -q -y export html-wasm $(BUILDDIR)/marimo/$$nb.py -o $(BUILDDIR)/marimo/$$nb.html --mode edit -f && \
+		sed -i 's/"auto_instantiate": false/"auto_instantiate": true/' $(BUILDDIR)/marimo/$$nb.html && \
+		grep -q '"auto_instantiate": true' $(BUILDDIR)/marimo/$$nb.html || exit 1; \
 	done
 
 .PHONY: fast-html

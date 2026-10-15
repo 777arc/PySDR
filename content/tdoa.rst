@@ -338,7 +338,7 @@ Not much to it!  This gives us the following results:
 
 Note that this code doesn't fully "solve" the problem, even though it might seem like it does at first glance because the lines intersect exactly at the position of the emitter, but it's really your brain doing the final "solving" of the position, by looking at the intersection of the hyperbolas.  Also, if there was more noise, the hyperbolas would not all intersect at one point.  We will dive into automated solutions later in this chapter.
 
-The full Python code (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/tdoa.py>`_, or you can `open it as a marimo notebook <../marimo/tdoa/index.html>`_ that runs entirely in your browser, no install required.
+The full Python code (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/tdoa.py>`_, or you can `open it as a marimo notebook <../marimo/tdoa.html>`_ that runs entirely in your browser, no install required.
 
 Resolution and Sub-Sample Estimation
 ==========================================
@@ -811,4 +811,4 @@ whose two-dimensional peak gives :math:`(\hat\tau_{ij},\hat\nu_{ij})` simultaneo
 External Resources and Example Python Code
 ******************************************
 
-The full Python code used to create the figures and example code in this chapter can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/tdoa.py>`_, or you can `open it as a marimo notebook <../marimo/tdoa/index.html>`_ that runs entirely in your browser, no install required.
+The full Python code used to create the figures and example code in this chapter can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/tdoa.py>`_, or you can `open it as a marimo notebook <../marimo/tdoa.html>`_ that runs entirely in your browser, no install required.

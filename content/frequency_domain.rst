@@ -600,7 +600,7 @@ For those who prefer to think in code rather than equations, the following shows
    :target: ../_images/fft_in_python.svg
    :alt: python implementation of fft example
 
-If you want to try running the code from this chapter yourself, you can `open it as a marimo notebook <../marimo/frequency_domain/index.html>`_ that runs entirely in your browser, no install required.
+If you want to try running the code from this chapter yourself, you can `open it as a marimo notebook <../marimo/frequency_domain.html>`_ that runs entirely in your browser, no install required.
 
 *********************
 Boxcar and Sinc
@@ -635,3 +635,9 @@ The animation below drives this home.  Watch what happens as the boxcar on the l
    :align: center
    :target: ../_images/boxcar_sinc_animation.gif
    :alt: Animation of a boxcar pulse widening in time while its sinc spectrum narrows in frequency
+
+******************************************
+External Resources and Example Python Code
+******************************************
+
+The full Python code from the FFT in Python, Windowing, Spectrogram/Waterfall, and FFT Implementation sections (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/frequency_domain.py>`_, or you can `open it as a marimo notebook <../marimo/frequency_domain.html>`_ that runs entirely in your browser, no install required.

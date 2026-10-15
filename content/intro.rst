@@ -49,7 +49,7 @@ PySDR purposefully does not include a custom Python library or any wrapper funct
 
 Note that while Python is "slower" than C/C++ in general, most functions within Python/NumPy are actually implemented in C/C++ under the hood and heavily optimized, so you might be surprised how fast CPU-based DSP can run in Python.  Likewise, the SDR APIs we use (e.g., UHD) are simply a set of Python bindings for C/C++ functions/classes.  For fielded RF systems, high-rate signal processing is typically implemented in the FPGA anyway!
 
-Some PySDR chapters contain example code that can be opened as a web-based marimo notebook, allowing you to play with and run the Python examples entirely from your browser without installing anything.  To check if it works on your browser, try opening `this example <../marimo/frequency_domain/index.html>`_ from the :ref:`freq-domain-chapter` chapter.
+Some PySDR chapters contain example code that can be opened as a web-based marimo notebook, allowing you to play with and run the Python examples entirely from your browser without installing anything.  To check if it works on your browser, try opening `this example <../marimo/frequency_domain.html>`_ from the :ref:`freq-domain-chapter` chapter.
 
 ************
 Contributing

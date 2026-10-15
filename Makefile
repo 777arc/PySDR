@@ -19,7 +19,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 EXTENSIONS      = -D extensions=sphinx.ext.mathjax,sphinx.ext.autosectionlabel,sphinxcontrib.tikz,sphinxcontrib.mermaid -D tikz_includegraphics_path=_images -D tikz_tikzlibraries=positioning,shapes,arrows,snakes
 # Scripts in figure-generating-scripts/ (with # %% cell markers) that get turned into in-browser marimo notebooks at
 # _build/marimo/<name>/, the converted notebook only ever exists in _build, never in the repo
-MARIMO_NOTEBOOKS = tdoa
+MARIMO_NOTEBOOKS = tdoa sync_chapter_only_full_example rds_demo frequency_domain
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 

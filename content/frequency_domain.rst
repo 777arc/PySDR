@@ -600,7 +600,7 @@ For those who prefer to think in code rather than equations, the following shows
    :target: ../_images/fft_in_python.svg
    :alt: python implementation of fft example
 
-If you want to try running the code purely in your browser, it's available as a `web-based jupyter notebook <../jupyterlite/notebooks/index.html?path=frequency_domain.ipynb>`_.
+If you want to try running the code from this chapter yourself, you can `open it as a marimo notebook <../marimo/frequency_domain/index.html>`_ that runs entirely in your browser, no install required.
 
 *********************
 Boxcar and Sinc

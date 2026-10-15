@@ -217,6 +217,7 @@ plot_hyperbolas(_ax1, range_diff_sub, rx_color='tab:cyan', label_color='w')
 fig3.tight_layout()
 #if os.path.isdir('../_images'):
 #    fig3.savefig('../_images/tdoa_python_heatmap.svg', bbox_inches='tight')
+fig3
 
 # %%
 # Kept in its own cell, otherwise marimo would display fig3 twice

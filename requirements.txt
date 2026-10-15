@@ -14,3 +14,4 @@ setuptools<72 # was needed by the patreon package, may no longer be needed now t
 imageio==2.11.0
 marimo==0.25.1 # turns the scripts listed in MARIMO_NOTEBOOKS (in the Makefile) into the in-browser notebooks linked from the chapters, see `make marimo`
 jupytext==1.19.6 # needed by `marimo convert` to read the # %% cell markers
+uv==0.12.13 # needed by `marimo export html-wasm` to resolve local imports

@@ -282,6 +282,25 @@ The figure in the "Receiver Side" section demonstrates how the input signal is d
    :target: ../_images/receiver_arch_diagram.svg
    :alt: Three common receiver architectures: direct sampling, direct conversion, and superheterodyne
 
+Sampling at Four Times the IF
+=============================
+
+Many modern superheterodyne receivers stop at the IF and digitize it with a single ADC, leaving the final step down to baseband (including the split into I and Q) to be done digitally.  Normally that would mean digitally generating a cos() and sin() at the IF (a "digital LO") and multiplying every single sample by both of them, which adds up quickly at high sample rates.  A classic trick is to choose the sample rate to be exactly four times the IF, :math:`f_s = 4 f_{IF}`.  For example, with the 10.7 MHz IF found in many FM radios, you would sample at 42.8 MHz.  Why four?  Because then each sample lands exactly a quarter of a cycle (90 degrees) after the previous one, so the digital LO's cos() and sin() only ever take on the values 1, 0, and -1:
+
+.. math::
+ \cos(2 \pi f_{IF} n / f_s) = \cos(\pi n / 2) = 1, 0, -1, 0, 1, 0, -1, 0, \ldots
+
+ \sin(2 \pi f_{IF} n / f_s) = \sin(\pi n / 2) = 0, 1, 0, -1, 0, 1, 0, -1, \ldots
+
+which reads: the LO repeats every four samples, and it never takes on a value that needs a real multiply.  "Multiplying" by it just means keeping a sample, zeroing it, or flipping its sign.  Now plug this into our received signal, :math:`I \cos(2\pi f_{IF} t) + Q \sin(2\pi f_{IF} t)`, and the samples coming out of the ADC are simply I, Q, -I, -Q, I, Q, -I, -Q, and so on.  Below is that process using our example point 0.7 - 0.4j:
+
+.. image:: ../_images/fs_4_fif.svg
+   :align: center
+   :target: ../_images/fs_4_fif.svg
+   :alt: The fs = 4 f_IF trick, where a real IF signal sampled at four times the IF produces samples I, Q, -I, -Q, and mixing with a 1, 0, -1, 0 digital LO recovers I and Q on alternating samples
+
+In the top plot, notice how every other sample (marked I or -I) lands where the sin() is zero, so only the I part shows up, while the samples in between land where the cos() is zero, so only Q shows up.  The bottom plot shows the result after mixing with the 1/0/-1 LOs: the I branch holds 0.7 on every even sample and the Q branch holds -0.4 on every odd sample.  So the quadrature split is nearly free.  We just route even samples to I and odd samples to Q, negating every other one.  The "nearly" is because I and Q end up sampled half a sample apart instead of at the same instant, so real designs follow this with a decimate-by-2 filter that lines the two branches back up, but that is far cheaper than a full digital mixer.  The downsides are that the sample rate is locked to the IF, so you can't freely change one without the other, the ADC has to run at four times the IF even when the signal itself is much narrower, and any error in that 4:1 ratio shows up as a leftover frequency offset that still has to be corrected later.
+
 ***********************************
 Baseband and Bandpass Signals
 ***********************************

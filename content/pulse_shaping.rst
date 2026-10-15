@@ -417,3 +417,9 @@ And as you can see, it looks exactly like our MSK from before, but generated usi
    :align: center 
    :target: ../_images/cpfsk_magnitude.svg
    :alt: Example of CPFSK magnitude showing how it matches MSK
+
+******************************************
+External Resources and Example Python Code
+******************************************
+
+The Python code used to create most of the figures in this chapter, including the Python exercise and the OQPSK/MSK examples, can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/pulse_shaping.py>`_, or you can `open it as a marimo notebook <../marimo/pulse_shaping.html>`_ that runs entirely in your browser, no install required.

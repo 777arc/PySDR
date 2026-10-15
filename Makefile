@@ -20,7 +20,7 @@ EXTENSIONS      = -D extensions=sphinx.ext.mathjax,sphinx.ext.autosectionlabel,s
 # Scripts in figure-generating-scripts/ (with # %% cell markers) that get turned into in-browser marimo notebooks at
 # _build/marimo/<name>.html, the converted notebook only ever exists in _build, never in the repo.  They all export into
 # the same folder so they share one copy of marimo's frontend (_build/marimo/assets/ etc.), which is identical across notebooks
-MARIMO_NOTEBOOKS = tdoa sync_chapter_only_full_example rds_demo frequency_domain
+MARIMO_NOTEBOOKS = tdoa sync_chapter_only_full_example rds_demo frequency_domain digital_modulation_python ntsc_pal_bw_minimal filters_chapter detection pulse_shaping
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 

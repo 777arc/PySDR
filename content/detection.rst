@@ -1129,3 +1129,9 @@ I.e., take each finger's output, weight it by the conjugate of that finger's cha
 The payoff comes in two forms. The first is simply more signal energy; by gathering the echoes instead of discarding them, the rake recovers power that a single-peak detector would have thrown on the floor. The second, and often more important, benefit is *diversity*. The deep fades that wreck a wireless link happen when the paths to a single point momentarily cancel each other, but it is unlikely that several paths with different delays all fade at the same instant. So when the direct path drops into a fade, one of the reflections is probably still strong, and the rake leans on whichever fingers are healthy at that moment.
 
 Note that rake receivers are only possible for wideband signals, which have sharp auto-correlation, which means multipath copies show up as cleanly separated peaks in the delay profile. Narrowband signals smear those copies together and cannot resolve them, so the rake won't work.
+
+******************************************
+External Resources and Example Python Code
+******************************************
+
+The full Python code used to create the figures and simulations in this chapter can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/detection.py>`_, or you can `open it as a marimo notebook <../marimo/detection.html>`_ that runs entirely in your browser, no install required.  Note that the notebook uses fewer Monte Carlo trials than the script, so it finishes in a reasonable amount of time, which makes its curves a little noisier.

@@ -4,7 +4,7 @@
 Prise en main du Phaser
 ####################
    
-Dans ce chapitrte, nous utilisons `le Phase d'Analog Devices <https://wiki.analog.com/resources/eval/user-guides/circuits-from-the-lab/cn0566>`_, (également appelé CN0566 ou ADALM-PHASER), un système SDR à 8 canaux et à coût réduit doté d'une antenne à balayage de phase (phased array). Il associe un PlutoSDR, un Raspberry Pi et des circuits de formation de faisceau ADAR1000, le tout conçu pour fonctionner autour de 10,25 GHz. Nous aborderons les étapes de configuration et d'étalonnage, puis nous examinerons quelques exemples de formation de faisceau en Python. Pour ceux qui ne disposent pas de Phaser, nous avons inclus des captures d'écran et des animations illustrant ce que l'utilisateur verrait.
+Dans ce chapitrte, nous utilisons `le Phaser d'Analog Devices <https://wiki.analog.com/resources/eval/user-guides/circuits-from-the-lab/cn0566>`_, (également appelé CN0566 ou ADALM-PHASER), un système SDR à 8 canaux et à coût réduit doté d'une antenne à balayage de phase (phased array). Il associe un PlutoSDR, un Raspberry Pi et des circuits de formation de faisceau ADAR1000, le tout conçu pour fonctionner autour de 10,25 GHz. Nous aborderons les étapes de configuration et d'étalonnage, puis nous examinerons quelques exemples de formation de faisceau en Python. Pour ceux qui ne disposent pas de Phaser, nous avons inclus des captures d'écran et des animations illustrant ce que l'utilisateur verrait.
 
 .. image:: ../_images/phaser_on_tripod.png
    :scale: 60 % 

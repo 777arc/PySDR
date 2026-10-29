@@ -6,7 +6,7 @@
     <span class="std std-ref">Dr. Marc Lichtman</span>
   </a>
   -
-  <a class="reference external" href="mailto:pysdr&#37;&#52;&#48;vt&#46;edu" rel="noopener noreferrer" target="_blank">
+  <a class="reference external" href="mailto:marc&#37;&#52;&#48;pysdr&#46;org" rel="noopener noreferrer" target="_blank">
     pysdr<span>&#64;</span>vt<span>&#46;</span>edu
   </a>
 </p>
@@ -29,32 +29,26 @@
   for the textbook's purpose and target audience.
 </h4>
 
-<h4>
-  To get a quick taste of RF signal processing, try playing with the simulation below which shows the frequency and time domain of a signal
-  consisting of a tone and white Gaussian noise.
+<h4 style="line-height: 1.4">
+  As of Aug 2026, PySDR now has example GNU Radio flowgraphs scattered throughout, allowing the reader to play around with DSP concepts in a web-based GNU Radio
+  environment, thanks to the
+  <a class="reference external" href="https://gnuradioworld.com" rel="noopener noreferrer" target="_blank">GNU Radio World</a>
+  project!  An example is provided below.  If you open GNU Radio World and start playing around, try out the example signal recordings that can be used as a File Source and streamed to your browser; there
+  are dozens of example signals you can play with, most with example flowgraphs to go along with them.
 </h4>
 
-<div>
-  <input type="range" min="-0.4" max="0.4" step="0.0001" value="0.01" class="slider" id="freq" />
-  <span id="freq_value"></span>
-  <label>[Hz] - Tone Frequency</label>
-</div>
-<div>
-  <input type="range" min="-20" max="10" step="0.1" value="0" class="slider" id="noise_ampl_dB" />
-  <span id="noise_value"></span>
-  <label>[dB] - Noise Amplitude</label>
-</div>
-<div>
-  <canvas width="2048" height="800" id="freq_plot" style="width: 512px; height: 200px; border: 0px; image-rendering: auto"></canvas>
-</div>
-<br />
-<br />
-<div>
-  <canvas width="2048" height="800" id="time_plot" style="width: 512px; height: 200px; border: 0px; image-rendering: auto"></canvas>
-</div>
+<!-- The list of every GNU Radio World example in the textbook gets inserted here by gnuradioworld_examples.py, which
+     produces _templates/homepage_generated.html (the file index.rst actually includes).  Edit this file, not that one. -->
+<!-- GNU RADIO WORLD EXAMPLE LIST -->
 
-<script>
-  homepage_app();
-</script>
+<!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+<iframe
+          src="https://gnuradioworld.com/?embed=1&zoom=60%"
+          title="GNU Radio World"
+          loading="lazy"
+          allow="cross-origin-isolated; fullscreen"
+          style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+        ></iframe>
+<!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
 
 <br />

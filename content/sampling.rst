@@ -32,7 +32,7 @@ For a given signal, the big question often is how fast must we sample?  Let's ex
 .. image:: ../_images/sampling_Fs_0.3.svg
    :align: center
 
-The red dashed line in the above image reconstructs a different (incorrect) function that could have lead to the same samples being recorded. It indicates that our sample rate was too low because the same samples could have come from two different functions, leading to ambiguity. If we want to accurately reconstruct the original signal, we can't have this ambiguity.
+The red dashed line in the above image reconstructs a different (incorrect) function that could have led to the same samples being recorded. It indicates that our sample rate was too low because the same samples could have come from two different functions, leading to ambiguity. If we want to accurately reconstruct the original signal, we can't have this ambiguity.
 
 Let's try sampling a little faster, at Fs = 1.2f:
 
@@ -68,6 +68,20 @@ We must identify the highest frequency component, then double it, and make sure 
    :align: center
 
 If we don't sample fast enough we get something called aliasing, which we will learn about later, but we try to avoid it at all costs.  What our SDRs do (and most receivers in general) is filter out everything above Fs/2 right before the sampling is performed. If we attempt to receive a signal with too low a sample rate, that filter will chop off part of the signal.  Our SDRs go to great lengths to provide us with samples free of aliasing and other imperfections.  Because the SDR's anti-aliasing filter doesn't go from passband to stopband instantly (it needs a small transition band), the rule of thumb is to assume only the center 4/5 of your sample rate is usable bandwidth, known as "Sean's 4/5 rule".
+
+Rather than take my word for it, the `interactive GNU Radio flowgraph <https://gnuradioworld.com/examples/analog/sampling-aliasing/>`_ below lets you cause aliasing yourself, running entirely in your browser.  A cosine wave is being sampled at 100 kHz, so Nyquist is 50 kHz.  Run it, then slowly drag the tone frequency slider upward.  Below 50 kHz the peak moves to the right like you would expect, but above 50 kHz it turns around and folds back down, and the time domain plot shows the samples tracing out a slower sinusoid entirely.  That folded-over tone is the "incorrect signal" from the figures above, showing up as an actual measurement.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=analog/sampling_aliasing"
+             title="PySDR: Nyquist Sampling and Aliasing"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
 
 *************************
 Quadrature Sampling
@@ -136,15 +150,14 @@ Let's say we have an IQ sample, which is the single complex number :math:`I + jQ
  
  \qquad \qquad \qquad \qquad = \left(\sqrt{I^2+Q^2}\right) \cos\left(2\pi ft - \tan^{-1}\left(\frac{Q}{I}\right)\right)
 
-Even though we saw the math, let's play around with adding two sinusoids that are 90 degrees out of phase.  In the video below, there is a slider for adjusting I and another for adjusting Q, the amplitude of the cosine and sine.  What is plotted are the cosine (red), sine (blue), and the sum of the two (green).
+Even though we saw the math, let's play around with adding two sinusoids that are 90 degrees out of phase.  In the interactive app below, there is a slider for adjusting I and another for adjusting Q, the amplitude of the cosine and sine.  What is plotted are the cosine (red), sine (blue), and the sum of the two (green).
 
-.. image:: ../_images/IQ3.gif
-   :scale: 100%
-   :align: center
-   :target: ../_images/IQ3.gif
-   :alt: GNU Radio animation showing I and Q as amplitudes of sinusoids that get summed together
+.. raw:: html
 
-The code used for this pyqtgraph-based Python app can be found `here <https://raw.githubusercontent.com/777arc/PySDR/master/figure-generating-scripts/sin_plus_cos.py>`_.
+    <div id="sinPlusCosApp"></div>
+    <script>
+    sin_plus_cos_app("sinPlusCosApp")
+    </script>
 
 The important takeaways are that when we add the cos() and sin(), we get another pure sine wave of the same frequency but with a different phase and amplitude.   Also, the phase shifts as we slowly remove or add one of the two parts (the amplitude also changes).  This is all a result of the trig identity: :math:`a \cos(x) + b \sin(x) = A \cos(x-\phi)`.  The "utility" of this behavior is that we can control the phase and amplitude of a resulting sine wave by adjusting the amplitudes I and Q (we don't have to adjust the phase of the cosine or sine).  For example, we could adjust I and Q in a way that keeps the amplitude constant and makes the phase whatever we want.  As a transmitter this ability is extremely useful because we know that we need to transmit a sinusoidal signal in order for it to fly through the air as an electromagnetic wave.  And it's much easier to adjust two amplitudes and perform an addition operation compared to adjusting an amplitude and a phase.  It also allows us to represent baseband signals more conveniently, keeping them agnostic of the carrier.
 
@@ -228,7 +241,7 @@ Carrier and Downconversion
 
 Until this point we have not discussed frequency, but we saw there was an :math:`f` in the equations involving the cos() and sin().  This frequency is the center frequency of the signal we actually send through the air (the electromagnetic wave's frequency).  We refer to it as the "carrier" because it carries our signal on a certain RF frequency.  When we tune to a frequency with our SDR and receive samples, our information is stored in I and Q; this carrier does not show up in I and Q.
 
-For reference, radio signals such as FM radio, WiFi, Bluetooth, LTE, GPS, etc., usually use a frequency (i.e., a carrier) between 100 MHz and 6 GHz.  These frequencies travel really well through the air, but they don't require super long antennas or a ton of power to transmit or receive.  Your microwave cooks food with electromagnetic waves at 2.4 GHz. If there is a leak in the door then your microwave will jam WiFi signals and possibly also burn your skin.  Another form of electromagnetic waves is light. Visible light has a frequency of around 500 THz.  It's so high that we don't use traditional antennas to transmit light. We use  methods like LEDs that are semiconductor devices. They create light when electrons jump in between the atomic orbits of the semiconductor material, and the color depends on how far they jump.  Technically, radio frequency (RF) is defined as the range from roughly 20 kHz to 300 GHz. These are the frequencies at which energy from an oscillating electric current can radiate off a conductor (an antenna) and travel through space.  The 100 MHz to 6 GHz range are the more useful frequencies, at least for most modern applications.  Frequencies above 6 GHz have been used for radar and satellite communications for decades, and are now being used in 5G "mmWave" (24 - 29 GHz) to supplement the lower bands and increase speeds.
+For reference, radio signals such as FM radio, WiFi, Bluetooth, LTE, GPS, etc., usually use a frequency (i.e., a carrier) between 100 MHz and 6 GHz.  These frequencies travel really well through the air, but they don't require super long antennas or a ton of power to transmit or receive.  Your microwave cooks food with electromagnetic waves at 2.4 GHz. If there is a leak in the door then your microwave will jam WiFi signals and possibly also burn your skin.  Another form of electromagnetic waves is light. Visible light has a frequency of around 500 THz.  It's so high that we don't use traditional antennas to transmit light. We use  methods like LEDs that are semiconductor devices. They create light when electrons jump in between the atomic orbits of the semiconductor material, and the color depends on how far they jump.  Technically, radio frequency (RF) is defined as the range from roughly 3 kHz to 300 GHz. These are the frequencies at which energy from an oscillating electric current can radiate off a conductor (an antenna) and travel through space.  The 100 MHz to 6 GHz range are the more useful frequencies, at least for most modern applications.  Frequencies above 6 GHz have been used for radar and satellite communications for decades, and are now being used in 5G "mmWave" (24 - 29 GHz) to supplement the lower bands and increase speeds.
 
 When we change our IQ values quickly and transmit our carrier, it's called "modulating" the carrier (with data or whatever we want).  When we change I and Q, we change the phase and amplitude of the carrier.  Another option is to change the frequency of the carrier, i.e., shift it slightly up or down, which is what FM radio does.  It is easy to get confused between the signal we want to transmit (which typically contains many frequency components), and the frequency we transmit it on (our carrier frequency).  This will hopefully get cleared up when we cover baseband vs. bandpass signals.
 
@@ -251,7 +264,7 @@ When we are centered around 0 Hz, the maximum frequency is no longer 2.4 GHz but
 
 Just to reiterate, the downconversion process is performed by our SDR; as a user of the SDR we don't have to do anything other than tell it which frequency to tune to.  Downconversion (and upconversion) is done by a component called a mixer, usually represented in diagrams as a multiplication symbol inside a circle.  The mixer takes in a signal, outputs the down/up-converted signal, and has a third port which is used to feed in an oscillator.  The frequency of the oscillator determines the frequency shift applied to the signal, and the mixer is essentially just a multiplication function (recall that multiplying by a sinusoid causes a frequency shift).
 
-Lastly, you may be curious how fast signals travel through the air.  Recall from high school physics class that radio waves are just electromagnetic waves at low frequencies (between roughly 3 kHz to 80 GHz).  Visible light is also electromagnetic waves, at much higher frequencies (400 THz to 700 THz).  All electromagnetic waves travel at the speed of light, which is about 3e8 m/s, at least when traveling through air or a vacuum.  Now because they always travel at the same speed, the distance the wave travels in one full oscillation (one full cycle of the sine wave) depends on its frequency.  We call this distance the wavelength, denoted as :math:`\lambda`.  You have probably seen this relationship before:
+Lastly, you may be curious how fast signals travel through the air.  Recall from high school physics class that radio waves are just electromagnetic waves at low frequencies (between roughly 3 kHz to 300 GHz).  Visible light is also electromagnetic waves, at much higher frequencies (400 THz to 700 THz).  All electromagnetic waves travel at the speed of light, which is about 3e8 m/s, at least when traveling through air or a vacuum.  Now because they always travel at the same speed, the distance the wave travels in one full oscillation (one full cycle of the sine wave) depends on its frequency.  We call this distance the wavelength, denoted as :math:`\lambda`.  You have probably seen this relationship before:
 
 .. math::
  f = \frac{c}{\lambda}
@@ -268,6 +281,25 @@ The figure in the "Receiver Side" section demonstrates how the input signal is d
    :align: center
    :target: ../_images/receiver_arch_diagram.svg
    :alt: Three common receiver architectures: direct sampling, direct conversion, and superheterodyne
+
+Sampling at Four Times the IF
+=============================
+
+Many modern superheterodyne receivers stop at the IF and digitize it with a single ADC, leaving the final step down to baseband (including the split into I and Q) to be done digitally.  Normally that would mean digitally generating a cos() and sin() at the IF (a "digital LO") and multiplying every single sample by both of them, which adds up quickly at high sample rates.  A classic trick is to choose the sample rate to be exactly four times the IF, :math:`f_s = 4 f_{IF}`.  For example, with the 10.7 MHz IF found in many FM radios, you would sample at 42.8 MHz.  Why four?  Because then each sample lands exactly a quarter of a cycle (90 degrees) after the previous one, so the digital LO's cos() and sin() only ever take on the values 1, 0, and -1:
+
+.. math::
+ \cos(2 \pi f_{IF} n / f_s) = \cos(\pi n / 2) = 1, 0, -1, 0, 1, 0, -1, 0, \ldots
+
+ \sin(2 \pi f_{IF} n / f_s) = \sin(\pi n / 2) = 0, 1, 0, -1, 0, 1, 0, -1, \ldots
+
+which reads: the LO repeats every four samples, and it never takes on a value that needs a real multiply.  "Multiplying" by it just means keeping a sample, zeroing it, or flipping its sign.  Now plug this into our received signal, :math:`I \cos(2\pi f_{IF} t) + Q \sin(2\pi f_{IF} t)`, and the samples coming out of the ADC are simply I, Q, -I, -Q, I, Q, -I, -Q, and so on.  Below is that process using our example point 0.7 - 0.4j:
+
+.. image:: ../_images/fs_4_fif.svg
+   :align: center
+   :target: ../_images/fs_4_fif.svg
+   :alt: The fs = 4 f_IF trick, where a real IF signal sampled at four times the IF produces samples I, Q, -I, -Q, and mixing with a 1, 0, -1, 0 digital LO recovers I and Q on alternating samples
+
+In the top plot, notice how every other sample (marked I or -I) lands where the sin() is zero, so only the I part shows up, while the samples in between land where the cos() is zero, so only Q shows up.  The bottom plot shows the result after mixing with the 1/0/-1 LOs: the I branch holds 0.7 on every even sample and the Q branch holds -0.4 on every odd sample.  So the quadrature split is nearly free.  We just route even samples to I and odd samples to Q, negating every other one.  The "nearly" is because I and Q end up sampled half a sample apart instead of at the same instant, so real designs follow this with a decimate-by-2 filter that lines the two branches back up, but that is far cheaper than a full digital mixer.  The downsides are that the sample rate is locked to the IF, so you can't freely change one without the other, the ADC has to run at four times the IF even when the signal itself is much narrower, and any error in that 4:1 ratio shows up as a leftover frequency offset that still has to be corrected later.
 
 ***********************************
 Baseband and Bandpass Signals
@@ -322,6 +354,20 @@ The blue box above shows what is actually sampled by the SDR, and the green box 
 There is one problem: if we want our signal to be centered at 100 MHz and only contain 5 MHz, we will have to perform a frequency shift, filter, and downsample the signal ourselves (something we will learn how to do later). Fortunately, this process of offtuning, a.k.a applying an LO offset, is often built into the SDRs, where they will automatically perform offtuning and then shift the frequency to your desired center frequency.  We benefit when the SDR can do it internally: we don't have to send a higher sample rate over our USB or Ethernet connection, which bottleneck how high a sample rate we can use.
 
 This subsection regarding DC offsets is a good example of where this textbook differs from others. Your average DSP textbook will discuss sampling, but it tends not to include implementation hurdles such as DC offsets despite their prevalence in practice.
+
+The `GNU Radio flowgraph <https://gnuradioworld.com/examples/filter/sampling-dc-spike-offset-tuning/>`_ below simulates this entire situation, scaled down from the 20 MHz example above to 1 MHz so that it runs comfortably in a browser.  The top spectrum is what the SDR hands you, a big DC spike sitting at the LO with the signal we actually want off to one side.  The bottom spectrum is after the frequency shift and filter that offset tuning implies, and the signal is now centered with no spike in sight.  Slide the DC offset down to zero to see what a receiver free of LO leakage would look like.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=filter/sampling_dc_spike_offset_tuning"
+             title="PySDR: DC Spike and Offset Tuning"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
 
 
 ****************************

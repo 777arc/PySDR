@@ -186,7 +186,7 @@ The most simple (and minimal) way to use the SigMF standard to describe a binary
      "annotations": []
  }
 
-Note the :code:`core:cf32_le` indicates your .sigmf-data is of type IQIQIQIQ... with 32-bit floats, i.e., np.complex64 like we used previously.  Reference the specifications for other available datatypes, such as if you have real data instead of complex, or are using 16-bit integers instead of floats to save space.
+Note the value :code:`cf32_le` for :code:`core:datatype` indicates your .sigmf-data is of type IQIQIQIQ... with 32-bit floats, i.e., np.complex64 like we used previously.  Reference the specifications for other available datatypes, such as if you have real data instead of complex, or are using 16-bit integers instead of floats to save space.
 
 Aside from datatype, the most important lines to fill out are :code:`core:sample_rate` and :code:`core:frequency`.  It is good practice to also enter information about the hardware (:code:`core:hw`) used to capture the recording, such as the SDR type and antenna, as well as a description of what is known about the signal(s) in the recording in :code:`core:description`.  The :code:`core:version` is simply the version of the SigMF standard being used at the time the metadata file was created.
 

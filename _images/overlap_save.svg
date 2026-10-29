@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="696.60889"
+   height="466.02197"
+   viewBox="0 0 696.60889 466.02197"
+   font-family="'Segoe UI', Helvetica, Arial, sans-serif"
+   version="1.1"
+   id="svg88"
+   sodipodi:docname="overlap_save.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview90"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="2.8414528"
+     inkscape:cx="329.76089"
+     inkscape:cy="188.6359"
+     inkscape:window-width="3840"
+     inkscape:window-height="2054"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg88" />
+  <defs
+     id="defs10">
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#garbage"
+       id="pattern2124"
+       patternTransform="rotate(45,24.791717,-45.059548)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#garbage"
+       id="pattern2122"
+       patternTransform="rotate(45,24.791717,-45.059548)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#garbage"
+       id="pattern2120"
+       patternTransform="rotate(45,24.791717,-45.059548)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#garbage"
+       id="pattern2118"
+       patternTransform="rotate(45,24.791717,-45.059548)" />
+    <pattern
+       inkscape:collect="always"
+       xlink:href="#garbage"
+       id="pattern2116"
+       patternTransform="rotate(45,24.791717,-45.059548)" />
+    <marker
+       style="overflow:visible"
+       id="TriangleStart"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="TriangleStart"
+       markerWidth="5.3244081"
+       markerHeight="6.155385"
+       viewBox="0 0 5.3244081 6.1553851"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135" />
+    </marker>
+    <marker
+       id="arrowS"
+       markerWidth="9"
+       markerHeight="9"
+       refX="6"
+       refY="3"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="M 0,0 6,3 0,6 Z"
+         fill="#555555"
+         id="path2" />
+    </marker>
+    <pattern
+       id="garbage"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6"
+       patternTransform="rotate(45)">
+      <rect
+         width="6"
+         height="6"
+         fill="#e6e6e6"
+         id="rect5" />
+      <line
+         x1="0"
+         y1="0"
+         x2="0"
+         y2="6"
+         stroke="#999"
+         stroke-width="1.4"
+         id="line7" />
+    </pattern>
+  </defs>
+  <!-- ===== Stage 1: overlapping input blocks ===== -->
+  <text
+     x="-0.60058594"
+     y="11.271973"
+     font-size="15px"
+     font-weight="600"
+     fill="#333333"
+     id="text12">1. Blocks of length N overlap by M−1 new samples each step</text>
+  <!-- block 1 -->
+  <rect
+     x="95.399414"
+     y="27.271973"
+     width="200"
+     height="34"
+     fill="#cfe0f5"
+     stroke="#3a6ea5"
+     stroke-width="1.5"
+     id="rect14" />
+  <rect
+     x="95.399414"
+     y="27.271973"
+     width="40"
+     height="34"
+     fill="url(#garbage)"
+     stroke="#3a6ea5"
+     stroke-width="1.5"
+     id="rect16"
+     style="fill:url(#pattern2116)" />
+  <text
+     x="215.39941"
+     y="49.271973"
+     font-size="13px"
+     fill="#1f3d63"
+     text-anchor="middle"
+     id="text18">block 1</text>
+  <!-- block 2 -->
+  <rect
+     x="255.39941"
+     y="69.271973"
+     width="200"
+     height="34"
+     fill="#d3ecd6"
+     stroke="#3a8c4e"
+     stroke-width="1.5"
+     id="rect20" />
+  <rect
+     x="255.39941"
+     y="69.271973"
+     width="40"
+     height="34"
+     fill="#b9a7d6"
+     stroke="#6a4fa0"
+     stroke-width="1.5"
+     id="rect22" />
+  <text
+     x="375.39941"
+     y="91.271973"
+     font-size="13px"
+     fill="#1f5c30"
+     text-anchor="middle"
+     id="text24">block 2</text>
+  <!-- block 3 -->
+  <rect
+     x="415.39941"
+     y="111.27197"
+     width="200"
+     height="34"
+     fill="#f6e0c8"
+     stroke="#b5701f"
+     stroke-width="1.5"
+     id="rect26" />
+  <rect
+     x="415.39941"
+     y="111.27197"
+     width="40"
+     height="34"
+     fill="#b9a7d6"
+     stroke="#6a4fa0"
+     stroke-width="1.5"
+     id="rect28" />
+  <text
+     x="535.39941"
+     y="133.27197"
+     font-size="13px"
+     fill="#7a4a12"
+     text-anchor="middle"
+     id="text30">block 3</text>
+  <!-- reuse connectors -->
+  <line
+     x1="275.39941"
+     y1="61.271973"
+     x2="275.39941"
+     y2="69.271973"
+     stroke="#6a4fa0"
+     stroke-width="1.2"
+     stroke-dasharray="3, 2"
+     id="line32" />
+  <line
+     x1="435.39941"
+     y1="103.27197"
+     x2="435.39941"
+     y2="111.27197"
+     stroke="#6a4fa0"
+     stroke-width="1.2"
+     stroke-dasharray="3, 2"
+     id="line34" />
+  <!-- N brace -->
+  <line
+     x1="95.399414"
+     y1="153.27197"
+     x2="295.39941"
+     y2="153.27197"
+     stroke="#888888"
+     stroke-width="1"
+     id="line36" />
+  <line
+     x1="95.399414"
+     y1="149.27197"
+     x2="95.399414"
+     y2="157.27197"
+     stroke="#888888"
+     stroke-width="1"
+     id="line38" />
+  <line
+     x1="295.39941"
+     y1="149.27197"
+     x2="295.39941"
+     y2="157.27197"
+     stroke="#888888"
+     stroke-width="1"
+     id="line40" />
+  <text
+     x="195.39941"
+     y="168.27197"
+     font-size="12px"
+     fill="#666666"
+     text-anchor="middle"
+     id="text42">N (FFT size)</text>
+  <!-- legend for purple -->
+  <rect
+     x="445.39941"
+     y="157.27197"
+     width="14"
+     height="12"
+     fill="#b9a7d6"
+     stroke="#6a4fa0"
+     stroke-width="1.2"
+     id="rect44" />
+  <text
+     x="465.39941"
+     y="167.27197"
+     font-size="11px"
+     fill="#6a4fa0"
+     id="text46">= last M−1 samples reused from previous block</text>
+  <!-- arrow to stage 2 -->
+  <line
+     x1="355.57538"
+     y1="178.39214"
+     x2="355.57538"
+     y2="202.39214"
+     stroke="#555555"
+     stroke-width="1.6"
+     marker-end="url(#arrowS)"
+     id="line48"
+     style="stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;marker-end:url(#TriangleStart)" />
+  <text
+     x="367.39941"
+     y="196.27197"
+     font-size="12px"
+     fill="#555555"
+     id="text50">FFT × H, then IFFT (circular convolution)</text>
+  <!-- ===== Stage 2: circular conv, first M-1 outputs are garbage ===== -->
+  <text
+     x="-0.60058594"
+     y="231.27197"
+     font-size="15px"
+     font-weight="600"
+     fill="#333333"
+     id="text52">2. Circular convolution corrupts the first M−1 output samples</text>
+  <rect
+     x="95.399414"
+     y="247.27197"
+     width="200"
+     height="34"
+     fill="#cfe0f5"
+     stroke="#3a6ea5"
+     stroke-width="1.5"
+     id="rect54" />
+  <rect
+     x="95.399414"
+     y="247.27197"
+     width="40"
+     height="34"
+     fill="url(#garbage)"
+     stroke="#3a6ea5"
+     stroke-width="1.5"
+     id="rect56"
+     style="fill:url(#pattern2118)" />
+  <text
+     x="215.39941"
+     y="269.27197"
+     font-size="13px"
+     fill="#1f3d63"
+     text-anchor="middle"
+     id="text58">output 1</text>
+  <rect
+     x="255.39941"
+     y="289.27197"
+     width="200"
+     height="34"
+     fill="#d3ecd6"
+     stroke="#3a8c4e"
+     stroke-width="1.5"
+     id="rect60" />
+  <rect
+     x="255.39941"
+     y="289.27197"
+     width="40"
+     height="34"
+     fill="url(#garbage)"
+     stroke="#3a8c4e"
+     stroke-width="1.5"
+     id="rect62"
+     style="fill:url(#pattern2120)" />
+  <text
+     x="375.39941"
+     y="311.27197"
+     font-size="13px"
+     fill="#1f5c30"
+     text-anchor="middle"
+     id="text64">output 2</text>
+  <rect
+     x="415.39941"
+     y="331.27197"
+     width="200"
+     height="34"
+     fill="#f6e0c8"
+     stroke="#b5701f"
+     stroke-width="1.5"
+     id="rect66" />
+  <rect
+     x="415.39941"
+     y="331.27197"
+     width="40"
+     height="34"
+     fill="url(#garbage)"
+     stroke="#b5701f"
+     stroke-width="1.5"
+     id="rect68"
+     style="fill:url(#pattern2122)" />
+  <text
+     x="535.39941"
+     y="353.27197"
+     font-size="13px"
+     fill="#7a4a12"
+     text-anchor="middle"
+     id="text70">output 3</text>
+  <!-- garbage legend -->
+  <rect
+     x="445.39941"
+     y="373.27197"
+     width="14"
+     height="12"
+     fill="url(#garbage)"
+     stroke="#999999"
+     stroke-width="1.2"
+     id="rect72"
+     style="fill:url(#pattern2124)" />
+  <text
+     x="465.39941"
+     y="383.27197"
+     font-size="11px"
+     fill="#777777"
+     id="text74">= aliased samples, discarded</text>
+  <!-- arrow to stage 3 -->
+  <line
+     x1="355.39941"
+     y1="385.27197"
+     x2="355.39941"
+     y2="409.27197"
+     stroke="#555555"
+     stroke-width="1.6"
+     marker-end="url(#arrowS)"
+     id="line76"
+     style="marker-end:url(#TriangleStart)" />
+  <text
+     x="367.39941"
+     y="402.27197"
+     font-size="12px"
+     fill="#555555"
+     id="text78">drop the first M−1, keep the rest</text>
+  <!-- ===== Stage 3: keep the good samples, concatenate ===== -->
+  <text
+     x="-0.60058594"
+     y="425.27197"
+     font-size="15px"
+     font-weight="600"
+     fill="#333333"
+     id="text80">3. Keep the good samples → seamless output</text>
+  <rect
+     x="135.39941"
+     y="435.27197"
+     width="160"
+     height="30"
+     fill="#cfe0f5"
+     stroke="#3a6ea5"
+     stroke-width="1.5"
+     id="rect82" />
+  <rect
+     x="295.39941"
+     y="435.27197"
+     width="160"
+     height="30"
+     fill="#d3ecd6"
+     stroke="#3a8c4e"
+     stroke-width="1.5"
+     id="rect84" />
+  <rect
+     x="455.39941"
+     y="435.27197"
+     width="160"
+     height="30"
+     fill="#f6e0c8"
+     stroke="#b5701f"
+     stroke-width="1.5"
+     id="rect86" />
+</svg>

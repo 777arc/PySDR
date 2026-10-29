@@ -31,8 +31,11 @@
    content-ukraine/doa
    content-ukraine/2d_beamforming
    content-ukraine/phaser
-   content-ukraine/cyclostationar
+   content-ukraine/cyclostationary
    content-ukraine/pyqt
+   content-ukraine/detection
+   content-ukraine/fpv_video
+   content-ukraine/tdoa
    content-ukraine/about_author
 
 .. raw:: html

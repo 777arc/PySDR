@@ -232,11 +232,25 @@ Note that most modulation schemes, except the various ASKs and BPSK, are pretty 
 
 Given the difficulty discerning modulation schemes in the time domain, we prefer to use IQ plots over displaying the time domain signal.  We might, nonetheless, show the time domain signal if there's a certain packet structure or the sequence of symbols matters.
 
+Here is a chance to compare the schemes we have covered so far side-by-side.  The interactive GNU Radio flowgraph below takes one stream of random bits, modulates it three ways (`BPSK, QPSK, and 16-QAM <https://gnuradioworld.com/examples/digital/digital-modulation-constellations/>`_), runs each through an identical noise channel, and shows all three constellations at once.  Start with the noise slider near zero, then raise it slowly and watch which constellation becomes ambiguous first.  16-QAM carries four bits per symbol, but its points are packed much closer together, so it needs a far higher SNR before the receiver can tell the points apart.  The spectrum plot at the bottom shows the other half of the trade: all three occupy the same bandwidth, because the symbol rate and pulse shaping are identical.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=digital/digital_modulation_constellations"
+             title="PySDR: BPSK vs QPSK vs 16-QAM"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
+
 ****************************
 Frequency Shift Keying (FSK)
 ****************************
 
-Last on the list is Frequency Shift Keying (FSK).  FSK is fairly simple to understand--we just shift between N frequencies where each frequency is one possible symbol.  However, because we are modulating a carrier, it's really our carrier frequency +/- these N frequencies. E.g.. we might be at a carrier of 1.2 GHz and shift between these four frequencies:
+Last on the list is Frequency Shift Keying (FSK).  FSK is fairly simple to understand--we just shift between N frequencies where each frequency is one possible symbol.  However, because we are modulating a carrier, it's really our carrier frequency +/- these N frequencies. E.g., we might be at a carrier of 1.2 GHz and shift between these four frequencies:
 
 1. 1.2001 GHz
 2. 1.2003 GHz
@@ -258,6 +272,20 @@ IQ plots can't be used to show different frequencies. They show magnitude and ph
    :align: center
    :target: ../_images/fsk2.svg
    :alt: Frequency Shift Keying (FSK) or 2FSK in the time domain
+
+The flowgraph below is `4-FSK <https://gnuradioworld.com/examples/digital/digital-modulation-fsk/>`_ that you can poke at.  Four symbol values drive an FM modulator at a 2 kHz symbol rate, and the frequency spacing is on a slider.  The waterfall is where FSK finally makes visual sense; you can watch the signal hop between the four frequencies over time, something neither the IQ plot nor the time domain plot manages.  Now shrink :math:`\Delta f` and watch the four carriers widen into each other until they merge into a single blob, at which point the receiver has no way to tell which frequency was transmitted.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=digital/digital_modulation_fsk"
+             title="PySDR: 4-FSK and Frequency Spacing"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
 
 As an aside, note that FM radio uses Frequency Modulation (FM) which is like an analog version of FSK.  Instead of having discrete frequencies we jump between, FM radio uses a continuous audio signal to modulate the frequency of the carrier.  Below is an example of FM and AM modulation where the "signal" at the top is the audio signal being modulated onto to the carrier.
 
@@ -296,7 +324,7 @@ As an example of encoding, consider transmitting the 10 bits [1, 1, 0, 0, 1, 1, 
  Input:     1 1 0 0 1 1 1 1 1 0
  Output:  1
 
-Next you build the output by comparing the input bit with the previous **output** bit, and apply the XOR operation shown in the table above.  The next output bit is therefore a 0, because 1 and 1 match:
+Next you build the output by comparing the input bit with the previous **output** bit, and apply the XOR operation.  The next output bit is therefore a 0, because 1 and 1 match:
 
 .. code-block::
 
@@ -403,3 +431,9 @@ Further Reading
 *******************
 
 #. https://en.wikipedia.org/wiki/Differential_coding
+
+******************************************
+External Resources and Example Python Code
+******************************************
+
+The Python code from the Python Example section of this chapter (including the plotting portion) can be found `here <https://raw.githubusercontent.com/777arc/PySDR/refs/heads/master/figure-generating-scripts/digital_modulation_python.py>`__, or you can `open it as a marimo notebook <../marimo/digital_modulation_python.html>`_ that runs entirely in your browser, no install required.

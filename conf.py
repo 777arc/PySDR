@@ -7,6 +7,8 @@ import sys, os
 sys.path.append(os.path.relpath('.')) # needed for sphinx to allow importing
 from scrape_patreon import scrape_patreon
 scrape_patreon()
+from gnuradioworld_examples import generate_gnuradioworld_list
+generate_gnuradioworld_list()
 
 ###############################
 # -- General configuration ----
@@ -70,7 +72,7 @@ release = u'0.1'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', 'index-fr.rst', 'content-fr/*', 'index-nl.rst', 'content-nl/*', 'index-ukraine.rst', 'content-ukraine/*', 'index-zh.rst', 'content-zh/*', 'index-es.rst', 'content-es/*', 'index-ja.rst', 'content-ja/*']
+exclude_patterns = ['_build', '.venv', 'index-fr.rst', 'content-fr/*', 'index-nl.rst', 'content-nl/*', 'index-ukraine.rst', 'content-ukraine/*', 'index-zh.rst', 'content-zh/*', 'index-es.rst', 'content-es/*', 'index-ja.rst', 'content-ja/*']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -201,7 +203,11 @@ html_js_files = [
     'js/beamforming_slider_app.js',
     'js/FFT.js',
     'js/cyclostationary_app.js',
-    'js/homepage_app.js'
+    'js/homepage_app.js',
+    'js/tdoa.js',
+    'js/eye_diagram_app.js',
+    'js/sin_plus_cos_app.js',
+    'js/sidebar_groups.js'
     # we also include the index.js file from the PhasedArrayVisualizer directory in setup() above
 ]
 

@@ -348,6 +348,40 @@ Pluto можна налаштувати на фіксоване або авто�
 
 Корисно повільно відрегулювати :code:`sdr.tx_hardwaregain_chan0` і :code:`sdr.rx_hardwaregain_chan0`, щоб переконатися, що отриманий сигнал слабшає/посилюється відповідно до очікувань.
 
+********************
+Maia SDR та IQEngine
+********************
+
+Хочете використовувати свій Pluto як аналізатор спектра реального часу на ПК чи смартфоні?  Відкритий проєкт `Maia SDR <https://maia-sdr.org/>`_ надає модифікований образ прошивки для Pluto, який виконує ШПФ на ПЛІС Pluto і піднімає вебсервер на його ARM-процесорі!  Цей вебінтерфейс використовується для встановлення частоти та інших параметрів SDR, а також для перегляду спектрограми у вигляді водоспаду.  Ви можете робити записи сирих IQ-відліків розміром до 400 МБ і завантажувати їх на комп'ютер чи телефон або переглядати в IQEngine.
+
+Встановіть найновішу прошивку Maia для Pluto, завантаживши `останній реліз <https://github.com/maia-sdr/plutosdr-fw/releases/>`_, а саме файл із назвою :code:`plutosdr-fw-maia-sdr-vX.Y.Z.zip`. Розпакуйте його і скопіюйте файл :code:`pluto.frm` на накопичувач Pluto (він виглядає як USB-флешка), після чого виконайте безпечне вилучення Pluto (не від'єднуйте кабель) - це той самий процес, що й оновлення прошивки Pluto; пристрій блиматиме кілька хвилин, а потім перезавантажиться.  Нарешті, підключіться до Pluto через SSH, як ми робили в розділі про "злам" Pluto, командою :code:`ssh root@192.168.2.1` у терміналі з паролем за замовчуванням :code:`analog`.  Підключившись, потрібно виконати такі три команди, по одній за раз:
+
+.. code-block:: bash
+
+ fw_setenv ramboot_verbose 'adi_hwref;echo Copying Linux from DFU to RAM... && run dfu_ram;if run adi_loadvals; then echo Loaded AD936x refclk frequency and model into devicetree; fi; envversion;setenv bootargs console=ttyPS0,115200 maxcpus=${maxcpus} rootfstype=ramfs root=/dev/ram0 rw earlyprintk clk_ignore_unused uio_pdrv_genirq.of_id=uio_pdrv_genirq uboot="${uboot-version}" && bootm ${fit_load_address}#${fit_config}'
+ 
+ fw_setenv qspiboot_verbose 'adi_hwref;echo Copying Linux from QSPI flash to RAM... && run read_sf && if run adi_loadvals; then echo Loaded AD936x refclk frequency and model into devicetree; fi; envversion;setenv bootargs console=ttyPS0,115200 maxcpus=${maxcpus} rootfstype=ramfs root=/dev/ram0 rw earlyprintk clk_ignore_unused uio_pdrv_genirq.of_id=uio_pdrv_genirq uboot="${uboot-version}" && bootm ${fit_load_address}#${fit_config} || echo BOOT failed entering DFU mode ... && run dfu_sf'
+ 
+ fw_setenv qspiboot 'set stdout nulldev;adi_hwref;test -n $PlutoRevA || gpio input 14 && set stdout serial@e0001000 && sf probe && sf protect lock 0 100000 && run dfu_sf;  set stdout serial@e0001000;itest *f8000258 == 480003 && run clear_reset_cause && run dfu_sf; itest *f8000258 == 480007 && run clear_reset_cause && run ramboot_verbose; itest *f8000258 == 480006 && run clear_reset_cause && run qspiboot_verbose; itest *f8000258 == 480002 && run clear_reset_cause && exit; echo Booting silently && set stdout nulldev; run read_sf && run adi_loadvals; envversion;setenv bootargs console=ttyPS0,115200 maxcpus=${maxcpus} rootfstype=ramfs root=/dev/ram0 rw quiet loglevel=4 clk_ignore_unused uio_pdrv_genirq.of_id=uio_pdrv_genirq uboot="${uboot-version}" && bootm ${fit_load_address}#${fit_config} || set stdout serial@e0001000;echo BOOT failed entering DFU mode ... && sf protect lock 0 100000 && run dfu_sf'
+
+(Докладніше про те, навіщо це потрібно, див. `сторінку встановлення Maia <https://maia-sdr.org/installation/#set-up-the-u-boot-environment>`_)
+
+Перезавантажте Pluto ще раз.  На цьому етапі Pluto вже має працювати під керуванням Maia!  Відкрийте http://192.168.2.1:8000 у браузері - і ви побачите аналізатор спектра реального часу Maia та панель керування SDR, як показано на знімку екрана нижче:
+
+.. image:: ../_images/Maia.png
+   :scale: 40 % 
+   :align: center
+   :alt: Знімок екрана Maia SDR
+
+Щоб перевірити, наскільки швидко може працювати Maia, спробуйте збільшити :code:`Spectrum Rate` до 100 Гц або більше.  Окрім керування основними параметрами SDR, такими як частота, частота дискретизації та підсилення, ви можете натиснути кнопку :code:`Record` унизу, і почнеться запис сирих IQ-відліків у пам'ять на борту Pluto.  Потім запис можна відкрити в IQEngine для перегляду - через кнопку :code:`Recording` і посилання :code:`View in IQEngine`, як показано на знімку екрана нижче, - або зберегти файл на свій пристрій.
+
+.. image:: ../_images/IQEngine_from_Maia.png
+   :scale: 40 % 
+   :align: center
+   :alt: Знімок екрана IQEngine, відкритого з Maia SDR
+
+
+
 ************************
 Довідковий API
 ************************
@@ -623,6 +657,13 @@ AntSDR можна виявити та опитати за допомогою т�
    |   |   |   |   Freq range: 50.000 to 6000.000 MHz
    |   |   |   |   Gain range PGA: 0.0 to 89.8 step 0.2 dB
    |   |   |   |   Bandwidth range: 200000.0 to 56000000.0 step 0.0 Hz
+   |   |   |   |   Connection Type: IQ
+   |   |   |   |   Uses LO offset: No
+   |   |   |     _____________________________________________________
+   |   |   |    /
+   |   |   |   |       TX Codec: A
+   |   |   |   |   Name: B210 TX dual DAC
+   |   |   |   |   Gain Elements: None
 
 Нарешті, ви можете перевірити роботу Python API за допомогою такого фрагмента коду (у терміналі Python або в скрипті):
 

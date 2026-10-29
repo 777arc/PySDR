@@ -1,0 +1,20 @@
+# Cloudflare Pages consumes this file (it is not served) to set response headers.
+# The homepage and the English chapter pages embed GNU Radio World, which needs
+# SharedArrayBuffer and therefore a cross-origin isolated context. Scoped to those pages
+# so the translated chapters keep loading third-party subresources normally.
+/
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+/index.html
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+/content/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+# The marimo notebooks (linked from the chapters) run Python in the browser, being cross-origin isolated lets marimo interrupt running code
+/marimo/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp

@@ -1,26 +1,36 @@
+# %%
+import os
+import urllib.request
 import matplotlib.pyplot as plt
 import numpy as np
 #from gnuradio.filter import firdes
 from scipy.signal import resample_poly, firwin
 from matplotlib.animation import FuncAnimation
 
-#samples = np.fromfile('/home/marc/Downloads/fm_clip_for_rds.iq', dtype=np.complex64) # med SNR
-#samples = np.fromfile('/home/marc/Downloads/fm_rds_250k.iq', dtype=np.complex64) # high SNR
-samples = np.fromfile('/home/marc/fm_rds_250k_1Msamples.iq', dtype=np.complex64) # high SNR, shorter
+#recording = np.fromfile('/home/marc/Downloads/fm_clip_for_rds.iq', dtype=np.complex64) # med SNR
+#recording = np.fromfile('/home/marc/Downloads/fm_rds_250k.iq', dtype=np.complex64) # high SNR
+# high SNR, shorter.  If it's not in the current directory it gets downloaded from GitHub, which is also how the web-based marimo notebook gets it
+filename = 'fm_rds_250k_1Msamples.iq'
+if os.path.exists(filename):
+    recording = np.fromfile(filename, dtype=np.complex64)
+else:
+    recording = np.frombuffer(urllib.request.urlopen('https://raw.githubusercontent.com/777arc/498x/master/' + filename).read(), dtype=np.complex64)
 
 # MAKE MY OWN RECORDING OF A COOLER STATION, JUST MAKE SURE ITS HIGH SNR AND SCALE IT TO THE SAME SIGNAL LEVEL AS THIS WORKING ONE
 
+# %%
+# Everything from the FM demod through the BPSK demod is one cell, because x gets reused for each step of the signal chain
 sample_rate = 250e3
 center_freq = 99.5e6
 
 # Plot time
 if False:
-    plt.plot(samples)
+    plt.plot(recording)
     plt.show()
 
 # PSD
 if False:
-    PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(samples)))**2)
+    PSD = 10*np.log10(np.abs(np.fft.fftshift(np.fft.fft(recording)))**2)
     PSD = PSD[::100]
     PSD = PSD - np.max(PSD)
     f = np.linspace(sample_rate/-2, sample_rate/2, len(PSD))/1e3
@@ -32,7 +42,7 @@ if False:
     
     
 # Quadrature Demod
-x = 0.5 * np.angle(samples[0:-1] * np.conj(samples[1:])) # see https://wiki.gnuradio.org/index.php/Quadrature_Demod
+x = 0.5 * np.angle(recording[0:-1] * np.conj(recording[1:])) # see https://wiki.gnuradio.org/index.php/Quadrature_Demod
 
 # PSD
 if True:
@@ -47,7 +57,6 @@ if True:
     plt.xlabel("Frequency [kHz]")
     plt.ylabel("PSD After FM Demod [dB]")
     plt.show()
-    exit()
 
 # Spectrogram (once i get a higher SNR better looking recording I can include spectrogram towards the start
 if False:
@@ -248,6 +257,7 @@ if False:
     exit()
 
 
+# %%
 ###############
 # RDS Decoder #
 ###############
@@ -290,25 +300,25 @@ lastseen_offset = 0
 
 # the synchronization process is described in Annex C, page 66 of the standard */
 bytes_out = []
-for i in range(len(bits)):
+for _i in range(len(bits)):
     # in C++ reg doesn't get init so it will be random at first, for ours its 0s
     # It was also an unsigned long but never seemed to get anywhere near the max value
     # bits are either 0 or 1
-    reg = np.bitwise_or(np.left_shift(reg, 1), bits[i]) # reg contains the last 26 rds bits. these are both bitwise ops
+    reg = np.bitwise_or(np.left_shift(reg, 1), bits[_i]) # reg contains the last 26 rds bits. these are both bitwise ops
     if not synced:
         reg_syndrome = calc_syndrome(reg, 26)
         for j in range(5):
             if reg_syndrome == syndrome[j]:
                 if not presync:
                     lastseen_offset = j
-                    lastseen_offset_counter = i
+                    lastseen_offset_counter = _i
                     presync = True
                 else:
                     if offset_pos[lastseen_offset] >= offset_pos[j]:
                         block_distance = offset_pos[j] + 4 - offset_pos[lastseen_offset]
                     else:
                         block_distance = offset_pos[j] - offset_pos[lastseen_offset]
-                    if (block_distance*26) != (i - lastseen_offset_counter):
+                    if (block_distance*26) != (_i - lastseen_offset_counter):
                         presync = False
                     else:
                         print('Sync State Detected')
@@ -352,7 +362,7 @@ for i in range(len(bits)):
             if block_number == 0 and good_block:
                 group_assembly_started = True
                 group_good_blocks_counter = 1
-                bytes = bytearray(8) # 8 bytes filled with 0s
+                _group = bytearray(8) # 8 bytes filled with 0s
             if group_assembly_started:
                 if not good_block:
                     group_assembly_started = False
@@ -360,13 +370,13 @@ for i in range(len(bits)):
                     # raw data bytes, as received from RDS. 8 info bytes, followed by 4 RDS offset chars: ABCD/ABcD/EEEE (in US) which we leave out here
                     # RDS information words
                     # block_number is either 0,1,2,3 so this is how we fill out the 8 bytes
-                    bytes[block_number*2] = (dataword >> 8) & 255
-                    bytes[block_number*2+1] = dataword & 255
+                    _group[block_number*2] = (dataword >> 8) & 255
+                    _group[block_number*2+1] = dataword & 255
                     group_good_blocks_counter += 1
                     #print('group_good_blocks_counter:', group_good_blocks_counter)
                 if group_good_blocks_counter == 5:
-                    #print(bytes)
-                    bytes_out.append(bytes) # list of len-8 lists of bytes
+                    #print(_group)
+                    bytes_out.append(_group) # list of len-8 lists of bytes
             block_bit_counter = 0
             block_number = (block_number + 1) % 4
             blocks_counter += 1
@@ -381,6 +391,7 @@ for i in range(len(bits)):
                 wrong_blocks_counter = 0
 
 
+# %%
 ###############
 # RDS Parser  #
 ###############
@@ -442,11 +453,11 @@ coverage_area_codes = ["Local",
 radiotext_AB_flag = 0
 radiotext = [' ']*65
 first_time = True
-for bytes in bytes_out:
-    group_0 = bytes[1] | (bytes[0] << 8)
-    group_1 = bytes[3] | (bytes[2] << 8)
-    group_2 = bytes[5] | (bytes[4] << 8)
-    group_3 = bytes[7] | (bytes[6] << 8)
+for group in bytes_out:
+    group_0 = group[1] | (group[0] << 8)
+    group_1 = group[3] | (group[2] << 8)
+    group_2 = group[5] | (group[4] << 8)
+    group_3 = group[7] | (group[6] << 8)
       
     group_type = (group_1 >> 12) & 0xf # here is what each one means, e.g. RT is radiotext which is the only one we decode here: ["BASIC", "PIN/SL", "RT", "AID", "CT", "TDC", "IH", "RP", "TMC", "EWS", "___", "___", "___", "___", "EON", "___"]
     AB = (group_1 >> 11 ) & 0x1 # b if 1, a if 0
@@ -493,17 +504,6 @@ for bytes in bytes_out:
 
 
 
-
-
-'''
-fig, ax = plt.subplots(figsize=(6, 3))
-ax.plot(np.linspace(-1, 1, len(X)), X)
-ax.axis([-1, 1, 10, 50])
-ax.set_xlabel("Frequency [MHz]")
-ax.set_ylabel("Power Spectral Density")
-plt.show()
-fig.savefig('../_static/fsk.svg', bbox_inches='tight')
-'''
 
 
 # Once its all working, try decoding the pos and neg portions of RDS and compare BER

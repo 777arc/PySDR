@@ -1,0 +1,10 @@
+# Cloudflare Pages config for pysdr.org
+# The site is built by GitHub Actions (see .github/workflows/build-and-deploy.yml)
+# and uploaded here with `wrangler pages deploy` (direct upload, not CF's build system,
+# since the Sphinx build needs texlive/ghostscript/enchant).
+#
+# Deploy manually after a local `make html` (plus the html-xx targets) with:
+#   npx wrangler pages deploy
+name = "pysdr"
+pages_build_output_dir = "_build"
+compatibility_date = "2026-08-18"

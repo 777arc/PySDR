@@ -163,7 +163,23 @@ Take note that the :code:`randn()` function by default uses mean = 0 and varianc
    :alt: Example of white noise simulated in Python
    :target: ../_images/noise_python.png
 
+The GNU Radio flowgraph below generates complex Gaussian noise and shows it three ways at once: in time, in frequency, and as a histogram.  When you first run it, the frequency plot looks like grass rather than the flat line in the figure above.  Open the control panel on the frequency sink and turn on averaging, and it flattens right out, because it is the same noise, just averaged over many FFTs.  The histogram is a nice sanity check that the samples really are Gaussian distributed.  There is also a tone mixed in with an adjustable amplitude, so you can slide signal and noise against each other and watch the SNR change in a very literal way.
+
+.. raw:: html
+
+   <!-- ════════ GNU RADIO WORLD EMBED ════════ -->
+   <iframe
+             src="https://gnuradioworld.com/?embed=1&zoom=60%#example=analog/noise_awgn_psd"
+             title="PySDR: AWGN in Time, Frequency, and Distribution"
+             loading="lazy"
+             allow="cross-origin-isolated; fullscreen"
+             style="display:block; width:100%; aspect-ratio:21/9; min-height:345px; border:0; margin:18px auto 26px;"
+           ></iframe>
+   <!-- ════════ /GNU RADIO WORLD EMBED ════════ -->
+
 You can then produce the flat PSD that we had in GNU Radio by taking the log and averaging a bunch together.  The signal we generated and took the FFT of was a real signal (versus complex), and the FFT of any real signal will have matching negative and positive portions, so that's why we only saved the positive portion of the FFT output (the 2nd half).  But why did we only generate "real" noise, and how do complex signals work into this?
+
+More information about this GNU Radio World example can be found `here <https://gnuradioworld.com/examples/analog/noise-awgn-psd/>`_.
 
 *************************
 Complex Noise
@@ -525,7 +541,7 @@ The most common complex random variable in wireless communications is **complex 
 For example, if :math:`X \sim \mathcal{N}(\alpha_1, \sigma_1^2)` and :math:`Y \sim \mathcal{N}(\alpha_2, \sigma_2^2)` are independent, then the complex random variable :math:`Z = X + jY` has:
 
 * Mean: :math:`E[Z] = E[X] + jE[Y] = \alpha_1 + j\alpha_2`
-* Variance (Power): :math:`\text{Var}(Z) = \text{Var}(X) + \text{Var}(Y) = \sigma_1^2 + \sigma_2^2`
+* Variance: :math:`\text{Var}(Z) = \text{Var}(X) + \text{Var}(Y) = \sigma_1^2 + \sigma_2^2`
 
 .. image:: ../_images/gaussian_IQ.png
    :scale: 80%
@@ -577,7 +593,7 @@ Examples in wireless communications:
 A random process is **stationary** if its statistical properties don't change over time. In particular, a **wide-sense stationary (WSS)** process has:
 
 * Constant mean: :math:`E[X(t)] = \mu` for all :math:`t`
-* Autocorrelation that depends only on time difference: :math:`E[X(t)X(t+\tau)]` depends only on :math:`\tau`, not :math:`t`
+* Autocorrelation that depends only on time difference: :math:`E[X(t)X^*(t+\tau)]` depends only on :math:`\tau`, not :math:`t`
 
 Many noise sources in wireless systems are approximately stationary, which simplifies analysis significantly.
 

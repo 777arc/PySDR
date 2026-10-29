@@ -106,7 +106,7 @@ Lastly, we need to calibrate the phased array.  This requires holding the HB100 
 
  python phaser_examples.py cal
 
-This will create two more pickle files: phase_cal_val.pkl and gain_cal_val.pkl, in the same directory.  Each one contains an array of 8 numbers corresponding to the phase and gain tweaks needed to calibrate each channel.  These values are unique to each Phaser, as they can very during manufacturing.  Subsequent runs of this utility will lead to slightly different values which is normal.
+This will create two more pickle files: phase_cal_val.pkl and gain_cal_val.pkl, in the same directory.  Each one contains an array of 8 numbers corresponding to the phase and gain tweaks needed to calibrate each channel.  These values are unique to each Phaser, as they can vary during manufacturing.  Subsequent runs of this utility will lead to slightly different values which is normal.
 
 ************************
 Pre-built Example App
@@ -293,7 +293,7 @@ For each :code:`phase` value (remember, this is the phase between adjacent eleme
 
 In this example the HB100 was held slightly to the side of boresight.
 
-If you want a polar plot you can instead using the following:
+If you want a polar plot you can instead use the following:
 
 .. code-block:: python
 
@@ -386,7 +386,7 @@ Note the lack of sidelobes for Hamming.  In fact, every window aside from Rectan
 Monopulse Tracking
 ************************
 
-Up until this point we have been performing individual sweeps in order to find the angle of arrival of a test transmitter (the HB100).  But lets say we wish to continuously receive a communications or radar signal, that may be moving an causing the angle of arrival to change over time.  We refer to this process as tracking, and it assumes we already have a rough estimate of the angle of arrival (i.e., the initial sweep has identified a signal of interest).  We will use monopulse tracking to adaptively update the weights in order to keep the main lobe pointed at the signal over time, although note that there are other methods of tracking besides monopulse.
+Up until this point we have been performing individual sweeps in order to find the angle of arrival of a test transmitter (the HB100).  But lets say we wish to continuously receive a communications or radar signal, that may be moving and causing the angle of arrival to change over time.  We refer to this process as tracking, and it assumes we already have a rough estimate of the angle of arrival (i.e., the initial sweep has identified a signal of interest).  We will use monopulse tracking to adaptively update the weights in order to keep the main lobe pointed at the signal over time, although note that there are other methods of tracking besides monopulse.
 
 Invented in 1943 by Robert Page at the Naval Research Laboratory (NRL), the basic concept of monopulse tracking is to use two beams, both slightly offset from the current angle of arrival (or at least our estimate of it), but on different sides as shown in the diagram below.  
 
@@ -417,7 +417,7 @@ Now jumping into the full Python example, we will start by copying the code we u
    current_phase = phase_angles[np.argmax(powers)]
    print("max_phase:", current_phase)
 
-Next we will create two beams, we will start by trying 5 degrees lower and 5 degrees higher than the current estimate, although note that this is in units of phase, we haven't converted to steering angle, although they are similar.  The following code is essentially two copies of the code we used earlier to set the phase shifters of each channel, except we use the first 4 elements for the lower beam and last 4 elements for upper beam:
+Next we will create two beams, we will start by trying 5 degrees lower and 5 degrees higher than the current estimate, although note that this is in units of phase, we haven't converted to steering angle, though they are similar.  The following code is essentially two copies of the code we used earlier to set the phase shifters of each channel, except we use the first 4 elements for the lower beam and last 4 elements for upper beam:
 
 .. code-block:: python
 
@@ -526,7 +526,7 @@ Now lets use the error value to update the weights.  We will get rid of the prev
 
 You can see the error is essentially the derivative of the phase estimate; because we're performing successful tracking, the phase estimate is more or less the actual angle of arrival.  It's not clear looking only at these plots, but when there is a sudden movement, it takes the system a small fraction of a second to adjust and catch up.  The goal is for the change in angle of arrival to never be so quick that the signal arrives beyond the main lobes of the two beams.
 
-It is a lot easier to visualize the process when the array is only 1D, but practical use-cases of monopulse tracking are almost always 2D (using a 2D/planar array instead of a linear array like the Phaser).  For the 2D case, there are four beams created instead of two, and after process there is a single sum beam and four delta beams used to steer in both dimensions.
+It is a lot easier to visualize the process when the array is only 1D, but practical use-cases of monopulse tracking are almost always 2D (using a 2D/planar array instead of a linear array like the Phaser).  For the 2D case, there are four beams created instead of two, and after processing there is a single sum beam and four delta beams used to steer in both dimensions.
 
 ************************
 Radar with Phaser

@@ -12,15 +12,15 @@ Marc uses AI to help create the JavaScript mini-apps and solve issues like when 
 
 - Edit the `.rst` files under `content/` and the Sphinx config/templates under the repo root.
 - Treat `_build/` as generated output. Do not edit it directly.
+- Images (primarily in SVG format) referenced by the RST live in _images/
+- Python code used to produce images (primarily in SVG format) lives in figure-generating-scripts/
 - If you change a page, also check whether image assets, scripts, or config in `_static/`, `_images/`, `conf.py`, or `Makefile` need matching updates.
 
 ## How to build locally
 
-- Activate the project virtual environment:
+If the prompt does not ask to build it, then don't build it.
 
-```bash
-source /home/marc/venvs/pysdr/bin/activate
-```
+- Activate the project virtual environment which should be in the root of this repo under .venv
 
 - Build the site using:
 
@@ -30,6 +30,7 @@ make fast-html
 
 - The rendered HTML site will be in `_build/`.
 - Open `_build/index.html` for the main site, or the relevant page under `_build/content/`.
+- If you need to serve the site locally rather than opening the files directly, use `make serve` (serve.py, port 8091).  It sets the same COOP/COEP headers extra/_headers sets in production, which the GNU Radio World embeds need for SharedArrayBuffer; a plain `python -m http.server` serves the pages fine but every embed fails when you press Run.  Port 8090 is taken by the GNU Radio World dev server.
 
 ## Practical workflow
 
@@ -54,8 +55,11 @@ PySDR's prose is intentionally instructional, conversational, and example-driven
 - Keep technical terminology precise, but avoid sounding overly academic or formal.
 - When a section already has figures or code, make the surrounding prose point the reader to them and explain what they should notice.
 - Avoid hype, filler, and motivational fluff.
-
-When in doubt, read the surrounding chapter aloud mentally and aim for the same cadence and readability rather than a generic documentation voice.
+- Lead with a concrete scenario before any equation. Pose a small "what if" with real numbers (e.g. "the emitter is 100 m closer to one sensor"), then generalize. Introduce the named concept (hyperbola, foci) in plain words before showing the formula.
+- Read the equation back in plain English. Right after a .. math:: block, add a sentence translating it ("which reads: distance to one sensor minus distance to the other equals...").
+- Explain why, not just what. For each fact, give the intuition behind it (why a range difference can't exceed the baseline) rather than stating it as a rule.
+- Define jargon inline the moment it appears ("the baseline," "ill-conditioned, meaning small errors move the estimate a lot") instead of assuming the reader knows it.
+- Use second person and rhetorical questions to walk the reader through the reasoning as if thinking aloud.
 
 ## Notes
 

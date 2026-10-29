@@ -360,6 +360,7 @@ Phaser на Python
          plt.draw()
          plt.pause(0.001)
          plt.clf()
+ 
  except KeyboardInterrupt:
      sys.exit() # вийти з python
 

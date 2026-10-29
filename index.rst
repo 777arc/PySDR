@@ -1,5 +1,8 @@
+.. homepage_generated.html is built from _templates/homepage.html by gnuradioworld_examples.py (run from conf.py),
+   which fills in the list of every GNU Radio World example in the textbook.  Edit _templates/homepage.html instead.
+
 .. raw:: html
-   :file: _templates/homepage.html
+   :file: _templates/homepage_generated.html
 
 .. raw:: html
 
@@ -34,6 +37,9 @@
    content/cyclostationary
    content/pyqt
    content/detection
+   content/fpv_video
+   content/tdoa
+   content/sdr_frameworks
    content/about_author
 
 .. raw:: html

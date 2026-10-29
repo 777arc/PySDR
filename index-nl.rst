@@ -26,5 +26,13 @@
    content-nl/sync
    content-nl/rds
    content-nl/doa
-   content-nl/phaser   
+   content-nl/2d_beamforming
+   content-nl/phaser
+   content-nl/cyclostationary
+   content-nl/pyqt
+   content-nl/detection
    content-nl/about_author
+
+.. raw:: html
+
+   </details>

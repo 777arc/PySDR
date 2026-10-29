@@ -453,7 +453,7 @@ The slot/callback associated with updating the waterfall data, which goes in :co
         self.spectrogram_min = mean - 2*sigma # save to window state
         self.spectrogram_max = mean + 2*sigma
 
-Where spectrogram will be a 2D numpy array of floats.  In addition to setting the image data, we will calculate a min and max for the colormap, based on the mean and variance of the data, which we will use later.  The last part of the GUI code for the spectrogram is creating the colorbar, which also sets the colormap used:
+Where spectrogram will be a 2D numpy array of floats.  In addition to setting the image data, we will calculate a min and max for the colormap, based on the mean and standard deviation of the data, which we will use later.  The last part of the GUI code for the spectrogram is creating the colorbar, which also sets the colormap used:
 
 .. code-block:: python
 
@@ -475,7 +475,7 @@ The second line is important, it is what ultimately connects this colorbar to th
 Worker Thread
 ***********************
 
-Recall towards the beginning of this chapter we learned how to create a separate thread, using a class we called SDRWorker with a run() function.  This is where we will put all of our SDR and DSP code, with the exception of initialization of the SDR which we will do globally for now.  The worker thread will also be responsible for updating the three plots, by emitting signals when new samples are available, to trigger the callback functions we have already created in :code:`MainWindow`, which ultimately updates the plots.  The SDRWorker class can be split up into three sections:
+Recall towards the beginning of this chapter we learned how to create a separate thread, using a class we called SDRWorker with a run() function.  This is where we will put all of our SDR and DSP code, with the exception of initialization of the SDR which we will do globally for now.  The worker thread will also be responsible for updating the three plots, by emitting signals when new samples are available, to trigger the callback functions we have already created in :code:`MainWindow`, which ultimately updates the plots.  The SDRWorker class can be split up into four sections:
 
 #. :code:`init()` - used to initialize any state, such as the spectrogram 2D array
 #. PyQt Signals - we must define our custom signals that will be emitted

@@ -84,7 +84,7 @@ Amplitude Shift Keying (ASK) (Nederlands: amplitudeverschuivingsmodulatie) is he
 
 Let op hoe de gemiddelde waarde nul is; dit heeft altijd onze voorkeur.
 
-We kunnen meer dan twee niveaus gebruiken om meer bits per symbool te versturen. Hieronder een voorbeeld van 4-ASK. In dit geval bevat elk symbool 2 bits aan informatie.
+We kunnen meer dan twee niveaus gebruiken om meer bits per symbool te versturen. Hieronder een voorbeeld van 4-ASK (waarvan 0 ook een van de vier niveaus is). In dit geval bevat elk symbool 2 bits aan informatie.
 
 .. image:: ../_images/ask2.svg
    :align: center
@@ -114,7 +114,7 @@ Dit moduleert ons signaal op de draaggolf (de sinusoïde is die draaggolf). Het 
    :alt: Samples per symbol depiction using 2-ASK in the time domain, with 10 samples per symbol (sps)
 
 Het bovenste figuur laat de discrete samples zien als rode punten, dus ons digitale signaal. Het onderste figuur laat zien hoe het resulterende gemoduleerde signaal eruitziet, dit zou door de lucht verzonden kunnen worden. 
-In echte systemen is de frequentie van de draaggolf veel hoger dan de snelheid waarmee de symbolen afwisselen. In ons voorbeeld zijn er maar 3 perioden van de draaggolf per symbool, maar in de praktijk zouden er duizenden kunnen zijn, afhankelijk van hoe hoog in het spectrum het verzonden wordt.
+In echte systemen is de frequentie van de draaggolf veel hoger dan de snelheid waarmee de symbolen afwisselen. In ons voorbeeld zijn er maar 2.5 perioden van de draaggolf per symbool, maar in de praktijk zouden er duizenden kunnen zijn, afhankelijk van hoe hoog in het spectrum het verzonden wordt.  We raden deze links aan voor meer info over ASK `<https://ez.analog.com/ez-blogs/b/engineering-mind/posts/digital-signal-modulations-with-ask-rf-modulation-schemes-part-3-of-7>`
 
 ************************
 Phase Shift Keying (PSK)
@@ -208,7 +208,7 @@ We willen niet een 0 ontvangen als een 1.
 
    </details>
 
-Even terug naar ASK. Net als PSK kun je ASK ook laten zien in het IQ-diagram. Hier is het IQ-diagram van 2-ASK, 4-ASK, en 8-ASK, in bipolaire vorm, en ook 2-ASK en 4-ASK in de unipolaire vorm.
+Even terug naar ASK. Net als PSK kun je ASK ook laten zien in het IQ-diagram. Hier is het IQ-diagram van 2-ASK, 4-ASK, en 8-ASK, in bipolaire vorm, en ook 2-ASK en 4-ASK in de unipolaire vorm. Bipolair betekent in deze context dat het signaal zowel positieve als negatieve waarden kan aannemen. Unipolair gebruikt daarentegen alleen positieve waarden.
 
 .. image:: ../_images/ask_set.png
    :scale: 50 % 
@@ -269,7 +269,8 @@ FSK is niet moeilijk te vatten -- we schuiven tussen N frequenties waarbij elke 
 4. 1.1990 GHz
 
 Dit zou dan om 4-FSK met twee bits per symbool gaan.
-In het frequentiedomein zou 4-FSK er zo uit kunnen zien:
+De afstand tussen de frequenties is 200 kHz, dus het totale signaal zou dan net iets meer dan 600 kHz in beslag nemen.
+Wanneer we de FFT nemen van veel symbolen in een 4-FSK signaal, zou het spectrum in de basisband er zou uit kunnen zien:
 
 .. image:: ../_images/fsk.svg
    :align: center 
@@ -278,7 +279,7 @@ In het frequentiedomein zou 4-FSK er zo uit kunnen zien:
 Een belangrijke vraag die je jezelf moet stellen is: Welke afstand moet ik tussen de frequenties aanhouden? 
 Deze afstand wordt vaak aangegeven als :math:`\Delta f` in Hz. 
 Om er voor te zorgen dat de ontvanger symbolen aan frequenties kan koppelen, willen we vermijden dat signalen in het frequentiedomein overlappen, dus :math:`\Delta f` moet groot genoeg zijn.  
-De bandbreedte van elke draaggolf is een functie van de symboolsnelheid.
+De bandbreedte van elke draaggolf is een functie van de symboolsnelheid en het toegepaste pulsvormingsfilter.
 Meer symbolen per seconde geeft kortere symbolen en dus een grotere bandbreedte (denk aan de inverse relatie tussen tijd en frequentie).
 Hoe sneller we symbolen gaan oversturen, hoe breder elke draaggolf wordt en dus hoe groter we :math:`\Delta f` moeten maken om te voorkomen dat de draaggolven elkaar overlappen.
 
@@ -293,9 +294,9 @@ Dit is een analoge versie van FSK.
 In plaats van het springen tussen discrete frequenties, gebruikt de FM-zender een continu audiosignaal waarmee het de frequentie van de draaggolf moduleert. 
 Hieronder is een voorbeeld te zien van FM- en AM-modulatie, waarbij het "signaal" waarmee gemoduleerd wordt, in het bovenste figuur te zien is.
 
-.. image:: ../_images/Carrier_Mod_AM_FM.webp
+.. image:: ../_images/am_fm_animation.gif
    :align: center
-   :target: ../_images/Carrier_Mod_AM_FM.webp
+   :target: ../_images/am_fm_animation.gif
    :alt: Animation of a carrier, amplitude modulation (AM), and frequency modulation (FM) in the time domain
 
 In dit boek maken we ons vooral druk over de digitale vormen van modulatie.

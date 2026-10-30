@@ -11,10 +11,13 @@ by :ref:`Dr. Marc Lichtman<author-chapter>`
    content-fr/intro
    content-fr/frequency_domain
    content-fr/sampling
-   content-fr/digital_modulation
-   content-fr/hackrf
+   content-fr/digital_modulation   
    content-fr/pluto
    content-fr/usrp
+   content-fr/bladerf
+   content-fr/rtlsdr
+   content-fr/hackrf
+   content-fr/rtlsdr
    content-fr/noise
    content-fr/filters
    content-fr/link_budgets

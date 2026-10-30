@@ -179,9 +179,9 @@ Ahora tomemos la perspectiva de un receptor de radio que intenta recibir una se�
    :align: center
    :alt: Receiving IQ samples by directly multiplying the input signal by a sine wave and a 90 degree shifted version of that sine wave
 
-Lo que entra es una señal real recibida por nuestra antena, y esas se transforman en valores de IQ. Lo que hacemos es muestrear las ramas I y Q individualmente, usando dos ADC, y luego combinamos los pares y los almacenamos como números complejos. En otras palabras, en cada paso de tiempo, tomará una muestra de un valor I y un valor Q y los combinará en la forma :math:`I + jQ` (es decir, un número complejo por muestra de coeficiente intelectual). Siempre habrá una "frecuencia de muestreo", la velocidad a la que se realiza el muestreo. Alguien podría decir: "Tengo un SDR funcionando a una frecuencia de muestreo de 2 MHz". Lo que quieren decir es que el SDR recibe dos millones de muestras de coeficiente intelectual por segundo.
+Lo que entra es una señal real recibida por nuestra antena, y esas se transforman en valores de IQ. Lo que hacemos es muestrear las ramas I y Q individualmente, usando dos ADC, y luego combinamos los pares y los almacenamos como números complejos. En otras palabras, en cada paso de tiempo, tomará una muestra de un valor I y un valor Q y los combinará en la forma :math:`I + jQ` (es decir, un número complejo por muestra de IQ). Siempre habrá una "frecuencia de muestreo", la velocidad a la que se realiza el muestreo. Alguien podría decir: "Tengo un SDR funcionando a una frecuencia de muestreo de 2 MHz". Lo que quieren decir es que el SDR recibe dos millones de muestras de IQ por segundo.
 
-Si alguien te da un montón de muestras de coeficiente intelectual, se verá como una matriz/vector 1D de números complejos. Este punto, complejo o no, es el objetivo de todo este capítulo, y finalmente lo logramos.
+Si alguien te da un montón de muestras de IQ, se verá como una matriz/vector 1D de números complejos. Este punto, complejo o no, es el objetivo de todo este capítulo, y finalmente lo logramos.
 
 A lo largo de este libro de texto, se familiarizará **mucho** con cómo funcionan las muestras de IQ, cómo recibirlas y transmitirlas con un SDR, cómo procesarlas en Python y cómo guardarlas en un archivo para su posterior análisis.
 

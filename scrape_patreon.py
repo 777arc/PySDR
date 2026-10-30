@@ -77,6 +77,8 @@ def display_name(full_name):
     full_name = full_name.replace("meh", "MH")
     if full_name == "Дмитрий Ступаков":
         return None
+    if full_name == "Captivation": # manually added
+        return None
     if full_name == "Al Grant":
         return 'Al Grant <img width="15px" height="12px" src="https://pysdr.org/_static/kiwi-bird.svg">'
     if full_name == "Hash" or full_name == "RECESSIM":
@@ -116,7 +118,8 @@ def scrape_patreon():
             html_string += '&#9900; ' + name + "<br />"
         # Organizations that are sponsoring (Manually added to get logo included)
         html_string += '<div style="margin-top: 5px;">and organization-level supporters:</div>'
-        html_string += '<img width="12px" height="12px" src="https://pysdr.org/_static/adi.svg">' + ' <a style="border-bottom: 0;" target="_blank" href="https://www.analog.com/en/design-center/reference-designs/circuits-from-the-lab/cn0566.html">Analog Devices, Inc.</a>' + "<br />"
+        html_string += '<img width="12px" height="12px" src="https://pysdr.org/_static/adi.svg">' + ' <a target="_blank" href="https://www.analog.com/en/design-center/reference-designs/circuits-from-the-lab/cn0566.html">Analog Devices, Inc.</a>' + "<br />"
+        html_string += '<img width="12px" height="12px" src="https://pysdr.org/_static/captivation.svg">' + ' <a target="_blank" href="https://captivation.us/">Captivation</a>' + "<br />"
         html_string += "</div>"
         with open("_templates/patrons.html", "w", encoding="utf-8") as patron_file:
             patron_file.write(html_string)

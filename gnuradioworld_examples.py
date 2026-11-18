@@ -78,7 +78,7 @@ def _list_html(examples):
     lines = [
         MARKER,
         '<details style="margin: 10px 0 20px 0;">',
-        '  <summary style="cursor: pointer;"><h4 style="display: inline;">Expand for a list of all GNU Radio World examples in PySDR</h4></summary>',
+        '  <summary style="cursor: pointer;">Expand for a list of all GNU Radio World examples in PySDR</summary>',
         '  <ul style="margin-top: 10px;">',
     ]
     for chapter, title, example in examples:

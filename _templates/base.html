@@ -1,4 +1,4 @@
-{%- extends "basic/layout.html" %}
+{%- extends "!base.html" %}
 
 <!-- this block modifies the html titles to use a pipe and edits the title of the root page -->
 {%- set customtitlesuffix = " | "|safe + docstitle|e %}
@@ -13,7 +13,6 @@
 {% block extrahead %}
 
 {{ super() }}
-<link rel="stylesheet" href="{{ pathto('_static/custom.css', 1) }}" type="text/css" />
 
 {# Description used for search-engine snippets and social link previews. #}
 {%- set pysdr_description = "PySDR is a free online textbook (not a Python library!) that provides a gentle introduction to wireless communications and software-defined radio (SDR) using an abundance of diagrams, animations, and Python code examples." %}
@@ -36,6 +35,11 @@
   gtag('config', 'G-TGRQK1JJYD');
 </script> 
 
+{% endblock %}
+
+{%- block header %}
+{# root of the whole site relative to this page: English is built at the root, translations in a subfolder #}
+{%- set langroot = pathto('', 1) ~ ('' if master_doc == 'index' else '../') %}
 <div id="topBanner" class="modal">
   <div class="modal-content">
     <div class="modal-header" style="background-color: rgb(255, 240, 129); text-align:center;">
@@ -86,107 +90,14 @@
 
   &nbsp;|&nbsp;
 
-  <a style="text-decoration:none" href="https://pysdr.org/index.html"><img src="https://pysdr.org/_static/us.svg" alt="English" width="20">English</a>&nbsp;&nbsp;
-  <a style="text-decoration:none" href="https://pysdr.org/nl/index-nl.html"><img src="https://pysdr.org/_static/nl.svg" alt="Dutch" width="20">Dutch</a>&nbsp;&nbsp;
-  <a style="text-decoration:none" href="https://pysdr.org/fr/index-fr.html"><img src="https://pysdr.org/_static/fr.svg" alt="French" width="20">French</a>&nbsp;&nbsp;
-  <a style="text-decoration:none" href="https://pysdr.org/ukraine/index-ukraine.html"><img src="https://pysdr.org/_static/ukrain.svg" alt="Ukrainian" width="20">Ukrainian</a>&nbsp;&nbsp;
-  <a style="text-decoration:none" href="https://pysdr.org/zh/index-zh.html"><img src="https://pysdr.org/_static/cn.svg" alt="Chinese" width="20">Chinese</a>&nbsp;&nbsp;
-  <a style="text-decoration:none" href="https://pysdr.org/es/index-es.html"><img src="https://pysdr.org/_static/es.svg" alt="Spanish" width="20">Spanish</a>&nbsp;&nbsp;
-  <a style="text-decoration:none" href="https://pysdr.org/ja/index-ja.html"><img src="https://pysdr.org/_static/ja.svg" alt="Japanese" width="20">Japanese</a>
+  <a style="text-decoration:none" href="{{ langroot }}index.html"><img src="{{ pathto('_static/us.svg', 1) }}" alt="English" width="20"> English</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="{{ langroot }}nl/index-nl.html"><img src="{{ pathto('_static/nl.svg', 1) }}" alt="Dutch" width="20"> Dutch</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="{{ langroot }}fr/index-fr.html"><img src="{{ pathto('_static/fr.svg', 1) }}" alt="French" width="20"> French</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="{{ langroot }}ukraine/index-ukraine.html"><img src="{{ pathto('_static/ukrain.svg', 1) }}" alt="Ukrainian" width="20"> Ukrainian</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="{{ langroot }}zh/index-zh.html"><img src="{{ pathto('_static/cn.svg', 1) }}" alt="Chinese" width="20"> Chinese</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="{{ langroot }}es/index-es.html"><img src="{{ pathto('_static/es.svg', 1) }}" alt="Spanish" width="20"> Spanish</a>&nbsp;&nbsp;
+  <a style="text-decoration:none" href="{{ langroot }}ja/index-ja.html"><img src="{{ pathto('_static/ja.svg', 1) }}" alt="Japanese" width="20"> Japanese</a>&nbsp;&nbsp;
 </div>
-{% endblock %}
 
-
-{# top+bottom related navs; we also have our own in sidebar #}
-{%- macro rellink_markup() %}
-  <nav id="rellinks">
-    <ul>
-      {%- if prev %}
-        <li>
-          <a target="_blank" style="text-decoration:none;" href="https://github.com/777arc/PySDR/edit/master/{{ pagename }}.rst">✏️Suggest an Edit✏️</a>
-          &nbsp;&nbsp;&nbsp;&nbsp;
-          &larr;
-          <a href="{{ prev.link|e }}" title="Previous document">{{ prev.title }}</a>
-        </li>
-      {%- endif %}
-      {%- if next %}
-        <li>
-          <a href="{{ next.link|e }}" title="Next document">{{ next.title }}</a>
-          &rarr;
-        </li>
-      {%- endif %}
-    </ul>
-  </nav>
-{%- endmacro %}
-
-{%- set theme_show_relbar_top = theme_show_relbar_top or theme_show_relbars %}
-{%- set theme_show_relbar_bottom = theme_show_relbar_bottom or theme_show_relbars %}
-
-{# removed existing top+bottom related nav, and embed in main content #}
-{%- block relbar1 %}{% endblock %}
-{%- block relbar2 %}{% endblock %}
-
-{# Nav should appear before content, not after #}
-{%- block content %}
-{%- if theme_fixed_sidebar|lower == 'true' %}
-  <div class="document">
-    {{ sidebar() }}
-    {%- block document %}
-      <div class="documentwrapper">
-      {%- if render_sidebar %}
-        <div class="bodywrapper">
-      {%- endif %}
-
-          {%- block relbar_top %}
-            {%- if theme_show_relbar_top|tobool %}
-              <div class="related top">
-                &nbsp;
-                {{- rellink_markup () }}
-              </div>
-            {%- endif %}
-          {% endblock %}
-
-          <div class="body" role="main">
-            {% block body %} {% endblock %}
-          </div>
-
-          {%- block relbar_bottom %}
-            {%- if theme_show_relbar_bottom|tobool %}
-              <div class="related bottom">
-                &nbsp;
-                {{- rellink_markup () }}
-              </div>
-            {%- endif %}
-          {% endblock %}
-
-      {%- if render_sidebar %}
-        </div>
-      {%- endif %}
-      </div>
-    {%- endblock %}
-    <div class="clearer"></div>
-  </div>
-{%- else %}
 {{ super() }}
-{%- endif %}
-{%- endblock %}
-
-{%- block footer %}
-    <div class="footer">
-      {% if show_copyright %}&#169;{{ copyright }}.{% endif %}
-
-      {%- if show_source and has_source and sourcename %}
-      {% if show_copyright or show_sphinx %}|{% endif %}
-      <a href="{{ pathto('_sources/' + sourcename, true)|e }}"
-          rel="nofollow">{{ _('Page source') }}</a>
-      {%- endif %}
-    
-      <br />
-      PySDR is licensed under
-      <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">
-        CC BY-NC-SA 4.0
-        <img alt="Creative Commons License" width="40px" src="{{ pathto('_static/cc-by-nc-sa-88x31.png', 1) }}" />
-      </a>
-  </div>
-
 {%- endblock %}

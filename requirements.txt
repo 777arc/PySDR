@@ -1,14 +1,8 @@
-sphinx==4.4.0
-sphinxcontrib-tikz==0.4.20
-sphinxcontrib-spelling==8.0.0
-sphinxcontrib-applehelp==1.0.2
-sphinxcontrib-devhelp==1.0.2
-sphinxcontrib-htmlhelp==2.0.0
-sphinxcontrib-jsmath==1.0.1
-sphinxcontrib-qthelp==1.0.3
-sphinxcontrib-serializinghtml==1.1.5
-sphinxcontrib-mermaid==2.0.0
-docutils==0.17.1
+sphinx>=9.1 # shibuya-page needs Sphinx 9.1+ and Python 3.12+
+shibuya-page @ git+https://github.com/arsenovic/shibuya-page # the Sphinx theme (child of Shibuya)
+sphinxcontrib-tikz
+sphinxcontrib-spelling
+sphinxcontrib-mermaid
 requests # used by scrape_patreon.py to hit the Patreon v2 API
 setuptools<72 # was needed by the patreon package, may no longer be needed now that it's gone
 imageio==2.11.0

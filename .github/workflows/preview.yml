@@ -1,0 +1,48 @@
+# Builds the whole site (English + all translations) and publishes it to GitHub Pages of whichever
+# repo this runs in, so a PR's theme can be previewed at https://<owner>.github.io/<repo>/
+name: Preview build
+
+on:
+  push:
+    branches: [shibuya-theme]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: preview
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.7
+      - name: apt installs
+        run: sudo apt update && sudo apt install -y texlive-latex-extra texlive-lang-cyrillic ghostscript libenchant-2-dev
+      - uses: astral-sh/setup-uv@v6
+      - name: Install dependencies
+        run: uv venv --python 3.12 && uv pip install -r requirements.txt
+      - name: Build all languages
+        run: |
+          source .venv/bin/activate
+          make fast-html html-nl html-fr html-ukraine html-zh html-es html-ja
+        env:
+          CREATOR_ID: ${{ secrets.CREATOR_ID }}
+      - run: rm -rf _build/doctrees
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -7,7 +7,7 @@
 .. raw:: html
 
    <details>
-   <summary><h4 style="display: inline;">Expand for full table of contents</h4></summary>
+   <summary>Expand for full table of contents</summary>
 
 .. toctree::
    :maxdepth: 3

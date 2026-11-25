@@ -678,7 +678,7 @@ where:
 
 .. math::
 
- \frac{\partial L}{\partial \mathbf{w}^*} = 2\mathbf{R}\mathbf{w} - \lambda \mathbf{s} = 0
+ \frac{\partial L}{\partial \mathbf{w}^*} = \mathbf{R}\mathbf{w} - \lambda \mathbf{s} = 0
 
  \mathbf{w} = \lambda \mathbf{R}^{-1} \mathbf{s}
 
